@@ -2,7 +2,7 @@
 
 # 🍲 Hotpot - Seemless Fennel inside Neovim
 
-**🚧 Alpha: Updates may have breaking changes, this is also the first Lisp and Fennel I've ever written, so it might be garbage! 🚧**
+**🚧 Alpha: Updates may have breaking changes, this is also the first Lisp and Fennel I've ever written, so it ~~might be~~ is garbage! 🚧**
 
 > You take this home, throw it in a pot, add some broth, some neovim... baby,
 > you got a stew going!
