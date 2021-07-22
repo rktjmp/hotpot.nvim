@@ -5,8 +5,8 @@
              (fh:read :*a)))
 
 (fn write-file [path lines]
-    (with-open [fh (io.open path :w)]
-               (fh:write lines)))
+  (with-open [fh (io.open path :w)]
+             (fh:write lines)))
 
 (fn file-exists? [path]
   (uv.fs_access path :R))

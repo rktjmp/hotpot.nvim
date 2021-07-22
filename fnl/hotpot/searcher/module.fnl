@@ -32,7 +32,7 @@
     false lua-path
     true (do
            (match (compile-string (read-file fnl-path) {:filename fnl-path
-                                                         :correlate true})
+                                                        :correlate true})
              (true code) (do
                            ;; TODO normally this is fine if the dir exists exept if it ends in .
                            ;;      which can happen if you're requiring a in-dir file

@@ -25,7 +25,7 @@
                          ((partial string.gsub template "%?"))
                          (string.gsub "%.lua$" :.fnl)))
     (if (file-exists? full-path)
-        (set found full-path)))
+      (set found full-path)))
   found)
 
 (fn locate-module [modname]
