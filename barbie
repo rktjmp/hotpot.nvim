@@ -1,0 +1,42 @@
+#!/usr/bin/env sh
+
+snag() {
+  # clean
+  rm -rf lua/
+
+  # create destinations
+  for dir in $(fd -td ".*" fnl)
+  do
+    mkdir -p ${dir/fnl/lua}
+  done
+
+  # build
+  for src in $(fd -tf fnl)
+  do
+    case "$src" in
+      # dont actually build macrofile
+      *hotpot/macros.fnl*) echo "ignoring $src" ;;
+      # add path so we can run from project root
+      *) fennel --add-fennel-path "fnl/?.fnl" --compile --correlate $src > ${src//fnl/lua};;
+    esac
+  done
+
+  # oh right probably need this too
+  cp dep/fennel.lua lua/hotpot/fennel.lua
+}
+
+beer() {
+  # yeah looks good mate
+  fd -tf fnl | entr -sc './barbie snag'
+}
+
+case "$1" in
+  "snag")
+    snag
+    exit 0;;
+  "beer")
+    beer
+    exit 0;;
+  *)
+    echo "$0 snag|beer";;
+esac
