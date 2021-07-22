@@ -7,7 +7,7 @@
 (var has-run-setup false)
 (fn setup []
   (when (not has-run-setup)
-    (local config (-> (default-config)))
+    (local config (default-config))
     (table.insert package.loaders 1 (partial module-searcher config))
     (set has-run-setup true)))
 
