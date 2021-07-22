@@ -6,10 +6,15 @@
 
 
  local found = nil
- local paths = {("lua/" .. partial_path .. ".fnl"), ("lua/" .. partial_path .. "/init.fnl")}
+ local paths = {("fnl/" .. partial_path .. ".fnl"), ("fnl/" .. partial_path .. "/init.fnl"), ("lua/" .. partial_path .. ".fnl"), ("lua/" .. partial_path .. "/init.fnl")}
+
+
 
  for _, path in ipairs(paths) do if found then break end
+ print(path)
  local _0_ = vim.api.nvim_get_runtime_file(path, false) if ((type(_0_) == "table") and (nil ~= (_0_)[1])) then local path_23 = (_0_)[1]
+
+ print("found path", path_23)
  found = path_23 elseif (_0_ == nil) then end end
 
  return found end

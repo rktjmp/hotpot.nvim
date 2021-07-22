@@ -55,6 +55,7 @@
 
  local lua_path = fnl_path_to_compiled_path(fnl_path, config.prefix)
 
+ print("fnl-path", fnl_path, "lua-path", lua_path)
  maybe_compile(fnl_path, lua_path)
  return create_loader(lua_path) elseif (_0_ == nil) then
 

@@ -1,4 +1,5 @@
- local has_injected_macro_searcher = false
+
+ local macro_searcher = require("hotpot.searcher.macro") local has_injected_macro_searcher = false
 
 
  local function compile_string(string, options) local fennel = require("hotpot.fennel") if not has_injected_macro_searcher then
@@ -7,7 +8,7 @@
 
 
 
- table.insert(fennel["macro-searchers"], require("hotpot.searcher.macro")) has_injected_macro_searcher = true end
+ table.insert(fennel["macro-searchers"], macro_searcher) has_injected_macro_searcher = true end
 
 
  local function compile()

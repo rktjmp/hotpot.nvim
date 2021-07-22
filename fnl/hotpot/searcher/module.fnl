@@ -55,6 +55,7 @@
                 fnl-path
                 (let [lua-path (fnl-path-to-compiled-path fnl-path
                                                           config.prefix)]
+                  (print "fnl-path" fnl-path "lua-path" lua-path)
                   (maybe-compile fnl-path lua-path)
                   (create-loader lua-path))
                 ;; no fnl file for this module

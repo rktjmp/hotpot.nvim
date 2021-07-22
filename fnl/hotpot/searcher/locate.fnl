@@ -6,11 +6,16 @@
   ;; It checks: "lua/"..basename..".lua", "lua/"..basename.."/init.lua"
   ;; This code is basically transcoded from nvim/lua/vim.lua _load_package
   (var found nil)
-  (local paths [(.. :lua/ partial-path :.fnl)
+  (local paths [(.. :fnl/ partial-path :.fnl)
+                (.. :fnl/ partial-path :/init.fnl)
+                (.. :lua/ partial-path :.fnl)
                 (.. :lua/ partial-path :/init.fnl)])
   (each [_ path (ipairs paths) :until found]
-    (match (vim.api.nvim_get_runtime_file path false)
-      [path#] (set found path#)
+    (print path)
+    (match (vim.api.nvim_get_runtime_file path false) ;; false -> first result only
+      [path#] (do
+                (print "found path" path#)
+                (set found path#))
       nil nil))
   found)
 
