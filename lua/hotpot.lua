@@ -4,6 +4,14 @@
 
 
 
+ local function read_file(path)
+ local fh = io.open(path, "r") local function close_handlers_0_(ok_0_, ...) fh:close() if ok_0_ then return ... else return error(..., 0) end end local function _0_() return fh:read("*a") end return close_handlers_0_(xpcall(_0_, (package.loaded.fennel or debug).traceback)) end
+
+
+ local function write_file(path, lines)
+ local fh = io.open(path, "w") local function close_handlers_0_(ok_0_, ...) fh:close() if ok_0_ then return ... else return error(..., 0) end end local function _0_() return fh:write(lines) end return close_handlers_0_(xpcall(_0_, (package.loaded.fennel or debug).traceback)) end
+
+
  local function require_fennel()
  return require("hotpot.fennel") end
 
@@ -15,6 +23,7 @@
 
  local function file_missing_3f(path)
  return not file_exists_3f(path) end
+
 
  local function search_rtp(partial_path)
 
@@ -66,19 +75,34 @@
 
  return string.gsub(_0_(uv.fs_realpath(path)), "%.fnl$", ".lua") end
 
+ local function create_macro_loader(path)
+ local fennel = require_fennel()
+ local code = read_file(path) local function _0_(...) return fennel.eval(code, {env = "_COMPILER"}, ...) end
+ return _0_, path end
+
+
+ local function macro_searcher(modname)
+ local _0_ = locate_module(modname) if (nil ~= _0_) then local fnl_path = _0_
+ return create_macro_loader(fnl_path) end end
+
  local function file_stale_3f(newer, older)
 
 
  return (uv.fs_stat(newer).mtime.sec > uv.fs_stat(older).mtime.sec) end
 
  local function needs_compilation_3f(fnl_path, lua_path)
- return (file_missing_3f(lua_path) or file_stale_3f(fnl_path, lua_path)) end
+ return (file_missing_3f(lua_path) or file_stale_3f(fnl_path, lua_path)) end local has_injected_macro_searcher = false
+
 
  local function compile_string(string, options)
 
 
 
  local fennel = require_fennel()
+ if not has_injected_macro_searcher then
+ table.insert(fennel["macro-searchers"], macro_searcher) else has_injected_macro_searcher = true end
+
+
  local function compile()
  return fennel["compile-string"](string, (otions or {})) end
  return xpcall(compile, fennel.traceback) end
@@ -87,21 +111,17 @@
  local _0_ = needs_compilation_3f(fnl_path, lua_path) if (_0_ == false) then
  return lua_path elseif (_0_ == true) then
 
+ local _1_, _2_ = compile_string(read_file(fnl_path), {correlate = true, filename = fnl_path}) if ((_1_ == true) and (nil ~= _2_)) then local code = _2_
+
+
 
 
  vim.fn.mkdir(string.match(lua_path, "(.+)/.-%.lua"), "p")
- local fnl_in = io.open(fnl_path, "r") local lua_out = io.open(lua_path, "w") local function close_handlers_0_(ok_0_, ...) lua_out:close() fnl_in:close() if ok_0_ then return ... else return error(..., 0) end end local function _1_() local lines = fnl_in:read("*a")
+ write_file(lua_path, code)
+ return lua_path elseif ((_1_ == false) and (nil ~= _2_)) then local errors = _2_
 
- local _2_, _3_ = compile_string(lines, {correlate = true, filename = fnl_path}) if ((_2_ == true) and (nil ~= _3_)) then local code = _3_ lua_out:write(code)
-
-
-
- return lua_path elseif ((_2_ == false) and (nil ~= _3_)) then local errors = _3_
-
- os.remove(lua_path)
  vim.api.nvim_err_write(errors)
- return ("Compilation failure for " .. fnl_path) end end return close_handlers_0_(xpcall(_1_, (package.loaded.fennel or debug).traceback)) end end
-
+ return ("Compilation failure for " .. fnl_path) end end end
 
  local function create_loader(path)
  local function _0_(modname)

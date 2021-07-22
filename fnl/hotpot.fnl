@@ -4,6 +4,14 @@
 (macro profile-as [name ...]
   `,...)
 
+(fn read-file [path]
+  (with-open [fh (io.open path :r)]
+             (fh:read :*a)))
+
+(fn write-file [path lines]
+    (with-open [fh (io.open path :w)]
+               (fh:write lines)))
+
 (fn require-fennel []
   (require :hotpot.fennel))
 
@@ -15,6 +23,7 @@
 
 (fn file-missing? [path]
   (not (file-exists? path)))
+
 
 (fn search-rtp [partial-path]
   ;; Neovim actually uses a similar custom loader to us that will search
@@ -66,6 +75,16 @@
       ((partial .. prefix))
       (string.gsub "%.fnl$" :.lua)))
 
+(fn create-macro-loader [path]
+  (let [fennel (require-fennel)
+        code (read-file path)]
+    (values (partial fennel.eval code {:env :_COMPILER})
+            path)))
+
+(fn macro-searcher [modname]
+  (match (locate-module modname)
+    fnl-path (create-macro-loader fnl-path)))
+
 (fn file-stale? [newer older]
   ;; todo should handle error states, though we can be pretty sure
   ;; that files exist if we are being called.
@@ -74,11 +93,16 @@
 (fn needs-compilation? [fnl-path lua-path]
   (or (file-missing? lua-path) (file-stale? fnl-path lua-path)))
 
+(var has-injected-macro-searcher false)
 (fn compile-string [string options]
   ;; we only require fennel here because it can be heavy to
   ;; pull in (~50-100ms, someimes ...??) and *most* of the
   ;; time we will be shortcutting to the compiled lua
   (local fennel (require-fennel))
+  (if (not has-injected-macro-searcher)
+    (table.insert fennel.macro-searchers macro-searcher)
+    (set has-injected-macro-searcher true))
+
   (fn compile []
     (fennel.compile-string string (or otions {})))
   (xpcall compile fennel.traceback))
@@ -87,21 +111,17 @@
   (match (needs-compilation? fnl-path lua-path)
     false lua-path
     true (do
-           ;; TODO normally this is fine if the dir exists exept if it ends in .
-           ;;      which can happen if you're requiring a in-dir file
-           (vim.fn.mkdir (string.match lua-path "(.+)/.-%.lua") :p)
-           (with-open [fnl-in (io.open fnl-path :r) lua-out (io.open lua-path :w)]
-                      (local lines (fnl-in:read :*a))
-                      (match (compile-string lines {:filename fnl-path
-                                                    :correlate true})
-                        (true code) (do
-                                      (lua-out:write code)
-                                      lua-path)
-                        (false errors) (do
-                                         (os.remove lua-path)
-                                         (vim.api.nvim_err_write errors) ; remove empty file
-                                         (.. "Compilation failure for "
-                                             fnl-path)))))))
+           (match (compile-string (read-file fnl-path) {:filename fnl-path
+                                                         :correlate true})
+             (true code) (do
+                           ;; TODO normally this is fine if the dir exists exept if it ends in .
+                           ;;      which can happen if you're requiring a in-dir file
+                           (vim.fn.mkdir (string.match lua-path "(.+)/.-%.lua") :p)
+                           (write-file lua-path code)
+                           lua-path)
+             (false errors) (do
+                              (vim.api.nvim_err_write errors) 
+                              (.. "Compilation failure for " fnl-path))))))
 
 (fn create-loader [path]
   (fn [modname]
