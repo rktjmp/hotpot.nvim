@@ -2,8 +2,6 @@
 
 # 🍲 Hotpot - Seemless Fennel inside Neovim
 
-**🚧 Alpha: Updates may have breaking changes, this is also the first Lisp and Fennel I've ever written, so it ~~might be~~ is garbage! 🚧**
-
 > You take this home, throw it in a pot, add some broth, some neovim... baby,
 > you got a stew going!
 >
@@ -33,6 +31,21 @@ compiled module.
 Future calls to `require` (including in future Neovim sessions) will skip the
 compile step unless it's stale, meaning you only pay the cost once, keeping
 your ~~`init.fnl`~~ `init.lua` 🐎 rapido 🐎.
+
+## Non Goals
+
+Hotpot isn't library full of functions and macros to configure Neovim with.
+
+I wrote Hotpot in an afternoon as a way to learn Fennel. It doesn't intend
+to provide anything more than an intermediary layer between Fennel and Lua,
+to make combining Fennel and Neovim a litle easier.
+
+If you want to play with Fennel and maybe write a few macros or helpers, Hotpot
+might be for you. If you want a easy out of the box experience with all the
+bells and all the whistles, you might want to [look elsewhere](#see-also).
+
+**⚠️ Alpha: Updates may have breaking changes, this is also the first Lisp and
+Fennel I've ever written, so it ~~might be~~ is garbage!**
 
 ## TOC
 
@@ -208,19 +221,19 @@ The performance cost is very low after compilation, infact is's nearly
 identical to just using Lua (technically there is one extra search happening,
 but the cost is tiny).
 
-## See also
+## See Also
 
 If you like Hotpot, you should definitely look into two excellent projects by
 the enviously talented Oliver Caldwell:
 
+- [Conjure](https://github.com/Olical/conjure) is a *fantastic* REPL-but-better
+  tool for working with Fennel, as well as other lisps.
 - [Aniseed](https://github.com/Olical/aniseed) does all that Hotpot does, as
   well as including an improved stdlib, specific Neovim ergonomic improvements
   and pre-configured test harness. It's like Hotpot but better.
-- [Conjure](https://github.com/Olical/conjure) is a *fantastic* REPL-but-better
-  tool for working with Fennel, as well as other lisps.
 
-Additionally see [zest.nvim](https://github.com/tsbohc/zest.nvim), which
-provides additional macros for configuring Neovim.
+Additionally, [Zest](https://github.com/tsbohc/zest.nvim) provides similar
+macros and aids, and may be combined with Aniseed.
 
 You may also like to install the Fennel toolchain and setup a "show me the lua"
 buffer:
