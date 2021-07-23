@@ -2,22 +2,23 @@
 (local {: locate-module} (require :hotpot.searcher.locate))
 (import-macros {: require-fennel} :hotpot.macros)
 
-(local cache (require :hotpot.cache))
-
-(print :macro.included)
+(print "executing searcher.macro file")
 
 (fn create-loader [modname path]
   (print "create-loader" modname path)
-  (cache.set modname path)
   (let [fennel (require-fennel)
         code (read-file path)]
-    (values (partial fennel.eval code {:env :_COMPILER})
+    (values (fn []
+              (print "loader")
+              ((. (require :hotpot.cache) :set) modname path)
+              (fennel.eval code {:env :_COMPILER :compilerEnv {}}))
             path)))
 
 (fn searcher [modname]
-  (print modname "as macro")
+  (print "     searcher.macro.searcher looking for" modname)
   (match (locate-module modname)
     fnl-path (do
+               (print "found macro for modname" fnl-path)
                ;; (. (require :hotpot.cache) :put [:mac modname] fnl-path)
                (create-loader modname fnl-path))))
 

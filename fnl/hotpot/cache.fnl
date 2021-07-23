@@ -1,34 +1,44 @@
-(local __tree {:__name "__tree_root__"})
-(var __current __tree)
+(let []
+  (var *tree nil)
+  (var *current nil)
 
-(print "cache creation" __tree.__name __tree __current __current.__name)
+  (fn create []
+    (set *tree {:__name "_tree_root__"})
+    (set *current nil)
+    (print "cache creation" *tree.__name *tree *current))
 
-(fn down [name]
-  (print "cache down" name)
-  (set __current {:__parent __current :__name name})
-  (print "update cache.__current" __current)
-  (tset __tree name __current)
-  __current)
+  (fn down [name]
+    (print ">> cache down" name)
+    (if (= *current nil)
+      (set *current {:__parent *tree :__name name})
+      (set *current {:__parent *current :__name name}))
+    (tset *tree name *current)
+    (print "update cache.*current" *current (vim.inspect *current) "tree" *tree)
+    *current)
 
-(fn up []
-  (print "cache up" __current.__name)
-  (set __current __current.__parent)
-  (print "update cache.__current" __current)
-  __current)
+  (fn up []
+    (print "<< cache up" *current.__name)
+    (set *current *current.__parent)
+    (print "update cache.*current" *current "tree" *tree)
+    *current)
 
-(fn set_ [key val]
-  (print "cache set" __current.__name key val)
-  (tset __current key val)
-  __current)
+  (fn set_ [key val]
+    (print "== cache set tree: " *tree)
+    (print "== cache set" *current *current.__name key val)
+    (tset *current key val)
+    *current)
 
-(fn whole-graph []
-  __tree)
+  (fn whole-graph []
+    *tree)
 
-(fn current-graph []
-  __current)
+  (fn current-graph []
+    *current)
 
-{: down
- : up
- : whole-graph
- : current-graph
- :set set_}
+  (create)
+
+  {: down
+   : up
+   : whole-graph
+   : current-graph
+   :set set_
+   : create})

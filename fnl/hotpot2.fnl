@@ -15,10 +15,12 @@
 
 (var has-run-setup false)
 (fn setup []
+  (print "has-run-setup" has-run-setup)
   (when (not has-run-setup)
     (local config (default-config))
     (table.insert package.loaders 1 (partial module-searcher config))
-    (set has-run-setup true)))
+    (set has-run-setup true))
+  has-run-setup)
 
 (fn print-compiled [ok result]
   (match [ok result]

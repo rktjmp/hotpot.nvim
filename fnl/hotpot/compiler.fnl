@@ -9,7 +9,7 @@
   (local fennel (require-fennel))
   (when (not has-injected-macro-searcher)
     (print "macro searcher inject")
-    (table.insert fennel.macro-searchers macro-searcher)
+    (table.insert fennel.macro-searchers 1 macro-searcher)
     (set has-injected-macro-searcher true))
 
   (fn compile []

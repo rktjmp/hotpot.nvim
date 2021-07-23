@@ -27,33 +27,64 @@ else
   local fennel = require("hotpot.fennel")
   print(fennel.version)
   fennel.path = plugin_fnl_dir .. "/?.fnl;" .. fennel.path
-  -- fennel["macro-path"] = plugin_fnl_dir .. "/?.fnl;" .. fennel["macro-path"]
+--  fennel.dofile(plugin_fnl_dir .. "/hotpot2.fnl", {
+--    compilerEnv = {},
+--    env = {
+--      require = function(mod)
+--        print(mod)
+--      end,
+--      vim = vim
+--    }
+--  })
 
   -- insert searcher at head so it skips this file in favour of the fnl file
-  table.insert(package.loaders, 1, fennel.searcher)
+  table.insert(package.loaders, fennel.makeSearcher({compilerEnv = {}})) -- inserts at the end
   print(vim.inspect(package.loaders))
   local hotpot = require("hotpot2")
-  -- remove fennel searcher since we have our own
-  table.remove(package.loaders, 1)
-  print(vim.inspect(package.loaders))
-  print("required hotpot from fennel")
+  hotpot.setup()
+  -- remove fennel searcher since we have our own,
+  -- which has been inserted at the front
+  table.remove(package.loaders) -- removes from end
 
+  -- transplant hotpot to _hotpot, so we can require("hotpot") to
+  -- properly compile ourselves out
   for name, _ in pairs(package.loaded) do
     if string.match(name, "^hotpot") then
+      package.loaded["_" .. name] = package.loaded[name]
+      package.loaded[name] = nil
+      print("package.loaded[" .. name .. "] => _" .. name)
+    elseif  string.match(name, "^fennel") then
+      print("dropping package: " .. name)
       package.loaded[name] = nil
     end
   end
-  package.loaded["hotpot2"] = nil
 
-  -- wrap setup() so we require ourselves
-  local _setup = hotpot.setup
-  hotpot.setup = function()
-    print("hijacked setup")
-    local val = _setup()
-    package.loaded["hotpot"] = nil
-    require("hotpot2")
-    return val
-  end
+  -- don't run setup
+  print("** start require(hotpot2)")
+  require("hotpot2")
+  print("** end require(hotpot2)")
 
   return hotpot
 end
+--
+--  print(vim.inspect(package.loaders))
+--  print("required hotpot from fennel")
+--
+--  package.loaded["hotpot2"] = nil
+--  collectgarbage()
+--
+--  print("### cleared package.loaded")
+--
+--  -- wrap setup() so we require ourselves again
+--  -- so we can start from a clean state
+--  local _setup = hotpot.setup
+--  hotpot.setup = function()
+--    print("hijacked setup")
+--    local val = _setup()
+--    package.loaded["hotpot"] = nil
+--    require("hotpot2")
+--    return val
+--  end
+--
+--  return hotpot
+
