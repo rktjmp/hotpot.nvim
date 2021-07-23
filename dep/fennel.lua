@@ -1759,7 +1759,7 @@ package.preload["fennel.specials"] = package.preload["fennel.specials"] or funct
     local modname_chunk = load_code(compiler.compile(ast[2]), nil, filename)
     local modname = modname_chunk(utils.root.options["module-name"], filename)
     compiler.assert((type(modname) == "string"), "module name must compile to string", (real_ast or ast))
-    if not macro_loaded[modname] then
+    if true or (not macro_loaded[modname]) then
       local env = make_compiler_env(ast, scope, parent)
       local loader, filename0 = search_macro_module(modname, 1)
       compiler.assert(loader, (modname .. " module not found."), ast)
