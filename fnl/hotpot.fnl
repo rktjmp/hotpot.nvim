@@ -4,6 +4,14 @@
 (fn default-config []
   {:prefix (.. (vim.fn.stdpath :cache) :/hotpot/)})
 
+(local __stats {})
+
+(fn stats_put [k v]
+  (tset __stats k v)
+  __stats)
+
+(fn stats [] __stats)
+
 (var has-run-setup false)
 (fn setup []
   (when (not has-run-setup)
@@ -32,6 +40,8 @@
         (print-compiled))))
 
 {: setup
+ : stats
+ : stats_put
  :fennel_version (fn [] (. (require-fennel) :version))
  :fennel (fn [] (require-fennel))
  :compile_string compile-string

@@ -1,5 +1,7 @@
 (fn require-fennel []
-  `(require :hotpot.fennel))
+  `(do
+     (print "!!! requiring fennel")
+    (require :hotpot.fennel)))
 
 (fn profile-as [name ...]
   `(let [name# ,name

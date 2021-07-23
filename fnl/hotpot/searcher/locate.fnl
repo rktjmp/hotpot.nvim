@@ -11,10 +11,11 @@
                 (.. :lua/ partial-path :.fnl)
                 (.. :lua/ partial-path :/init.fnl)])
   (each [_ path (ipairs paths) :until found]
-    (print path)
+    ;; (print path)
+    ;; TODO we can thread this but perhaps to no gain?
     (match (vim.api.nvim_get_runtime_file path false) ;; false -> first result only
       [path#] (do
-                (print "found path" path#)
+                ;; (print "found path" path#)
                 (set found path#))
       nil nil))
   found)

@@ -2,7 +2,15 @@
  local module_searcher = require("hotpot.searcher.module")
 
  local function default_config()
- return {prefix = (vim.fn.stdpath("cache") .. "/hotpot/")} end local has_run_setup = false
+ return {prefix = (vim.fn.stdpath("cache") .. "/hotpot/")} end
+
+ local __stats = {}
+
+ local function stats_put(k, v)
+ __stats[k] = v
+ return __stats end
+
+ local function stats() return __stats end local has_run_setup = false
 
 
  local function setup() if not has_run_setup then
@@ -33,4 +41,6 @@
 
 
 
- local function _0_() return __fnl_global__require_2dfennel() end local function _1_() return (__fnl_global__require_2dfennel()).version end return {compile_string = compile_string, fennel = _0_, fennel_version = _1_, setup = setup, show_buf = show_buf, show_selection = show_selection}
+
+
+ local function _0_() return __fnl_global__require_2dfennel() end local function _1_() return (__fnl_global__require_2dfennel()).version end return {compile_string = compile_string, fennel = _0_, fennel_version = _1_, setup = setup, show_buf = show_buf, show_selection = show_selection, stats = stats, stats_put = stats_put}
