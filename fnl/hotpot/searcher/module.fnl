@@ -4,7 +4,8 @@
         : file-stale?
         : write-file
         : read-file} (require :hotpot.fs))
-(import-macros {: profile-as} :hotpot.macros)
+(import-macros {: profile-as : dinfo} :hotpot.macros)
+(local debug-modname "hotpot.searcher.module")
 
 (fn fnl-path-to-compiled-path [path prefix]
   ;; Returns expected path for a compiled fnl file
@@ -28,7 +29,6 @@
                        (when (not (string.match maybe-modname "^__"))
                          path))]
     (when (> (# deps) 0)
-      (print path (vim.inspect deps))
       (write-file (dependency-filename path)
                   (table.concat deps "\n")))))
 
@@ -46,14 +46,11 @@
   (local deps (load-dependency-graph lua-path))
   (var has_stale false)
   (each [_ dep-path (ipairs deps) :until has_stale]
-    (print "@@ check dep" dep-path)
-    (print "stale:" (file-stale? dep-path lua-path))
     ;; TODO: how to handle missing dep file? right now we just crash
     ;; NOTE: this check is reversed to the normal stale check
     ;;       we want to know when the fnl file is stale compared
     ;;       to the dependecy
      (set has_stale (file-stale? dep-path lua-path)))
-  (print "@@ stale deps?" fnl-path has_stale)
   has_stale)
 
 (fn needs-compilation? [fnl-path lua-path]
@@ -74,21 +71,21 @@
 
 (fn maybe-compile [fnl-path lua-path]
   (match (needs-compilation? fnl-path lua-path)
-    false (do
-            (print :no-compilation-needed fnl-path)
-            lua-path)
+    false lua-path
     true (do
+           (dinfo "needs-compilation" fnl-path lua-path)
            (match (compile-string (read-file fnl-path) {:filename fnl-path
                                                         :correlate true})
              (true code) (do
-                           (print :compiled fnl-path)
+                           (dinfo "compiled? OK")
                            ;; TODO normally this is fine if the dir exists exept if it ends in .
                            ;;      which can happen if you're requiring a in-dir file
                            (vim.fn.mkdir (string.match lua-path "(.+)/.-%.lua") :p)
                            (write-file lua-path code)
                            lua-path)
              (false errors) (do
-                              (vim.api.nvim_err_write errors) 
+                              (dinfo "compiled? FAIL")
+                              (vim.api.nvim_err_write errors)
                               (.. "Compilation failure for " fnl-path))))))
 
 (fn searcher [config modname]
@@ -103,16 +100,14 @@
                 fnl-path
                 (let [lua-path (fnl-path-to-compiled-path fnl-path
                                                           config.prefix)]
-                  (print :module.seacher.found fnl-path)
                   (when (not (= :hotpot.cache modname))
                     (local cache (require :hotpot.cache))
                     (cache.down modname))
-                  ;; (print "fnl-path" fnl-path "lua-path" lua-path)
                   (maybe-compile fnl-path lua-path)
                   (local loader (create-loader lua-path))
                   (when (not (= :hotpot.cache modname))
                     (local cache (require :hotpot.cache))
-                    (print :dependecy-graph (vim.inspect (cache.whole-graph)))
+                    ;; (dinfo :dependecy-graph (vim.inspect (cache.whole-graph)))
                     (save-dependency-graph lua-path (cache.current-graph))
                     (cache.up))
                  loader)

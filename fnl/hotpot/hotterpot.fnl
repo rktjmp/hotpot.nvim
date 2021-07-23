@@ -1,25 +1,20 @@
 (local {: compile-string} (require :hotpot.compiler))
 (local module-searcher (require :hotpot.searcher.module))
-(import-macros {: require-fennel} :hotpot.macros)
+(import-macros {: require-fennel : dinfo} :hotpot.macros)
+(local debug-modname "hotpot")
 
 (fn default-config []
   {:prefix (.. (vim.fn.stdpath :cache) :/hotpot/)})
 
-(local __stats {})
-
-(fn stats_put [k v]
-  (tset __stats k v)
-  __stats)
-
-(fn stats [] __stats)
-
 (var has-run-setup false)
 (fn setup []
-  (print "has-run-setup" has-run-setup)
-  (when (not has-run-setup)
-    (local config (default-config))
-    (table.insert package.loaders 1 (partial module-searcher config))
-    (set has-run-setup true))
+  (dinfo "Enter setup hotpot" (os.date))
+  (if (not has-run-setup)
+    (do
+      (local config (default-config))
+      (table.insert package.loaders 1 (partial module-searcher config))
+      (set has-run-setup true))
+    (dinfo "Already setup"))
   has-run-setup)
 
 (fn print-compiled [ok result]
@@ -43,8 +38,6 @@
         (print-compiled))))
 
 {: setup
- : stats
- : stats_put
  :fennel_version (fn [] (. (require-fennel) :version))
  :fennel (fn [] (require-fennel))
  :compile_string compile-string

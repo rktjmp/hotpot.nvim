@@ -3,7 +3,7 @@
 ;;
 
 (macro debug [...] `(print "dogfood ::" ,...))
-;; (macro debug [...])
+(macro debug [...])
 
 (local uv vim.loop)
 

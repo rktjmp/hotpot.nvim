@@ -1,44 +1,48 @@
-(let []
-  (var *tree nil)
-  (var *current nil)
+;; NOTE: This is used in the macro loader, so you may not use any
+;; marcos in here, or really probably any requires either to avoid
+;; any circular compile chains.
 
-  (fn create []
-    (set *tree {:__name "_tree_root__"})
-    (set *current nil)
-    (print "cache creation" *tree.__name *tree *current))
+(var *tree nil)
+(var *current nil)
 
-  (fn down [name]
-    (print ">> cache down" name)
-    (if (= *current nil)
-      (set *current {:__parent *tree :__name name})
-      (set *current {:__parent *current :__name name}))
-    (tset *tree name *current)
-    (print "update cache.*current" *current (vim.inspect *current) "tree" *tree)
-    *current)
+(fn create []
+  (set *tree {:__name "_tree_root__"})
+  (set *current nil)
+  ;; (dinfo "cache creation" *tree.__name *tree *current)
+  *tree)
 
-  (fn up []
-    (print "<< cache up" *current.__name)
-    (set *current *current.__parent)
-    (print "update cache.*current" *current "tree" *tree)
-    *current)
+(fn down [name]
+  ;; (dinfo ">> cache down" name)
+  (if (= *current nil)
+    (set *current {:__parent *tree :__name name})
+    (set *current {:__parent *current :__name name}))
+  (tset *tree name *current)
+  ;;(dinfo "update cache.*current" *current (vim.inspect *current) "tree" *tree)
+  *current)
 
-  (fn set_ [key val]
-    (print "== cache set tree: " *tree)
-    (print "== cache set" *current *current.__name key val)
-    (tset *current key val)
-    *current)
+(fn up []
+  ;;(dinfo "<< cache up" *current.__name)
+  (set *current *current.__parent)
+  ;;(dinfo "update cache.*current" *current "tree" *tree)
+  *current)
 
-  (fn whole-graph []
-    *tree)
+(fn set_ [key val]
+  ;;  (dinfo "== cache set tree: " *tree)
+  ;;  (dinfo "== cache set" *current *current.__name key val)
+  (tset *current key val)
+  *current)
 
-  (fn current-graph []
-    *current)
+(fn whole-graph []
+  *tree)
 
-  (create)
+(fn current-graph []
+  *current)
 
-  {: down
-   : up
-   : whole-graph
-   : current-graph
-   :set set_
-   : create})
+(create)
+
+{: down
+ : up
+ : whole-graph
+ : current-graph
+ :set set_
+ : create}

@@ -23,7 +23,7 @@
 
 
 
- local canary = (cache_dir .. fnl_dir .. "/hotpot.hotterpot.lua") print("dogfood ::", ("canary file: " .. canary))
+ local canary = (cache_dir .. fnl_dir .. "/hotpot.hotterpot.lua")
 
 
 
@@ -32,7 +32,7 @@
 
 
 
- local old_package_path = package.path print("dogfood ::", "load hotpot from cache")
+ local old_package_path = package.path
 
  package.path = (cache_dir .. fnl_dir .. "/?.lua;" .. package.path)
  local hotpot = require("hotpot.hotterpot")
@@ -42,11 +42,11 @@
 
 
 
- local fennel = require("hotpot.fennel") print("dogfood ::", "compile hotpot")
+ local fennel = require("hotpot.fennel")
 
 
  local saved_fennel_path = fennel.path
- fennel.path = (fnl_dir .. "/?.fnl;" .. fennel.path) print("dogfood ::", fennel.path)
+ fennel.path = (fnl_dir .. "/?.fnl;" .. fennel.path)
 
 
 
@@ -73,7 +73,7 @@
 
 
  package.loaded[name] = nil end end
- fennel.path = saved_fennel_path print("dogfood ::", "require hotpot.hotterpot") print("dogfood ::", fennel.path)
+ fennel.path = saved_fennel_path
 
 
 
