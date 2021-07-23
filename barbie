@@ -1,34 +1,39 @@
 #!/usr/bin/env sh
 
 snag() {
-  mv lua/dogfood.lua dogfood.lua
   # clean
   rm -rf lua/
 
+  # You are OBSOLETE
   # create destinations
-  for dir in $(fd -td ".*" fnl)
-  do
-    mkdir -p ${dir/fnl/lua}
-  done
+  # for dir in $(fd -td ".*" fnl)
+  # do
+  #   mkdir -p ${dir/fnl/lua}
+  # done
 
+  # you are also OBSOLETE
   # build
-  for src in $(fd -tf fnl)
-  do
-    case "$src" in
-      # dont actually build macrofile
-      *hotpot/macros.fnl*) echo "ignoring $src" ;;
-      # add path so we can run from project root
-      *) fennel --add-fennel-path "fnl/?.fnl" --compile --correlate $src > ${src//fnl/lua};;
-    esac
-  done
+  # for src in $(fd -tf fnl)
+  # do
+  #   case "$src" in
+  #     # dont actually build macrofile
+  #     *hotpot/macros.fnl*) echo "ignoring $src" ;;
+  #     # add path so we can run from project root
+  #     *) fennel --add-fennel-path "fnl/?.fnl" --compile --correlate $src > ${src//fnl/lua};;
+  #   esac
+  # done
 
-  # oh right probably need this too
+  # you are a precious delicate flower and must be preserved
+
+  mkdir -p lua/hotpot
   cp dep/fennel.lua lua/hotpot/fennel.lua
-  mv dogfood.lua lua/dogfood.lua
+  # don't tell them what's in the pot...
+  fennel --compile --indent "  " --correlate dogfood.fnl > lua/hotpot.lua
 }
 
 beer() {
   # yeah looks good mate
+  # fd -tf fnl | entr -sc './barbie snag'
   fd -tf fnl | entr -sc './barbie snag'
 }
 
