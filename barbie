@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 
 snag() {
+  mv lua/dogfood.lua dogfood.lua
   # clean
   rm -rf lua/
 
@@ -23,6 +24,7 @@ snag() {
 
   # oh right probably need this too
   cp dep/fennel.lua lua/hotpot/fennel.lua
+  mv dogfood.lua lua/dogfood.lua
 }
 
 beer() {

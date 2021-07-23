@@ -1,46 +1,59 @@
- local _local_0_ = require("hotpot.compiler") local compile_string = _local_0_["compile-string"]
- local module_searcher = require("hotpot.searcher.module")
+local plugin_dir = vim.loop.fs_realpath(vim.api.nvim_get_runtime_file("lua/hotpot.lua", false)[1])
+plugin_dir = string.gsub(plugin_dir, "/lua/hotpot.lua$", "")
 
- local function default_config()
- return {prefix = (vim.fn.stdpath("cache") .. "/hotpot/")} end
+local plugin_fnl_dir = plugin_dir .. "/fnl"
+local cache_dir = vim.fn.stdpath("cache") .. "/hotpot/"
+local canary = cache_dir .. plugin_fnl_dir .. "/hotpot2.lua"
+print("canary file: " .. canary)
 
- local __stats = {}
+-- if the canary exists, we already have a hotspot runtime waiting, we
+-- just have to load it, then it will handle any future requests
+if vim.loop.fs_access(canary, "R") then
+  -- inject our cache dir into the start of lua's module search path
+  -- then require ourselves, then clean up as normally we will use vims
+  -- runtimepath
+  local save = package.path
+  package.path = cache_dir .. plugin_fnl_dir .. "/?.lua;" .. package.path
+  -- we can now just load hotpot like normal
+  local hotpot = require("hotpot2")
+  -- restore path because the hotpot searcher will takeover now
+  package.path = save
+  -- and we're done
+  return hotpot
+else
+  -- no cache exists, so we have to build one. We can do this by loading hotpot
+  -- directly via fennel, then asking hotpot to find itself, which will
+  -- generate the cache.
+  local fennel = require("hotpot.fennel")
+  print(fennel.version)
+  fennel.path = plugin_fnl_dir .. "/?.fnl;" .. fennel.path
+  -- fennel["macro-path"] = plugin_fnl_dir .. "/?.fnl;" .. fennel["macro-path"]
 
- local function stats_put(k, v)
- __stats[k] = v
- return __stats end
+  -- insert searcher at head so it skips this file in favour of the fnl file
+  table.insert(package.loaders, 1, fennel.searcher)
+  print(vim.inspect(package.loaders))
+  local hotpot = require("hotpot2")
+  -- remove fennel searcher since we have our own
+  table.remove(package.loaders, 1)
+  print(vim.inspect(package.loaders))
+  print("required hotpot from fennel")
 
- local function stats() return __stats end local has_run_setup = false
+  for name, _ in pairs(package.loaded) do
+    if string.match(name, "^hotpot") then
+      package.loaded[name] = nil
+    end
+  end
+  package.loaded["hotpot2"] = nil
 
+  -- wrap setup() so we require ourselves
+  local _setup = hotpot.setup
+  hotpot.setup = function()
+    print("hijacked setup")
+    local val = _setup()
+    package.loaded["hotpot"] = nil
+    require("hotpot2")
+    return val
+  end
 
- local function setup() if not has_run_setup then
-
- local config = default_config() local function _0_(...) return module_searcher(config, ...) end
- table.insert(package.loaders, 1, _0_) has_run_setup = true
- return nil end end
-
- local function print_compiled(ok, result)
- local _0_ = {ok, result} if ((type(_0_) == "table") and ((_0_)[1] == true) and (nil ~= (_0_)[2])) then local code = (_0_)[2]
- return print(code) elseif ((type(_0_) == "table") and ((_0_)[1] == false) and (nil ~= (_0_)[2])) then local error = (_0_)[2]
- return vim.api.nvim_err_write(errors) end end
-
- local function show_buf(buf)
- local lines = table.concat(vim.api.nvim_buf_get_lines(buf, 0, -1, false))
-
-
- return print_compiled(compile_string(lines, {filename = "hotpot-show"})) end
-
- local function show_selection()
- local _let_0_ = vim.fn.getpos("'<") local buf = _let_0_[1] local from = _let_0_[2]
- local _let_1_ = vim.fn.getpos("'>") local _ = _let_1_[1] local to = _let_1_[2]
- local lines = vim.api.nvim_buf_get_lines(buf, (from - 1), to, false)
- local lines0 = table.concat(lines)
-
-
- return print_compiled(compile_string(lines0, {filename = "hotpot-show"})) end
-
-
-
-
-
- local function _0_() return __fnl_global__require_2dfennel() end local function _1_() return (__fnl_global__require_2dfennel()).version end return {compile_string = compile_string, fennel = _0_, fennel_version = _1_, setup = setup, show_buf = show_buf, show_selection = show_selection, stats = stats, stats_put = stats_put}
+  return hotpot
+end
