@@ -94,7 +94,6 @@
       (if (= check fennel.searcher) (set target i)))
     (table.remove package.loaders target)
 
-
     ;; return the module
     (tset hotpot :install nil)
     (tset hotpot :uninstall nil)

@@ -14,8 +14,8 @@
        (.. "<profile> " name# " " (/ (- tb# ta#) 1_000_000) "ms"))
      r#))
 
-;; (fn profile-as [name ...] `,...)
-;; (fn dinfo [...])
+(fn profile-as [name ...] `,...)
+(fn dinfo [...])
 
 {: require-fennel
  : dinfo

@@ -4,7 +4,7 @@
         : file-stale?
         : write-file
         : read-file} (require :hotpot.fs))
-(import-macros {: profile-as : dinfo} :hotpot.macros)
+(import-macros {: dinfo} :hotpot.macros)
 (local debug-modname "hotpot.searcher.module")
 
 (fn fnl-path-to-compiled-path [path prefix]
@@ -63,10 +63,7 @@
     (and (has-dependency-graph lua-path) (has-stale-dependency fnl-path lua-path))))
 
 (fn create-loader [path]
-  (fn [modname]
-    ;; loader needs to create a nested cache marker, so
-    ;; any macros loaded can be tracked
-    (profile-as (.. :loader " " path) (dofile path))))
+  (fn [modname] (dofile path)))
 
 (fn maybe-compile [fnl-path lua-path]
   (match (needs-compilation? fnl-path lua-path)
@@ -120,15 +117,13 @@
 (fn searcher [config modname]
   ;; Lua package searcher with hot-compile step.
   ;; Given abc.xyz, look through package.path for abc/xyz.fnl, if it exists
-  ;; md5 sum that file, then check if <config.prefix>/abc/xyz-<md5>.lua
-  ;; exists, if so, return that file, otherwise compile, write and return
-  ;; the compiled path.
-  (profile-as
-    (.. :search " " modname)
-    (match (locate-module modname)
-      ;; found a path, compile if needed and return lua loader
-      mod-path (process-module modname mod-path config.prefix)
-      ;; no fnl file for this module
-      nil nil)))
+  ;; md5 sum that file, then check if <config.prefix>/abc/xyz.lua and isn't
+  ;; stale If so, return that file, otherwise compile, write and return the
+  ;; compiled path.
+  (match (locate-module modname)
+    ;; found a path, compile if needed and return lua loader
+    mod-path (process-module modname mod-path config.prefix)
+    ;; no fnl file for this module
+    nil nil))
 
 searcher
