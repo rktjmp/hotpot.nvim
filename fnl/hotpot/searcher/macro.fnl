@@ -7,7 +7,7 @@
         code (read-file path)]
     (values (fn []
               ((. (require :hotpot.cache) :set) modname path)
-              (fennel.eval code {:env :_COMPILER :compilerEnv {}}))
+              (fennel.eval code {:env :_COMPILER}))
             path)))
 
 (fn searcher [modname]
