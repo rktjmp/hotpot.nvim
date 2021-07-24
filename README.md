@@ -9,7 +9,7 @@
 
 Hotpot lets you use [Fennel](https://fennel-lang.org/) in Neovim anywhere you
 would use Lua, just replace your `lua/*.lua` files with `fnl/*.fnl` and Hotpot
-gets cooking.
+does the cooking for you 🍻.
 
 ```clojure
 ;; ~/.config/nvim/fnl/is_neat.fnl
@@ -225,8 +225,8 @@ The compiled `.lua` files are stored in Neovims cache directory, under the
 You can find your cache directory by running `:echo stdpath("cache)"`.
 
 The performance cost is very low after compilation, infact is's nearly
-identical to just using Lua (technically there's an extra search happening, but
-the cost is tiny).
+identical to just using Lua (technically there's 2 additional checks on whether
+a file exists, but the syscall cost is tiny).
 
 ## See Also
 
