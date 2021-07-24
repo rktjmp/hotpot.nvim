@@ -22,9 +22,23 @@
 (local cache-dir (-> :cache
                      (vim.fn.stdpath)
                      (.. :/hotpot/)))
-;; The canary file will tell us if we have lua ready to run or if we need to
-;; compile first.
-(local canary (.. cache-dir fnl-dir :/hotpot/hotterpot.lua))
+
+(fn canary-link-path [cache-dir]
+  (.. cache-dir "canary"))
+
+(fn check-canary [cache-dir]
+  (match (uv.fs_realpath (canary-link-path cache-dir))
+    (nil error) false
+    path true))
+
+(fn make-canary [cache-dir fnl-dir]
+  ;; cache-dir/canary -> fnl-dir/canary/<file>
+  (local canary-file (let [dir (uv.fs_opendir (.. fnl-dir "/../canary/") nil 1)
+                           content (uv.fs_readdir dir)
+                           _ (uv.fs_closedir dir)]
+                      (. content 1 :name)))
+  (uv.fs_unlink (canary-link-path cache-dir))
+  (uv.fs_symlink (.. fnl-dir "/../canary/" canary-file) (canary-link-path cache-dir)))
 
 (fn load-from-cache [cache-dir fnl-dir]
   ;; We have already complied the files, so just fiddle with luas package.path
@@ -94,15 +108,15 @@
       (if (= check fennel.searcher) (set target i)))
     (table.remove package.loaders target)
 
+    ;; mark that we've compiled and link to current version in plugin dir
+    (make-canary cache-dir fnl-dir)
+
     ;; return the module
     (tset hotpot :install nil)
     (tset hotpot :uninstall nil)
+
     hotpot)
 
-;; TODO: this shoud check if fnl is stale and remove the tree, force fennel recomp,
-;;       it does add another file check to load, maybe just check fnl or some
-;;       plugin/canary file that can be updated each release to force a
-;;       recompilation. That or just rely on post-install hooks to clear cache
-(if (vim.loop.fs_access canary :R)
+(if (check-canary cache-dir)
   (load-from-cache cache-dir fnl-dir)
   (compile-fresh cache-dir fnl-dir))

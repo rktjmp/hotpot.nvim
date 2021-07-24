@@ -28,7 +28,7 @@ snag() {
   mkdir -p lua/hotpot
   cp dep/fennel.lua lua/hotpot/fennel.lua
   # don't tell them what's in the pot...
-  fennel --compile --indent "  " dogfood.fnl > lua/hotpot.lua
+  fennel --compile dogfood.fnl > lua/hotpot.lua
 }
 
 snag2() {
@@ -76,18 +76,32 @@ beer2() {
   fd -tf fnl | entr -sc './barbie snag2'
 }
 
+release() {
+  canary=$(tar --exclude canary/ -cf - . | sha1sum | cut -d' ' -f1)
+  rm -rf canary/
+  mkdir -p canary/
+  touch canary/$canary
+}
+
 case "$1" in
+  "release")
+    release
+    exit 0;;
   "snag")
     snag
+    release
     exit 0;;
   "snag2")
     snag2
+    release
     exit 0;;
   "beer")
     beer
+    release
     exit 0;;
   "beer2")
     beer2
+    release
     exit 0;;
   *)
     echo "$0 snag|beer";;

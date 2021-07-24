@@ -2,7 +2,30 @@ local uv = vim.loop
 local plugin_dir = string.gsub(uv.fs_realpath((vim.api.nvim_get_runtime_file("lua/hotpot.lua", false))[1]), "/lua/hotpot.lua$", "")
 local fnl_dir = (plugin_dir .. "/fnl")
 local cache_dir = (vim.fn.stdpath("cache") .. "/hotpot/")
-local canary = (cache_dir .. fnl_dir .. "/hotpot/hotterpot.lua")
+local function canary_link_path(cache_dir0)
+  return (cache_dir0 .. "canary")
+end
+local function check_canary(cache_dir0)
+  local _0_, _1_ = uv.fs_realpath(canary_link_path(cache_dir0))
+  if ((_0_ == nil) and (nil ~= _1_)) then
+    local error = _1_
+    return false
+  elseif (nil ~= _0_) then
+    local path = _0_
+    return true
+  end
+end
+local function make_canary(cache_dir0, fnl_dir0)
+  local canary_file
+  do
+    local dir = uv.fs_opendir((fnl_dir0 .. "/../canary/"), nil, 1)
+    local content = uv.fs_readdir(dir)
+    local _ = uv.fs_closedir(dir)
+    canary_file = content[1].name
+  end
+  uv.fs_unlink(canary_link_path(cache_dir0))
+  return uv.fs_symlink((fnl_dir0 .. "/../canary/" .. canary_file), canary_link_path(cache_dir0))
+end
 local function load_from_cache(cache_dir0, fnl_dir0)
   local old_package_path = package.path
   local hotpot_path = (cache_dir0 .. fnl_dir0 .. "/?.lua;" .. package.path)
@@ -59,11 +82,12 @@ local function compile_fresh(cache_dir0, fnl_dir0)
     end
   end
   table.remove(package.loaders, target)
+  make_canary(cache_dir0, fnl_dir0)
   hotpot["install"] = nil
   hotpot["uninstall"] = nil
   return hotpot
 end
-if vim.loop.fs_access(canary, "R") then
+if check_canary(cache_dir) then
   return load_from_cache(cache_dir, fnl_dir)
 else
   return compile_fresh(cache_dir, fnl_dir)
