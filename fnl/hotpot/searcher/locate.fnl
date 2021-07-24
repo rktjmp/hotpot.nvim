@@ -6,10 +6,14 @@
   ;; It checks: "lua/"..basename..".lua", "lua/"..basename.."/init.lua"
   ;; This code is basically transcoded from nvim/lua/vim.lua _load_package
   (var found nil)
-  (local paths [(.. :fnl/ partial-path :.fnl)
-                (.. :fnl/ partial-path :/init.fnl)
-                (.. :lua/ partial-path :.fnl)
-                (.. :lua/ partial-path :/init.fnl)])
+  ;; we preference finding lua/*.lua files, with the assumption that if those
+  ;; exist, someone is providing us with compiled files which may have been
+  ;; through any kind of build process (see conjure) and we best not try to
+  ;; load the raw fnl (or recompile for no reason).
+  (local paths [(.. :lua/ partial-path :.lua)
+                (.. :lua/ partial-path :/init.lua)
+                (.. :fnl/ partial-path :.fnl)
+                (.. :fnl/ partial-path :/init.fnl)])
   (each [_ path (ipairs paths) :until found]
     ;; TODO we can thread this but perhaps to no gain?
     (match (vim.api.nvim_get_runtime_file path false) ;; false -> first result only

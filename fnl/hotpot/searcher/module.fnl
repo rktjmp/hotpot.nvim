@@ -62,7 +62,6 @@
     ;; or one of the dependcies are newer
     (and (has-dependency-graph lua-path) (has-stale-dependency fnl-path lua-path))))
 
-
 (fn create-loader [path]
   (fn [modname]
     ;; loader needs to create a nested cache marker, so
@@ -88,31 +87,48 @@
                               (vim.api.nvim_err_write errors)
                               (.. "Compilation failure for " fnl-path))))))
 
+
+(fn is-lua-file [path] (~= nil (string.match path "%.lua$")))
+(fn is-fnl-file [path] (~= nil (string.match path "%.fnl$")))
+
+(fn process-module [modname path prefix-out-dir]
+  (-> (match (is-lua-file path)
+        ;; não toque na lua
+        true path
+        ;; lauch the vegetable into orbit
+        false (let [fnl-path path
+                    lua-path (fnl-path-to-compiled-path fnl-path prefix-out-dir)]
+                ;; we want to track macro dependencies, so as long as we're not loading the
+                ;; dep tracker, nest down TODO comment this bettttter
+                (when (not (= :hotpot.cache modname))
+                  (local cache (require :hotpot.cache))
+                  (cache.down modname))
+
+                (maybe-compile fnl-path lua-path)
+                ;; from fnl to lua, then create the loader for the lua.
+                ;; if we did track and dependcies, save those out
+                ;; TODO should tell if it worked or not
+                (when (not (= :hotpot.cache modname))
+                  (local cache (require :hotpot.cache))
+                  ;; (dinfo :dependecy-graph (vim.inspect (cache.whole-graph)))
+                  (save-dependency-graph lua-path (cache.current-graph))
+                  ;; we're done loading this module, so shift up
+                  (cache.up))
+                lua-path))
+      (create-loader)))
+
 (fn searcher [config modname]
   ;; Lua package searcher with hot-compile step.
   ;; Given abc.xyz, look through package.path for abc/xyz.fnl, if it exists
   ;; md5 sum that file, then check if <config.prefix>/abc/xyz-<md5>.lua
   ;; exists, if so, return that file, otherwise compile, write and return
   ;; the compiled path.
-  (profile-as (.. :search " " modname)
-              (match (locate-module modname)
-                ;; found a path, compile if needed and return lua loader
-                fnl-path
-                (let [lua-path (fnl-path-to-compiled-path fnl-path
-                                                          config.prefix)]
-                  (when (not (= :hotpot.cache modname))
-                    (local cache (require :hotpot.cache))
-                    (cache.down modname))
-                  (maybe-compile fnl-path lua-path)
-                  (local loader (create-loader lua-path))
-                  (when (not (= :hotpot.cache modname))
-                    (local cache (require :hotpot.cache))
-                    ;; (dinfo :dependecy-graph (vim.inspect (cache.whole-graph)))
-                    (save-dependency-graph lua-path (cache.current-graph))
-                    (cache.up))
-                 loader)
-                ;; no fnl file for this module
-                nil
-                nil)))
+  (profile-as
+    (.. :search " " modname)
+    (match (locate-module modname)
+      ;; found a path, compile if needed and return lua loader
+      mod-path (process-module modname mod-path config.prefix)
+      ;; no fnl file for this module
+      nil nil)))
 
 searcher
