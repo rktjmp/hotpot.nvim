@@ -7,14 +7,29 @@
   {:prefix (.. (vim.fn.stdpath :cache) :/hotpot/)})
 
 (var has-run-setup false)
+(var searcher nil)
+
+(fn search [modname]
+  (searcher modname))
+
+(fn install []
+  (do
+    (local config (default-config))
+    (set searcher (partial module-searcher config))
+    (table.insert package.loaders 1 searcher)
+    (set has-run-setup true)))
+
+(fn uninstall []
+  (var target nil)
+  (each [i check (ipairs package.loaders) :until target]
+    (if (= check searcher) (set target i)))
+  (table.remove package.loaders target))
+
 (fn setup []
   (dinfo "Enter setup hotpot" (os.date))
   (if (not has-run-setup)
-    (do
-      (local config (default-config))
-      (table.insert package.loaders 1 (partial module-searcher config))
-      (set has-run-setup true))
-    (dinfo "Already setup"))
+    (install)
+    (dinfo "Already setup, doing nothing"))
   has-run-setup)
 
 (fn print-compiled [ok result]
@@ -38,6 +53,9 @@
         (print-compiled))))
 
 {: setup
+ : install
+ : uninstall
+ : search
  :fennel_version (fn [] (. (require-fennel) :version))
  :fennel (fn [] (require-fennel))
  :compile_string compile-string

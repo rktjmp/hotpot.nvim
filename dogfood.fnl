@@ -1,5 +1,5 @@
 ;;
-;; This should be saved as lua/hotpot.lua
+;; This should be compiled as lua/hotpot.lua
 ;;
 
 (macro debug [...] `(print "dogfood ::" ,...))
@@ -10,86 +10,98 @@
 ;; If this file is executing, we know it exists in the RTP so we can use this
 ;; file to figure out related files needed for bootstraping.
 
+;; *actual* path of the plugin installation
 (var plugin-dir (-> :lua/hotpot.lua
                     (vim.api.nvim_get_runtime_file false)
                     (. 1)
                     (uv.fs_realpath)
                     (string.gsub :/lua/hotpot.lua$ "")))
-
+;; where our plugin source is
 (local fnl-dir (.. plugin-dir :/fnl))
+;; where we expect our lua to be (after mirroring fnl-dir)
 (local cache-dir (-> :cache
                      (vim.fn.stdpath)
                      (.. :/hotpot/)))
+;; The canary file will tell us if we have lua ready to run or if we need to
+;; compile first.
+(local canary (.. cache-dir fnl-dir :/hotpot/hotterpot.lua))
 
-;; The canary file will tell us if we have compiled lua ready to
-;; run or if we need to compile first.
-(local canary (.. cache-dir fnl-dir :/hotpot.hotterpot.lua))
-(debug (.. "canary file: " canary))
-
-;; TODO: this shoud check if fnl is stale and remove the tree, force fennel
-;;       recomp.
-(if (vim.loop.fs_access canary :R)
-  ;; We have already complied the files, so just fiddle with luas
-  ;; package.path so we can run, undo the change since nvims rtp
-  ;; will handle any future needs
+(fn load-from-cache [cache-dir fnl-dir]
+  ;; We have already complied the files, so just fiddle with luas package.path
+  ;; so we can run, then undo the change since nvims rtp will handle any future
+  ;; needs
   (let [old-package-path package.path]
-    (debug "load hotpot from cache")
-    (set package.path (.. cache-dir fnl-dir "/?.lua;" package.path))
+    (local hotpot-path (.. cache-dir fnl-dir "/?.lua;" package.path))
+    (set package.path hotpot-path)
     (local hotpot (require :hotpot.hotterpot))
-    (set package.path old-package-path)
-    hotpot)
+    ;; (hotpot.install)
+    ;; (hotpot.uninstall)
+    ;; we have to let hotpot know it's own path so it can continue to function
+    ;; after we reset package.path
+    ;; TODO ?
+    ;; (hotpot set-hotpot-path hotpot-path)
+    ;; (set package.path old-package-path)
+    hotpot))
 
-  ;; The canary doesn't exist, so we have to manually load fennel,
-  ;; load Hotpot, then *hide* hotpot so hotpot can load hotpot
-  ;; and compile it out
-  (let [fennel (require :hotpot.fennel)]
-    (debug "compile hotpot")
-    ;; setup path so we can find hotpot to load it into memory
+(fn compile-fresh [cache-dir fnl-dir]
+  (local fennel (require :hotpot.fennel))
+    (debug "Compiling hotpot")
+    ;; No compiled files were found, so just run the compiler over our fnl/
+    ;; folder then set the modified dates of those files to the dates of their
+    ;; sources so future hotpots can recompile (which may still be wonky for
+    ;; hotpot specifically without module hotswapping (see lume.hotspap))
+
+    ;; insert our fnl folder into fennels path, saving the old path for
+    ;; restoration
     (local saved-fennel-path fennel.path)
     (set fennel.path (.. fnl-dir "/?.fnl;" fennel.path))
-    (debug fennel.path)
+    (table.insert package.loaders fennel.searcher)
 
-    ;; We want to isolate any fennel macros we find this time so
-    ;; they can be correctly seen again *next* time we require them.
-    ;; Without this, even when removing fennel from package.loaded, the macros
-    ;; would persist, meaning the dependecy would not be tracked correctly.
-    ;; Table.insert => push
-    (table.insert package.loaders (fennel.makeSearcher {:compilerEnv {}}))
-
-    ;; Load hotpot and set it up. It will now act on any future fnl files
     (local hotpot (require :hotpot.hotterpot))
     (hotpot.setup)
 
-    ;; Now we want to undo the changes we did to package.loaders, hide hotpot so
-    ;; we can require it again, and unload fennel too (at least what we can)
-    ;; Table.remove => pop
-    (table.remove package.loaders)
-    (each [name _ (pairs package.loaded)]
-      (if
-        (string.match name :^hotpot)
-        (do
-          (tset package.loaded (.. "_" name) (. package.loaded name))
-          (tset package.loaded name nil))
-        (string.match name :^fennel)
-        (do
-          (tset package.loaded name nil))))
+    (fn path-to-modname [path]
+      (-> path
+          (string.gsub "^/" "")
+          (string.gsub ".fnl" "")
+          (string.gsub "/" ".")))
+
+    (fn compile-dir [fennel in-dir out-dir local-path]
+      (let [scanner (uv.fs_scandir in-dir)]
+        (var ok true)
+        (each [name type #(uv.fs_scandir_next scanner) :until (not ok)]
+          (match type
+            "directory" (do
+                          (local out-down (.. cache-dir :/ in-dir :/ name))
+                          (local in-down (.. in-dir :/ name))
+                          (local local-down (.. local-path :/ name))
+                          (vim.fn.mkdir out-down :p)
+                          (compile-dir fennel in-down out-down local-down))
+            "file" (let [out-file (.. out-dir :/ (string.gsub name ".fnl$" ".lua"))
+                         in-file  (.. in-dir :/ name)]
+                     (when (not (= name :macros.fnl))
+                       (local modname (path-to-modname (.. local-path :/ name)))
+                       (hotpot.search modname)))))))
+
+    ;; for every file in our fnl-dir, force hotpot to compile it
+    (compile-dir fennel fnl-dir cache-dir "")
+
     (set fennel.path saved-fennel-path)
+    (var target nil)
+    (each [i check (ipairs package.loaders) :until target]
+      (if (= check fennel.searcher) (set target i)))
+    (table.remove package.loaders target)
 
-    ;; Finnaly we can re-require hotpot, which will be seen by the resident
-    ;; hotpot, which will then compile and output into cache.
-    (debug "require hotpot.hotterpot")
-    (debug fennel.path)
-    (require :hotpot.hotterpot)
+    ;; pretend we were never here
+    ;; (hotpot.uninstall)
 
-    ;; now replace the last required hotpot version with our resident hotpot
-    ;; so future requires just return this copy
-;;    (each [name _ (pairs package.loaded)]
-;;      (if
-;;        (string.match name :^_hotpot)
-;;        (do
-;;          (tset package.loaded (string.gsub name "^_hotpot" "hotpot") (. package.loaded name)))
-;;          (tset package.loaded (.. "_" name) nil)))
+    ;; return the module
+    hotpot)
 
-    ;; return our resident hotpot since it has already been setup
-    ;; and if we returned the new require, we could end up with two copies running.
-    hotpot))
+;; TODO: this shoud check if fnl is stale and remove the tree, force fennel recomp,
+;;       it does add another file check to load, maybe just check fnl or some
+;;       plugin/canary file that can be updated each release to force a
+;;       recompilation. That or just rely on post-install hooks to clear cache
+(if (vim.loop.fs_access canary :R)
+  (load-from-cache cache-dir fnl-dir)
+  (compile-fresh cache-dir fnl-dir))
