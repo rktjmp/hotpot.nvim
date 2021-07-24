@@ -7,13 +7,12 @@
 >
 > ~ Fennel Programmers (probably)
 
-Hotpot lets you use Fennel in Neovim anywhere you would use Lua, just replace
-your `.lua` files with `.fnl`. If you squint *really* hard and intentionally
-misunderstand some concepts, it *almost* looks like a Fennel JIT for Neovim.
-*Almost.*
+Hotpot lets you use [Fennel](https://fennel-lang.org/) in Neovim anywhere you
+would use Lua, just replace your `lua/*.lua` files with `fnl/*.fnl` and Hotpot
+gets cooking.
 
 ```clojure
-;; ~/.config/nvim/is_neat.fnl
+;; ~/.config/nvim/fnl/is_neat.fnl
 ;; some kind of fennel code
 (fn [what]
   (print what "is neat!"))
@@ -26,19 +25,18 @@ neat("fennel") -- => "fennel is neat!"
 ```
 
 Hotpot will transparently compile your Fennel code into Lua and then return the
-compiled module.
-
-Future calls to `require` (including in future Neovim sessions) will skip the
-compile step unless it's stale, meaning you only pay the cost once, keeping
-your ~~`init.fnl`~~ `init.lua` 🐎 rapido 🐎.
+compiled module. Future calls to `require` (including in future Neovim
+sessions) will skip the compile step unless it's stale, meaning you only pay
+the cost once, keeping your ~~`init.fnl`~~ `init.lua` 🐎 rapido 🐎.
 
 ## Non Goals
 
-Hotpot isn't library full of functions and macros to configure Neovim with.
+Hotpot isn't a library full of functions and macros to configure Neovim with.
+Hotpot wants to make it easier for *you* to write functions and macros.
 
-I wrote Hotpot in an afternoon as a way to learn Fennel. It doesn't intend
-to provide anything more than an intermediary layer between Fennel and Lua,
-to make combining Fennel and Neovim a litle easier.
+I wrote Hotpot as a way to learn Fennel, It doesn't intend to provide anything
+more than an intermediary layer between Fennel and Lua; to make combining
+Fennel and Neovim a litle smoother.
 
 If you want to play with Fennel and maybe write a few macros or helpers, Hotpot
 might be for you. If you want a easy out of the box experience with all the
@@ -63,9 +61,10 @@ Fennel I've ever written, so it ~~might be~~ is garbage!**
 
 ## Install
 
-See: [vim-plug](#vim-plug), [packer](#packer), [paq](#paq) or [sans package manager](#npm-no-package-manager)
+See: [vim-plug](#vim-plug), [packer](#packer), [paq](#paq) or [sans package
+manager](#npm-no-package-manager)
 
-Generally, you want to call `require("hotpot").setup()` as soon as possible,
+Generally, you want to call `require("hotpot")` as soon as possible,
 probaby right after your package manager has configured your runtimepath.
 
 ```lua
@@ -74,21 +73,16 @@ some_packager {
   ...
 }
 -- inject hotpot module resolver
-require("hotpot").setup()
+require("hotpot")
 -- you may now require("some.fnl.module") just as if it were a lua file
 ```
 
-But installation and usage may vary, depending on the package manager in use, how
-your nvim configuration is setup and how you're using Hotpot.
+But installation and usage may vary, depending on the package manager in use,
+how your nvim configuration is setup and how you're using Hotpot.
 
-Most importantly, you must inject Hotpot's module resolver before you requre any
-`.fnl` file, this may be after your package manager is finished, inbetween or
-before it even starts.
-
-Hotpot will automatically run `setup()` when it's loaded but depending on your
-package manager that may happen later than you want.
-
-`setup()` is idempotent, so calling it more than once will have no adverse effects.
+Most importantly, you must inject Hotpot's module resolver before you requre
+any `.fnl` file, this may be after your package manager is finished, inbetween
+or before it even starts.
 
 `:scriptnames` and `--startuptime` may help you diagnose any load order
 problems, as well as `:h initialization`.
@@ -109,7 +103,7 @@ call plug#end()
 
 " we probably want todo this **immediately** after plug#end() so
 " the resolver is setup asap.
-lua require("hotpot").setup()
+lua require("hotpot")
 ```
 
 ### packer
@@ -120,14 +114,13 @@ return require('packer').startup(function()
   -- probaly put high up in your chain
   use {
     'rktjmp/hotpot.nvim',
-    -- depending on use, you may be able to call setup() here,
     -- packer says this is "code to run after this plugin is loaded."
     -- but it seems to run before plugin/hotpot.vim (perhaps just barely)
-    config = function() require("hotpot").setup() end
+    config = function() require("hotpot") end
   }
 end)
 -- or just call it here
-require("hotpot").setup()
+require("hotpot")
 ```
 
 ### paq
@@ -136,7 +129,7 @@ require("hotpot").setup()
 require "paq" {
   "rktjmp/hotpot.nvim"
 }
-require("hotspot").setup()
+require("hotspot")
 ```
 
 ### ~~NPM~~ No Package Manager
@@ -146,16 +139,16 @@ require("hotspot").setup()
 
 ```lua
 vim.opt.runtimepath:append("~/path/to/hotpot.nvim")
-require("hotpot").setup()
+require("hotpot")
 ```
 
-You if you are using a package manager to install and update Hotpot, but want to
-run `setup` early, you may use a similar approach:
+You if you are using a package manager to install and update Hotpot, but want
+run early, you may use a similar approach:
 
 ```lua
 -- maybe at the very start of init.lua/vim
 vim.opt.runtimepath:append("~/path/to/package-manager/hotpot.nvim")
-require("hotpot").setup()
+require("hotpot")
 -- now you can load fennel code, so you could put the rest of your
 -- config in a separate `fenneled_init.fnl`.
 require("fenneled_init")
@@ -190,7 +183,6 @@ vim.api.nvim_set_keymap("v",
                         {noremap = true, silent = false})
 ```
 
-
 ## Using with Plugins
 
 While you can write plugins in Fennel and allow Hotpot to load them, shipping a
@@ -204,22 +196,37 @@ If you want to write a plugin in Fennel, look at the excellent
 
 ## How does Hotpot work?
 
-Hotpot prepends itself onto Lua's module finder. When `require("my.module")` is
-called, it will first look for a `my/module.fnl` anywhere in `rtp` or
-`package.path`.
+Hotpot prepends itself onto Lua's module finder. It has a specific load order,
+that mirrors Neovims native process.
+
+Given `require("my.module")` Hotpot will check the following locations, in
+order, and return the first match.
+
+- `$RUNTIMEPATH/lua/my/module.lua`
+- `$RUNTIMEPATH/lua/my/module/init.lua`
+- `$RUNTIMEPATH/fnl/my/module.fnl`
+- `$RUNTIMEPATH/fnl/my/module/init.fnl`
+- `package.path/my/module.fnl`
+
+You can see that it will preference `.lua` files over `.fnl`, if they exist.
+This lets Hotpot play well with plugins written in Fennel that provide a
+precompiled source tree (eg: probably 100% of them), as they may have
+additional build steps (and they've already done the work).
 
 If a `.fnl` file is found, it will check whether there is a matching `.lua`
-file, and will transparently compile the Fennel into Lua if needed, then finally
-it will return the module loader back to Lua.
+file in cache. Hotpot will transparently compile the Fennel into Lua if needed
+(when the file is missing, or is stale). Finnaly it loads and returns the Lua
+module.
 
 The compiled `.lua` files are stored in Neovims cache directory, under the
 `hotpot` subdirectory. You will not see the compiled artefacts among your
-`.fnl` files. You can find your cache directory by running `:echo
-stdpath("cache)"`.
+`.fnl` files or in any `.lua` directory.
+
+You can find your cache directory by running `:echo stdpath("cache)"`.
 
 The performance cost is very low after compilation, infact is's nearly
-identical to just using Lua (technically there is one extra search happening,
-but the cost is tiny).
+identical to just using Lua (technically there's an extra search happening, but
+the cost is tiny).
 
 ## See Also
 
