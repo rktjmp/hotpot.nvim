@@ -43,7 +43,7 @@ snag2() {
 
   # you are also OBSOLETE
   # build
-  for src in $(fd -tf fnl)
+  for src in $(fd -tf fnl fnl/)
   do
     case "$src" in
       # dont actually build macrofile
@@ -57,6 +57,7 @@ snag2() {
 
   # mkdir -p lua/hotpot
   cp dep/fennel.lua lua/hotpot/fennel.lua
+  # don't need loader hook
   mv lua/hotpot/hotterpot.lua lua/hotpot.lua
   # don't tell them what's in the pot...
   #fennel --compile --indent "  " --correlate dogfood.fnl > lua/hotpot.lua

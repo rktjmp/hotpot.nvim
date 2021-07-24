@@ -11,11 +11,18 @@
 ;; file to figure out related files needed for bootstraping.
 
 ;; *actual* path of the plugin installation
-(var plugin-dir (-> :lua/hotpot.lua
+(local a (uv.hrtime))
+(local plugin-dir (-> :lua/hotpot.lua
                     (vim.api.nvim_get_runtime_file false)
                     (. 1)
                     (uv.fs_realpath)
                     (string.gsub :/lua/hotpot.lua$ "")))
+(local b (uv.hrtime))
+(fn tdiff [s e]
+  (-> e
+      (- s)
+      (/ 1_000_000)))
+
 ;; where our plugin source is
 (local fnl-dir (.. plugin-dir :/fnl))
 ;; where we expect our lua to be (after mirroring fnl-dir)
