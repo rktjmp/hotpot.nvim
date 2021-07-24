@@ -11,18 +11,11 @@
 ;; file to figure out related files needed for bootstraping.
 
 ;; *actual* path of the plugin installation
-(local a (uv.hrtime))
 (local plugin-dir (-> :lua/hotpot.lua
                     (vim.api.nvim_get_runtime_file false)
                     (. 1)
                     (uv.fs_realpath)
                     (string.gsub :/lua/hotpot.lua$ "")))
-(local b (uv.hrtime))
-(fn tdiff [s e]
-  (-> e
-      (- s)
-      (/ 1_000_000)))
-
 ;; where our plugin source is
 (local fnl-dir (.. plugin-dir :/fnl))
 ;; where we expect our lua to be (after mirroring fnl-dir)
@@ -41,13 +34,14 @@
     (local hotpot-path (.. cache-dir fnl-dir "/?.lua;" package.path))
     (set package.path hotpot-path)
     (local hotpot (require :hotpot.hotterpot))
-    ;; (hotpot.install)
-    ;; (hotpot.uninstall)
+    (hotpot.install)
     ;; we have to let hotpot know it's own path so it can continue to function
     ;; after we reset package.path
     ;; TODO ?
     ;; (hotpot set-hotpot-path hotpot-path)
     ;; (set package.path old-package-path)
+    (tset hotpot :install nil)
+    (tset hotpot :uninstall nil)
     hotpot))
 
 (fn compile-fresh [cache-dir fnl-dir]
@@ -65,7 +59,7 @@
     (table.insert package.loaders fennel.searcher)
 
     (local hotpot (require :hotpot.hotterpot))
-    (hotpot.setup)
+    (hotpot.install)
 
     (fn path-to-modname [path]
       (-> path
@@ -93,16 +87,17 @@
     ;; for every file in our fnl-dir, force hotpot to compile it
     (compile-dir fennel fnl-dir cache-dir "")
 
+    ;; undo our path and searcher changes since we handle this now
     (set fennel.path saved-fennel-path)
     (var target nil)
     (each [i check (ipairs package.loaders) :until target]
       (if (= check fennel.searcher) (set target i)))
     (table.remove package.loaders target)
 
-    ;; pretend we were never here
-    ;; (hotpot.uninstall)
 
     ;; return the module
+    (tset hotpot :install nil)
+    (tset hotpot :uninstall nil)
     hotpot)
 
 ;; TODO: this shoud check if fnl is stale and remove the tree, force fennel recomp,

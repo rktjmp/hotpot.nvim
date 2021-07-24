@@ -13,24 +13,26 @@
   (searcher modname))
 
 (fn install []
-  (do
+  (when (not has-run-setup)
+    ;; it's actually pretty important we have debugging message
+    ;; before we get into the searcher otherwise we get a recursive
+    ;; loop because dinfo has a require call in itself.
+    ;; TODO probably installing the logger here and accessing
+    ;;      it via that in dinfo would fix that.
+    (dinfo "Installing Hotpot into searchers")
     (local config (default-config))
     (set searcher (partial module-searcher config))
     (table.insert package.loaders 1 searcher)
     (set has-run-setup true)))
 
 (fn uninstall []
-  (var target nil)
-  (each [i check (ipairs package.loaders) :until target]
-    (if (= check searcher) (set target i)))
-  (table.remove package.loaders target))
-
-(fn setup []
-  (dinfo "Enter setup hotpot" (os.date))
-  (if (not has-run-setup)
-    (install)
-    (dinfo "Already setup, doing nothing"))
-  has-run-setup)
+  (when (has-run-setup)
+    (dinfo "Uninstalling Hotpot from searchers")
+    (local config (default-config))
+    (var target nil)
+    (each [i check (ipairs package.loaders) :until target]
+      (if (= check searcher) (set target i)))
+    (table.remove package.loaders target)))
 
 (fn print-compiled [ok result]
   (match [ok result]
@@ -52,8 +54,7 @@
         (compile-string {:filename :hotpot-show})
         (print-compiled))))
 
-{: setup
- : install
+{: install
  : uninstall
  : search
  :fennel_version (fn [] (. (require-fennel) :version))

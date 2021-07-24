@@ -1,1 +1,1 @@
-lua require("hotpot").setup()
+lua require("hotpot")

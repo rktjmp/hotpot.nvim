@@ -8,6 +8,9 @@ local function load_from_cache(cache_dir0, fnl_dir0)
   local hotpot_path = (cache_dir0 .. fnl_dir0 .. "/?.lua;" .. package.path)
   package.path = hotpot_path
   local hotpot = require("hotpot.hotterpot")
+  hotpot.install()
+  hotpot["install"] = nil
+  hotpot["uninstall"] = nil
   return hotpot
 end
 local function compile_fresh(cache_dir0, fnl_dir0)
@@ -16,7 +19,7 @@ local function compile_fresh(cache_dir0, fnl_dir0)
   fennel.path = (fnl_dir0 .. "/?.fnl;" .. fennel.path)
   table.insert(package.loaders, fennel.searcher)
   local hotpot = require("hotpot.hotterpot")
-  hotpot.setup()
+  hotpot.install()
   local function path_to_modname(path)
     return string.gsub(string.gsub(string.gsub(path, "^/", ""), ".fnl", ""), "/", ".")
   end
@@ -56,6 +59,8 @@ local function compile_fresh(cache_dir0, fnl_dir0)
     end
   end
   table.remove(package.loaders, target)
+  hotpot["install"] = nil
+  hotpot["uninstall"] = nil
   return hotpot
 end
 if vim.loop.fs_access(canary, "R") then
