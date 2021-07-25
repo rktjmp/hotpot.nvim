@@ -70,8 +70,7 @@
     false lua-path
     true (do
            (dinfo "needs-compilation" fnl-path lua-path)
-           (match (compile-string (read-file fnl-path) {:filename fnl-path
-                                                        :correlate true})
+           (match (compile-string (read-file fnl-path) {:filename fnl-path})
              (true code) (do
                            (dinfo "compiled? OK")
                            ;; TODO normally this is fine if the dir exists exept if it ends in .
