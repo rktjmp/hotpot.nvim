@@ -15,7 +15,7 @@
      r#))
 
 (fn profile-as [name ...] `,...)
-(fn dinfo [...])
+;;(fn dinfo [...])
 
 {: require-fennel
  : dinfo
