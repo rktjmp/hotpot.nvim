@@ -1,37 +1,22 @@
 #!/usr/bin/env sh
 
+# dont ask where the meat comes from...
 snag() {
   # clean
   rm -rf lua/
 
-  # You are OBSOLETE
-  # create destinations
-  # for dir in $(fd -td ".*" fnl)
-  # do
-  #   mkdir -p ${dir/fnl/lua}
-  # done
-
-  # you are also OBSOLETE
-  # build
-  # for src in $(fd -tf fnl)
-  # do
-  #   case "$src" in
-  #     # dont actually build macrofile
-  #     *hotpot/macros.fnl*) echo "ignoring $src" ;;
-  #     # add path so we can run from project root
-  #     *) fennel --add-fennel-path "fnl/?.fnl" --compile --correlate $src > ${src//fnl/lua};;
-  #   esac
-  # done
-
-  # you are a precious delicate flower and must be preserved
-
+  # setup
   mkdir -p lua/hotpot
   cp dep/fennel.lua lua/hotpot/fennel.lua
+
   # don't tell them what's in the pot...
   fennel --compile dogfood.fnl > lua/hotpot.lua
+
+  echo "snag: $(date) built"
 }
 
-snag2() {
+# full fat, build a lua/ dir and throw out the dogfood
+burger() {
   # clean
   rm -rf lua/
 
@@ -41,7 +26,6 @@ snag2() {
     mkdir -p ${dir/fnl/lua}
   done
 
-  # you are also OBSOLETE
   # build
   for src in $(fd -tf fnl fnl/)
   do
@@ -53,56 +37,58 @@ snag2() {
     esac
   done
 
-  # you are a precious delicate flower and must be preserved
-
   # mkdir -p lua/hotpot
   cp dep/fennel.lua lua/hotpot/fennel.lua
   # don't need loader hook
   mv lua/hotpot/hotterpot.lua lua/hotpot.lua
-  # don't tell them what's in the pot...
-  #fennel --compile --indent "  " --correlate dogfood.fnl > lua/hotpot.lua
-  echo "$(date) built"
+
+  echo "burger: $(date) built"
+  echo "NOTE: burger needs you to manually call .install()!"
 }
 
-beer() {
+# probably what you want
+ipa() {
   # yeah looks good mate
-  # fd -tf fnl | entr -sc './barbie snag'
-  fd -tf fnl | entr -sc './barbie snag'
+  fd -tf fnl | entr -sc './barbie snag; ./barbie sauce'
 }
 
-beer2() {
-  # yeah looks good mate
-  # fd -tf fnl | entr -sc './barbie snag'
-  fd -tf fnl | entr -sc './barbie snag2'
+
+# i mean, if you're offering...
+draught() {
+  # yeah thanks mate
+  fd -tf fnl | entr -sc './barbie burger; ./barbie sauce'
 }
 
-release() {
-  canary=$(tar --exclude canary/ -cf - . | sha1sum | cut -d' ' -f1)
+# sha release and note it in canary file
+sauce() {
+  canary=$(find . -type f | grep -v "./canary" | xargs -d'\n' -P0 -n1 md5sum | sort -k 2 | md5sum)
   rm -rf canary/
   mkdir -p canary/
   touch canary/$canary
 }
 
 case "$1" in
-  "release")
-    release
+  "sauce")
+    sauce
     exit 0;;
   "snag")
     snag
-    release
+    sauce
     exit 0;;
-  "snag2")
-    snag2
-    release
+  "burger")
+    burger
+    sauce
     exit 0;;
-  "beer")
-    beer
-    release
+  "ipa")
+    ipa
     exit 0;;
-  "beer2")
-    beer2
-    release
+  "draught")
+    draught
     exit 0;;
   *)
-    echo "$0 snag|beer";;
+    echo "$0 sauce   - write canary"
+    echo "$0 snag    - build dogfood, also sauce"
+    echo "$0 burger  - build full fat, also sauce"
+    echo "$0 ipa     - watch snag, also sauce"
+    echo "$0 draught - watch burger, also sauce";;
 esac
