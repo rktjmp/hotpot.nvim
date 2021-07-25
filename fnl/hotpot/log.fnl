@@ -2,7 +2,7 @@
 (var out-file nil)
 
 (fn open []
-  (match (io.open path :w)
+  (match (io.open path :w) ;; trunc log so it doesn't bloat I guess
     fd (set out-file fd)
     (nil error) (print "hotpot error: could not open log file for writing")))
 
