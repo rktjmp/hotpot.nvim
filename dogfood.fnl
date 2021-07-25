@@ -58,6 +58,17 @@
     (tset hotpot :uninstall nil)
     hotpot))
 
+(fn clear-cache [cache-dir]
+  (let [scanner (uv.fs_scandir cache-dir)]
+        (each [name type #(uv.fs_scandir_next scanner)]
+          (match type
+            "directory" (do
+                          (local child (.. cache-dir :/ name))
+                          (clear-cache child)
+                          (uv.fs_rmdir child))
+            "file" (uv.fs_unlink (.. cache-dir :/ name))))))
+
+
 (fn compile-fresh [cache-dir fnl-dir]
   (local fennel (require :hotpot.fennel))
     (debug "Compiling hotpot")
@@ -119,4 +130,6 @@
 
 (if (check-canary cache-dir)
   (load-from-cache cache-dir fnl-dir)
-  (compile-fresh cache-dir fnl-dir))
+  (do
+    (print :clear-cache (.. cache-dir fnl-dir))
+    (compile-fresh cache-dir fnl-dir)))

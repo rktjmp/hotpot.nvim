@@ -36,6 +36,23 @@ local function load_from_cache(cache_dir0, fnl_dir0)
   hotpot["uninstall"] = nil
   return hotpot
 end
+local function clear_cache(cache_dir0)
+  local scanner = uv.fs_scandir(cache_dir0)
+  local function _0_()
+    return uv.fs_scandir_next(scanner)
+  end
+  for name, type in _0_ do
+    local _1_ = type
+    if (_1_ == "directory") then
+      local child = (cache_dir0 .. "/" .. name)
+      clear_cache(child)
+      uv.fs_rmdir(child)
+    elseif (_1_ == "file") then
+      uv.fs_unlink((cache_dir0 .. "/" .. name))
+    end
+  end
+  return nil
+end
 local function compile_fresh(cache_dir0, fnl_dir0)
   local fennel = require("hotpot.fennel")
   local saved_fennel_path = fennel.path
@@ -90,5 +107,6 @@ end
 if check_canary(cache_dir) then
   return load_from_cache(cache_dir, fnl_dir)
 else
+  print("clear-cache", (cache_dir .. fnl_dir))
   return compile_fresh(cache_dir, fnl_dir)
 end
