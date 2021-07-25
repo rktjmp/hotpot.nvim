@@ -1,11 +1,11 @@
 (local uv vim.loop)
 
 (fn read-file [path]
-  (with-open [fh (io.open path :r)]
+  (with-open [fh (assert (io.open path :r) (.. "read-file io.open failed:" path))]
              (fh:read :*a)))
 
 (fn write-file [path lines]
-  (with-open [fh (io.open path :w)]
+  (with-open [fh (assert (io.open path :w) (.. "fs.write-file io.open failed:" path))]
              (fh:write lines)))
 
 (fn file-exists? [path]
