@@ -61,7 +61,7 @@ draught() {
 
 # sha release and note it in canary file
 sauce() {
-  canary=$(find . -type f | grep -v "./canary" | xargs -d'\n' -P0 -n1 md5sum | sort -k 2 | md5sum)
+  canary=$(find . -type f | grep -v "canary\|git" | xargs -d'\n' -P0 -n1 md5sum | sort -k 2 | md5sum)
   rm -rf canary/
   mkdir -p canary/
   touch canary/$canary
