@@ -27,12 +27,14 @@ neat("fennel") -- => "fennel is neat!"
 Hotpot will transparently compile your Fennel code into Lua and then return the
 compiled module. Future calls to `require` (including in future Neovim
 sessions) will skip the compile step unless it's stale, meaning you only pay
-the cost once, keeping your ~~`init.fnl`~~ `init.lua` 🐎 rapido 🐎.
+the cost once, keeping your ~~`init.fnl`~~ `init.lua` 🐎 rapido 🐎. Seamlessly
+mix and match Fennel and Lua as little or as much as you want.
 
 ## Non Goals
 
 Hotpot isn't a library full of functions and macros to configure Neovim with.
-Hotpot wants to make it easier for *you* to write functions and macros.
+Hotpot wants to make it easier for *you* to play with Fennel and write your own
+functions and macros.
 
 I wrote Hotpot as a way to learn Fennel, It doesn't intend to provide anything
 more than an intermediary layer between Fennel and Lua; to make combining
@@ -57,7 +59,7 @@ Fennel I've ever written, so it ~~might be~~ is garbage!**
 ## Requirements
 
 - Neovim 0.5+ (probably)
-- ~~Fanatical devotion to lisp.~~
+- ~~Fanatical devotion to parentheses.~~
 
 ## Install
 
@@ -92,18 +94,14 @@ problems, as well as `:h initialization`.
 >
 > See [No Package Manager](#npm-no-package-manager) for information.
 
-### vim-plug
 
-```viml
-" for vim-plug
-call plug#begin(g:config.plug_dir)
-  Plug 'rktjmp/hotpot.nvim'
-call plug#end()
-" after end(), our rtp will be set and require('hotpot') will work.
+### paq
 
-" we probably want todo this **immediately** after plug#end() so
-" the resolver is setup asap.
-lua require("hotpot")
+```lua
+require "paq" {
+  "rktjmp/hotpot.nvim"
+}
+require("hotpot")
 ```
 
 ### packer
@@ -123,13 +121,18 @@ end)
 require("hotpot")
 ```
 
-### paq
+### vim-plug
 
-```lua
-require "paq" {
-  "rktjmp/hotpot.nvim"
-}
-require("hotspot")
+```viml
+" for vim-plug
+call plug#begin(g:config.plug_dir)
+  Plug 'rktjmp/hotpot.nvim'
+call plug#end()
+" after end(), our rtp will be set and require('hotpot') will work.
+
+" we probably want todo this **immediately** after plug#end() so
+" the resolver is setup asap.
+lua require("hotpot")
 ```
 
 ### ~~NPM~~ No Package Manager
@@ -138,17 +141,25 @@ require("hotspot")
 - Add to init.lua:
 
 ```lua
-vim.opt.runtimepath:append("~/path/to/hotpot.nvim")
+vim.opt.runtimepath:append("~/clones/hotpot.nvim")
 require("hotpot")
 ```
 
 You if you are using a package manager to install and update Hotpot, but want
-run early, you may use a similar approach:
+enable it ASAP, you may use a similar approach:
 
 ```lua
--- maybe at the very start of init.lua/vim
-vim.opt.runtimepath:append("~/path/to/package-manager/hotpot.nvim")
+-- maybe at the very start of init.lua/vim, uncomment the correct line
+
+-- packer
+-- vim.opt.runtimepath:append("~/.local/share/nvim/site/pack/packer/start/hotpot.nvim")
+-- paq
+-- vim.opt.runtimepath:append("~/.local/share/nvim/site/pack/paqs/start/hotpot.nvim")
+-- vimplug
+-- vim.opt.runtimepath:append("~/.local/share/nvim/site/plugged/hotpot.nvim")
+
 require("hotpot")
+
 -- now you can load fennel code, so you could put the rest of your
 -- config in a separate `fenneled_init.fnl`.
 require("fenneled_init")
@@ -186,6 +197,13 @@ vim.api.nvim_set_keymap("v",
                         {noremap = true, silent = false})
 ```
 
+> Lua will cache any modules it has loaded. This means that repeated calls to
+> `require(module)` wont show any changes. You can "unload" a module by calling
+> `package.loaded[module] = nil`. This is something of a hack, and some state
+> may be retained. Unloading `module` **does not** unload `module.submodule`.
+>
+> Currently Hotpot treats un/reloading modules as out of scope.
+
 ## Using with Plugins
 
 While you can write plugins in Fennel and allow Hotpot to load them, shipping a
@@ -193,6 +211,9 @@ plugin with an added dependency and setup complexity is maybe not recommended?
 
 That said, it has no issues working with plugins assuming you are able to setup
 the module resolver before loading them.
+
+Hotpot may get a small build toolchain in the future to allow hot-code
+development that you can bake out to lua for release.
 
 If you want to write a plugin in Fennel, look at the excellent
 [Aniseed](#see-also), or simply install the Fennel toolchain yourself.
@@ -244,6 +265,14 @@ the enviously talented Oliver Caldwell:
 
 Additionally, [Zest](https://github.com/tsbohc/zest.nvim) provides similar
 macros and aids, and may be combined with Aniseed.
+
+> Hotpot may be compatible with both projects, it may not be. I think aniseed does
+> some trickery in it's compile system that injects some macros. Zest can be
+> used with or without Aniseed so I assume it would have no compatibility
+> issues.
+>
+> You may wish to disable Zest or Aniseeds native compilation to let
+> hotpot take over.
 
 You may also like to install the Fennel toolchain and setup a "show me the lua"
 buffer:
