@@ -1,6 +1,6 @@
 ![logo](images/logo.png)
 
-# 🍲 Hotpot - Seemless Fennel inside Neovim
+# 🍲 Hotpot - Seamless Fennel inside Neovim
 
 > You take this home, throw it in a pot, add some broth, some neovim... baby,
 > you got a stew going!
