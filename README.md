@@ -239,7 +239,7 @@ additional build steps (and they've already done the work).
 
 If a `.fnl` file is found, it will check whether there is a matching `.lua`
 file in cache. Hotpot will transparently compile the Fennel into Lua if needed
-(when the file is missing, or is stale). Finnaly it loads and returns the Lua
+(when the file is missing, or is stale). Finally it loads and returns the Lua
 module.
 
 The compiled `.lua` files are stored in Neovims cache directory, under the
