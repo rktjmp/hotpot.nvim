@@ -16,10 +16,12 @@
   ;; (nb: Previously we did use an md5sum in the name but comparing
   ;;      by mtime avoids the process spawn, potential tool incompatibilities
   ;;      and leaves a bit cleaner looking cache.)
+  ;; TODO: nicer error handling
   (-> path
       (vim.loop.fs_realpath)
       ((partial .. prefix))
-      (string.gsub "%.fnl$" :.lua)))
+      (string.gsub "%.fnl$" :.lua) ;; gsub returns <string> <n-replacements>
+      ((partial pick-values 1))))
 
 (fn dependency-filename [lua-path]
   (.. lua-path ".deps"))
@@ -125,4 +127,11 @@
     ;; no fnl file for this module
     nil nil))
 
-searcher
+(fn cache-path-for-module [config modname]
+  (match (locate-module modname)
+    mod-path (match (is-lua-file mod-path)
+               true mod-path
+               false (fnl-path-to-compiled-path mod-path config.prefix))))
+
+;; TODO: can probably name these more specifically
+{: searcher : cache-path-for-module}

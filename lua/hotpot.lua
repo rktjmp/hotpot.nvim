@@ -107,6 +107,5 @@ end
 if check_canary(cache_dir) then
   return load_from_cache(cache_dir, fnl_dir)
 else
-  print("clear-cache", (cache_dir .. fnl_dir))
   return compile_fresh(cache_dir, fnl_dir)
 end

@@ -1,5 +1,6 @@
 (local {: compile-string} (require :hotpot.compiler))
-(local module-searcher (require :hotpot.searcher.module))
+(local {:searcher module-searcher
+        :cache-path-for-module cache-searcher} (require :hotpot.searcher.module))
 (import-macros {: require-fennel : dinfo} :hotpot.macros)
 (local debug-modname "hotpot")
 
@@ -12,6 +13,9 @@
 (fn search [modname]
   (searcher modname))
 
+(fn cache-path-for-module [modname]
+  (cache-searcher (default-config) modname))
+
 (fn install []
   (when (not has-run-setup)
     ;; it's actually pretty important we have debugging message
@@ -20,8 +24,7 @@
     ;; TODO probably installing the logger here and accessing
     ;;      it via that in dinfo would fix that.
     (dinfo "Installing Hotpot into searchers")
-    (local config (default-config))
-    (set searcher (partial module-searcher config))
+    (set searcher (partial module-searcher (default-config)))
     (table.insert package.loaders 1 searcher)
     (set has-run-setup true)))
 
@@ -54,9 +57,11 @@
         (compile-string {:filename :hotpot-show})
         (print-compiled))))
 
-{: install
- : uninstall
- : search
+{: install ;; install searcher
+ : uninstall ;; uninstall searcher
+ : search ;; used by dogfood to force compilation
+ : cache-path-for-module ;; returns lua path for lua.module.name
+ :cache_path_for_module cache-path-for-module
  :fennel_version (fn [] (. (require-fennel) :version))
  :fennel (fn [] (require-fennel))
  :compile_string compile-string

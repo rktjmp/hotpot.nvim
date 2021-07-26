@@ -166,6 +166,9 @@ Access to Fennel, for any reason:
   - exposes the bundled Fennel (is a function for performance reasons).
 - `compile_string(string, options)`
   - exposes Fennel's compiler, returns `{true, lua}` or `{false, errors}`.
+- `cache_path_for_module(module.name)`
+  - returns the path to module, either in the cache (if the module is Fennel
+    derived) or the Lua file.
 
 The following functions can aid in learning Fennel:
 

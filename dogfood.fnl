@@ -131,5 +131,5 @@
 (if (check-canary cache-dir)
   (load-from-cache cache-dir fnl-dir)
   (do
-    (print :clear-cache (.. cache-dir fnl-dir))
+    ;; (print :clear-cache (.. cache-dir fnl-dir))
     (compile-fresh cache-dir fnl-dir)))
