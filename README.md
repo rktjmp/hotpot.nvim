@@ -64,46 +64,67 @@ Fennel I've ever written, so it ~~might be~~ is garbage!**
 
 ## Install
 
+Hotpot only needs you to call `require("hotpot")` *before* you attempt to
+require any Fennel files. Hotpot currently has no user configurable options,
+there is no `setup()` function.
+
+Hotpot will 🤖 automatically require itself via `hotpot/plugin/hotpot.vim` but
+this may occur later than you would like.
+
+Carl Weathers recommends using a package manager to install and update Hotpot,
+but manually injecting it as soon as possible, so you can use Fennel to
+*configure the package manager* 😙👌.
+
+Your init.lua file may look like this:
+
+```lua
+-- ~/.config/nvim/init.lua
+
+-- Pick appropriate path for your package manager
+
+-- packer
+-- local hotpot_path = vim.fn.stdpath('data')..'/site/pack/packer/start/hotpot.nvim'
+
+-- paq
+-- local hotpot_path = vim.fn.stdpath('data')..'/site/pack/paqs/start/hotpot.nvim'
+
+-- vim-plug
+-- local hotpot_path = vim.fn.stdpath('data')..'/site/plugged/hotpot.nvim'
+
+-- You can automatically install hotpot if it is missing (i.e for fresh
+-- nvim setups). Don't forget to add hotpot to your package manager or
+-- it may uninstall hotpot!
+
+if vim.fn.empty(vim.fn.glob(hotpot_path)) > 0 then
+  print("Could not find hotpot.nvim, cloning new copy to", hotpot_path)
+  vim.fn.system({'git', 'clone',
+                 'https://github.com/rktjmp/hotpot.nvim', hotpot_path})
+end
+
+-- If you're using vim-plug, you will have to manually insert hotpot
+-- into the runtimepath!
+-- vim.opt.runtimepath:append(hotpot_path)
+
+-- Bootstrap .fnl support
+require("hotpot")
+
+-- Now you can load fennel code, so you could put the rest of your
+-- config in a separate `~/.config/nvim/fnl/fenneled_init.fnl` or 
+-- `~/.config/nvim/fnl/plugins.fnl`, etc.
+require("fenneled_init")
+```
+
+Generally just remember you must call `require("hotpot")` before you attempt to
+`require("a_fnl_module")`. `:scriptnames` and `--startuptime` may help you
+diagnose any load order problems, as well as `:h initialization`.
+
+> The above instructions should be the most reliable and useful method of
+> installing. If you are calling `require("hotpot")` before your starting your
+> package manager you do not have to call it afterwards, it is shown in the
+> instructions below only for completeness.
+
 See: [vim-plug](#vim-plug), [packer](#packer), [paq](#paq) or [sans package
 manager](#npm-no-package-manager)
-
-Generally, you want to call `require("hotpot")` as soon as possible,
-probaby right after your package manager has configured your runtimepath.
-
-```lua
-some_packager {
-  'rktjmp/hotpot.nvim'
-  ...
-}
--- inject hotpot module resolver
-require("hotpot")
--- you may now require("some.fnl.module") just as if it were a lua file
-```
-
-But installation and usage may vary, depending on the package manager in use,
-how your nvim configuration is setup and how you're using Hotpot.
-
-Most importantly, you must inject Hotpot's module resolver before you requre
-any `.fnl` file, this may be after your package manager is finished, inbetween
-or before it even starts.
-
-`:scriptnames` and `--startuptime` may help you diagnose any load order
-problems, as well as `:h initialization`.
-
-> **Hint:** you may consider installing Hotpot via your package manager, but
-> manually inserting it into your runtimepath ASAP.
->
-> See [No Package Manager](#npm-no-package-manager) for information.
-
-
-### paq
-
-```lua
-require "paq" {
-  "rktjmp/hotpot.nvim"
-}
-require("hotpot")
-```
 
 ### packer
 
@@ -119,6 +140,15 @@ return require('packer').startup(function()
   }
 end)
 -- or just call it here
+require("hotpot")
+```
+
+### paq
+
+```lua
+require "paq" {
+  "rktjmp/hotpot.nvim"
+}
 require("hotpot")
 ```
 
@@ -146,26 +176,6 @@ vim.opt.runtimepath:append("~/clones/hotpot.nvim")
 require("hotpot")
 ```
 
-You if you are using a package manager to install and update Hotpot, but want
-enable it ASAP, you may use a similar approach:
-
-```lua
--- maybe at the very start of init.lua/vim, uncomment the correct line
-
--- packer
--- vim.opt.runtimepath:append("~/.local/share/nvim/site/pack/packer/start/hotpot.nvim")
--- paq
--- vim.opt.runtimepath:append("~/.local/share/nvim/site/pack/paqs/start/hotpot.nvim")
--- vimplug
--- vim.opt.runtimepath:append("~/.local/share/nvim/site/plugged/hotpot.nvim")
-
-require("hotpot")
-
--- now you can load fennel code, so you could put the rest of your
--- config in a separate `fenneled_init.fnl`.
-require("fenneled_init")
-```
-
 ## Helpers
 
 Hotpot includes a few helper functions.
@@ -178,6 +188,9 @@ Access to Fennel, for any reason:
   - exposes the bundled Fennel (is a function for performance reasons).
 - `compile_string(string, options)`
   - exposes Fennel's compiler, returns `{true, lua}` or `{false, errors}`.
+
+Access to cache paths for files or modules:
+
 - `cache_path_for_module(module.name)`
   - returns the path to module, either in the cache (if the module is Fennel
     derived) or the Lua file.
@@ -202,15 +215,18 @@ vim.api.nvim_set_keymap("v",
 ```
 
 ```clojure
+(local hotpot (require :hotpot))
+
 (fn maybe-open-cache-file []
   ;; get cache path for current file or dont, idk.
-  (match ((. (require :hotpot) :cache-path-for-file) (vim.fn.expand "%"))
+  (match (hotpot.cache-path-for-file (vim.fn.expand "%"))
     nil (print "No matching cache file for current file")
     path (vim.cmd (.. ":new " path))))
+
 (fn maybe-open-module []
   ;; get cache path for input modname.
   (local modname (vim.fn.input "module name: "))
-  (match ((. (require :hotpot) :cache-path-for-module) modname)
+  (match (hotpot.cache-path-for-module modname)
     nil (print "No matching cache file for module")
     path (vim.cmd (.. ":new " path))))
 
@@ -222,12 +238,13 @@ vim.api.nvim_set_keymap("v",
              {:prefix "<leader>"})
 ```
 
-> Lua will cache any modules it has loaded. This means that repeated calls to
+> ⚠️ Lua will cache any modules it has loaded. This means that repeated calls to
 > `require(module)` wont show any changes. You can "unload" a module by calling
 > `package.loaded[module] = nil`. This is something of a hack, and some state
 > may be retained. Unloading `module` **does not** unload `module.submodule`.
 >
-> Currently Hotpot treats un/reloading modules as out of scope.
+> Currently Hotpot treats un/reloading modules as out of scope (hint: you can
+> `(ipairs package.loaded)`).
 
 ## Using with Plugins
 
