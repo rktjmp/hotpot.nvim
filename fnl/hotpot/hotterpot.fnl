@@ -20,7 +20,7 @@
   (cache-searcher (default-config) modname))
 
 (fn cache-path-for-file [fnl-path]
-  ;; Seaches cache for matching lua file in cache, returns path or nil
+  ;; Searches cache for matching lua file
   (assert fnl-path "must provide path to fnl file")
   (assert (string.match fnl-path "%.fnl$") "must provide .fnl file")
   (local full-path (vim.loop.fs_realpath fnl-path))
@@ -77,8 +77,10 @@
  : cache-path-for-file ;; returns lua cache path for fnl file
  :cache_path_for_file cache-path-for-file
  :cache_path_for_module cache-path-for-module
+ ;; Expose fennel to user for whatever reason
  :fennel_version (fn [] (. (require-fennel) :version))
  :fennel (fn [] (require-fennel))
+ ;; semi-repl helpers
  :compile_string compile-string
  :show_buf show-buf
  :show_selection show-selection}
