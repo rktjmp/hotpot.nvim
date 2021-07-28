@@ -34,7 +34,8 @@ mix and match Fennel and Lua as little or as much as you want.
 
 Hotpot isn't a library full of functions and macros to configure Neovim with.
 Hotpot wants to make it easier for *you* to play with Fennel and write your own
-functions and macros.
+functions and macros. I suggest checking out
+[Lume](https://github.com/rxi/lume) as a complementary standard libray.
 
 I wrote Hotpot as a way to learn Fennel, It doesn't intend to provide anything
 more than an intermediary layer between Fennel and Lua; to make combining
