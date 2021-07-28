@@ -7,7 +7,7 @@ snag() {
 
   # setup
   mkdir -p lua/hotpot
-  cp dep/fennel.lua lua/hotpot/fennel.lua
+  cp deps/fennel.lua lua/hotpot/fennel.lua
 
   # don't tell them what's in the pot...
   fennel --compile dogfood.fnl > lua/hotpot.lua
@@ -38,7 +38,7 @@ burger() {
   done
 
   # mkdir -p lua/hotpot
-  cp dep/fennel.lua lua/hotpot/fennel.lua
+  cp deps/fennel.lua lua/hotpot/fennel.lua
   # don't need loader hook
   mv lua/hotpot/hotterpot.lua lua/hotpot.lua
 
