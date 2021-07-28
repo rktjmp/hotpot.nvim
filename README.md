@@ -55,6 +55,7 @@ Fennel I've ever written, so it ~~might be~~ is garbage!**
 - [Using with Plugins](#using-with-plugins)
 - [How does Hotpot work?](#how-does-hotpot-work)
 - [See Also](#see-also)
+- [FAQ & Trouble Shooting](#faq--trouble-shooting)
 
 ## Requirements
 
@@ -282,6 +283,36 @@ buffer:
 :w
 :split
 :term ls scratch.fnl | entr -sc 'fennel --compile scratch.fnl'
+```
+
+## FAQ & Trouble Shooting
+
+**attempt to call local 'load_fn'**
+
+Often when I see an error like this it's because I have a unnecessary backslash
+in a string.
+
+Fennel (or Lua?) seems to have more robust handing than VimL. Unfortunately I
+am not sure I can provide a clearer error as this is all the compiler returns.
+
+As you can see, the final error is in `parse_string` which should give you a
+hint as to when you're falling into this trap.
+
+```
+Error detected while processing /home/$user/.config/nvim/init.lua:
+runtime error: attempt to call local 'load_fn' (a nil value)
+stack traceback:
+  /home/$user/.../hotpot.nvim/lua/hotpot/fennel.lua:3297: in function 'parse_string'
+  /home/$user/.../hotpot.nvim/lua/hotpot/fennel.lua:3376: in function '(for generator)'
+  /home/$user/.../hotpot.nvim/lua/hotpot/fennel.lua:2716: in function ?
+  [C]: in function 'compile_string'
+  ...$user/.../hotpot.nvim/fnl/hotpot/searcher/module.lua:84: in function 'maybe_compile'
+  ...$user/.../hotpot.nvim/fnl/hotpot/searcher/module.lua:117: in function '_1_'
+  ...$user/.../hotpot.nvim/fnl/hotpot/searcher/module.lua:126: in function ?
+  [C]: in function 'require'
+  ...e/nvim/hotpot//home/$user/.config/nvim/fnl/init.lua:13: in main chunk
+  [C]: in ?
+  [C]: in function 'require'
 ```
 
 ## Licence
