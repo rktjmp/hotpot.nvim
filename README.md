@@ -181,6 +181,9 @@ Access to Fennel, for any reason:
 - `cache_path_for_module(module.name)`
   - returns the path to module, either in the cache (if the module is Fennel
     derived) or the Lua file.
+- `cache_path_for_file(path)`
+  - expects path to point to a `.fnl` file, returns mirrored `.lua` file from
+    cache or nil.
 
 The following functions can aid in learning Fennel:
 
@@ -196,6 +199,27 @@ vim.api.nvim_set_keymap("v",
                         "<leader>nn",
                         ":lua require('hotpot').show_selection()<cr>",
                         {noremap = true, silent = false})
+```
+
+```clojure
+(fn maybe-open-cache-file []
+  ;; get cache path for current file or dont, idk.
+  (match ((. (require :hotpot) :cache-path-for-file) (vim.fn.expand "%"))
+    nil (print "No matching cache file for current file")
+    path (vim.cmd (.. ":new " path))))
+(fn maybe-open-module []
+  ;; get cache path for input modname.
+  (local modname (vim.fn.input "module name: "))
+  (match ((. (require :hotpot) :cache-path-for-module) modname)
+    nil (print "No matching cache file for module")
+    path (vim.cmd (.. ":new " path))))
+
+(wk.register {:h {:name "+hotpot"
+                   :f  [(.. ":lua " (pug maybe-open-cache-file) "()<cr>")
+                        "Open hotpot cache for current fnl file"]
+                   :m  [(.. ":lua " (pug maybe-open-module) "()<cr>")
+                        "Open hotpot cache for module"]}}
+             {:prefix "<leader>"})
 ```
 
 > Lua will cache any modules it has loaded. This means that repeated calls to
