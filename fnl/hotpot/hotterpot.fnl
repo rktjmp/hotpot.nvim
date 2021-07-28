@@ -11,10 +11,23 @@
 (var searcher nil)
 
 (fn search [modname]
+  ;; Search for module via hotpot's searcher.
+  ;; Will trigger compile if needed.
   (searcher modname))
 
 (fn cache-path-for-module [modname]
+  ;; Searches cache for module and returns path or nil
   (cache-searcher (default-config) modname))
+
+(fn cache-path-for-file [fnl-path]
+  ;; Seaches cache for matching lua file in cache, returns path or nil
+  (assert fnl-path "must provide path to fnl file")
+  (assert (string.match fnl-path "%.fnl$") "must provide .fnl file")
+  (local full-path (vim.loop.fs_realpath fnl-path))
+  (assert full-path (.. "fnl file did not exist: " fnl-path))
+  (local lua-file (string.gsub full-path "%.fnl$" ".lua"))
+  (local cache-path (.. (. (default-config) :prefix) lua-file))
+  (pick-values 1 (vim.loop.fs_realpath cache-path)))
 
 (fn install []
   (when (not has-run-setup)
@@ -61,6 +74,8 @@
  : uninstall ;; uninstall searcher
  : search ;; used by dogfood to force compilation
  : cache-path-for-module ;; returns lua path for lua.module.name
+ : cache-path-for-file ;; returns lua cache path for fnl file
+ :cache_path_for_file cache-path-for-file
  :cache_path_for_module cache-path-for-module
  :fennel_version (fn [] (. (require-fennel) :version))
  :fennel (fn [] (require-fennel))
