@@ -204,7 +204,7 @@ The following functions can aid in learning Fennel:
 - `show_buf(n)`
   - compiles given buffer (`0` is current buffer) and prints the resulting Lua.
 - `show_selection()`
-  - compiles visual selection and prints the resulting Lua.
+  - compiles visual line selection and prints the resulting Lua.
 
 A binding like the following can be useful:
 
