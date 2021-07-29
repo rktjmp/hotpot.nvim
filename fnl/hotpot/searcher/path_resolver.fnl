@@ -1,6 +1,7 @@
 (local {: file-exists?} (require :hotpot.fs))
 
 (fn search-rtp [slashed-path]
+  ;; (string) :: string | nil
   ;; Given slashed-path, find the first matching $RUNTIMEPATH/$partial-path
   ;; Neovim actually uses a similar custom loader to us that will search
   ;; the rtp for lua files, bypassing lua's package.path.
@@ -25,6 +26,7 @@
   found)
 
 (fn search-package-path [slashed-path]
+  ;; (string) :: string | nil
   ;; Iterate through templates, injecting path where appropriate,
   ;; returns full path if a file exists or nil
 
@@ -44,7 +46,7 @@
   found)
 
 (fn path-for-modname [dotted-path]
-  ;; dotted-path :string -> path :string | nil
+  ;; (string) :: string | nil
   ;; Search nvim rtp for module, then search lua package.path
   ;; this mirrors nvims default behaviour for lua files
 
