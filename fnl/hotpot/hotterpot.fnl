@@ -21,6 +21,7 @@
 
 (fn cache-path-for-file [fnl-path]
   ;; Searches cache for matching lua file
+  ;; TODO this can use seacher.module if it exposed the cache resolver
   (assert fnl-path "must provide path to fnl file")
   (assert (string.match fnl-path "%.fnl$") "must provide .fnl file")
   (local full-path (vim.loop.fs_realpath fnl-path))
