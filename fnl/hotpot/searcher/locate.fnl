@@ -1,47 +1,60 @@
 (local {: file-exists?} (require :hotpot.fs))
 
-(fn search-rtp [partial-path]
+(fn search-rtp [slashed-path]
+  ;; Given slashed-path, find the first matching $RUNTIMEPATH/$partial-path
   ;; Neovim actually uses a similar custom loader to us that will search
   ;; the rtp for lua files, bypassing lua's package.path.
   ;; It checks: "lua/"..basename..".lua", "lua/"..basename.."/init.lua"
   ;; This code is basically transcoded from nvim/lua/vim.lua _load_package
-  (var found nil)
+
   ;; we preference finding lua/*.lua files, with the assumption that if those
   ;; exist, someone is providing us with compiled files which may have been
   ;; through any kind of build process (see conjure) and we best not try to
   ;; load the raw fnl (or recompile for no reason).
-  (local paths [(.. :lua/ partial-path :.lua)
-                (.. :lua/ partial-path :/init.lua)
-                (.. :fnl/ partial-path :.fnl)
-                (.. :fnl/ partial-path :/init.fnl)])
-  (each [_ path (ipairs paths) :until found]
-    ;; TODO we can thread this but perhaps to no gain?
-    (match (vim.api.nvim_get_runtime_file path false) ;; false -> first result only
-      [path#] (do
-                (set found path#))
-      nil nil))
+  (local paths [(.. :lua/ slashed-path :.lua)
+                (.. :lua/ slashed-path :/init.lua)
+                (.. :fnl/ slashed-path :.fnl)
+                (.. :fnl/ slashed-path :/init.fnl)])
+
+  ;; TODO we can thread this but perhaps to no gain?
+  (var found nil)
+  (each [_ possible-path (ipairs paths) :until found]
+    (match (vim.api.nvim_get_runtime_file possible-path false)
+      [path] (set found path)
+      _ nil))
   found)
 
-(fn search-package-path [partial-path]
+(fn search-package-path [slashed-path]
   ;; Iterate through templates, injecting path where appropriate,
   ;; returns full path if a file exists or nil
-  (local templates (.. package.path ";"))
+
   ;; append ; so regex is simpler
+  (local templates (.. package.path ";"))
+
+  ;; search every template part and return first match or nil
   (var found nil)
   (each [template (string.gmatch templates "(.-);") :until found]
-    (local full-path (-> partial-path
-                         ((partial string.gsub template "%?"))
-                         (string.gsub "%.lua$" :.fnl)))
-    (if (file-exists? full-path)
+    ;; actually check for 1 replacement otherwise gsub returns
+    ;; the original string uneffected.
+    (local full-path (match (string.gsub template "%?" slashed-path)
+                  (updated 1) (string.gsub updated "%.lua" ".fnl")
+                  _  nil))
+    (if (and full-path (file-exists? full-path))
       (set found full-path)))
   found)
 
-(fn locate-module [modname]
-  ;; seach nvim rtp for module, then search lua package.path
+(fn locate-module [dotted-path]
+  ;; dotted-path :string -> path :string | nil
+  ;; Search nvim rtp for module, then search lua package.path
   ;; this mirrors nvims default behaviour for lua files
-  (local partial-path (string.gsub modname "%." "/"))
-  (match (search-rtp partial-path)
-    path# path#
-    nil (search-package-path partial-path)))
+
+  ;; Lua's modules map from "my.mod" to "my/mod.lua", convert
+  ;; the given module name into a "pathable" value, but do not
+  ;; add an extension because we will check for both .lua and .fnl
+  (local slashed-path (string.gsub dotted-path "%." "/"))
+  
+  ;; prefer rtp paths first since nvim does too
+  (or (search-rtp slashed-path)
+      (search-package-path slashed-path)))
 
 {: locate-module}
