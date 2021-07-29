@@ -2,16 +2,28 @@
 (local {: path-for-modname} (require :hotpot.searcher.path_resolver))
 (import-macros {: require-fennel} :hotpot.macros)
 
-(fn create-loader [modname path]
+(fn create-loader [path modname]
+  ;; (string, string) :: fn, string
+  ;; assumes path exists!
   (let [fennel (require-fennel)
         code (read-file path)]
-    (values (fn []
-              ((. (require :hotpot.cache) :set) modname path)
-              (fennel.eval code {:env :_COMPILER}))
-            path)))
+    ;; per Fennels spec, we should return a loader function and the
+    ;; path for debugging purposes.
+    (local loader (fn []
+                    ;; we must perform the require *in* the load function
+                    ;; to avoid circular dependencies. By putting it here
+                    ;; we can be sure that the cache is already loaded
+                    ;; before hotpot took over.
+                    ((. (require :hotpot.cache) :set) modname path)
+                    (fennel.eval code {:env :_COMPILER})))
+    (values loader path)))
 
 (fn searcher [modname]
-  (match (path-for-modname modname)
-    fnl-path (create-loader modname fnl-path)))
+  ;; (string) :: (fn, string) | nil
+  ;; Tries to find a file for given modname and returns a loader for it
+  ;; or nil
+  (-?> modname
+       (path-for-modname)
+       (create-loader modname)))
 
 searcher
