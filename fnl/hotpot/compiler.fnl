@@ -1,5 +1,5 @@
 (import-macros {: require-fennel : dinfo} :hotpot.macros)
-(local macro-searcher (require :hotpot.searcher.macro))
+(local {:searcher macro-searcher} (require :hotpot.searcher.macro))
 (local debug-modname "hotpot.compiler")
 
 (var has-injected-macro-searcher false)

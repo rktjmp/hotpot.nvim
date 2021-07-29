@@ -26,4 +26,4 @@
        (path-for-modname)
        (create-loader modname)))
 
-searcher
+{: searcher}
