@@ -43,7 +43,7 @@
       (set found full-path)))
   found)
 
-(fn locate-module [dotted-path]
+(fn path-for-modname [dotted-path]
   ;; dotted-path :string -> path :string | nil
   ;; Search nvim rtp for module, then search lua package.path
   ;; this mirrors nvims default behaviour for lua files
@@ -57,4 +57,4 @@
   (or (search-rtp slashed-path)
       (search-package-path slashed-path)))
 
-{: locate-module}
+{: path-for-modname}

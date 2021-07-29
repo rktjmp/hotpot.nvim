@@ -1,4 +1,4 @@
-(local {: locate-module} (require :hotpot.searcher.locate))
+(local {: path-for-modname} (require :hotpot.searcher.path_resolver))
 (local {: compile-string} (require :hotpot.compiler))
 (local {: file-missing?
         : file-stale?
@@ -121,14 +121,14 @@
   ;; md5 sum that file, then check if <config.prefix>/abc/xyz.lua and isn't
   ;; stale If so, return that file, otherwise compile, write and return the
   ;; compiled path.
-  (match (locate-module modname)
+  (match (path-for-modname modname)
     ;; found a path, compile if needed and return lua loader
     mod-path (process-module modname mod-path config.prefix)
     ;; no fnl file for this module
     nil nil))
 
 (fn cache-path-for-module [config modname]
-  (match (locate-module modname)
+  (match (path-for-modname modname)
     mod-path (match (is-lua-file mod-path)
                true mod-path
                false (fnl-path-to-compiled-path mod-path config.prefix))))

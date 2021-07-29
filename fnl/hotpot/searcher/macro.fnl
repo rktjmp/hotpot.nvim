@@ -1,5 +1,5 @@
 (local {: read-file} (require :hotpot.fs))
-(local {: locate-module} (require :hotpot.searcher.locate))
+(local {: path-for-modname} (require :hotpot.searcher.path_resolver))
 (import-macros {: require-fennel} :hotpot.macros)
 
 (fn create-loader [modname path]
@@ -11,7 +11,7 @@
             path)))
 
 (fn searcher [modname]
-  (match (locate-module modname)
+  (match (path-for-modname modname)
     fnl-path (create-loader modname fnl-path)))
 
 searcher
