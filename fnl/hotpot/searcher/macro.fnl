@@ -14,7 +14,7 @@
                     ;; to avoid circular dependencies. By putting it here
                     ;; we can be sure that the cache is already loaded
                     ;; before hotpot took over.
-                    ((. (require :hotpot.cache) :set) modname path)
+                    ((. (require :hotpot.dependency_tree) :set) modname path)
                     (fennel.eval code {:env :_COMPILER})))
     (values loader path)))
 

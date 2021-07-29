@@ -1,6 +1,6 @@
 ;; NOTE: This is used in the macro loader, so you may not use any
-;; marcos in here, or really probably any requires either to avoid
-;; any circular compile chains.
+;; macros in here, or probably any requires either to avoid
+;; circular compile chains.
 
 (var *tree nil)
 (var *current nil)

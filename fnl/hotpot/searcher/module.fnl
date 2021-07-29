@@ -111,14 +111,14 @@
                 ;; before we start loading it. This lets us catch any requires
                 ;; that occur when the module is loading and mark them as
                 ;; dependencies if appropriate.
-                (when (not (= :hotpot.cache modname))
-                  (local cache (require :hotpot.cache))
+                (when (not (= :hotpot.dependency_tree modname))
+                  (local cache (require :hotpot.dependency_tree))
                   (cache.down modname))
 
                 (maybe-compile fnl-path lua-path)
                 ;; TODO should formalise return spec if it worked or not
-                (when (not (= :hotpot.cache modname))
-                  (local cache (require :hotpot.cache))
+                (when (not (= :hotpot.dependency_tree modname))
+                  (local cache (require :hotpot.dependency_tree))
                   ;; (dinfo :dependecy-graph (vim.inspect (cache.whole-graph)))
                   (write-dependency-graph lua-path (cache.current-graph))
                   ;; we're done loading this module, so shift up
