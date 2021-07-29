@@ -239,6 +239,8 @@ vim.api.nvim_set_keymap("v",
              {:prefix "<leader>"})
 ```
 
+(See [pug](https://github.com/rktjmp/hotpot.nvim/discussions/6)).
+
 > ⚠️ Lua will cache any modules it has loaded. This means that repeated calls to
 > `require(module)` wont show any changes. You can "unload" a module by calling
 > `package.loaded[module] = nil`. This is something of a hack, and some state
