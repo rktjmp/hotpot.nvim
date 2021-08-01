@@ -10,16 +10,17 @@
 
 (fn write-file! [path lines]
   ;; (string string) :: true | false errors
+  (assert (= :string (type lines)) "write file expects string")
   (with-open [fh (assert (io.open path :w) (.. "fs.write-file! io.open failed:" path))]
              (fh:write lines)))
 
 (fn is-lua-path? [path]
   ;; (string) :: bool
-  (~= nil (string.match path "%.lua$")))
+  (and path (~= nil (string.match path "%.lua$"))))
 
 (fn is-fnl-path? [path]
   ;; (string) :: bool
-  (~= nil (string.match path "%.fnl$")))
+  (and path (~= nil (string.match path "%.fnl$"))))
 
 (fn file-exists? [path]
   ;; (string) :: bool
