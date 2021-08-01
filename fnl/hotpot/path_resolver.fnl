@@ -28,13 +28,11 @@
     (values real-path true)
     (values want-path false)))
 
-
 ;;
 ;; Modname Resolver
 ;;
 ;; Searches RTP and package.path for fnl or lua matching given modname
 ;;
-
 
 (fn search-rtp [slashed-path]
   ;; (string) :: string | nil
@@ -85,7 +83,7 @@
   ;; (string) :: string | nil
   ;; Search nvim rtp for module, then search lua package.path
   ;; this mirrors nvims default behaviour for lua files
-
+  
   ;; Lua's modules map from "my.mod" to "my/mod.lua", convert
   ;; the given module name into a "pathable" value, but do not
   ;; add an extension because we will check for both .lua and .fnl

@@ -20,7 +20,8 @@
     (table.insert fennel.macro-searchers 1 macro-searcher)
     (set has-injected-macro-searcher true))
   (fn compile []
-    (fennel.compile-string string (or options {:filename :hotpot-compile-string})))
+    (fennel.compile-string string 
+                           (or options {:filename :hotpot-compile-string})))
   (xpcall compile fennel.traceback))
 
 (fn compile-file [fnl-path lua-path]
