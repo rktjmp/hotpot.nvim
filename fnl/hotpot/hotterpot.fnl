@@ -57,7 +57,7 @@
     [false errors] (vim.api.nvim_err_write errors)))
 
 (fn show-buf [buf]
-  (local lines (table.concat (vim.api.nvim_buf_get_lines buf 0 -1 false)))
+  (local lines (table.concat (vim.api.nvim_buf_get_lines buf 0 -1 false) "\n"))
   (-> lines
       (compile-string {:filename :hotpot-show})
       (print-compiled)))
