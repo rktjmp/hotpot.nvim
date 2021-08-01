@@ -1,4 +1,8 @@
 (import-macros {: require-fennel : dinfo} :hotpot.macros)
+(local {: read-file!
+        : write-file!
+        : is-lua-path?
+        : is-fnl-path?} (require :hotpot.fs))
 (local {:searcher macro-searcher} (require :hotpot.searcher.macro))
 (local debug-modname "hotpot.compiler")
 
@@ -18,7 +22,21 @@
     (set has-injected-macro-searcher true))
 
   (fn compile []
-    (fennel.compile-string string (or options {})))
+    (fennel.compile-string string (or options {:filename :hotpot-compile-string})))
   (xpcall compile fennel.traceback))
 
-{: compile-string}
+(fn compile-file [fnl-path lua-path]
+  ;; (string, string) :: (true, nil) | (false, errors)
+  (local (success value)
+    ;; TODO: make a nicer check/try/happy macro
+    (pcall (fn []
+             (assert (is-fnl-path? fnl-path)
+                     (string.format "compile-file fnl-path not fnl file: %q" fnl-path))
+             (assert (is-lua-path? lua-path)
+                     (string.format "compile-file lua-path not lua file: %q" lua-path))
+             (local fnl-code (read-file! fnl-path))
+             (match (compile-string fnl-code {:filename fnl-path})
+               (true lua-code) (write-file! lua-path lua-code)
+               (false errors) (values false errors))))))
+
+{: compile-string : compile-file}
