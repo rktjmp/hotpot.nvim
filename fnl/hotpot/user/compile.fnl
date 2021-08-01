@@ -11,13 +11,19 @@
 
 (fn get-range-from-buf [start stop buf]
   ;; start & stop can be linenr or [linenr colnr]
-  ;; positions are 1-indexed, "line 1 column 1"
-  (local buf (or buf 0))
-  (local [start-row start-col] (match start
-                                 [row col] [(- row 1) col]
-                                 line [(- line 1) 1]))
-  (local [stop-row stop-col] (match stop
-                               [row col] [row col]
+  ;; line numbers are "linewise" and start at 1,1
+
+  ;; These are line-wise since lua basically operates that way so note that the
+  ;; call to get_line has adjusted line numbers.
+  ;; Also note that sometimes ranges are returnd as 2147483647, +1 ends up
+  ;; rolling over and breaks string.sub, so we limit the max column to 10,000
+  ;; which should be fine in the real world.
+  ;; 
+  (local [start-line start-col] (match start
+                                 [row col] [row (math.min 10000 (+ col 1))]
+                                 line [line 1]))
+  (local [stop-line stop-col] (match stop
+                               [row col] [row (math.min 10000 (+ col 1))]
                                line [line -1]))
 
   ;; we intentionally don't sanitise positions because a user
@@ -25,15 +31,23 @@
   ;; is up to the user to handle odd edges
 
   ;; must get whole lines until get_text is merged
-  (local lines (vim.api.nvim_buf_get_lines buf start-row stop-row false))
+  (local lines (vim.api.nvim_buf_get_lines (or buf 0)
+                                           (- start-line 1) ;; 0 indexed
+                                           (+ stop-line 0) ;; end exclusive
+                                           false))
 
   (when (> (length lines) 0)
     ;; chop our start and stop lines according to columns
-    (tset lines 1 (string.sub (. lines 1) start-col -1))
-    (local last (length lines))
-    (tset lines last (string.sub (. lines last) 1 stop-col)))
-
-   (table.concat lines "\n"))
+    (match (= start-line stop-line)
+      true (do
+             ;; selection is on the same line, so we actually want to 
+             ;; take a direct slice of the line.
+             (tset lines 1 (string.sub (. lines 1) start-col stop-col)))
+      false (do
+              (tset lines 1 (string.sub (. lines 1) start-col -1))
+              (local last (length lines))
+              (tset lines last (string.sub (. lines last) 1 stop-col)))))
+  (table.concat lines "\n"))
 
 (fn compile-string [lines filename]
   ;; (string string) :: (true luacode) | (false errors)
@@ -48,15 +62,19 @@
 
 (fn compile-selection []
   ;; () :: (true luacode) | (false errors)
-  (let [[buf start-row start-col] (vim.fn.getpos "'<")
-        [_ stop-row stop-col] (vim.fn.getpos "'>")]
+  (let [start (vim.api.nvim_buf_get_mark 0 "<")
+        stop (vim.api.nvim_buf_get_mark 0 ">")]
     ;; not sure it ever makes sense to have a selection that isn't the
     ;; current buffer?
-    (compile-range [start-row start-col] [stop-row stop-col] 0)))
+    (compile-range start stop 0)))
 
 (fn compile-buffer [buf]
   ;; (number | nil) :: (true luacode) | (false errors)
-  (compile-range 1 -1 buf))
+  (local lines (-> (vim.api.nvim_buf_get_lines (or buf 0) 0 -1 false)
+                   (table.concat "\n")))
+  ;; TODO this seems to error out when compiling lightspeed, on a unpack() error
+  ;;      in fennel. Not our problem? String too long?
+  (compile-string lines))
 
 (fn compile-file [fnl-path]
   ;; (string) :: (true luacode) | (false errors)
