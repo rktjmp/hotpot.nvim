@@ -15,15 +15,15 @@
 
   ;; These are line-wise since lua basically operates that way so note that the
   ;; call to get_line has adjusted line numbers.
-  ;; Also note that sometimes ranges are returnd as 2147483647, +1 ends up
-  ;; rolling over and breaks string.sub, so we limit the max column to 10,000
-  ;; which should be fine in the real world.
+  ;; Also note that sometimes ranges are returned as 2147483647 to mean "end of line"
+  ;; +1 ends up rolling over and breaking string.sub, so we limit the max column
+  ;; to 10,000 which should be fine in the real world.
   ;; 
   (local [start-line start-col] (match start
-                                 [row col] [row (math.min 10000 (+ col 1))]
+                                 [row col] [row (math.min 10_000 (+ col 1))]
                                  line [line 1]))
   (local [stop-line stop-col] (match stop
-                               [row col] [row (math.min 10000 (+ col 1))]
+                               [row col] [row (math.min 10_000 (+ col 1))]
                                line [line -1]))
 
   ;; we intentionally don't sanitise positions because a user
@@ -39,13 +39,12 @@
   (when (> (length lines) 0)
     ;; chop our start and stop lines according to columns
     (match (= start-line stop-line)
-      true (do
-             ;; selection is on the same line, so we actually want to 
-             ;; take a direct slice of the line.
-             (tset lines 1 (string.sub (. lines 1) start-col stop-col)))
-      false (do
+      ;; selection is on the same line, so we actually want to 
+      ;; take a direct slice of the line.
+      true (tset lines 1 (string.sub (. lines 1) start-col stop-col))
+      ;; trim start and ends
+      false (let [last (length lines)]
               (tset lines 1 (string.sub (. lines 1) start-col -1))
-              (local last (length lines))
               (tset lines last (string.sub (. lines last) 1 stop-col)))))
   (table.concat lines "\n"))
 
@@ -72,7 +71,7 @@
   ;; (number | nil) :: (true luacode) | (false errors)
   (local lines (-> (vim.api.nvim_buf_get_lines (or buf 0) 0 -1 false)
                    (table.concat "\n")))
-  ;; TODO this seems to error out when compiling lightspeed, on a unpack() error
+  ;; TODO this seems to error out when compiling lightspeed, on an unpack() error
   ;;      in fennel. Not our problem? String too long?
   (compile-string lines))
 
