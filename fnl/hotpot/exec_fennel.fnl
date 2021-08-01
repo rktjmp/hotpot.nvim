@@ -48,7 +48,7 @@
 (fn exec_fennel [line1 line2 fname]
   "Executes range line1 - line2 when fname isn't provided.
    When fname is provided executes the file.
-   Used by :FennelFile command
+   Used by :FnlFile command
   "
   (if (= fname "")
     (exec_fennel_range line1 line2)
@@ -75,8 +75,10 @@
   (vim.cmd "
    command! -range=% -nargs=? -complete=file FnlFile :lua require'hotpot.exec_fennel'.exec_fennel(<line1>, <line2>, <q-args>)
    command! -nargs=+ Fnl :lua require'hotpot.exec_fennel'.exec_fennel_str(<q-args>)
-   au SourceCmd *.fnl :FennelFile <afile>
    nnoremap <Plug>(exec-fennel-operator) :lua require'hotpot.exec_fennel'.exec_fennel_operator()<cr>
+   augroup hotpot.nvim
+     autocmd! SourceCmd *.fnl :FnlFile <afile>
+   augroup END
    "))
 
 { : define_commands
