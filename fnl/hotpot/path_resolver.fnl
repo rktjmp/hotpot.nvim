@@ -95,4 +95,5 @@
 
 ;; TODO: not super into these names...
 {: modname-to-path
- : fnl-path-to-lua-path}
+ : fnl-path-to-lua-path
+ :cache-prefix (fn [] cache-prefix)} ;; fn for interface consistency
