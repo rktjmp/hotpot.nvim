@@ -4,9 +4,10 @@
     line1 & line2 can either be line number or position line [row, col]
   "
   (var retval [])
-  (if (= (type line1) :number)
+  (match (type line1)
+   :number
       (set retval (vim.api.nvim_buf_get_lines 0 (- line1 1) line2 false))
-    (= (type line1) :table)
+   :table
       (let [[line1_row line1_col] line1
             [line2_row line2_col] line2
             buf (vim.api.nvim_buf_get_lines 0 (- line1_row 1) line2_row false)]
