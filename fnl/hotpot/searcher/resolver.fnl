@@ -95,5 +95,6 @@
   (or (search-rtp slashed-path)
       (search-package-path slashed-path)))
 
+;; TODO: not super into these names...
 {: path-for-modname
  : fnl-path-to-cache-path}

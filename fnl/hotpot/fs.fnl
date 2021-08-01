@@ -13,13 +13,24 @@
   (with-open [fh (assert (io.open path :w) (.. "fs.write-file! io.open failed:" path))]
              (fh:write lines)))
 
+(fn is-lua-path? [path]
+  ;; (string) :: bool
+  (~= nil (string.match path "%.lua$")))
+
+(fn is-fnl-path? [path]
+  ;; (string) :: bool
+  (~= nil (string.match path "%.fnl$")))
+
 (fn file-exists? [path]
+  ;; (string) :: bool
   (uv.fs_access path :R))
 
 (fn file-missing? [path]
+  ;; (string) :: bool
   (not (file-exists? path)))
 
 (fn file-stale? [newer older]
+  ;; (string string) :: bool | error (unlikely)
   (match [(uv.fs_stat newer) (uv.fs_stat older)]
     [new-stat old-stat] (> new-stat.mtime.sec old-stat.mtime.sec) ;; check
     [new-stat nil] true ;; no old file, so we are newer by default
@@ -28,9 +39,6 @@
                      (.. "file-stale? tried to stat two missing files"
                          (vim.inspect [newer older])))))
 
-(fn is-lua-path? [path] (~= nil (string.match path "%.lua$")))
-(fn is-fnl-path? [path] (~= nil (string.match path "%.fnl$")))
-
 {: read-file!
  : write-file!
  : file-exists?
@@ -38,4 +46,3 @@
  : file-stale?
  : is-lua-path?
  : is-fnl-path?}
-
