@@ -59,14 +59,14 @@
         line2 (vim.api.nvim_buf_get_mark 0 "]")]
      (exec_fennel_range line1 line2))
   (if (. (require "hotpot.exec_fennel") "opfunc_backup")
-    (tset vim.o "operatorfunc" (. (require "hotpot.exec_fennel") "opfunc_backup"))
+    (tset vim.go "operatorfunc" (. (require "hotpot.exec_fennel") "opfunc_backup"))
     (tset (require "hotpot.exec_fennel") "opfunc_backup"  "")
   ))
 
 (fn exec_fennel_operator []
   "Sets fennel_operator_eval as 'opfunc' and trigures oppending mode"
-  (tset (require "hotpot.exec_fennel") "opfunc_backup" "")
-  (tset vim.o "operatorfunc" "v:lua.require'hotpot.exec_fennel'.fennel_operator_eval")
+  (tset (require "hotpot.exec_fennel") "opfunc_backup" vim.go.operatorfunc)
+  (tset vim.go "operatorfunc" "v:lua.require'hotpot.exec_fennel'.fennel_operator_eval")
   (vim.api.nvim_feedkeys "g@" "n" false))
 
 (fn define_commands []
