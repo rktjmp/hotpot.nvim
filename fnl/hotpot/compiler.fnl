@@ -25,7 +25,6 @@
   (xpcall compile fennel.traceback))
 
 (fn compile-file [fnl-path lua-path]
-  (print :compile-file fnl-path lua-path)
   ;; (string, string) :: (true, nil) | (false, errors)
   ;; TODO: make a nicer check/try/happy macro
   (pcall (fn []
@@ -43,6 +42,6 @@
                                (write-file! lua-path lua-code))
              (false errors) (do
                               (dinfo errors)
-                              (values false errors))))))
+                              (error errors))))))
 
 {: compile-string : compile-file}
