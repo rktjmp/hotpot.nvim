@@ -10,7 +10,7 @@
 ;; cache path isn't configurable anyway so this is unparameterised for now
 (local cache-prefix (.. (vim.fn.stdpath :cache) :/hotpot/))
 
-(fn fnl-path-to-cache-path [fnl-path]
+(fn fnl-path-to-lua-path [fnl-path]
   ;; (string) :: (string, true) | (string, false)
   ;; Converts given fnl file path into it's cache location
   ;; returns the path, true, if the path could be resolved to a real file via
@@ -81,7 +81,7 @@
       (set found full-path)))
   found)
 
-(fn path-for-modname [dotted-path]
+(fn modname-to-path [dotted-path]
   ;; (string) :: string | nil
   ;; Search nvim rtp for module, then search lua package.path
   ;; this mirrors nvims default behaviour for lua files
@@ -96,5 +96,5 @@
       (search-package-path slashed-path)))
 
 ;; TODO: not super into these names...
-{: path-for-modname
- : fnl-path-to-cache-path}
+{: modname-to-path
+ : fnl-path-to-lua-path}

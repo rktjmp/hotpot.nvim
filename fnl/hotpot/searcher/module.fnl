@@ -1,5 +1,5 @@
-(local {: path-for-modname
-        : fnl-path-to-cache-path} (require :hotpot.searcher.resolver))
+(local {: modname-to-path
+        : fnl-path-to-lua-path} (require :hotpot.searcher.resolver))
 (local {: compile-file} (require :hotpot.compiler))
 (local {: file-missing?
         : file-stale?
@@ -98,7 +98,7 @@
     (is-fnl-path? mod-path) (do
                               (dependency-tree-down modname)
                               ;; turn fennel into lua
-                              (local lua-path (fnl-path-to-cache-path mod-path))
+                              (local lua-path (fnl-path-to-lua-path mod-path))
                               (local (ok errors) (compile-fnl mod-path lua-path))
                               ;; throw compilation errors up
                               (when (not ok)
@@ -140,7 +140,7 @@
 ;; The Searcher
 ;;
 
-(fn searcher [config modname]
+(fn searcher [modname]
   ;; (table string) :: fn
   ;; Lua package searcher with hot-compile step, this is core to hotpot.
   ;;
@@ -150,7 +150,7 @@
   ;; If the original modname was for a lua file, just return a loader for that.
 
   ;; modpath can be nil if no file is found for modname
-  (match (path-for-modname modname)
+  (match (modname-to-path modname)
     nil nil
     path (match (pcall create-loader! modname path)
            (true loader) loader

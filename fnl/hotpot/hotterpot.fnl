@@ -15,21 +15,6 @@
   ;; Will trigger compile if needed.
   (searcher modname))
 
-(fn cache-path-for-module [modname]
-  ;; Searches cache for module and returns path or nil
-  (cache-searcher (default-config) modname))
-
-(fn cache-path-for-file [fnl-path]
-  ;; Searches cache for matching lua file
-  ;; TODO this can use seacher.module if it exposed the cache resolver
-  (assert fnl-path "must provide path to fnl file")
-  (assert (string.match fnl-path "%.fnl$") "must provide .fnl file")
-  (local full-path (vim.loop.fs_realpath fnl-path))
-  (assert full-path (.. "fnl file did not exist: " fnl-path))
-  (local lua-file (string.gsub full-path "%.fnl$" ".lua"))
-  (local cache-path (.. (. (default-config) :prefix) lua-file))
-  (pick-values 1 (vim.loop.fs_realpath cache-path)))
-
 (fn install []
   (when (not has-run-setup)
     ;; it's actually pretty important we have debugging message
@@ -38,7 +23,7 @@
     ;; TODO probably installing the logger here and accessing
     ;;      it via that in dinfo would fix that.
     (dinfo "Installing Hotpot into searchers")
-    (set searcher (partial module-searcher (default-config)))
+    (set searcher module-searcher)
     (table.insert package.loaders 1 searcher)
     (set has-run-setup true)))
 
@@ -74,10 +59,10 @@
 {: install ;; install searcher
  : uninstall ;; uninstall searcher
  : search ;; used by dogfood to force compilation
- : cache-path-for-module ;; returns lua path for lua.module.name
- : cache-path-for-file ;; returns lua cache path for fnl file
- :cache_path_for_file cache-path-for-file
- :cache_path_for_module cache-path-for-module
+;;  : cache-path-for-module ;; returns lua path for lua.module.name
+;;  : cache-path-for-file ;; returns lua cache path for fnl file
+;;  :cache_path_for_file cache-path-for-file
+;;  :cache_path_for_module cache-path-for-module
  ;; Expose fennel to user for whatever reason
  :fennel_version (fn [] (. (require-fennel) :version))
  :fennel (fn [] (require-fennel))

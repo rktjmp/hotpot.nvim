@@ -12,7 +12,6 @@
 (var has-injected-macro-searcher false)
 (fn compile-string [string options]
   ;; (string table) :: (true string) | (false string)
-  (dinfo :compile-string (. options :filename))
   ;; we only require fennel here because it can be heavy to
   ;; pull in (~50-100ms, someimes ...??) and *most* of the
   ;; time we will be shortcutting to the compiled lua
@@ -33,6 +32,7 @@
            (assert (is-lua-path? lua-path)
                    (string.format "compile-file lua-path not lua file: %q" lua-path))
            (local fnl-code (read-file! fnl-path))
+           (dinfo :compile-file fnl-path lua-path)
            (match (compile-string fnl-code {:filename fnl-path})
              (true lua-code) (do 
                                ;; TODO normally this is fine if the dir exists
@@ -44,4 +44,5 @@
                               (dinfo errors)
                               (error errors))))))
 
-{: compile-string : compile-file}
+{: compile-string 
+ : compile-file}
