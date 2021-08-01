@@ -1,11 +1,11 @@
 (local uv vim.loop)
 
-(fn read-file [path]
-  (with-open [fh (assert (io.open path :r) (.. "read-file io.open failed:" path))]
+(fn read-file! [path]
+  (with-open [fh (assert (io.open path :r) (.. "fs.read-file! io.open failed:" path))]
              (fh:read :*a)))
 
-(fn write-file [path lines]
-  (with-open [fh (assert (io.open path :w) (.. "fs.write-file io.open failed:" path))]
+(fn write-file! [path lines]
+  (with-open [fh (assert (io.open path :w) (.. "fs.write-file! io.open failed:" path))]
              (fh:write lines)))
 
 (fn file-exists? [path]
@@ -23,9 +23,14 @@
                      (.. "file-stale? tried to stat two missing files"
                          (vim.inspect [newer older])))))
 
-{: read-file
- : write-file
+(fn is-lua-path? [path] (~= nil (string.match path "%.lua$")))
+(fn is-fnl-path? [path] (~= nil (string.match path "%.fnl$")))
+
+{: read-file!
+ : write-file!
  : file-exists?
  : file-missing?
- : file-stale?}
+ : file-stale?
+ : is-lua-path?
+ : is-fnl-path?}
 
