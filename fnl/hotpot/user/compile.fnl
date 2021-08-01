@@ -1,7 +1,12 @@
 (import-macros {: require-fennel} :hotpot.macros)
 
+(local {: modname-to-path} (require :hotpot.path_resolver))
+(local {: is-fnl-path?
+        : file-exists?
+        : read-file!} (require :hotpot.fs))
+
 ;;
-;; Tools to take a fennel code, compile it, and save that result
+;; Tools to take a fennel code, compile it, and return the lua code
 ;;
 
 (fn get-range-from-buf [start stop buf]
@@ -30,29 +35,53 @@
 
    (table.concat lines "\n"))
 
-;; compile-range
-(fn compile-range [start-pos stop-pos buf]
-  (local lines (get-range-from-buf start-pos stop-pos buf))
+(fn compile-string [lines filename]
+  ;; (string string) :: (true luacode) | (false errors)
   (local {: compile-string} (require :hotpot.compiler))
-  (compile-string lines {:filename :hotpot-live-compile}))
+  (compile-string lines {:filename (or filename :hotpot-live-compile)}))
 
-;; compile-selection
+(fn compile-range [start-pos stop-pos buf]
+  ;; (number number | [number number] [number number])
+  ;;   :: (true luacode) | (false errors)
+  (local lines (get-range-from-buf start-pos stop-pos buf))
+  (compile-string lines))
+
 (fn compile-selection []
+  ;; () :: (true luacode) | (false errors)
   (let [[buf start-row start-col] (vim.fn.getpos "'<")
         [_ stop-row stop-col] (vim.fn.getpos "'>")]
     ;; not sure it ever makes sense to have a selection that isn't the
     ;; current buffer?
     (compile-range [start-row start-col] [stop-row stop-col] 0)))
 
-;; compile-buffer
 (fn compile-buffer [buf]
+  ;; (number | nil) :: (true luacode) | (false errors)
   (compile-range 1 -1 buf))
 
-;; compile-modname
-;; compile-file
-;; compile-file in out
-;; compile-dir in out (uses compile-file)
+(fn compile-file [fnl-path]
+  ;; (string) :: (true luacode) | (false errors)
+  (assert (is-fnl-path? fnl-path)
+          (string.format "compile-file: must provide .fnl path, got: %s"
+                         fnl-path))
+  (assert (file-exists? fnl-path)
+          (string.format "compile-file: doesn't exist: %s" fnl-path))
+  (local lines (read-file! fnl-path))
+  (compile-string lines fnl-path))
 
-{: compile-range
+(fn compile-module [modname]
+  ;; (string) :: (true luacode) | (false errors)
+  (assert modname "compile-module: must provide modname")
+  (local path (modname-to-path modname))
+  (assert path (string.format "compile-modname: could not find file for %s"
+                              modname))
+  (assert (is-fnl-path? path)
+          (string.format "compile-modname: did not resolve to .fnl file: %s %s"
+                         modname path))
+  (compile-file path))
+
+{: compile-string
+ : compile-range
  : compile-selection
- : compile-buffer}
+ : compile-buffer
+ : compile-file
+ : compile-module}
