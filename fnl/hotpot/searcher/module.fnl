@@ -1,5 +1,5 @@
-(local {: path-for-modname} (require :hotpot.searcher.modname_resolver))
-(local {: fnl-path-to-cache-path!} (require :hotpot.searcher.cache_resolver))
+(local {: path-for-modname
+        : fnl-path-to-cache-path} (require :hotpot.searcher.resolver))
 (local {: compile-file} (require :hotpot.compiler))
 (local {: file-missing?
         : file-stale?
@@ -98,7 +98,7 @@
     (is-fnl-path? mod-path) (do
                               (dependency-tree-down modname)
                               ;; turn fennel into lua
-                              (local lua-path (fnl-path-to-cache-path! mod-path))
+                              (local lua-path (fnl-path-to-cache-path mod-path))
                               (local (ok errors) (compile-fnl mod-path lua-path))
                               ;; throw compilation errors up
                               (when (not ok)
