@@ -1,5 +1,5 @@
 (local {: modname-to-path
-        : fnl-path-to-lua-path} (require :hotpot.searcher.resolver))
+        : fnl-path-to-lua-path} (require :hotpot.path_resolver))
 (local {: compile-file} (require :hotpot.compiler))
 (local {: file-missing?
         : file-stale?
