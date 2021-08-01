@@ -16,6 +16,10 @@
   (-> (compile-string string)
       (run-or-error)))
 
+(fn eval-range [start-pos stop-pos buf]
+  (-> (compile-range start-pos stop-pos buf)
+      (run-or-error)))
+
 (fn eval-selection []
   (-> (compile-selection)
       (run-or-error)))
@@ -42,6 +46,11 @@
   (set vim.go.operatorfunc "v:lua.require'hotpot.user.eval'.eval_operator")
   (vim.api.nvim_feedkeys "g@" "n" false))
 
+(fn fnlfile [start stop file]
+  (if (= file "")
+    (eval-range start stop)
+    (eval-file file)))
+
 {: eval-string
  : eval-selection
  : eval-buffer
@@ -49,4 +58,5 @@
  : eval-module
  : eval-operator
  :eval_operator eval-operator ;; needs _ name for v:lua access
- : eval-operator-bang}
+ : eval-operator-bang
+ : fnlfile}
