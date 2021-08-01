@@ -1,12 +1,12 @@
-(local {: read-file} (require :hotpot.fs))
-(local {: path-for-modname} (require :hotpot.searcher.path_resolver))
+(local {: read-file!} (require :hotpot.fs))
+(local {: path-for-modname} (require :hotpot.searcher.modname_resolver))
 (import-macros {: require-fennel} :hotpot.macros)
 
 (fn create-loader [path modname]
   ;; (string, string) :: fn, string
   ;; assumes path exists!
   (let [fennel (require-fennel)
-        code (read-file path)]
+        code (read-file! path)]
     ;; per Fennels spec, we should return a loader function and the
     ;; path for debugging purposes.
     (local loader (fn []

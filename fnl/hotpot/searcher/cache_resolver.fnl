@@ -19,7 +19,7 @@
 
   ;; where the cache file should be, but path isn's cleaned up
   (local want-path (-> fnl-path
-                       ((partial .. prefix))
+                       ((partial .. cache-prefix))
                        (string.gsub "%.fnl$" ".lua")))
 
   (local real-path (vim.loop.fs_realpath want-path))

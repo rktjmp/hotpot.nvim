@@ -1,3 +1,9 @@
+;;
+;; Modname Resolver
+;;
+;; Searches RTP and package.path for fnl or lua matching given modname
+;;
+
 (local {: file-exists?} (require :hotpot.fs))
 
 (fn search-rtp [slashed-path]

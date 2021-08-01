@@ -1,10 +1,15 @@
+;; "path" functions operate on a possible file (may not resolve to on-disk)
+;; "file" functions expect to hit the disk, though the file may not exist.
+
 (local uv vim.loop)
 
 (fn read-file! [path]
+  ;; (string) :: table | false errors
   (with-open [fh (assert (io.open path :r) (.. "fs.read-file! io.open failed:" path))]
              (fh:read :*a)))
 
 (fn write-file! [path lines]
+  ;; (string string) :: true | false errors
   (with-open [fh (assert (io.open path :w) (.. "fs.write-file! io.open failed:" path))]
              (fh:write lines)))
 

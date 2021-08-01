@@ -1,43 +1,32 @@
-(local {: path-for-modname} (require :hotpot.searcher.path_resolver))
-(local {: compile-string} (require :hotpot.compiler))
+(local {: path-for-modname} (require :hotpot.searcher.modname_resolver))
+(local {: fnl-path-to-cache-path!} (require :hotpot.searcher.cache_resolver))
+(local {: compile-file} (require :hotpot.compiler))
 (local {: file-missing?
         : file-stale?
-        : write-file
-        : read-file} (require :hotpot.fs))
+        : is-lua-path?
+        : is-fnl-path?
+        : write-file!
+        : read-file!} (require :hotpot.fs))
 (import-macros {: dinfo} :hotpot.macros)
 (local debug-modname "hotpot.searcher.module")
 
-(fn fnl-path-to-compiled-path [path prefix]
-  ;; Returns expected path for a compiled fnl file
-  ;;
-  ;; We want to ensure the path we compile to is resolved absolutely
-  ;; to avoid any naming collisions. Really this can only happen when
-  ;; someone has mushed the path a bit or are doing something unusual.
-  ;; (nb: Previously we did use an md5sum in the name but comparing
-  ;;      by mtime avoids the process spawn, potential tool incompatibilities
-  ;;      and leaves a bit cleaner looking cache.)
-  ;; TODO: nicer error handling
-  (-> path
-      (vim.loop.fs_realpath)
-      ((partial .. prefix))
-      (string.gsub "%.fnl$" :.lua)
-      ((partial pick-values 1)))) ;; gsub returns <string> <n-replacements>
+(fn tp [x]
+  (print (vim.inspect x))
+  x)
 
 (fn dependency-filename [lua-path]
   (.. lua-path ".deps"))
 
-(fn write-dependency-graph [path graph]
+(fn write-dependency-graph [lua-path graph]
   (let [deps (icollect [maybe-modname path (pairs graph)]
-                       ;; ^__ are special keys in the dep tracker
+                       ;; ignore ^__ which are special keys in the tree
                        (when (not (string.match maybe-modname "^__"))
                          path))]
     (if (> (# deps) 0)
-      (write-file (dependency-filename path) (table.concat deps "\n")))))
+      (write-file! (dependency-filename lua-path) (table.concat deps "\n")))))
 
 (fn read-dependency-graph [lua-path]
-  (local lines (-> lua-path
-      (dependency-filename)
-      (read-file)))
+  (local lines (read-file! (dependency-filename lua-path)))
   (icollect [line (string.gmatch lines "([^\n]*)\n?")]
             (if (~= line "") line)))
 
@@ -61,70 +50,55 @@
     ;; this should run first so any dependency changes are discovered
     ;; (particularly the removal of)
     (or (file-missing? lua-path) (file-stale? fnl-path lua-path))
-    ;; or one of the dependcies are newer
+    ;; or one of the dependencies are newer
     (and (has-dependency-graph lua-path) (has-stale-dependency fnl-path lua-path))))
 
-(fn create-loader [path]
-  ;; (string) :: fn
-  ;; path should be an existing lua file so just run it.
-  (fn [modname] (dofile path)))
+(fn cook-fnl [fnl-path]
+  ;; (string) :: string
+  ;; find where we should put the lua, check if it already exists and whether
+  ;; it needs refreshing, compile if needed. returns the lua-path or vomit errors.
+  ;; TODO: don't vomit errors here
+  (local lua-path (fnl-path-to-cache-path! fnl-path))
+  (if (needs-compilation? fnl-path lua-path)
+    (do
+      (dinfo "needs-compilation" fnl-path lua-path)
+      (match (compile-file fnl-path lua-path)
+        true (do 
+               (dinfo "compiled? OK")
+               lua-path)
+        (false errors) (do
+                         (dinfo "compiled? FAIL")
+                         (dinfo errors)
+                         (vim.api.nvim_err_write errors)
+                         (.. "Compilation failure for " fnl-path))))
+    lua-path))
 
-(fn maybe-compile [fnl-path lua-path]
-  ;; (string, string) :: string
-  ;; Accepts a fennel file and lua file, and checks if the lua file
-  ;; is stale, only compiles if so.
-  ;; returns path to lua file or vomits errors to "stderr"
-  (match (needs-compilation? fnl-path lua-path)
-    false lua-path
-    true (do
-           (dinfo "needs-compilation" fnl-path lua-path)
-           (match (compile-string (read-file fnl-path) {:filename fnl-path})
-             (true code) (do
-                           (dinfo "compiled? OK")
-                           ;; TODO normally this is fine if the dir exists
-                           ;;      except if it ends in .  which can happen if
-                           ;;      you're requiring a in-dir file
-                           (vim.fn.mkdir (string.match lua-path "(.+)/.-%.lua") :p)
-                           (write-file lua-path code)
-                           lua-path)
-             (false errors) (do
-                              (dinfo "compiled? FAIL")
-                              (vim.api.nvim_err_write errors)
-                              (.. "Compilation failure for " fnl-path))))))
+(fn create-loader [modname mod-path]
+  (fn lua-loader [lua-path]
+    (fn [modname] (dofile lua-path)))
 
+  (if (is-lua-path? mod-path)
+    (lua-loader mod-path)
+    (do
+      (when (not (= :hotpot.dependency_tree modname))
+        ;; we want to track any files loaded while compiling this module
+        ;; (but not the dep-tracker itself else we get a circular dep)
+        (local cache (require :hotpot.dependency_tree))
+        (cache.down modname))
 
-(fn is-lua-file [path] (~= nil (string.match path "%.lua$")))
-(fn is-fnl-file [path] (~= nil (string.match path "%.fnl$")))
+      ;; turn fennel into lua
+      (local lua-path (cook-fnl mod-path))
 
-(fn process-module [modname path prefix-out-dir]
-  ;; (string string string) :: fn
-  ;; Given a path, check if it's a lua file return a loader for it,
-  ;; or compile the fennel into our cache and return a loader for that insead.
-  (-> (match (is-lua-file path)
-        ;; não toque na lua
-        true path
-        ;; launch the vegetable into orbit
-        false (let [fnl-path path
-                    lua-path (fnl-path-to-compiled-path fnl-path prefix-out-dir)]
-                ;; we want to track macro dependencies, so as long as we're not
-                ;; loading the dep tracker itself, push "into" this modules deps
-                ;; before we start loading it. This lets us catch any requires
-                ;; that occur when the module is loading and mark them as
-                ;; dependencies if appropriate.
-                (when (not (= :hotpot.dependency_tree modname))
-                  (local cache (require :hotpot.dependency_tree))
-                  (cache.down modname))
+      ;; stop tracking dependcies for this module
+      (when (not (= :hotpot.dependency_tree modname))
+        (local cache (require :hotpot.dependency_tree))
+        ;; (dinfo :dependecy-graph (vim.inspect (cache.whole-graph)))
+        (write-dependency-graph lua-path (cache.current-graph))
+        ;; we're done compiling this module, so shift up
+        (cache.up))
 
-                (maybe-compile fnl-path lua-path)
-                ;; TODO should formalise return spec if it worked or not
-                (when (not (= :hotpot.dependency_tree modname))
-                  (local cache (require :hotpot.dependency_tree))
-                  ;; (dinfo :dependecy-graph (vim.inspect (cache.whole-graph)))
-                  (write-dependency-graph lua-path (cache.current-graph))
-                  ;; we're done loading this module, so shift up
-                  (cache.up))
-                lua-path))
-      (create-loader)))
+      (lua-loader lua-path))))
+
 
 (fn searcher [config modname]
   ;; (table string) :: fn
@@ -134,19 +108,38 @@
   ;; an existing abc/xyz.lua in cache. If we do, check if it's stale.
   ;; If stale or missing, complile and return a loader for the cached file
   ;; If the original modname was for a lua file, just return a loader for that.
-  (match (path-for-modname modname)
-    ;; found a path, compile if needed and return lua loader
-    mod-path (process-module modname mod-path config.prefix)
-    ;; no fnl file for this module
-    nil nil))
 
+  ;; modpath can be nil if no file is found for modname
+  (-?> modname
+       (path-for-modname)
+       ((partial create-loader modname))))
+
+
+;; REFACTOR: This can be put into path-resolver
+(fn fnl-path-to-compiled-path [path prefix]
+  ;; Returns expected path for a compiled fnl file
+  ;;
+  ;; We want to ensure the path we compile to is resolved absolutely
+  ;; to avoid any naming collisions. Really this can only happen when
+  ;; someone has mushed the path a bit or are doing something unusual.
+  ;; (nb: Previously we did use an md5sum in the name but comparing
+  ;;      by mtime avoids the process spawn, potential tool incompatibilities
+  ;;      and leaves a bit cleaner looking cache.)
+  ;; TODO: nicer error handling
+  (-> path
+      (vim.loop.fs_realpath)
+      ((partial .. prefix))
+      (string.gsub "%.fnl$" :.lua)
+      ((partial pick-values 1)))) ;; gsub returns <string> <n-replacements>
+
+;; REFACTOR can be put in cache resolver
 (fn cache-path-for-module [config modname]
   ;; (table string) :: string | nil
   ;; returns path to modname, either out of the cache if applicable 
   ;; (modname was a fnl mod) or whatever lua file is found.
   ;; TODO: reasonable to assert is-fnl-file?
   (let [mod-path (path-for-modname modname)]
-     (if (is-lua-file mod-path)
+     (if (is-lua-path? mod-path)
        mod-path
        (fnl-path-to-compiled-path mod-path config.prefix))))
 

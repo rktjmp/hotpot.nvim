@@ -20,23 +20,29 @@
   (when (not has-injected-macro-searcher)
     (table.insert fennel.macro-searchers 1 macro-searcher)
     (set has-injected-macro-searcher true))
-
   (fn compile []
     (fennel.compile-string string (or options {:filename :hotpot-compile-string})))
   (xpcall compile fennel.traceback))
 
 (fn compile-file [fnl-path lua-path]
+  (print :compile-file fnl-path lua-path)
   ;; (string, string) :: (true, nil) | (false, errors)
-  (local (success value)
-    ;; TODO: make a nicer check/try/happy macro
-    (pcall (fn []
-             (assert (is-fnl-path? fnl-path)
-                     (string.format "compile-file fnl-path not fnl file: %q" fnl-path))
-             (assert (is-lua-path? lua-path)
-                     (string.format "compile-file lua-path not lua file: %q" lua-path))
-             (local fnl-code (read-file! fnl-path))
-             (match (compile-string fnl-code {:filename fnl-path})
-               (true lua-code) (write-file! lua-path lua-code)
-               (false errors) (values false errors))))))
+  ;; TODO: make a nicer check/try/happy macro
+  (pcall (fn []
+           (assert (is-fnl-path? fnl-path)
+                   (string.format "compile-file fnl-path not fnl file: %q" fnl-path))
+           (assert (is-lua-path? lua-path)
+                   (string.format "compile-file lua-path not lua file: %q" lua-path))
+           (local fnl-code (read-file! fnl-path))
+           (match (compile-string fnl-code {:filename fnl-path})
+             (true lua-code) (do 
+                               ;; TODO normally this is fine if the dir exists
+                               ;;      except if it ends in .  which can happen if
+                               ;;      you're requiring a in-dir file
+                               (vim.fn.mkdir (string.match lua-path "(.+)/.-%.lua") :p)
+                               (write-file! lua-path lua-code))
+             (false errors) (do
+                              (dinfo errors)
+                              (values false errors))))))
 
 {: compile-string : compile-file}
