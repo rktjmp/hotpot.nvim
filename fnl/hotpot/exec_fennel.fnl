@@ -4,9 +4,9 @@
     line1 & line2 can either be line number or position line [row, col]
   "
   (var retval [])
-  (if (= (type line1) "number")
+  (if (= (type line1) :number)
       (set retval (vim.api.nvim_buf_get_lines 0 (- line1 1) line2 false))
-    (= (type line1) "table")
+    (= (type line1) :table)
       (let [[line1_row line1_col] line1
             [line2_row line2_col] line2
             buf (vim.api.nvim_buf_get_lines 0 (- line1_row 1) line2_row false)]
@@ -20,13 +20,13 @@
   "Executes input strings as fennel code"
   (var retval nil)
   (let [buf (table.concat [...] " ")
-        (success? compiled-str) ((. (require "hotpot") "compile_string") buf {})]
+        (success? compiled-str) ((. (require :hotpot) :compile_string) buf {})]
     (if success?
       (let [(success? loaded-func) (pcall loadstring compiled-str)]
         (if success?
            (set retval (loaded-func))
-           (vim.api.nvim_echo [[loaded-func "ErrorMsg"]] true {})))
-      (vim.api.nvim_echo [[compiled-str "ErrorMsg"]] true {})))
+           (vim.api.nvim_echo [[loaded-func :ErrorMsg]] true {})))
+      (vim.api.nvim_echo [[compiled-str :ErrorMsg]] true {})))
   retval)
 
 (fn exec_fennel_range [line1 line2]
@@ -58,15 +58,15 @@
   (let [line1 (vim.api.nvim_buf_get_mark 0 "[")
         line2 (vim.api.nvim_buf_get_mark 0 "]")]
      (exec_fennel_range line1 line2))
-  (if (. (require "hotpot.exec_fennel") "opfunc_backup")
-    (tset vim.go "operatorfunc" (. (require "hotpot.exec_fennel") "opfunc_backup"))
-    (tset (require "hotpot.exec_fennel") "opfunc_backup"  "")
+  (if (. (require :hotpot.exec_fennel) :opfunc_backup)
+    (set vim.go.operatorfunc (. (require :hotpot.exec_fennel) :opfunc_backup))
+    (tset (require :hotpot.exec_fennel) :opfunc_backup  "")
   ))
 
 (fn exec_fennel_operator []
   "Sets fennel_operator_eval as 'opfunc' and trigures oppending mode"
-  (tset (require "hotpot.exec_fennel") "opfunc_backup" vim.go.operatorfunc)
-  (tset vim.go "operatorfunc" "v:lua.require'hotpot.exec_fennel'.fennel_operator_eval")
+  (tset (require :hotpot.exec_fennel) :opfunc_backup vim.go.operatorfunc)
+  (set vim.go.operatorfunc "v:lua.require'hotpot.exec_fennel'.fennel_operator_eval")
   (vim.api.nvim_feedkeys "g@" "n" false))
 
 (fn define_commands []
