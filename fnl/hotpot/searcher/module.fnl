@@ -149,11 +149,14 @@
   ;; If stale or missing, complile and return a loader for the cached file
   ;; If the original modname was for a lua file, just return a loader for that.
 
-  ;; modpath can be nil if no file is found for modname
-  (match (modname-to-path modname)
-    nil nil
-    path (match (pcall create-loader! modname path)
-           (true loader) loader
-           (false errors) (create-error-loader modname path errors))))
+  ;; TODO unsure about this double nested form but if feels problematic
+  (match (. package :preload modname)
+    module module
+    nil (match (modname-to-path modname)
+          ;; modpath can be nil if no file is found for modname
+          nil nil
+          path (match (pcall create-loader! modname path)
+                 (true loader) loader
+                 (false errors) (create-error-loader modname path errors)))))
 
 {: searcher}
