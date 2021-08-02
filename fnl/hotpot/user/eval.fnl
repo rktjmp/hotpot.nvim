@@ -50,10 +50,13 @@
   (set vim.go.operatorfunc "v:lua.require'hotpot.user.eval'.eval_operator")
   (vim.api.nvim_feedkeys "g@" "n" false))
 
-(fn fnlfile [start stop file]
-  (if (= file "")
+(fn fnl [start stop code]
+  (if (= code "")
     (eval-range 0 start stop)
-    (eval-file file)))
+    (eval-string code)))
+
+(fn fnlfile [file]
+  (eval-file file))
 
 (fn fnldo [start stop code]
   ;; code can be "" but that just results in a no op,
@@ -76,5 +79,6 @@
  : eval-operator
  :eval_operator eval-operator ;; needs _ name for v:lua access
  : eval-operator-bang
+ : fnl
  : fnlfile
  : fnldo}

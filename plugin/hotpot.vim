@@ -1,14 +1,16 @@
 " Inject hotpot system, or no-op if already done
 lua require("hotpot")
 
-" Mirrors :lua
-command! -nargs=+ Fnl :lua require("hotpot.user.eval")["eval-string"](<q-args>)
+" Execute Fennel expression
+command! -range=% -nargs=* Fnl
+      \ :lua require("hotpot.user.eval").fnl(<line1>, <line2>, <q-args>)
 
-" Mirrors :luafile
-command! -range=% -nargs=? -complete=file Fnlfile :lua require("hotpot.user.eval").fnlfile(<line1>, <line2>, <q-args>)
+command! -nargs=1 -complete=file Fnlfile
+      \ :lua require("hotpot.user.eval").fnlfile(<q-args>)
 
 " Mirrors :luado
-command! -range=% -nargs=? Fnldo :lua require("hotpot.user.eval").fnldo(<line1>, <line2>, <q-args>)
+command! -range=% -nargs=? Fnldo 
+      \ :lua require("hotpot.user.eval").fnldo(<line1>, <line2>, <q-args>)
 
 " TODO emergency :HotpotClearCache vim-only command? 
 
