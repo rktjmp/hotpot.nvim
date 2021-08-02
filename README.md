@@ -32,9 +32,36 @@ mix and match Fennel and Lua as little or as much as you want.
 
 **Notices**
 
-- `hotpot.compile_string`, `hotpot.show_buf`, `hotpot.show_selection`,
-  `hotpot.cache_path_for_module` and `hotpot.cache_path_for_file` have been
-  removed. Please see [API](#api), [Using the API](#using-the-api) and [`:h hotpot-api`](doc/hotpot.txt).
+*2021-08-03*
+
+- :sparkling_heart: New! Bigger and better API, eval Fennel from just about any
+  source :compass:, or get the Lua too. Buffer, selection, files, modules or
+  regular plain old zero spice nothing special ijustworkhere string literals
+  :mechanical_arm:!
+
+  See [API](#api), [Using the API](#using-the-api) and [`:h
+  hotpot-api`](doc/hotpot.txt) :+1:.
+
+- :sparkling_heart: New! Commands! `:Fnl` for evaluating parts of
+  a buffer or entering expressions right on the command line, `:Fnldo` and
+  `:Fnlfile` just like `:lua[do|file]`. Spicy:hot_pepper:!
+
+- :sparkling_heart: New! `doc/hotpot.txt`! Read all about Hotpot in your
+  favourite file format... `vimdoc`:egg_plant:!
+
+- :sparkling_heart: New! Better error reporting and error handling. Your neovim
+  config won't give up if a single module is missing a parentheses! Hotpot
+  configs might even be more resilent than normal lua configs! :raised_hands:
+
+  This is an experimental feature, pay attention to errors you see and fix them
+  or your session might get wonky! :raised_eyebrow: Post an issue if you see really
+  strange behaviour.
+
+- :broken_heart: Gone! `hotpot.compile_string`, `hotpot.show_buf`,
+  `hotpot.show_selection`, `hotpot.cache_path_for_module` and
+  `hotpot.cache_path_for_file` have been :skull: banished :skull: in favour of
+  the more comprehesive `hotpot.api.*` functions.
+
 
 ## Goals & Non Goals
 
