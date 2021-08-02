@@ -1,47 +1,50 @@
 (import-macros {: require-fennel} :hotpot.macros)
-(local {: compile-string
-        : compile-range
-        : compile-selection
-        : compile-buffer
-        : compile-file
-        : compile-module} (require :hotpot.user.compile))
-
-(fn run-or-error [...]
-  (match ...
-    (true luacode) (match (pcall loadstring luacode)
-                     (true func) (func)
-                     (false errors) (vim.api.nvim_err_writeln errors))
-    (false errors) (vim.api.nvim_err_writeln errors)))
+(local {: modname-to-path} (require :hotpot.path_resolver))
+(local {: is-fnl-path?} (require :hotpot.fs))
+(local {: get-buf
+        : get-selection
+        : get-range} (require :hotpot.user.get_text))
+;;
+;; Tools to take a fennel code, run it, and return the result
+;;
+;; Every one of these methods return the result or raise an error.
+;;
 
 (fn eval-string [string]
-  (-> (compile-string string)
-      (run-or-error)))
+  (local fennel (require-fennel))
+  (fennel.eval string {:filename :hotpot-live-eval}))
 
-(fn eval-range [start-pos stop-pos buf]
-  (-> (compile-range start-pos stop-pos buf)
-      (run-or-error)))
+(fn eval-range [buf start-pos stop-pos]
+  (-> (get-range buf start-pos stop-pos)
+      (eval-string)))
 
 (fn eval-selection []
-  (-> (compile-selection)
-      (run-or-error)))
+  (-> (get-selection)
+      (eval-string)))
 
 (fn eval-buffer [buf]
-  (-> (compile-buffer buf)
-      (run-or-error)))
+  (-> (get-buf buf)
+      (eval-string)))
 
 (fn eval-file [fnl-file]
-  (-> (compile-file fnl-file)
-      (run-or-error)))
+  (assert fnl-file "eval-file: must provide path to .fnl file")
+  (local fennel (require-fennel))
+  (fennel.dofile fnl-file {:filename fnl-file}))
 
 (fn eval-module [modname]
-  (-> (compile-module modname)
-      (run-or-error)))
+  (assert modname "eval-module: must provide modname")
+  (local path (modname-to-path modname))
+  (assert path (string.format "eval-modname: could not find file for module %s"
+                              modname))
+  (assert (is-fnl-path? path)
+          (string.format "eval-modname: did not resolve to .fnl file: %s %s"
+                         modname path))
+  (eval-file path))
 
 (fn eval-operator []
   (let [start (vim.api.nvim_buf_get_mark 0 "[")
         stop (vim.api.nvim_buf_get_mark 0 "]")]
-    (-> (compile-range start stop)
-        (run-or-error))))
+    (-> (eval-range 0 start stop))))
 
 (fn eval-operator-bang []
   (set vim.go.operatorfunc "v:lua.require'hotpot.user.eval'.eval_operator")
@@ -49,7 +52,7 @@
 
 (fn fnlfile [start stop file]
   (if (= file "")
-    (eval-range start stop)
+    (eval-range 0 start stop)
     (eval-file file)))
 
 (fn fnldo [start stop code]

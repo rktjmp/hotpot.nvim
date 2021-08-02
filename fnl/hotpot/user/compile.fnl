@@ -1,79 +1,40 @@
 (import-macros {: require-fennel} :hotpot.macros)
-
 (local {: modname-to-path} (require :hotpot.path_resolver))
 (local {: is-fnl-path?
         : file-exists?
         : read-file!} (require :hotpot.fs))
+(local {: get-buf
+        : get-selection
+        : get-range} (require :hotpot.user.get_text))
 
 ;;
 ;; Tools to take a fennel code, compile it, and return the lua code
 ;;
-
-(fn get-range-from-buf [start stop buf]
-  ;; start & stop can be linenr or [linenr colnr]
-  ;; line numbers are "linewise" and start at 1,1
-
-  ;; These are line-wise since lua basically operates that way so note that the
-  ;; call to get_line has adjusted line numbers.
-  ;; Also note that sometimes ranges are returned as 2147483647 to mean "end of line"
-  ;; +1 ends up rolling over and breaking string.sub, so we limit the max column
-  ;; to 10,000 which should be fine in the real world.
-  ;; 
-  (local [start-line start-col] (match start
-                                 [row col] [row (math.min 10_000 (+ col 1))]
-                                 line [line 1]))
-  (local [stop-line stop-col] (match stop
-                               [row col] [row (math.min 10_000 (+ col 1))]
-                               line [line -1]))
-
-  ;; we intentionally don't sanitise positions because a user
-  ;; may request -1 -10 etc (we do for compile-buffer), so it
-  ;; is up to the user to handle odd edges
-
-  ;; must get whole lines until get_text is merged
-  (local lines (vim.api.nvim_buf_get_lines (or buf 0)
-                                           (- start-line 1) ;; 0 indexed
-                                           (+ stop-line 0) ;; end exclusive
-                                           false))
-
-  (when (> (length lines) 0)
-    ;; chop our start and stop lines according to columns
-    (match (= start-line stop-line)
-      ;; selection is on the same line, so we actually want to 
-      ;; take a direct slice of the line.
-      true (tset lines 1 (string.sub (. lines 1) start-col stop-col))
-      ;; trim start and ends
-      false (let [last (length lines)]
-              (tset lines 1 (string.sub (. lines 1) start-col -1))
-              (tset lines last (string.sub (. lines last) 1 stop-col)))))
-  (table.concat lines "\n"))
+;; Every one of these methods return (true lua) | (false errors)
+;;
 
 (fn compile-string [lines filename]
   ;; (string string) :: (true luacode) | (false errors)
   (local {: compile-string} (require :hotpot.compiler))
   (compile-string lines {:filename (or filename :hotpot-live-compile)}))
 
-(fn compile-range [start-pos stop-pos buf]
+(fn compile-range [buf start-pos stop-pos]
   ;; (number number | [number number] [number number])
   ;;   :: (true luacode) | (false errors)
-  (local lines (get-range-from-buf start-pos stop-pos buf))
-  (compile-string lines))
+  (-> (get-range buf start-pos stop-pos)
+      (compile-string)))
 
 (fn compile-selection []
   ;; () :: (true luacode) | (false errors)
-  (let [start (vim.api.nvim_buf_get_mark 0 "<")
-        stop (vim.api.nvim_buf_get_mark 0 ">")]
-    ;; not sure it ever makes sense to have a selection that isn't the
-    ;; current buffer?
-    (compile-range start stop 0)))
+  (-> (get-selection)
+      (compile-string)))
 
 (fn compile-buffer [buf]
   ;; (number | nil) :: (true luacode) | (false errors)
-  (local lines (-> (vim.api.nvim_buf_get_lines (or buf 0) 0 -1 false)
-                   (table.concat "\n")))
   ;; TODO this seems to error out when compiling lightspeed, on an unpack() error
   ;;      in fennel. Not our problem? String too long?
-  (compile-string lines))
+  (-> (get-buf buf)
+      (compile-string)))
 
 (fn compile-file [fnl-path]
   ;; (string) :: (true luacode) | (false errors)
