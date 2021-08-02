@@ -1,3 +1,4 @@
+(import-macros {: require-fennel} :hotpot.macros)
 (local {: compile-string
         : compile-range
         : compile-selection
@@ -51,6 +52,19 @@
     (eval-range start stop)
     (eval-file file)))
 
+(fn fnldo [start stop code]
+  ;; code can be "" but that just results in a no op,
+  ;; and the user asked for it so ...
+  (local fennel (require-fennel))
+  (local codestr (.. "(fn [line linenr] " code ")"))
+  ;; this can raise but that's probably what we want.
+  (local func (fennel.eval codestr {:filename :hotpot-fnldo}))
+  (for [i start stop]
+    (local line (. (vim.api.nvim_buf_get_lines 0 (- i 1) i false) 1))
+    ;; luado replaces line 
+    ;; this can also raise but again, mirrors luado
+    (vim.api.nvim_buf_set_lines 0 (- i 1) i false [(func line i)])))
+
 {: eval-string
  : eval-selection
  : eval-buffer
@@ -59,4 +73,5 @@
  : eval-operator
  :eval_operator eval-operator ;; needs _ name for v:lua access
  : eval-operator-bang
- : fnlfile}
+ : fnlfile
+ : fnldo}
