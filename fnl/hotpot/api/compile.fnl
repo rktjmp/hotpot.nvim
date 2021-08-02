@@ -5,7 +5,7 @@
         : read-file!} (require :hotpot.fs))
 (local {: get-buf
         : get-selection
-        : get-range} (require :hotpot.user.get_text))
+        : get-range} (require :hotpot.api.get_text))
 
 ;;
 ;; Tools to take a fennel code, compile it, and return the lua code

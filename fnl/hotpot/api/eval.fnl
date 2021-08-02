@@ -3,7 +3,7 @@
 (local {: is-fnl-path?} (require :hotpot.fs))
 (local {: get-buf
         : get-selection
-        : get-range} (require :hotpot.user.get_text))
+        : get-range} (require :hotpot.api.get_text))
 ;;
 ;; Tools to take a fennel code, run it, and return the result
 ;;
@@ -47,7 +47,7 @@
     (-> (eval-range 0 start stop))))
 
 (fn eval-operator-bang []
-  (set vim.go.operatorfunc "v:lua.require'hotpot.user.eval'.eval_operator")
+  (set vim.go.operatorfunc "v:lua.require'hotpot.api.eval'.eval_operator")
   (vim.api.nvim_feedkeys "g@" "n" false))
 
 (fn fnl [start stop code]
