@@ -107,7 +107,12 @@
                          in-file  (.. in-dir :/ name)]
                      (when (not (= name :macros.fnl))
                        (local modname (path-to-modname (.. local-path :/ name)))
-                       (hotpot.search modname)))))))
+                       ;; since we return a loader or error-proxy loader
+                       ;; we should run the loader to output any errors that
+                       ;; occur during build of hotpot.
+                       ;; Fingers crossed, I am the only one who ever sees these.
+                       (local loader (hotpot.search modname))
+                       (loader)))))))
 
     ;; for every file in our fnl-dir, force hotpot to compile it
     (compile-dir fennel fnl-dir cache-dir "")
@@ -120,6 +125,7 @@
     (table.remove package.loaders target)
 
     ;; mark that we've compiled and link to current version in plugin dir
+    ;; TODO should check compile actually worked
     (make-canary cache-dir fnl-dir)
 
     ;; return the module

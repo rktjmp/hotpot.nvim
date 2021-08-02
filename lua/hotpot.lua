@@ -83,7 +83,8 @@ local function compile_fresh(cache_dir0, fnl_dir0)
         local in_file = (in_dir .. "/" .. name)
         if not (name == "macros.fnl") then
           local modname = path_to_modname((local_path .. "/" .. name))
-          hotpot.search(modname)
+          local loader = hotpot.search(modname)
+          loader()
         end
       end
     end
