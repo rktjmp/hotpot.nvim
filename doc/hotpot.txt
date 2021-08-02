@@ -48,16 +48,17 @@ Commands........................................................ |hotpot-command
   :Fnldo................................................... |hotpot-command-fnldo|
   :Fnlfile............................................... |hotpot-command-fnlfile|
   :source................................................. |hotpot-command-source|
+Other Functions...........................................|hotpot-other-functions|
 How Hotpot Works..................................................... |hotpot-how|
 
 ================================================================= *hotpot-purpose*
 
 Purpose ~
 
-Hotpot intends to be a library that provides a set of low level tools to
-interact with Fennel code in Neovim (see |hotpot-api|). It has functions to
-compile and evaluate Fennel code, but provides no keymaps to run those
-functions, or methods of displaying the output.
+Hotpot intends to provides a set of low level tools for interacting with Fennel
+code in Neovim (see |hotpot-api|). It has functions to compile and evaluate
+Fennel code, but provides no keymaps to run those functions, or methods of
+displaying the output.
 
 Hotpot provides all the tools to build a Fennel REPL but does not provide one.
 
@@ -484,6 +485,17 @@ Evaluates {file}.
 :source {file}
 
 See |:source|
+
+========================================================= *hotpot-other-functions*
+
+Other Functions ~
+
+Hotpot provides a few other helper functions, available in the `hotpot` module.
+
+Access to Fennel, for any reason:
+
+- `fennel_version()` version of Fennel that is bundled with Hotpot.
+- `fennel()` exposes the bundled Fennel (is a function for performance reasons).
 
 ===================================================================== *hotpot-how*
 
