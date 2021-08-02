@@ -45,6 +45,32 @@
   (clear-dir (cache-prefix))
   true)
 
-{: clear-cache-for-fnl-file
+(fn cache-path-for-fnl-file [fnl-path]
+  ;; (string) :: string
+  ;; path must be absolute
+  (assert (is-fnl-path? fnl-path)
+          (string.format
+            "cache-path-for-fnl-file: must be given path to .fnl file: %s"
+            fnl-path))
+  (match (fnl-path-to-lua-path fnl-path)
+    (lua-path true) lua-path
+    (lua-path false) nil)) ;; lua file didn't exist on disk
+
+(fn cache-path-for-module [modname]
+  ;; (string) :: string
+  (assert modname "cache-path-for-module: must provide modname")
+  (local path (modname-to-path modname))
+  (assert path (string.format
+                 "cache-path-for-module: could not find file for %s"
+                 modname))
+  (assert (is-fnl-path? path)
+          (string.format
+            "cache-path-for-module: did not resolve to .fnl file: %s %s"
+            modname path))
+  (cache-path-for-fnl-file path))
+
+{: cache-path-for-fnl-file
+ : cache-path-for-module
+ : clear-cache-for-fnl-file
  : clear-cache-for-module
  : clear-cache}
