@@ -11,7 +11,6 @@
   ;; Also note that sometimes ranges are returned as 2147483647 to mean "end of line"
   ;; +1 ends up rolling over and breaking string.sub, so we limit the max column
   ;; to 10,000 which should be fine in the real world.
-  ;; 
   (local [start-line start-col] (match start
                                   [row col] [row (math.min 10_000 (+ col 1))]
                                   line [line 1]))
