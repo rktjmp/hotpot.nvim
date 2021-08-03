@@ -43,8 +43,8 @@
                          fnl-path))
   (assert (file-exists? fnl-path)
           (string.format "compile-file: doesn't exist: %s" fnl-path))
-  (local lines (read-file! fnl-path))
-  (compile-string lines fnl-path))
+  (-> (read-file! fnl-path)
+      (compile-string fnl-path)))
 
 (fn compile-module [modname]
   ;; (string) :: (true luacode) | (false errors)
