@@ -490,12 +490,12 @@ See |:source|
 
 Other Functions ~
 
-Hotpot provides a few other helper functions, available in the `hotpot` module.
+*Provisionally spec'd API, consider unstable*
 
-Access to Fennel, for any reason:
+Access to Fennel, available under the `hotpot.api.fennel` module:
 
-- `fennel_version()` version of Fennel that is bundled with Hotpot.
-- `fennel()` exposes the bundled Fennel (is a function for performance reasons).
+- `latest()` returns bundled Fennel, currently always (hopefully) tracks
+  latest Fennel release.
 
 ===================================================================== *hotpot-how*
 

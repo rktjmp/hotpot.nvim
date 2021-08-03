@@ -228,8 +228,9 @@ Commands to run snippets of Fennel, similar to Neovims `:lua` et al commands.
 
 **Other Functions**
 
-- `fennel_version()`
-- `fennel()`
+*Provisionally spec'd API, consider unstable*
+
+- `hotpot.api.fennel.latest()`
 
 ## Using the API
 
