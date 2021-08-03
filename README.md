@@ -34,9 +34,9 @@ mix and match Fennel and Lua as little or as much as you want.
 
 *2021-08-03*
 
-- :sparkling_heart: New! Bigger and better API, eval Fennel from just about any
-  where:compass:, or get compiled Lua too. Buffer, selection, files, modules or
-  regular plain old zero spice nothing special ijustworkhere string
+- :sparkling_heart: New! Bigger and better API, eval Fennel from just about
+  anywhere:compass:, or get compiled Lua too. Buffer, selection, files, modules
+  or regular plain old zero spice nothing special ijustworkhere string
   literals! :mechanical_arm:
 
   See [API](#api), [Using the API](#using-the-api) and [`:h
