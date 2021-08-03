@@ -262,10 +262,11 @@ vim.api.nvim_set_keymap("n",
                         {noremap = true, silent = false})
 ```
 
-You an extend this to show results in floating windows, new splits, etc.
+You can extend this to show results in floating windows, new splits, send via a
+HTTP post, pipe to `/dev/null`, etc.
 
-See also [pug](https://github.com/rktjmp/hotpot.nvim/discussions/6) for some
-implementation helpers for writing these style of keymaps with Fennel.
+To implement these keymaps in Fennel, the [`pug` and
+`vlua` helpers](https://github.com/rktjmp/hotpot.nvim/discussions/6) listed on the disussion boards may be useful.
 
 ## How does Hotpot work?
 
