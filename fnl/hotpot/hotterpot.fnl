@@ -36,37 +36,6 @@
       (if (= check searcher) (set target i)))
     (table.remove package.loaders target)))
 
-(fn print-compiled [ok result]
-  (match [ok result]
-    [true code] (print code)
-    [false errors] (vim.api.nvim_err_write errors)))
-
-(fn show-buf [buf]
-  (local lines (table.concat (vim.api.nvim_buf_get_lines buf 0 -1 false) "\n"))
-  (-> lines
-      (compile-string {:filename :hotpot-show})
-      (print-compiled)))
-
-(fn show-selection []
-  (let [[buf from] (vim.fn.getpos "'<")
-        [_ to] (vim.fn.getpos "'>")
-        lines (vim.api.nvim_buf_get_lines buf (- from 1) to false)
-        lines (table.concat lines)]
-    (-> lines
-        (compile-string {:filename :hotpot-show})
-        (print-compiled))))
-
 {: install ;; install searcher
  : uninstall ;; uninstall searcher
- : search ;; used by dogfood to force compilation
-;;  : cache-path-for-module ;; returns lua path for lua.module.name
-;;  : cache-path-for-file ;; returns lua cache path for fnl file
-;;  :cache_path_for_file cache-path-for-file
-;;  :cache_path_for_module cache-path-for-module
- ;; Expose fennel to user for whatever reason
- :fennel_version (fn [] (. (require-fennel) :version))
- :fennel (fn [] (require-fennel))
- ;; semi-repl helpers
- :compile_string compile-string
- :show_buf show-buf
- :show_selection show-selection}
+ : search} ;; used by dogfood to force compilation}
