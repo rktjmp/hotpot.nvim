@@ -223,16 +223,16 @@ Available in the `hotpot.api.cache` module.
 
 Commands to run snippets of Fennel, similar to Neovims `:lua` et al commands.
 
-- `:[range]Fnl {expression}`
-- `:[range]Fnldo {expression}`
-- `:Fnlfile {file}`
-- `:source {file}`
+- `:[range]Fnl {expression} -> evaluate range in buffer OR expression` 
+- `:[range]Fnldo {expression} -> evaluate expression for each line in range`
+- `:Fnlfile {file} -> evaluate file`
+- `:source {file} -> alias to :Fnlfile`
 
 **Other Functions**
 
 *Provisionally spec'd API, consider unstable*
 
-- `hotpot.api.fennel.latest()`
+- `hotpot.api.fennel.latest() -> embedded fennel library`
 
 ## Using the API
 
