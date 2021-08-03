@@ -81,6 +81,7 @@
   ;; (string, string) :: true | false, errors
   (if (needs-compilation? fnl-path lua-path)
     (compile-file fnl-path lua-path)
+    ;; no compilation needed, so just pretend that compile-file worked
     true))
 
 ;;
