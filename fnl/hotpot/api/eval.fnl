@@ -44,23 +44,25 @@
 (fn eval-operator []
   (let [start (vim.api.nvim_buf_get_mark 0 "[")
         stop (vim.api.nvim_buf_get_mark 0 "]")]
-    (-> (eval-range 0 start stop))))
+    (eval-range 0 start stop)))
 
 (fn eval-operator-bang []
   (set vim.go.operatorfunc "v:lua.require'hotpot.api.eval'.eval_operator")
   (vim.api.nvim_feedkeys "g@" "n" false))
 
 (fn fnl [start stop code]
-  (if (= code "")
-    (eval-range 0 start stop)
-    (eval-string code)))
+  (if (and code (~= code ""))
+    (eval-string code)
+    (eval-range 0 start stop)))
 
 (fn fnlfile [file]
   (eval-file file))
 
 (fn fnldo [start stop code]
-  ;; code can be "" but that just results in a no op,
-  ;; and the user asked for it so ...
+  ;; code = "", means the expression will be "", meaning fnldo will
+  ;; replace all the lines with nothing! Let's not do that.
+  (assert (and code (~= code "")) "fnldo: code must not be blank")
+
   (local fennel (require-fennel))
   (local codestr (.. "(fn [line linenr] " code ")"))
   ;; this can raise but that's probably what we want.
@@ -69,7 +71,7 @@
     (local line (. (vim.api.nvim_buf_get_lines 0 (- i 1) i false) 1))
     ;; luado replaces line 
     ;; this can also raise but again, mirrors luado
-    (vim.api.nvim_buf_set_lines 0 (- i 1) i false [(func line i)])))
+    (vim.api.nvim_buf_set_lines 0 (- i 1) i false [(func (or line "") i)])))
 
 {: eval-string
  : eval-selection
