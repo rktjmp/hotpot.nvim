@@ -447,7 +447,7 @@ Neovims Lua commands. See also |lua-commands|.
 
 It also allows the |:source| command to work with `.fnl` files.
 
-------------------------------------------------------------- *hotpot-command-fnl*
+-------------------------------------------------------- *:Fnl* *hotpot-command-fnl*
 
 :[range]Fnl {expression}
 
@@ -460,7 +460,7 @@ from the current buffer.
 
   :'<,'>Fnl (print :hello) -> "hello" (range is ignored)
 
------------------------------------------------------------ *hotpot-command-fnldo*
+---------------------------------------------------- *:Fnldo* *hotpot-command-fnldo*
 
 :[range]Fnldo {expression}
 
@@ -470,7 +470,7 @@ turn. Two variables are availiable inside {expression}, `line` and `linenr`.
   :'<,'>Fnldo (string.format "%d: %s" linenr (line:reverse))
   => Prepends line number and reverses the contents of line
 
---------------------------------------------------------- *hotpot-command-fnlfile*
+------------------------------------------------ *:Fnlfile* *hotpot-command-fnlfile*
 
 :Fnlfile {file}
 
