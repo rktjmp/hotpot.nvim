@@ -363,8 +363,8 @@ module must be removed from Lua's `package.loaded` table, then re-required.
 (Hint: You can iterate `package.loaded` and match the key for `"^my_module"`.)
 
 Note: Some of these functions are destructive, I bear no responsibility for
-any bugs in Hotpot, your OS or the greater cosmos which might have caused your
-files to be destroyed.
+      any bugs in Hotpot, your OS or the greater cosmos which might have
+      caused your files to be destroyed.
 
 ------------------------------------------------- *hotpot-cache-path-for-fnl-file*
 

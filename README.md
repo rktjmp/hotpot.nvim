@@ -35,23 +35,23 @@ mix and match Fennel and Lua as little or as much as you want.
 *2021-08-03*
 
 - :sparkling_heart: New! Bigger and better API, eval Fennel from just about any
-  source :compass:, or get the Lua too. Buffer, selection, files, modules or
-  regular plain old zero spice nothing special ijustworkhere string literals
-  :mechanical_arm:!
+  where:compass:, or get compiled Lua too. Buffer, selection, files, modules or
+  regular plain old zero spice nothing special ijustworkhere string
+  literals! :mechanical_arm:
 
   See [API](#api), [Using the API](#using-the-api) and [`:h
-  hotpot-api`](doc/hotpot.txt) :+1:.
+  hotpot-api`](doc/hotpot.txt). :+1:
 
 - :sparkling_heart: New! Commands! `:Fnl` for evaluating parts of
   a buffer or entering expressions right on the command line, `:Fnldo` and
-  `:Fnlfile` just like `:lua[do|file]`. Spicy:hot_pepper:!
+  `:Fnlfile` just like `:lua[do|file]`. Spicy! :hot_pepper:
 
 - :sparkling_heart: New! `doc/hotpot.txt`! Read all about Hotpot in your
-  favourite file format... `vimdoc`:egg_plant:!
+  favourite file format... `vimdoc`! :eggplant:
 
 - :sparkling_heart: New! Better error reporting and error handling. Your neovim
   config won't give up if a single module is missing a parentheses! Hotpot
-  configs might even be more resilent than normal lua configs! :raised_hands:
+  configs might even be more resilient than normal lua configs! :raised_hands:
 
   This is an experimental feature, pay attention to errors you see and fix them
   or your session might get wonky! :raised_eyebrow: Post an issue if you see really
@@ -63,12 +63,12 @@ mix and match Fennel and Lua as little or as much as you want.
   the more comprehesive `hotpot.api.*` functions.
 
 
-## Goals & Non Goals
+## Purpose
 
 Hotpot intends to provides a set of low level tools for interacting with Fennel
-code in Neovim (see [`:h hotpot-api`](doc/hotpot.txt)). It has functions to
-compile and evaluate Fennel code, but provides no keymaps to run those
-functions, or methods of displaying the output.
+code in Neovim (see [API](#api), [`:h hotpot-api`](doc/hotpot.txt)). It has
+functions to compile and evaluate Fennel code, but provides no keymaps to run
+those functions, or methods of displaying the output.
 
 Hotpot provides all the *tools to build* a Fennel REPL but does not *provide
 one.*
@@ -179,8 +179,9 @@ hotpot-api`](doc/hotpot.txt) for detailed documentation.
 
 **Eval Functions**
 
-Evaluate any given Fennel, returns the result of evaulation. *Does not*
-automatically print the result!
+Evaluate any given Fennel, returns the result of evaulation.
+
+*Does not* automatically print the result!
 
 Available in the `hotpot.api.eval` module.
 
@@ -193,8 +194,9 @@ Available in the `hotpot.api.eval` module.
 
 **Compile Functions**
 
-Compiles any given Fennel, returns the result as a string. *Does not*
-compile to cache, instead use `require("modname")`.
+Compiles any given Fennel, returns the result as a string.
+
+*Does not* compile to cache, instead use `require("modname")`.
 
 Available in the `hotpot.api.compile` module.
 
