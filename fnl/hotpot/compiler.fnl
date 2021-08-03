@@ -40,6 +40,7 @@
                                ;; TODO normally this is fine if the dir exists
                                ;;      except if it ends in .  which can happen if
                                ;;      you're requiring a in-dir file
+                               (dinfo :compile-file :OK)
                                (vim.fn.mkdir (string.match lua-path "(.+)/.-%.lua") :p)
                                (write-file! lua-path lua-code))
              (false errors) (do
