@@ -152,7 +152,7 @@ Every `eval-*` function has the potential to raise an error, by:
   - compile errors
   - evaluated code errors
 
-Handling these errors are left to the user.
+Handling these errors is left to the user.
 
 Note: If your Fennel code does not output anything, running these functions by
 themselves will not show any output! You may wish to wrap them in a
