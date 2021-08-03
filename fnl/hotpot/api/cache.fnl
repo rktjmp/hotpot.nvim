@@ -6,6 +6,19 @@
         : read-file!} (require :hotpot.fs))
 (local uv vim.loop)
 
+;;
+;; Tools to interact with Hotpot's cache
+;;
+
+(fn confirm-remove [path]
+  (local message (.. "Remove file? " path))
+  (local opts "NO\nYes")
+  (match (vim.fn.confirm message opts 1 "Warning")
+    1 (do
+        (print "Did NOT remove file.")
+        false)
+    2 (uv.fs_unlink path)))
+
 ;; clear-cache-for-fnl-file
 (fn clear-cache-for-fnl-file [fnl-path]
   ;; (string) :: true | (false errors)
@@ -14,8 +27,10 @@
             "clear-cache-for-fnl-file: must be given path to .fnl file: %s"
             fnl-path))
   (match (fnl-path-to-lua-path fnl-path)
-    (lua-path true) (uv.fs_unlink lua-path)
-    (lua-path false) true)) ;; lua file didn't exist, nothing to remove
+    (lua-path true) (confirm-remove lua-path)
+    (lua-path false) (do
+                       (print "No cache file for fnl-file.")
+                       false)))
 
 ;; clear-cache-for-module
 (fn clear-cache-for-module [modname]
@@ -41,9 +56,20 @@
                         (local child (.. dir :/ name))
                         (clear-dir child)
                         (uv.fs_rmdir child))
+          "link" (uv.fs_unlink (.. dir :/ name))
           "file" (uv.fs_unlink (.. dir :/ name))))))
-  (clear-dir (cache-prefix))
-  true)
+
+  (local prefix (cache-prefix))
+  (assert (and prefix (~= prefix "")) 
+          "cache-prefix was nil or blank, refusing to continue")
+
+  (local message (.. "Remove all files under: " prefix))
+  (local options "NO\nYes")
+  (match (vim.fn.confirm message options 1 "Warning")
+    1 (do
+        (print "Did NOT remove files.")
+        false)
+    2 (clear-dir prefix)))
 
 (fn cache-path-for-fnl-file [fnl-path]
   ;; (string) :: string
