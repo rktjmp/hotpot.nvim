@@ -219,6 +219,14 @@ Available in the `hotpot.api.cache` module.
 - `(clear-cache-for-module modname) -> true`
 - `(clear-cache) -> true`
 
+**Log Functions**
+
+Access Hotpot's log file.
+
+Available in the `hotpot.api.log` module.
+
+- `(log-path) -> path | nil`
+
 **Commands**
 
 Commands to run snippets of Fennel, similar to Neovims `:lua` et al commands.
@@ -312,9 +320,10 @@ the enviously talented Oliver Caldwell:
 
 - [Conjure](https://github.com/Olical/conjure) is a *fantastic* REPL tool for
   working with Fennel, as well as other lisps.
-- [Aniseed](https://github.com/Olical/aniseed) does all that Hotpot does, as
+- [Aniseed](https://github.com/Olical/aniseed) provides a config compiler, as
   well as including an improved stdlib, specific Neovim ergonomic improvements
-  and pre-configured test harness. It's like Hotpot but better.
+  and pre-configured test harness. It's similar to Hotpot but with different
+  goals.
 
 ## FAQ & Trouble Shooting
 
