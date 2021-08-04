@@ -452,7 +452,7 @@ You can manually open the log at `~/.cache/nvim/hotpot.log`.
 
 ---------------------------------------------------------------- *hotpot-log-path*
 
-`(log-path) -> path | nil`
+`(log-path) -> path`
 
 Get Hotpot's log file path
 

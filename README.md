@@ -225,7 +225,7 @@ Access Hotpot's log file.
 
 Available in the `hotpot.api.log` module.
 
-- `(log-path) -> path | nil`
+- `(log-path) -> path`
 
 **Commands**
 
