@@ -19,37 +19,39 @@ aims remove all barriers to using Fennel in Neovim.
 
 ===================================================================== *hotpot-toc*
 
-Purpose.......................................................... |hotpot-purpose|
-Install & Setup.................................................. |hotpot-install|
-Usage ............................................................. |hotpot-usage|
-Hotpot API........................................................... |hotpot-api|
-Eval Functions...................................................... |hotpot-eval|
-  eval-string................................................ |hotpot-eval-string|
-  eval-range.................................................. |hotpot-eval-range|
-  eval-selection.......................................... |hotpot-eval-selection|
-  eval-buffer................................................ |hotpot-eval-buffer|
-  eval-file.................................................... |hotpot-eval-file|
-  eval-module................................................ |hotpot-eval-module|
-Compile Functions................................................ |hotpot-compile|
-  compile-string.......................................... |hotpot-compile-string|
-  compile-range............................................ |hotpot-compile-range|
-  compile-selection.................................... |hotpot-compile-selection|
-  compile-buffer.......................................... |hotpot-compile-buffer|
-  compile-file.............................................. |hotpot-compile-file|
-  compile-module.......................................... |hotpot-compile-module|
-Cache Functions.................................................... |hotpot-cache|
-  cache-path-for-fnl-file........................ |hotpot-cache-path-for-fnl-file|
-  cache-path-for-module............................ |hotpot-cache-path-for-module|
-  clear-cache-for-fnl-file...................... |hotpot-clear-cache-for-fnl-file|
-  clear-cache-for-module.......................... |hotpot-clear-cache-for-module|
-  clear-cache................................................ |hotpot-clear-cache|
-Commands........................................................ |hotpot-commands|
-  :Fnl....................................................... |hotpot-command-fnl|
-  :Fnldo................................................... |hotpot-command-fnldo|
-  :Fnlfile............................................... |hotpot-command-fnlfile|
-  :source................................................. |hotpot-command-source|
+Purpose...........................................................|hotpot-purpose|
+Install & Setup...................................................|hotpot-install|
+Usage...............................................................|hotpot-usage|
+Hotpot API............................................................|hotpot-api|
+Eval Functions.......................................................|hotpot-eval|
+  eval-string.................................................|hotpot-eval-string|
+  eval-range...................................................|hotpot-eval-range|
+  eval-selection...........................................|hotpot-eval-selection|
+  eval-buffer.................................................|hotpot-eval-buffer|
+  eval-file.....................................................|hotpot-eval-file|
+  eval-module.................................................|hotpot-eval-module|
+Compile Functions.................................................|hotpot-compile|
+  compile-string...........................................|hotpot-compile-string|
+  compile-range.............................................|hotpot-compile-range|
+  compile-selection.....................................|hotpot-compile-selection|
+  compile-buffer...........................................|hotpot-compile-buffer|
+  compile-file...............................................|hotpot-compile-file|
+  compile-module...........................................|hotpot-compile-module|
+Cache Functions.....................................................|hotpot-cache|
+  cache-path-for-fnl-file.........................|hotpot-cache-path-for-fnl-file|
+  cache-path-for-module.............................|hotpot-cache-path-for-module|
+  clear-cache-for-fnl-file.......................|hotpot-clear-cache-for-fnl-file|
+  clear-cache-for-module...........................|hotpot-clear-cache-for-module|
+  clear-cache.................................................|hotpot-clear-cache|
+Log Functions.........................................................|hotpot-log|
+  log-path.......................................................|hotpot-log-path|
+Commands.........................................................|hotpot-commands|
+  :Fnl........................................................|hotpot-command-fnl|
+  :Fnldo....................................................|hotpot-command-fnldo|
+  :Fnlfile................................................|hotpot-command-fnlfile|
+  :source..................................................|hotpot-command-source|
 Other Functions...........................................|hotpot-other-functions|
-How Hotpot Works..................................................... |hotpot-how|
+How Hotpot Works......................................................|hotpot-how|
 
 ================================================================= *hotpot-purpose*
 
@@ -67,8 +69,8 @@ Hotpot provides all the tools to build a Fennel REPL but does not provide one.
 Install & Setup ~
 
 Hotpot only needs you to call `require("hotpot")` before you attempt to
-require any Fennel files. Afterwards you can require any `fnl/*.fnl` file just as
-you would normally require any `lua/*.lua`.
+require any Fennel files. Afterwards you can require any `fnl/*.fnl` file just
+as you would normally require any `lua/*.lua`.
 
 Hotpot has no user configurable settings, there is no `setup()` function.
 Repeated calls to `require("hotpot")` have no effect.
@@ -437,6 +439,30 @@ Accepts
 Returns 
 
   - `true`
+
+===================================================================== *hotpot-log*
+
+Log Functions ~
+
+Available in the `hotpot.api.log` module.
+
+The following functions are helpers to access Hotpot's log file.
+
+You can manually open the log at `~/.cache/nvim/hotpot.log`.
+
+---------------------------------------------------------------- *hotpot-log-path*
+
+`(log-path) -> path | nil`
+
+Get Hotpot's log file path
+
+Accepts
+
+  - `nil`
+
+Returns
+
+  - `string` path to log file
 
 ================================================================ *hotpot-commands*
 
