@@ -18,8 +18,21 @@
   (assert (is-fnl-path? fnl-path)
           (.. "path did not end in fnl: " fnl-path))
 
+  ;; Local plugins installed by packer are symlinked from packer/start/plugin
+  ;; back to the real folder. If we do not resolve those links to real paths now
+  ;; the cache path will be packer/start/plugin and not ~/projects/plugin,
+  ;; which means when working in ~/projects/plugin, you can it get the cache path
+  ;; of the current file.
+  ;; So we realpath the fennel file so our cache paths are "real", we also take
+  ;; this chance to fail if the fennel file doesn't exist. This *may* be changed
+  ;; at a later date if there were ever a reason to request "potential fnl
+  ;; file" cache paths (can't really imagine a usecase for that...).
+  (local real-fnl-path (vim.loop.fs_realpath fnl-path))
+  (assert real-fnl-path
+          (.. "fnl-path did not resolve to real file!"))
+
   ;; where the cache file should be, but path isn's cleaned up
-  (local want-path (-> fnl-path
+  (local want-path (-> real-fnl-path
                        ((partial .. cache-prefix))
                        (string.gsub "%.fnl$" ".lua")))
 
