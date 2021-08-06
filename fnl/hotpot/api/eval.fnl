@@ -74,6 +74,7 @@
     (vim.api.nvim_buf_set_lines 0 (- i 1) i false [(func (or line "") i)])))
 
 {: eval-string
+ : eval-range
  : eval-selection
  : eval-buffer
  : eval-file
