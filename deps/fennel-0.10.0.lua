@@ -2034,7 +2034,7 @@ package.preload["fennel.specials"] = package.preload["fennel.specials"] or funct
     local modexpr = resolve_module_name(ast, scope, parent, {})
     local _ = compiler.assert((modexpr.type == "literal"), "module name must compile to string", (real_ast or ast))
     local modname = load_code(("return " .. modexpr[1]))()
-    if not macro_loaded[modname] then
+    if true or (not macro_loaded[modname]) then
       local env = make_compiler_env(ast, scope, parent)
       local loader, filename = search_macro_module(modname, 1)
       compiler.assert(loader, (modname .. " module not found."), ast)
