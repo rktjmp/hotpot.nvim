@@ -56,7 +56,9 @@ end
 local function compile_fresh(cache_dir0, fnl_dir0)
   local fennel = require("hotpot.fennel")
   local saved_fennel_path = fennel.path
+  local saved_fennel_macro_path = fennel["macro-path"]
   fennel.path = (fnl_dir0 .. "/?.fnl;" .. fennel.path)
+  fennel["macro-path"] = (fnl_dir0 .. "/?.fnl;" .. fennel.path)
   table.insert(package.loaders, fennel.searcher)
   local hotpot = require("hotpot.hotterpot")
   hotpot.install()
@@ -92,6 +94,7 @@ local function compile_fresh(cache_dir0, fnl_dir0)
   end
   compile_dir(fennel, fnl_dir0, cache_dir0, "")
   fennel.path = saved_fennel_path
+  fennel["macro-path"] = saved_fennel_macro_path
   local target = nil
   for i, check in ipairs(package.loaders) do
     if target then break end
