@@ -80,7 +80,11 @@
     ;; insert our fnl folder into fennels path, saving the old path for
     ;; restoration
     (local saved-fennel-path fennel.path)
+    (local saved-fennel-macro-path fennel.macro-path)
+
     (set fennel.path (.. fnl-dir "/?.fnl;" fennel.path))
+    (set fennel.macro-path (.. fnl-dir "/?.fnl;" fennel.path))
+
     (table.insert package.loaders fennel.searcher)
 
     (local hotpot (require :hotpot.hotterpot))
@@ -119,6 +123,7 @@
 
     ;; undo our path and searcher changes since we handle this now
     (set fennel.path saved-fennel-path)
+    (set fennel.macro-path saved-fennel-macro-path)
     (var target nil)
     (each [i check (ipairs package.loaders) :until target]
       (if (= check fennel.searcher) (set target i)))
