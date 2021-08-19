@@ -6,12 +6,12 @@ local function canary_link_path(cache_dir0)
   return (cache_dir0 .. "canary")
 end
 local function check_canary(cache_dir0)
-  local _0_, _1_ = uv.fs_realpath(canary_link_path(cache_dir0))
-  if ((_0_ == nil) and (nil ~= _1_)) then
-    local error = _1_
+  local _1_, _2_ = uv.fs_realpath(canary_link_path(cache_dir0))
+  if ((_1_ == nil) and (nil ~= _2_)) then
+    local error = _2_
     return false
-  elseif (nil ~= _0_) then
-    local path = _0_
+  elseif (nil ~= _1_) then
+    local path = _1_
     return true
   end
 end
@@ -32,22 +32,22 @@ local function load_from_cache(cache_dir0, fnl_dir0)
   package.path = hotpot_path
   local hotpot = require("hotpot.hotterpot")
   hotpot.install()
-  hotpot["install"] = nil
+  do end (hotpot)["install"] = nil
   hotpot["uninstall"] = nil
   return hotpot
 end
 local function clear_cache(cache_dir0)
   local scanner = uv.fs_scandir(cache_dir0)
-  local function _0_()
+  local function _4_()
     return uv.fs_scandir_next(scanner)
   end
-  for name, type in _0_ do
-    local _1_ = type
-    if (_1_ == "directory") then
+  for name, type in _4_ do
+    local _5_ = type
+    if (_5_ == "directory") then
       local child = (cache_dir0 .. "/" .. name)
       clear_cache(child)
       uv.fs_rmdir(child)
-    elseif (_1_ == "file") then
+    elseif (_5_ == "file") then
       uv.fs_unlink((cache_dir0 .. "/" .. name))
     end
   end
@@ -68,19 +68,19 @@ local function compile_fresh(cache_dir0, fnl_dir0)
   local function compile_dir(fennel0, in_dir, out_dir, local_path)
     local scanner = uv.fs_scandir(in_dir)
     local ok = true
-    local function _0_()
+    local function _7_()
       return uv.fs_scandir_next(scanner)
     end
-    for name, type in _0_ do
+    for name, type in _7_ do
       if not ok then break end
-      local _1_ = type
-      if (_1_ == "directory") then
+      local _8_ = type
+      if (_8_ == "directory") then
         local out_down = (cache_dir0 .. "/" .. in_dir .. "/" .. name)
         local in_down = (in_dir .. "/" .. name)
         local local_down = (local_path .. "/" .. name)
         vim.fn.mkdir(out_down, "p")
         compile_dir(fennel0, in_down, out_down, local_down)
-      elseif (_1_ == "file") then
+      elseif (_8_ == "file") then
         local out_file = (out_dir .. "/" .. string.gsub(name, ".fnl$", ".lua"))
         local in_file = (in_dir .. "/" .. name)
         if not (name == "macros.fnl") then
@@ -104,7 +104,7 @@ local function compile_fresh(cache_dir0, fnl_dir0)
   end
   table.remove(package.loaders, target)
   make_canary(cache_dir0, fnl_dir0)
-  hotpot["install"] = nil
+  do end (hotpot)["install"] = nil
   hotpot["uninstall"] = nil
   return hotpot
 end
