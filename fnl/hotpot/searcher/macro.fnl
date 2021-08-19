@@ -1,5 +1,7 @@
 (local {: read-file!} (require :hotpot.fs))
 (local {: modname-to-path} (require :hotpot.path_resolver))
+(local config (require :hotpot.config))
+
 (import-macros {: require-fennel} :hotpot.macros)
 
 (fn create-loader [path modname]
@@ -14,8 +16,11 @@
                     ;; to avoid circular dependencies. By putting it here
                     ;; we can be sure that the cache is already loaded
                     ;; before hotpot took over.
+                    ;; Mark this macro module as a dependency of the current branch.
                     ((. (require :hotpot.dependency_tree) :set) modname path)
-                    (fennel.eval code {:env :_COMPILER})))
+                    (local options (doto (config.get-option :compiler.macros)
+                                         (tset :filename path)))
+                    (fennel.eval code options)))
     (values loader path)))
 
 (fn searcher [modname]

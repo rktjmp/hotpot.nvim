@@ -12,22 +12,22 @@
 (var has-injected-macro-searcher false)
 (fn compile-string [string options]
   ;; (string table) :: (true string) | (false string)
-  ;; we only require fennel here because it can be heavy to
-  ;; pull in (~50-100ms, someimes ...??) and *most* of the
-  ;; time we will be shortcutting to the compiled lua
+  ;; we only require fennel here because it can be heavy to pull in and *most*
+  ;; of the time we will shortcut to the compiled lua.
   (local fennel (require-fennel))
   (when (not has-injected-macro-searcher)
     (table.insert fennel.macro-searchers 1 macro-searcher)
     (set has-injected-macro-searcher true))
+  (local options (doto (or options {})
+                       (tset :filename (or options.filename :hotpot-compile-string))))
   (fn compile []
     ;; drop the options table that is also returned
-    (pick-values 1 (fennel.compile-string string 
-                           (or options {:filename :hotpot-compile-string}))))
+    (pick-values 1 (fennel.compile-string string options)))
   (xpcall compile fennel.traceback))
 
-(fn compile-file [fnl-path lua-path]
+(fn compile-file [fnl-path lua-path options]
   ;; (string, string) :: (true, nil) | (false, errors)
-  ;; TODO: make a nicer check/try/happy macro
+  ;; TODO: make a nicer check/try/happy macro?
   (pcall (fn []
            (assert (is-fnl-path? fnl-path)
                    (string.format "compile-file fnl-path not fnl file: %q" fnl-path))
@@ -35,7 +35,10 @@
                    (string.format "compile-file lua-path not lua file: %q" lua-path))
            (local fnl-code (read-file! fnl-path))
            (dinfo :compile-file fnl-path lua-path)
-           (match (compile-string fnl-code {:filename fnl-path})
+           ; pass on any options to the compiler, but enforce the filename
+           (local options (doto (or options {})
+                                (tset :filename fnl-path)))
+           (match (compile-string fnl-code options)
              (true lua-code) (do 
                                ;; TODO normally this is fine if the dir exists
                                ;;      except if it ends in .  which can happen if
@@ -47,5 +50,5 @@
                               (dinfo errors)
                               (error errors))))))
 
-{: compile-string 
+{: compile-string
  : compile-file}

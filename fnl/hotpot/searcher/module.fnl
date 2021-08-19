@@ -1,6 +1,7 @@
 (local {: modname-to-path
         : fnl-path-to-lua-path} (require :hotpot.path_resolver))
 (local {: compile-file} (require :hotpot.compiler))
+(local config (require :hotpot.config))
 (local {: file-missing?
         : file-stale?
         : is-lua-path?
@@ -81,8 +82,9 @@
 
 (fn compile-fnl [fnl-path lua-path]
   ;; (string, string) :: true | false, errors
+  (local options (config.get-option :compiler.modules))
   (if (needs-compilation? fnl-path lua-path)
-    (compile-file fnl-path lua-path)
+    (compile-file fnl-path lua-path options)
     ;; no compilation needed, so just pretend that compile-file worked
     true))
 
