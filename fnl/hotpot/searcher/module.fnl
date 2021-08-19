@@ -73,9 +73,11 @@
     ;; lua file doesn't exist or it is older than the fennel file
     ;; this should run first so any dependency changes are discovered
     ;; (particularly the removal of)
-    (or (file-missing? lua-path) (file-stale? fnl-path lua-path))
+    (or (file-missing? lua-path)
+        (file-stale? fnl-path lua-path))
     ;; or one of the dependencies are newer
-    (and (has-dependency-graph lua-path) (has-stale-dependency fnl-path lua-path))))
+    (and (has-dependency-graph lua-path)
+         (has-stale-dependency fnl-path lua-path))))
 
 (fn compile-fnl [fnl-path lua-path]
   ;; (string, string) :: true | false, errors
