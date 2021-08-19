@@ -4,7 +4,7 @@
 (import-macros {: require-fennel : dinfo} :hotpot.macros)
 (local debug-modname "hotpot")
 
-(var has-run-setup false)
+(var has-run-install false)
 (var searcher nil)
 
 (fn search [modname]
@@ -13,7 +13,7 @@
   (searcher modname))
 
 (fn install []
-  (when (not has-run-setup)
+  (when (not has-run-install)
     ;; it's actually pretty important we have debugging message
     ;; before we get into the searcher otherwise we get a recursive
     ;; loop because dinfo has a require call in itself.
@@ -22,10 +22,10 @@
     (dinfo "Installing Hotpot into searchers")
     (set searcher module-searcher)
     (table.insert package.loaders 1 searcher)
-    (set has-run-setup true)))
+    (set has-run-install true)))
 
 (fn uninstall []
-  (when (has-run-setup)
+  (when (has-run-install)
     (dinfo "Uninstalling Hotpot from searchers")
     (var target nil)
     (each [i check (ipairs package.loaders) :until target]
@@ -34,7 +34,7 @@
 
 (fn setup [options]
   (local config (require :hotpot.config))
-  (config.set-user-options options)
+  (config.set-user-options (or options {}))
   (values nil))
 
 {: install ;; install searcher

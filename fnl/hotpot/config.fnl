@@ -30,6 +30,7 @@
   (dig path user-options default-options))
 
 (fn set-user-options [options]
+  (assert options "hotpot: can not set user options to nil")
   ; we just accept options "wholesale" for now, no "set by key path".
   (set user-options options))
 
