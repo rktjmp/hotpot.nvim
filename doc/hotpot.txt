@@ -1,17 +1,17 @@
 *hotpot* seamless fennel in neovim
 >
-           dP     dP             dP                       dP   
-           88     88             88                       88   
-           88aaaaa88a .d8888b. d8888P 88d888b. .d8888b. d8888P 
-           88     88  88'  `88   88   88'  `88 88'  `88   88   
-           88     88  88.  .88   88   88.  .88 88.  .88   88   
-           dP     dP  `88888P'   dP   88Y888P' `88888P'   dP   
-                                      88                       
+           dP     dP             dP                       dP
+           88     88             88                       88
+           88aaaaa88a .d8888b. d8888P 88d888b. .d8888b. d8888P
+           88     88  88'  `88   88   88'  `88 88'  `88   88
+           88     88  88.  .88   88   88.  .88 88.  .88   88
+           dP     dP  `88888P'   dP   88Y888P' `88888P'   dP
+                                      88
                                       dP
-         
+        
            You take this home, throw it in a pot, add some
            broth, some neovim...  baby, you got a stew going!
-         
+        
                               ~ Fennel Programmers (probably)
 
 Hotpot is a in-process, transparent, global, on-demand Fennel compiler. It
@@ -20,7 +20,8 @@ aims remove all barriers to using Fennel in Neovim.
 ===================================================================== *hotpot-toc*
 
 Purpose...........................................................|hotpot-purpose|
-Install & Setup...................................................|hotpot-install|
+Install...........................................................|hotpot-install|
+Setup...............................................................|hotpot-setup|
 Usage...............................................................|hotpot-usage|
 Hotpot API............................................................|hotpot-api|
 Eval Functions.......................................................|hotpot-eval|
@@ -66,14 +67,11 @@ Hotpot provides all the tools to build a Fennel REPL but does not provide one.
 
 ================================================================= *hotpot-install*
 
-Install & Setup ~
+Install ~
 
 Hotpot only needs you to call `require("hotpot")` before you attempt to
 require any Fennel files. Afterwards you can require any `fnl/*.fnl` file just
 as you would normally require any `lua/*.lua`.
-
-Hotpot has no user configurable settings, there is no `setup()` function.
-Repeated calls to `require("hotpot")` have no effect.
 
 Hotpot will automatically call `require("hotpot")` when
 `hotpot/plugin/hotpot.vim` is loaded, but this may occur later than desired,
@@ -111,6 +109,39 @@ possible in your `init.lua`. An example `init.lua` is provided below:
   -- `~/.config/nvim/fnl/plugins.fnl`, etc.
   require("fenneled_init")
 <
+=================================================================== *hotpot-setup*
+
+Setup ~
+
+Hotpot accepts the following configuration options, with defaults as shown.
+
+You do not have to call setup unless you are altering a default option.
+>
+  require("hotpot").setup({
+    compiler = {
+      modules = {},
+      macros = {
+        compilerEnv = "_COMPILER"
+      }
+    }
+  })
+
+`compiler.modules` is passed to the Fennel compiler when compiling regular
+module files.
+
+`compiler.macros` is passed to the Fennel compiler when compiling macro files.
+Be sure to include `compilerEnv = "_COMPILER"` unless you have a good reason
+not to.
+
+Note: the `modules` and `macros` tables REPLACE the defaults when given, they
+      are NOT merged. Include all options you wish to pass to the compiler.
+
+Note: the `compiler` options are not passed to any `api.compile` functions and
+      are only applied to Hotpots internal compilation.
+
+For a complete list of compiler options, see http://fennel-lang.org,
+specifically the API usage section.
+
 =================================================================== *hotpot-usage*
 
 Usage ~
