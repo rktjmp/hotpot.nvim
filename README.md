@@ -85,6 +85,7 @@ bells and all the whistles, you might want to [look elsewhere](#see-also).
 
 - [Requirements](#requirements)
 - [Install](#install)
+- [Setup](#setup)
 - [Hotpot API](#api)
 - [Using the API](#using-the-api)
 - [How does Hotpot work?](#how-does-hotpot-work)
@@ -171,6 +172,39 @@ require "paq" {
 }
 require("hotpot")
 ```
+
+### Setup
+
+Hotpot accepts the following configuration options, with defaults as shown.
+
+You do not have to call setup unless you are altering a default option.
+
+```lua
+require("hotpot").setup({
+  compiler = {
+    modules = {},
+    macros = {
+      compilerEnv = "_COMPILER"
+    }
+  }
+})
+```
+
+`compiler.modules` is passed to the Fennel compiler when compiling regular
+module files.
+
+`compiler.macros` is passed to the Fennel compiler when compiling macro files.
+Be sure to include `compilerEnv = "_COMPILER"` unless you have a good reason
+not to.
+
+Note: the `modules` and `macros` tables **replace** the defaults when given,
+they are **not** merged. Include all options you wish to pass to the compiler.
+
+Note: the `compiler` options are not passed to any `api.compile` functions and
+are only applied to Hotpots internal compilation.
+
+For a complete list of compiler options, see
+[fennel-lang.org](http://fennel-lang.org), specifically the API usage section.
 
 ## API
 
