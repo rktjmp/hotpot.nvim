@@ -4,9 +4,6 @@
 (import-macros {: require-fennel : dinfo} :hotpot.macros)
 (local debug-modname "hotpot")
 
-(fn default-config []
-  {:prefix (.. (vim.fn.stdpath :cache) :/hotpot/)})
-
 (var has-run-setup false)
 (var searcher nil)
 
@@ -30,12 +27,17 @@
 (fn uninstall []
   (when (has-run-setup)
     (dinfo "Uninstalling Hotpot from searchers")
-    (local config (default-config))
     (var target nil)
     (each [i check (ipairs package.loaders) :until target]
       (if (= check searcher) (set target i)))
     (table.remove package.loaders target)))
 
+(fn setup [options]
+  (local config (require :hotpot.config))
+  (config.set-user-options options)
+  (values nil))
+
 {: install ;; install searcher
  : uninstall ;; uninstall searcher
- : search} ;; used by dogfood to force compilation}
+ : search ;; used by dogfood to force compilation
+ : setup}
