@@ -30,48 +30,17 @@ sessions) will skip the compile step unless it's stale, meaning you only pay
 the cost once, keeping your ~~`init.fnl`~~ `init.lua` 🐎 rapido 🐎. Seamlessly
 mix and match Fennel and Lua as little or as much as you want.
 
-**Notices**
-
-*2021-08-03*
-
-- :sparkling_heart: New! Bigger and better API, eval Fennel from just about
-  anywhere:compass:, or get compiled Lua too. Buffer, selection, files, modules
-  or regular plain old zero spice nothing special ijustworkhere string
-  literals! :mechanical_arm:
-
-  See [API](#api), [Using the API](#using-the-api) and [`:h
-  hotpot-api`](doc/hotpot.txt). :+1:
-
-- :sparkling_heart: New! Commands! `:Fnl` for evaluating parts of
-  a buffer or entering expressions right on the command line, `:Fnldo` and
-  `:Fnlfile` just like `:lua[do|file]`. Spicy! :hot_pepper:
-
-- :sparkling_heart: New! `doc/hotpot.txt`! Read all about Hotpot in your
-  favourite file format... `vimdoc`! :eggplant:
-
-- :sparkling_heart: New! Better error reporting and error handling. Your neovim
-  config won't give up if a single module is missing a parentheses! Hotpot
-  configs might even be more resilient than normal lua configs! :raised_hands:
-
-  This is an experimental feature, pay attention to errors you see and fix them
-  or your session might get wonky! :raised_eyebrow: Post an issue if you see really
-  strange behaviour.
-
-- :broken_heart: Gone! `hotpot.compile_string`, `hotpot.show_buf`,
-  `hotpot.show_selection`, `hotpot.cache_path_for_module` and
-  `hotpot.cache_path_for_file` have been :skull: banished :skull: in favour of
-  the more comprehesive `hotpot.api.*` functions.
-
-
 ## Purpose
 
 Hotpot intends to provides a set of low level tools for interacting with Fennel
 code in Neovim (see [API](#api), [`:h hotpot-api`](doc/hotpot.txt)). It has
-functions to compile and evaluate Fennel code, but provides no keymaps to run
-those functions, or methods of displaying the output.
+functions to compile and evaluate Fennel code, but it does not provide keymaps
+to run those functions, or methods of displaying the output.
 
 Hotpot provides all the *tools to build* a Fennel REPL but does not *provide
 one.*
+
+See [using the API](#using-the-api) for some example keymaps.
 
 Hotpot isn't a library full of functions and macros to configure Neovim with.
 Hotpot wants to make it easier for *you* to play with Fennel and write your own
@@ -100,15 +69,14 @@ bells and all the whistles, you might want to [look elsewhere](#see-also).
 ## Install
 
 Hotpot only needs you to call `require("hotpot")` *before* you attempt to
-require any Fennel files. Hotpot currently has no user configurable options,
-there is no `setup()` function.
+require any Fennel files.
 
-Hotpot will 🤖 automatically require itself via `hotpot/plugin/hotpot.vim` but
+Hotpot will automatically require itself via `hotpot/plugin/hotpot.vim` but
 this may occur later than you would like.
 
-Carl Weathers recommends using a package manager to install and update Hotpot,
-but manually injecting it as soon as possible, so you can use Fennel to
-*configure the package manager* 😙👌.
+It may be helpful to use a package manager to install and update Hotpot, but
+inject it manually as soon as possible, so you can use Fennel to *configure the
+package manager*.
 
 Your init.lua file may look like this:
 
@@ -184,7 +152,7 @@ require("hotpot").setup({
   compiler = {
     modules = {},
     macros = {
-      compilerEnv = "_COMPILER"
+      env = "_COMPILER"
     }
   }
 })
@@ -194,11 +162,13 @@ require("hotpot").setup({
 module files.
 
 `compiler.macros` is passed to the Fennel compiler when compiling macro files.
-Be sure to include `compilerEnv = "_COMPILER"` unless you have a good reason
-not to.
+Be sure to include `env = "_COMPILER"` unless you have a good reason not to.
+
+Note: the `filename` compilation option is always set to the appropriate value
+      and can not be altered via the setup interface.
 
 Note: the `modules` and `macros` tables **replace** the defaults when given,
-they are **not** merged. Include all options you wish to pass to the compiler.
+they are **not** merged. Include all options you wish to pass to the compiler!
 
 Note: the `compiler` options are not passed to any `api.compile` functions and
 are only applied to Hotpots internal compilation.
@@ -293,6 +263,17 @@ vim.api.nvim_set_keymap("v",
                         {noremap = true, silent = false})
 ```
 
+**Compile and Print Selection**
+
+(Note: will print `true <luacode>` or `false <errors>`.
+
+```lua
+vim.api.nvim_set_keymap("v",
+                        "<leader>fc",
+                        "<cmd>lua print(require('hotpot.api.compile')['compile-selection']())<cr>",
+                        {noremap = true, silent = false})
+```
+
 **Compile and Print Buffer**
 
 (Note: will print `true <luacode>` or `false <errors>`.
@@ -302,6 +283,26 @@ vim.api.nvim_set_keymap("n",
                         "<leader>fc",
                         "<cmd>lua print(require('hotpot.api.compile')['compile-buffer'](0))<cr>",
                         {noremap = true, silent = false})
+```
+
+**Open Cached Lua file**
+
+```lua
+function _G.open_cache()
+  local cache_path_fn = require("hotpot.api.cache")["cache-path-for-fnl-file"]
+  local fnl_file = vim.fn.expand("%:p")
+  local lua_file = cache_path_fn(fnl_file)
+  if lua_file then
+    vim.cmd(":new " .. lua_file)
+  else
+    print("No matching cache file for current file")
+  end
+end
+
+vim.api.nvim_set_kemap("n",
+                      "<leader>ff",
+                      "<cmd>lua open_cache()<cr>",
+                      {noremap = true, silent = false})
 ```
 
 You can extend this to show results in floating windows, new splits, send via a
