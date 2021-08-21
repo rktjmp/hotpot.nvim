@@ -253,7 +253,7 @@ At it's most basic, you may simply `print` the results:
 **Evaluate and Print Selection**
 
 ```lua
-vim.api.nvim_set_keymap("v",
+vim.api.nvim_set_keymap("x",
                         "<leader>fe",
                         "<cmd>lua print(require('hotpot.api.eval')['eval-selection']())<cr>",
                         {noremap = true, silent = false})
