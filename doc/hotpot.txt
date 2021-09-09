@@ -8,10 +8,10 @@
            dP     dP  `88888P'   dP   88Y888P' `88888P'   dP
                                       88
                                       dP
-        
+
            You take this home, throw it in a pot, add some
            broth, some neovim...  baby, you got a stew going!
-        
+
                               ~ Fennel Programmers (probably)
 
 Hotpot is a in-process, transparent, global, on-demand Fennel compiler. It
@@ -105,7 +105,7 @@ possible in your `init.lua`. An example `init.lua` is provided below:
   require("hotpot")
 
   -- Now you can load fennel code, so you could put the rest of your
-  -- config in a separate `~/.config/nvim/fnl/fenneled_init.fnl` or 
+  -- config in a separate `~/.config/nvim/fnl/fenneled_init.fnl` or
   -- `~/.config/nvim/fnl/plugins.fnl`, etc.
   require("fenneled_init")
 <
@@ -151,7 +151,7 @@ specifically the API usage section.
 Usage ~
 
 Once Hotpot is installed, you may require any `fnl/.fnl` file as you would a
-`lua/.lua` file. 
+`lua/.lua` file.
 >
   ;; ~/.config/nvim/fnl/is_neat.fnl
   ;; some kind of fennel code
@@ -192,8 +192,8 @@ Every `eval-*` function has the potential to raise an error, by:
 Handling these errors is left to the user.
 
 Note: If your Fennel code does not output anything, running these functions by
-themselves will not show any output! You may wish to wrap them in a
-`(print (eval-* ...))` expression for a simple REPL.
+      themselves will not show any output! You may wish to wrap them in a
+      `(print (eval-* ...))` expression for a simple REPL.
 
 ------------------------------------------------------------- *hotpot-eval-string*
 
@@ -293,7 +293,7 @@ module.
 Every `compile-*` function returns `true, luacode` or `false, errors` .
 
 Note: The compiled code is /not/ saved anywhere, nor is it placed in Hotpot's
-cache. To compile into cache, use `require("modname")`.
+      cache. To compile into cache, use `require("modname")`.
 
 ---------------------------------------------------------- *hotpot-compile-string*
 
@@ -526,7 +526,7 @@ from the current buffer.
 :[range]Fnldo {expression}
 
 Evaluates {expression} for each line in [range] and replaces each line in
-turn. Two variables are availiable inside {expression}, `line` and `linenr`. 
+turn. Two variables are availiable inside {expression}, `line` and `linenr`.
 >
   :'<,'>Fnldo (string.format "%d: %s" linenr (line:reverse))
   => Prepends line number and reverses the contents of line
