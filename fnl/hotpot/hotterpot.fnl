@@ -1,6 +1,5 @@
 (local {: compile-string} (require :hotpot.compiler))
-(local {:searcher module-searcher
-        :cache-path-for-module cache-searcher} (require :hotpot.searcher.module))
+(local {:searcher module-searcher} (require :hotpot.searcher.module))
 (import-macros {: require-fennel : dinfo} :hotpot.macros)
 (local debug-modname "hotpot")
 
@@ -32,9 +31,15 @@
       (if (= check searcher) (set target i)))
     (table.remove package.loaders target)))
 
+(fn provide-require-fennel []
+  (tset package.preload :fennel #(require :hotpot.fennel)))
+
 (fn setup [options]
   (local config (require :hotpot.config))
   (config.set-user-options (or options {}))
+  (if (config.get-option :provide_require_fennel)
+    (provide-require-fennel))
+  ; dont leak any return value
   (values nil))
 
 {: install ;; install searcher
