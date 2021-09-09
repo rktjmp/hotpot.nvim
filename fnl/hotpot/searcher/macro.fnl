@@ -12,9 +12,9 @@
     ;; per Fennels spec, we should return a loader function and the
     ;; path for debugging purposes.
     (local loader (fn []
-                    ;; we must perform the require *in* the load function
-                    ;; to avoid circular dependencies. By putting it here
-                    ;; we can be sure that the cache is already loaded
+                    ;; we must perform the dependency tree require *in* the
+                    ;; load function to avoid circular dependencies. By putting
+                    ;; it here we can be sure that the cache is already loaded
                     ;; before hotpot took over.
                     ;; Mark this macro module as a dependency of the current branch.
                     ((. (require :hotpot.dependency_tree) :set) modname path)
