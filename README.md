@@ -170,8 +170,10 @@ Note: the `filename` compilation option is always set to the appropriate value
 Note: the `modules` and `macros` tables **replace** the defaults when given,
 they are **not** merged. Include all options you wish to pass to the compiler!
 
-Note: the `compiler` options are not passed to any `api.compile` functions and
-are only applied to Hotpots internal compilation.
+Note: the `compiler` options are not currently passed to any `api.compile`
+      functions and are only applied to Hotpots internal/automatic compilation.
+      If you have use for passing options to `api.compile` please open an
+      issue.
 
 For a complete list of compiler options, see
 [fennel-lang.org](http://fennel-lang.org), specifically the API usage section.
