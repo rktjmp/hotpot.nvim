@@ -51,6 +51,8 @@ Commands.........................................................|hotpot-command
   :Fnldo....................................................|hotpot-command-fnldo|
   :Fnlfile................................................|hotpot-command-fnlfile|
   :source..................................................|hotpot-command-source|
+Maps.................................................................|hotpot-maps|
+  Operator Pending..........................................|hotpot-operator-eval|
 Other Functions...........................................|hotpot-other-functions|
 How Hotpot Works......................................................|hotpot-how|
 
@@ -546,6 +548,22 @@ Evaluates {file}.
 :source {file}
 
 See |:source|
+
+==================================================================== *hotpot-maps*
+
+Hotpot expects the user to specify most maps themselves via the API functions
+listed above. It does provide one `<Plug>` mapping for operator-pending eval.
+
+----------------------------------------------------------- *hotpot-operator-eval*
+
+<Plug>(hotpot-operator-eval)
+
+Enters operator-pending mode and evaluates the Fennel code specifed by the
+proceeding motion.
+>
+  map <Plug> ghe <Plug>(hotpot-operator-eval)
+
+  gheip -> evauate fennel code in paragraph
 
 ========================================================= *hotpot-other-functions*
 

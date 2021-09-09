@@ -56,6 +56,7 @@ bells and all the whistles, you might want to [look elsewhere](#see-also).
 - [Install](#install)
 - [Setup](#setup)
 - [Hotpot API](#api)
+- [Operator Pending](#operator-pending)
 - [Using the API](#using-the-api)
 - [How does Hotpot work?](#how-does-hotpot-work)
 - [See Also](#see-also)
@@ -247,6 +248,17 @@ Commands to run snippets of Fennel, similar to Neovims `:lua` et al commands.
 *Provisionally spec'd API, consider unstable*
 
 - `hotpot.api.fennel.latest() -> embedded fennel library`
+
+## Operator Pending
+
+Hotpot expects the user to specify most maps themselves, via the API functions
+listed above. It does provide one `<Plug>` mapping for operator-pending eval.
+
+```viml
+map <Plug> ghe <Plug>(hotpot-operator-eval)
+```
+
+> gheip -> evauate fennel code in paragraph
 
 ## Using the API
 
