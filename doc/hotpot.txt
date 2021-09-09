@@ -121,7 +121,7 @@ You do not have to call setup unless you are altering a default option.
     compiler = {
       modules = {},
       macros = {
-        compilerEnv = "_COMPILER"
+        env = "_COMPILER"
       }
     }
   })
@@ -130,14 +130,18 @@ You do not have to call setup unless you are altering a default option.
 module files.
 
 `compiler.macros` is passed to the Fennel compiler when compiling macro files.
-Be sure to include `compilerEnv = "_COMPILER"` unless you have a good reason
-not to.
+Be sure to include `env = "_COMPILER"` unless you have a good reason not to.
 
-Note: the `modules` and `macros` tables REPLACE the defaults when given, they
-      are NOT merged. Include all options you wish to pass to the compiler.
+Note: the `filename` compilation option is always set to the appropriate value
+      and can not be altered via the setup interface.
 
-Note: the `compiler` options are not passed to any `api.compile` functions and
-      are only applied to Hotpots internal compilation.
+Note: the `modules` and `macros` tables **replace** the defaults when given,
+they are **not** merged. Include all options you wish to pass to the compiler!
+
+Note: the `compiler` options are not currently passed to any `api.compile`
+      functions and are only applied to Hotpots internal/automatic compilation.
+      If you have use for passing options to `api.compile` please open an
+      issue.
 
 For a complete list of compiler options, see http://fennel-lang.org,
 specifically the API usage section.
