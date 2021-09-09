@@ -33,22 +33,21 @@ mix and match Fennel and Lua as little or as much as you want.
 ## Purpose
 
 Hotpot intends to provides a set of low level tools for interacting with Fennel
-code in Neovim (see [API](#api), [`:h hotpot-api`](doc/hotpot.txt)). It has
-functions to compile and evaluate Fennel code, but it does not provide keymaps
-to run those functions, or methods of displaying the output.
+code in Neovim. It does not contain functions and macros to configure Neovim with.
 
+It has functions to compile and evaluate Fennel code but it does not provide
+keymaps to run those functions, or extensive functions to display the output.
 Hotpot provides all the *tools to build* a Fennel REPL but does not *provide
 one.*
 
-See [using the API](#using-the-api) for some example keymaps.
+Hotpot is the stage, *you* are the star.
 
-Hotpot isn't a library full of functions and macros to configure Neovim with.
-Hotpot wants to make it easier for *you* to play with Fennel and write your own
-functions and macros.
+See [API](#api), [`:h hotpot-api`](doc/hotpot.txt) and [using the
+API](#using-the-api) for some example keymaps.
 
-If you want to play with Fennel and maybe write a few macros or helpers, Hotpot
-might be for you. If you want a easy out of the box experience with all the
-bells and all the whistles, you might want to [look elsewhere](#see-also).
+If you want Fennel and *only* Fennel, Hotpot is for you. If you want an out
+of the box experience with all the bells and all the whistles, you might want
+to [look elsewhere](#see-also).
 
 ## TOC
 
@@ -251,7 +250,7 @@ Commands to run snippets of Fennel, similar to Neovims `:lua` et al commands.
 
 ## Operator Pending
 
-Hotpot expects the user to specify most maps themselves, via the API functions
+Hotpot expects the user to specify most maps themselves via the API functions
 listed above. It does provide one `<Plug>` mapping for operator-pending eval.
 
 ```viml
