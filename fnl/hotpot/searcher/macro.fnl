@@ -9,7 +9,11 @@
 (fn create-lua-loader [path modname]
   ;; WARNING: For now, the lua file is *not* treated as a dependency,
   ;;          it *should* be reasonably safe to assume a lua require here
-  ;;          is a lua require elsewhere, and so it can't be "stale"
+  ;;          is a lua require elsewhere, and so it can't be "stale".
+  ;;          It's also not run in a "compiler environment" via
+  ;;          fennel.special.load-code ... because that API is private and
+  ;;          writing a lua module, to execute fennel macro code seems like the
+  ;;          edgiest of edge cases.
   (loadfile path))
 
 (fn create-fennel-loader [path modname]
