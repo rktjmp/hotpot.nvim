@@ -147,36 +147,19 @@ Hotpot accepts the following configuration options, with defaults as shown.
 
 You do not have to call setup unless you are altering a default option.
 
+See `h: hotpot-setup` for more details.
+
 ```lua
 require("hotpot").setup({
+  provide_require_fennel = false, -- (require "fennel") -> hotpot.fennel
   compiler = {
-    modules = {},
-    macros = {
+    modules = {}, -- options passed to fennel.compile for modules
+    macros = { -- options passed to fennel.compile for macros
       env = "_COMPILER"
     }
   }
 })
 ```
-
-`compiler.modules` is passed to the Fennel compiler when compiling regular
-module files.
-
-`compiler.macros` is passed to the Fennel compiler when compiling macro files.
-Be sure to include `env = "_COMPILER"` unless you have a good reason not to.
-
-Note: the `filename` compilation option is always set to the appropriate value
-      and can not be altered via the setup interface.
-
-Note: the `modules` and `macros` tables **replace** the defaults when given,
-they are **not** merged. Include all options you wish to pass to the compiler!
-
-Note: the `compiler` options are not currently passed to any `api.compile`
-      functions and are only applied to Hotpots internal/automatic compilation.
-      If you have use for passing options to `api.compile` please open an
-      issue.
-
-For a complete list of compiler options, see
-[fennel-lang.org](http://fennel-lang.org), specifically the API usage section.
 
 ## API
 

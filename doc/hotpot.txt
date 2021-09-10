@@ -120,13 +120,19 @@ Hotpot accepts the following configuration options, with defaults as shown.
 You do not have to call setup unless you are altering a default option.
 >
   require("hotpot").setup({
+    provide_require_fennel = false, -- (require "fennel") -> hotpot.fennel
     compiler = {
-      modules = {},
-      macros = {
+      modules = {}, -- options passed to fennel.compile for modules
+      macros = { -- options passed to fennel.compile for macros
         env = "_COMPILER"
       }
     }
   })
+
+`provide_require_fennel` inserts a `package.preload` function that will load
+Hotpot's copy of fennel when you call `require("fennel")`. This can be useful
+for ergonomics or for compatility with libraries that expect Fennel to be in
+package.path.
 
 `compiler.modules` is passed to the Fennel compiler when compiling regular
 module files.
