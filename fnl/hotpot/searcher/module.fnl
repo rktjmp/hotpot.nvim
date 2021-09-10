@@ -152,13 +152,10 @@
   ;; an existing abc/xyz.lua in cache. If we do, check if it's stale.
   ;; If stale or missing, complile and return a loader for the cached file
   ;; If the original modname was for a lua file, just return a loader for that.
-
   (or (. package :preload modname)
       (match (modname-to-path modname)
-        ;; modpath can be nil if no file is found for modname
-        nil nil
-        path (match (pcall create-loader! modname path)
-               (true loader) loader
-               (false errors) (create-error-loader modname path errors)))))
+             path (match (pcall create-loader! modname path)
+                         (true loader) loader
+                         (false errors) (create-error-loader modname path errors)))))
 
 {: searcher}
