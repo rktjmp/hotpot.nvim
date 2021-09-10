@@ -1,4 +1,5 @@
 (import-macros {: require-fennel : dinfo} :hotpot.macros)
+(local {:searcher macro-searcher} (require :hotpot.searcher.macro))
 (local {: read-file!
         : write-file!
         : is-lua-path?
@@ -14,28 +15,9 @@
   ;; we only require fennel here because it can be heavy to pull in and *most*
   ;; of the time we will shortcut to the compiled lua.
   (local fennel (require-fennel))
-  ;; we inject the macro searcher here, instead of in hotterpot.install because
-  ;; it requires access to fennel directly.
   (when (not has-injected-macro-searcher)
-    ;; mark that we have injected here, so the next requires don't loop
-    ;; cicularly
-    (set has-injected-macro-searcher true)
-    ;; it's actually entirely reasonable to require a module in a macro
-    ;; so we need both loaders, this is how Fennels own loader functions
-    ;; but it only allows lua files to be required technically, and it runs
-    ;; them in a compiler env.
-    ;; TODO module searcher with compiler env? wait for fennel 1.0. Seems like
-    ;; a pretty esoteric use case where you have a normal fennel module that
-    ;; you want to access compile time functions in, but don't want to just use
-    ;; it as a "macro file"? I am sure a use case exists theoretically but time
-    ;; is limited.
-    ;; WARNING
-    ;; this *might* explode at somepoint if we hit circular dependencies.
-    ;; WARNING
-    (local {:searcher macro-searcher} (require :hotpot.searcher.macro))
-    (local {:searcher module-searcher} (require :hotpot.searcher.module))
-    ;; insert 1 mod then mac for [mac, mod, ...]
-    (table.insert fennel.macro-searchers 1 module-searcher)
+    ;; we inject the macro searcher here, instead of in hotterpot.install because
+    ;; it requires access to fennel directly.
     (table.insert fennel.macro-searchers 1 macro-searcher)
     (set has-injected-macro-searcher true))
 
