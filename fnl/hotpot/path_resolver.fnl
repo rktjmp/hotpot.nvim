@@ -83,11 +83,13 @@
   ;; search every template part and return first match or nil
   (var found nil)
   (each [template (string.gmatch templates "(.-);") :until found]
-    ;; actually check for 1 replacement otherwise gsub returns
-    ;; the original string uneffected.
+    ;; actually check for 1 replacement otherwise gsub returns the original
+    ;; string uneffected.
+    ;; path strings are something like some/path/?.lua but we want to find .fnl
+    ;; files, so swap the extension.
     (local full-path (match (string.gsub template "%?" slashed-path)
-                  (updated 1) (string.gsub updated "%.lua" ".fnl")
-                  _  nil))
+                       (updated 1) (string.gsub updated "%.lua" ".fnl")
+                       _  nil))
     (if (and full-path (file-exists? full-path))
       (set found full-path)))
   found)
@@ -96,12 +98,12 @@
   ;; (string) :: string | nil
   ;; Search nvim rtp for module, then search lua package.path
   ;; this mirrors nvims default behaviour for lua files
-  
+
   ;; Lua's modules map from "my.mod" to "my/mod.lua", convert
   ;; the given module name into a "pathable" value, but do not
   ;; add an extension because we will check for both .lua and .fnl
   (local slashed-path (string.gsub dotted-path "%." "/"))
-  
+
   ;; prefer rtp paths first since nvim does too
   (or (search-rtp slashed-path)
       (search-package-path slashed-path)))
