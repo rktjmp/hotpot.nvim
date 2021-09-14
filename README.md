@@ -229,7 +229,11 @@ Commands to run snippets of Fennel, similar to Neovims `:lua` et al commands.
 
 *Provisionally spec'd API, consider unstable*
 
-- `hotpot.api.fennel.latest() -> embedded fennel library`
+Access to Fennel, available under the `hotpot.api.fennel` module:
+
+- `latest()` returns bundled Fennel, currently always (hopefully) tracks
+  latest Fennel release.
+  - prefer using `provide_require_fennel` fennel option.
 
 ## Operator Pending
 
