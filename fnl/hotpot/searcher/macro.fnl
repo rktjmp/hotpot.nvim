@@ -21,7 +21,7 @@
   ;; assumes path exists!
   (let [fennel (require-fennel)
         code (read-file! path)]
-    (fn []
+    (fn [modname]
       ;; we must perform the dependency tree require *in* the
       ;; load function to avoid circular dependencies. By putting
       ;; it here we can be sure that the cache is already loaded
@@ -30,7 +30,7 @@
       ((. (require :hotpot.dependency_tree) :set) modname path)
       (local options (doto (config.get-option :compiler.macros)
                            (tset :filename path)))
-      (fennel.eval code options))))
+      (fennel.eval code options modname))))
 
 (fn create-loader [path modname]
   (let [create (or (and (is-lua-path? path) create-lua-loader)
