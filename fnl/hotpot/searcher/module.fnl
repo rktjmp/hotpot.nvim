@@ -93,13 +93,12 @@
 ;;
 
 (fn create-loader! [modname mod-path]
-  (fn lua-loader [lua-path]
-    (fn [modname] (dofile lua-path)))
-
-    ;; already a lua path so just make the loader directly
-    ;; not a lua file so we have to transpile.
+  (fn create-lua-loader [lua-path]
+    (fn [modname] ((loadfile lua-path) modname)))
+  ;; already a lua path so just make the loader directly
+  ;; not a lua file so we have to transpile.
   (if
-    (is-lua-path? mod-path) (lua-loader mod-path)
+    (is-lua-path? mod-path) (create-lua-loader mod-path)
     (is-fnl-path? mod-path) (do
                               (dependency-tree-down modname)
                               ;; turn fennel into lua
@@ -110,7 +109,7 @@
                                 (dependency-tree-up modname nil) ;; don't write
                                 (error errors))
                               (dependency-tree-up modname lua-path)
-                              (lua-loader lua-path))
+                              (create-lua-loader lua-path))
     (error (.. "hotpot could not create loader for " mod-path))))
 
 (fn create-error-loader [modname path errors]
