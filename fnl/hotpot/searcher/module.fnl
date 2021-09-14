@@ -94,7 +94,7 @@
 
 (fn create-loader! [modname mod-path]
   (fn create-lua-loader [lua-path]
-    (fn [modname] ((loadfile lua-path) modname)))
+    (loadfile lua-path))
   ;; already a lua path so just make the loader directly
   ;; not a lua file so we have to transpile.
   (if
