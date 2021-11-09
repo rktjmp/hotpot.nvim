@@ -13,9 +13,13 @@ command! -nargs=1 -complete=file Fnlfile
 command! -range=% -nargs=? Fnldo
       \ :lua require("hotpot.api.eval").fnldo(<line1>, <line2>, <q-args>)
 
-augroup hotpot.nvim
+command! -nargs=1 -complete=file Fnlsource
+      \ :lua require("hotpot.api.source").source(<q-args>)
+
+augroup hotpot_nvim
   autocmd!
-  autocmd! SourceCmd *.fnl :Fnlfile <afile>
+  " need a command so we can actually use <afile>, :lua wont expand
+  autocmd! SourceCmd *.fnl :Fnlsource <afile>:p
 augroup END
 
 nnoremap <Plug>(hotpot-operator-eval)

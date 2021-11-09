@@ -223,7 +223,10 @@ Commands to run snippets of Fennel, similar to Neovim's `:lua` et al commands.
 - `:[range]Fnl {expression} -> evaluate range in buffer OR expression`
 - `:[range]Fnldo {expression} -> evaluate expression for each line in range`
 - `:Fnlfile {file} -> evaluate file`
-- `:source {file} -> alias to :Fnlfile`
+- `:source {file} -> alias to :Fnlsource`, must be called as `:source
+  my-file.fnl` or `:source %` and the given file must be a descendent of a
+  `fnl` directory. Will attempt to recompile, recache and reload the given
+  file.
 
 **Other Functions**
 
