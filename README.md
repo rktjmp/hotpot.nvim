@@ -11,7 +11,7 @@ Hotpot lets you use [Fennel](https://fennel-lang.org/) in Neovim anywhere you
 would use Lua, just replace your `lua/*.lua` files with `fnl/*.fnl` and Hotpot
 does the cooking for you 🍻.
 
-```clojure
+```fennel
 ;; ~/.config/nvim/fnl/is_neat.fnl
 ;; some kind of fennel code
 (fn [what]
@@ -101,7 +101,7 @@ end
 require("hotpot")
 
 -- Now you can load fennel code, so you could put the rest of your
--- config in a separate `~/.config/nvim/fnl/fenneled_init.fnl` or 
+-- config in a separate `~/.config/nvim/fnl/fenneled_init.fnl` or
 -- `~/.config/nvim/fnl/plugins.fnl`, etc.
 require("fenneled_init")
 ```
@@ -168,7 +168,7 @@ hotpot-api`](doc/hotpot.txt) for detailed documentation.
 
 **Eval Functions**
 
-Evaluate any given Fennel, returns the result of evaulation.
+Evaluate any given Fennel, returns the result of evaluation.
 
 *Does not* automatically print the result!
 
@@ -218,9 +218,9 @@ Available in the `hotpot.api.log` module.
 
 **Commands**
 
-Commands to run snippets of Fennel, similar to Neovims `:lua` et al commands.
+Commands to run snippets of Fennel, similar to Neovim's `:lua` et al commands.
 
-- `:[range]Fnl {expression} -> evaluate range in buffer OR expression` 
+- `:[range]Fnl {expression} -> evaluate range in buffer OR expression`
 - `:[range]Fnldo {expression} -> evaluate expression for each line in range`
 - `:Fnlfile {file} -> evaluate file`
 - `:source {file} -> alias to :Fnlfile`
@@ -244,7 +244,7 @@ listed above. It does provide one `<Plug>` mapping for operator-pending eval.
 map <Plug> ghe <Plug>(hotpot-operator-eval)
 ```
 
-> gheip -> evauate fennel code in paragraph
+> gheip -> evaluate fennel code in paragraph
 
 ## Using the API
 
@@ -309,12 +309,12 @@ You can extend this to show results in floating windows, new splits, send via a
 HTTP post, pipe to `/dev/null`, etc.
 
 To implement these keymaps in Fennel, the [`pug` and
-`vlua` helpers](https://github.com/rktjmp/hotpot.nvim/discussions/6) listed on the disussion boards may be useful.
+`vlua` helpers](https://github.com/rktjmp/hotpot.nvim/discussions/6) listed on the discussion boards may be useful.
 
 ## How does Hotpot work?
 
 Hotpot prepends itself onto Lua's module finder. It has a specific load order,
-that mirrors Neovims native process.
+that mirrors Neovim's native process.
 
 Given `require("my.module")` Hotpot will check the following locations, in
 order, and return the first match.
@@ -325,7 +325,7 @@ order, and return the first match.
 - `$RUNTIMEPATH/fnl/my/module/init.fnl`
 - `package.path/my/module.fnl`
 
-You can see that it will preference `.lua` files over `.fnl`, if they exist.
+You can see that it will prefer `.lua` files over `.fnl`, if they exist.
 This lets Hotpot play well with plugins written in Fennel that provide a
 precompiled source tree (eg: probably 100% of them), as they may have
 additional build steps (and they've already done the work).
@@ -335,16 +335,16 @@ file in cache. Hotpot will transparently compile the Fennel into Lua if needed
 (when the file is missing, or is stale). Finally it loads and returns the Lua
 module.
 
-The compiled `.lua` files are stored in Neovims cache directory, under the
+The compiled `.lua` files are stored in Neovim's cache directory, under the
 `hotpot` subdirectory. You will not see the compiled artefacts among your
 `.fnl` files or in any `.lua` directory.
 
-You can find your cache directory by running `:echo stdpath("cache)"`.
+You can find your cache directory by running `:echo stdpath("cache")`.
 
 ## See Also
 
 I suggest checking out [Lume](https://github.com/rxi/lume) as a complementary
-functional standard libray.
+functional standard library.
 
 [Zest](https://github.com/tsbohc/zest.nvim) is a small library of functions and
 macros focused on configuring Neovim. Zest is compatible with Hotpot when Zest's
@@ -390,7 +390,7 @@ stack traceback:
   [C]: in function 'require'
 ```
 
-## Licence
+## License
 
-Hotpot embeds `fennel.lua`, see `lua/hotpot/fennel.lua` for licencing
+Hotpot embeds `fennel.lua`, see `lua/hotpot/fennel.lua` for licensing
 information.
