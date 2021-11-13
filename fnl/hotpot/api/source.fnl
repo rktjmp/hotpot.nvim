@@ -47,11 +47,13 @@
   (let [modname (guess-module-name full-path)]
     (match modname
       nil (print (.. "could not find module path for require "
-                     "command (not decendant of a 'fnl' dir?)"))
+                     "command (not descendent of a 'fnl' dir?)"))
       any (do
             ; TODO: would be nice if checked if the require would actually work
             ;       or at least cache the was-loaded module and re-insert it if
             ;       the require fails.
+            ;       Actually, since we return a module even when the require fails
+            ;       we cant check for that. Probably best to remove the funny save.
             ; unload module
             (tset package.loaded modname nil)
             ; rebuild and require
