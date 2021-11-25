@@ -1,1 +1,1 @@
-fennel-0.10.0.lua
+fennel-1.0.0.lua
