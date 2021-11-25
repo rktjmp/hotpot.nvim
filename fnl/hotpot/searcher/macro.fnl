@@ -22,12 +22,17 @@
   (let [fennel (require-fennel)
         code (read-file! path)]
     (fn [modname]
-      ;; we must perform the dependency tree require *in* the
-      ;; load function to avoid circular dependencies. By putting
-      ;; it here we can be sure that the cache is already loaded
+      ;; require the depencency map module insude the load function
+      ;; to avoid circular dependencies.
+      ;; By putting it here we can be sure that the cache is already loaded
       ;; before hotpot took over.
-      ;; Mark this macro module as a dependency of the current branch.
-      ((. (require :hotpot.dependency_tree) :set) modname path)
+      (let [dep_map (require :hotpot.dependency_map)]
+        ;; later, when a module needs a macro, we will know what file the
+        ;; macro came from and can then track the macro file for changes
+        ;; when refreshing the cache.
+        (dep_map.set-macro-mod-path modname path))
+
+      ;; eval macro as per fennel's implementation.
       (local options (doto (config.get-option :compiler.macros)
                            (tset :filename path)))
       (fennel.eval code options modname))))
@@ -45,7 +50,7 @@
   ;; It's legal to require full modules, fennel or lua inside a macro file and
   ;; they should just be loaded into memory (i.e. do not save fennel->lua to cache)
   ;; So this searcher is similar to the module loader without the stale checks
-  ;; and file-write stuff.
+  ;; and file-write stuff (macros are never "compiled to lua").
   ;;
   ;; This behaves similar to the module seacher, it will prefer .lua files in
   ;; the RTP if it exists, otherwise it looks for .fnl files in the package path.

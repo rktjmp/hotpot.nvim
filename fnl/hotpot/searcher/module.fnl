@@ -4,11 +4,12 @@
 (local config (require :hotpot.config))
 (local {: file-missing?
         : file-stale?
+        : file-exists?
         : is-lua-path?
         : is-fnl-path?
         : write-file!
         : read-file!} (require :hotpot.fs))
-(import-macros {: dinfo} :hotpot.macros)
+(import-macros {: dinfo : require-fennel} :hotpot.macros)
 (local debug-modname "hotpot.searcher.module")
 
 ;;
@@ -20,18 +21,22 @@
 (fn dependency-filename [lua-path]
   (.. lua-path ".deps"))
 
-(fn write-dependency-graph [lua-path graph]
-  (let [deps (icollect [maybe-modname path (pairs graph)]
-                       ;; ignore ^__ which are special keys in the tree
-                       (when (not (string.match maybe-modname "^__"))
-                         path))]
-    (if (> (# deps) 0)
-      (write-file! (dependency-filename lua-path) (table.concat deps "\n")))))
-
 (fn read-dependency-graph [lua-path]
   (local lines (read-file! (dependency-filename lua-path)))
   (icollect [line (string.gmatch lines "([^\n]*)\n?")]
             (if (~= line "") line)))
+
+(fn write-dependencies [fnl-path lua-path]
+  ; require inside this function to avoid circular issues
+  (let [dep_map (require :hotpot.dependency_map)
+        deps (dep_map.deps-for-fnl-path fnl-path)
+        path (dependency-filename lua-path)]
+    ; if there are no dependencies, we should remove the old dependecy file,
+    ; otherwise we refresh them.
+    (match deps
+      nil (if (file-exists? path)
+            (assert (os.remove path)))
+      _ (write-file! path (table.concat deps "\n")))))
 
 (fn has-dependency-graph [lua-path]
   (vim.loop.fs_access (dependency-filename lua-path) "R"))
@@ -46,24 +51,6 @@
     ;;       to the dependecy
     (set has_stale (file-stale? dep-path lua-path)))
   has_stale)
-
-(fn dependency-tree-down [modname]
-  (when (not (= :hotpot.dependency_tree modname))
-    ;; we want to track any files loaded while
-    ;; compiling this module (but not the
-    ;; dep-tracker itself else we get a circular
-    ;; dep)
-    (local cache (require :hotpot.dependency_tree))
-    (cache.down modname)))
-
-(fn dependency-tree-up [modname lua-path]
-  ;; stop tracking dependcies for this module
-  (when (not (= :hotpot.dependency_tree modname))
-    (local cache (require :hotpot.dependency_tree))
-    (if lua-path
-      (write-dependency-graph lua-path (cache.current-graph)))
-    ;; we're done compiling this module, so shift up
-    (cache.up)))
 
 ;;
 ;; Compilation
@@ -80,13 +67,41 @@
     (and (has-dependency-graph lua-path)
          (has-stale-dependency fnl-path lua-path))))
 
-(fn compile-fnl [fnl-path lua-path]
+(fn compile-fnl [fnl-path lua-path modname]
   ;; (string, string) :: true | false, errors
-  (local options (config.get-option :compiler.modules))
-  (if (needs-compilation? fnl-path lua-path)
-    (compile-file fnl-path lua-path options)
+  (local plug-macro-dep-tracking
+    {:versions [:1.0.0]
+     :name :hotpot-macro-dep-tracking
+     :require-macros
+     (fn plug-require-macros [ast scope]
+       (let [fennel (require-fennel)
+             {2 second} ast
+             ; could be (.. :my :mod) so we have to eval it. See
+             ; SPECIALS.require-macro in fennel code. May need to be extended
+             ; to support arbitrary function call, (eval with scope?)
+             macro-modname (fennel.eval (fennel.view second))
+             dep_map (require :hotpot.dependency_map)]
+         (dep_map.fnl-path-depends-on-macro-module fnl-path macro-modname))
+       ; dont halt other plugins
+       (values nil))})
+  (match (needs-compilation? fnl-path lua-path)
+    true (do
+           ; inject our plugin, must only exist for this compile-file call
+           ; because it depends on the specific fnl-path closure value, so we
+           ; will table.remove it after calling compile.
+           (local options (config.get-option :compiler.modules))
+           (tset options :plugins (or options.plugins []))
+           (table.insert options.plugins 1 plug-macro-dep-tracking)
+           (local (ok errors) (compile-file fnl-path lua-path options))
+           (table.remove options.plugins 1)
+
+           ; avoid circular compile loop while writing out the dependencies
+           (when (and ok (not (= modname :hotpot.dependency_map)))
+             (write-dependencies fnl-path lua-path))
+
+           (values ok errors))
     ;; no compilation needed, so just pretend that compile-file worked
-    true))
+    false (values true)))
 
 ;;
 ;; Loaders
@@ -100,15 +115,12 @@
   (if
     (is-lua-path? mod-path) (create-lua-loader mod-path)
     (is-fnl-path? mod-path) (do
-                              (dependency-tree-down modname)
                               ;; turn fennel into lua
                               (local lua-path (fnl-path-to-lua-path mod-path))
-                              (local (ok errors) (compile-fnl mod-path lua-path))
-                              ;; throw compilation errors up
-                              (when (not ok)
-                                (dependency-tree-up modname nil) ;; don't write
+                              (local (ok errors) (compile-fnl mod-path lua-path modname))
+                              (if (not ok)
+                                ;; throw compilation errors up
                                 (error errors))
-                              (dependency-tree-up modname lua-path)
                               (create-lua-loader lua-path))
     (error (.. "hotpot could not create loader for " mod-path))))
 
