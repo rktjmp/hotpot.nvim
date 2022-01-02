@@ -1,6 +1,7 @@
 name: Run Tests
 
 on:
+  push:
   workflow_dispatch:
 
 jobs:
@@ -10,5 +11,6 @@ jobs:
     - uses: actions/checkout@v2 # Checking out the repo
     - name: Build container
       run: |
-        cd tests
-        ./harness.sh
+        cd test
+        ./harness.sh docker
+        exit $?
