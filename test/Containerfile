@@ -1,0 +1,24 @@
+FROM debian:bullseye-20211220-slim
+
+# install latest nvim
+RUN apt update && \
+    apt install -y exa curl jq wget && \
+    curl -sL https://api.github.com/repos/neovim/neovim/releases/latest | \
+    jq -r '.assets[].browser_download_url' | \
+    grep nvim-linux64.tar.gz | \
+    head -n 1 | \
+    xargs curl -LO && \
+    tar zxf nvim-linux64.tar.gz
+
+RUN ln -s /nvim-linux64/bin/nvim /bin/nvim
+
+# Make sure you build with hotpot's root dir as the build context!
+COPY ./ /hotpot
+COPY ./test /test
+RUN ln -s /test /test/lua
+RUN ln -s /test/assert.sh /usr/bin/assert
+RUN ln -s /test/fail.sh /usr/bin/fail
+
+# we want the container to keep running and we'll exec commands in it.
+# this is so we can run lua and sh in stages, on the same fs
+ENTRYPOINT ["/bin/bash"]
