@@ -25,10 +25,10 @@ run_test_sh() {
                   --rm -dit \
                   $test_image_id)
 
-  # the test file should os.exit(status)
+  # pass the name of the test, and the path of the test to the test file
   output=$($podman_command exec \
             $container_id \
-            /test/$1/test.sh)
+            /test/$1/test.sh $1 /test/$1/)
 
   _hide=$($podman_command exec $container_id [ ! -f /fail ])
 
@@ -56,7 +56,7 @@ run_test_sh() {
   kill_container $container_id
 }
 
-tests="require_hotpot bootstrap"
+tests="require_hotpot bootstrap require_a_fnl_file"
 for name in $tests; do
   run_test_sh $name
 done
