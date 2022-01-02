@@ -1,0 +1,14 @@
+name: Run Tests
+
+on:
+  workflow_dispatch:
+
+jobs:
+  container:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2 # Checking out the repo
+    - name: Build container
+      run: |
+        cd tests
+        ./harness.sh
