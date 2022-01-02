@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-podman_command=podman
+podman_command=${1:-podman}
 
 start_at=$(date +%s)
 
