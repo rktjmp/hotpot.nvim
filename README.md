@@ -207,6 +207,7 @@ Available in the `hotpot.api.cache` module.
 - `(clear-cache-for-fnl-file path) -> true`
 - `(clear-cache-for-module modname) -> true`
 - `(clear-cache) -> true`
+- `(cache-prefix) -> path`
 
 **Log Functions**
 
