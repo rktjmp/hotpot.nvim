@@ -112,17 +112,12 @@
     (loadfile lua-path))
   ;; already a lua path so just make the loader directly
   ;; not a lua file so we have to transpile.
-  (if
-    (is-lua-path? mod-path) (create-lua-loader mod-path)
-    (is-fnl-path? mod-path) (do
-                              ;; turn fennel into lua
-                              (local lua-path (fnl-path-to-lua-path mod-path))
-                              (local (ok errors) (compile-fnl mod-path lua-path modname))
-                              (if (not ok)
-                                ;; throw compilation errors up
-                                (error errors))
-                              (create-lua-loader lua-path))
-    (error (.. "hotpot could not create loader for " mod-path))))
+  (match [(is-lua-path? mod-path) (is-fnl-path? mod-path)]
+    [true false] (create-lua-loader mod-path)
+    [false true] (let [lua-path (fnl-path-to-lua-path mod-path)
+                       (ok? errors) (compile-fnl mod-path lua-path modname)]
+                   (if ok? (create-lua-loader lua-path) (error errors)))
+    _ (error (.. "hotpot could not create loader for " mod-path))))
 
 (fn create-error-loader [modname path errors]
   ;; We return a fake loader for the module which will print the original
