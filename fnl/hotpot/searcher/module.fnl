@@ -21,7 +21,7 @@
 (fn dependency-filename [lua-path]
   (.. lua-path ".deps"))
 
-(fn read-dependency-graph [lua-path]
+(fn read-dependencies [lua-path]
   (local lines (read-file! (dependency-filename lua-path)))
   (icollect [line (string.gmatch lines "([^\n]*)\n?")]
             (if (~= line "") line)))
@@ -38,11 +38,11 @@
             (assert (os.remove path)))
       _ (write-file! path (table.concat deps "\n")))))
 
-(fn has-dependency-graph [lua-path]
+(fn has-dependencies [lua-path]
   (vim.loop.fs_access (dependency-filename lua-path) "R"))
 
 (fn has-stale-dependency [fnl-path lua-path]
-  (local deps (read-dependency-graph lua-path))
+  (local deps (read-dependencies lua-path))
   (var has_stale false)
   (each [_ dep-path (ipairs deps) :until has_stale]
     ;; TODO: how to handle missing dep file? right now we just crash
@@ -64,7 +64,7 @@
     (or (file-missing? lua-path)
         (file-stale? fnl-path lua-path))
     ;; or one of the dependencies are newer
-    (and (has-dependency-graph lua-path)
+    (and (has-dependencies lua-path)
          (has-stale-dependency fnl-path lua-path))))
 
 (fn compile-fnl [fnl-path lua-path modname]
@@ -140,7 +140,7 @@
                     " could not be loaded by Hotpot because of a previous compiler error.")
                   (.. "Path: " path)
                   "Check :messages or ~/.cache/nvim/hotpot.log"])
-     (error (table.concat lines "\n")))
+    (error (table.concat lines "\n")))
 
   (local proxy (setmetatable {} {:__index print-error
                                  :__newindex print-error
