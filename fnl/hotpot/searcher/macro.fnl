@@ -22,10 +22,10 @@
   (let [fennel (require-fennel)
         code (read-file! path)]
     (fn [modname]
-      ;; require the depencency map module insude the load function
+      ;; require the depencency map module *inside* the load function
       ;; to avoid circular dependencies.
-      ;; By putting it here we can be sure that the cache is already loaded
-      ;; before hotpot took over.
+      ;; By putting it here we can be sure that the cache is already in memory
+      ;; before hotpot took over module searching.
       (let [dep_map (require :hotpot.dependency_map)]
         ;; later, when a module needs a macro, we will know what file the
         ;; macro came from and can then track the macro file for changes
@@ -46,8 +46,8 @@
     (values (create path modname) path)))
 
 (fn searcher [modname]
-  ;; Re fennel.specials lua-macro-searcher, fennel-macro-searcher
-  ;; It's legal to require full modules, fennel or lua inside a macro file and
+  ;; By fennel.specials lua-macro-searcher, fennel-macro-searcher,
+  ;; it's legal to require full modules, fennel or lua inside a macro file and
   ;; they should just be loaded into memory (i.e. do not save fennel->lua to cache)
   ;; So this searcher is similar to the module loader without the stale checks
   ;; and file-write stuff (macros are never "compiled to lua").
