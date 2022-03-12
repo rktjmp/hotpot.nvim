@@ -13,6 +13,8 @@ local function check_canary(cache_dir0)
   elseif (nil ~= _1_) then
     local path = _1_
     return true
+  else
+    return nil
   end
 end
 local function make_canary(cache_dir0, fnl_dir0)
@@ -49,6 +51,7 @@ local function clear_cache(cache_dir0)
       uv.fs_rmdir(child)
     elseif (_5_ == "file") then
       uv.fs_unlink((cache_dir0 .. "/" .. name))
+    else
     end
   end
   return nil
@@ -87,7 +90,9 @@ local function compile_fresh(cache_dir0, fnl_dir0)
           local modname = path_to_modname((local_path .. "/" .. name))
           local loader = hotpot.search(modname)
           loader()
+        else
         end
+      else
       end
     end
     return nil
@@ -100,6 +105,7 @@ local function compile_fresh(cache_dir0, fnl_dir0)
     if target then break end
     if (check == fennel.searcher) then
       target = i
+    else
     end
   end
   table.remove(package.loaders, target)
