@@ -1,4 +1,4 @@
-(local {: is-fnl-path? 
+(local {: is-fnl-path?
         : file-exists?} (require :hotpot.fs))
 
 ;;
