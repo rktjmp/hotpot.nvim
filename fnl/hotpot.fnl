@@ -71,7 +71,8 @@
           "file"
           (let [out-file (.. out-dir :/ (string.gsub name ".fnl$" ".lua"))
                 in-file  (.. in-dir :/ name)]
-            (when (not (= name :macros.fnl))
+            (when (not (or (= name :macros.fnl)
+                           (= name :hotpot.fnl)))
               (compile-file in-file out-file)))))))
 
   (let [fennel (require :hotpot.fennel)

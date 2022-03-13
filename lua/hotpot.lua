@@ -87,7 +87,7 @@ local function bootstrap_compile(fnl_dir, lua_dir)
       elseif (_11_ == "file") then
         local out_file = (out_dir .. "/" .. string.gsub(name, ".fnl$", ".lua"))
         local in_file = (in_dir .. "/" .. name)
-        if not (name == "macros.fnl") then
+        if not ((name == "macros.fnl") or (name == "hotpot.fnl")) then
           compile_file(in_file, out_file)
         else
         end

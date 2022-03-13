@@ -4,7 +4,7 @@ selfhost() {
   rm -rf lua/
   mkdir -p lua/hotpot
   cp deps/fennel.lua lua/hotpot/fennel.lua
-  fennel --compile hotpot.fnl > lua/hotpot.lua
+  fennel --compile fnl/hotpot.fnl > lua/hotpot.lua
   echo "built lua/hotpot.lua: $(date)"
 }
 
