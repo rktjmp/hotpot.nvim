@@ -8,7 +8,7 @@ end
 local function check_canary(cache_dir0)
   local _1_, _2_ = uv.fs_realpath(canary_link_path(cache_dir0))
   if ((_1_ == nil) and (nil ~= _2_)) then
-    local error = _2_
+    local err = _2_
     return false
   elseif (nil ~= _1_) then
     local path = _1_
@@ -31,7 +31,9 @@ end
 local function load_from_cache(cache_dir0, fnl_dir0)
   local old_package_path = package.path
   local hotpot_path = (cache_dir0 .. fnl_dir0 .. "/?.lua;" .. package.path)
+  local _
   package.path = hotpot_path
+  _ = nil
   local hotpot = require("hotpot.hotterpot")
   hotpot.install()
   do end (hotpot)["install"] = nil
@@ -68,7 +70,7 @@ local function compile_fresh(cache_dir0, fnl_dir0)
   local function path_to_modname(path)
     return string.gsub(string.gsub(string.gsub(path, "^/", ""), ".fnl", ""), "/", ".")
   end
-  local function compile_dir(fennel0, in_dir, out_dir, local_path)
+  local function compile_dir(fennel0, in_dir, out_dir, relative_path)
     local scanner = uv.fs_scandir(in_dir)
     local ok = true
     local function _7_()
@@ -80,14 +82,14 @@ local function compile_fresh(cache_dir0, fnl_dir0)
       if (_8_ == "directory") then
         local out_down = (cache_dir0 .. "/" .. in_dir .. "/" .. name)
         local in_down = (in_dir .. "/" .. name)
-        local local_down = (local_path .. "/" .. name)
+        local relative_down = (relative_path .. "/" .. name)
         vim.fn.mkdir(out_down, "p")
-        compile_dir(fennel0, in_down, out_down, local_down)
+        compile_dir(fennel0, in_down, out_down, relative_down)
       elseif (_8_ == "file") then
         local out_file = (out_dir .. "/" .. string.gsub(name, ".fnl$", ".lua"))
         local in_file = (in_dir .. "/" .. name)
         if not (name == "macros.fnl") then
-          local modname = path_to_modname((local_path .. "/" .. name))
+          local modname = path_to_modname((relative_path .. "/" .. name))
           local loader = hotpot.search(modname)
           loader()
         else
