@@ -17,21 +17,15 @@
   ;; fs_realpath or path, false if the file doesn't exist.
   (assert (is-fnl-path? fnl-path)
           (.. "path did not end in fnl: " fnl-path))
-
-  ;; Local plugins installed by packer are symlinked from packer/start/plugin
-  ;; back to the real folder. If we do not resolve those links to real paths now
-  ;; the cache path will be packer/start/plugin and not ~/projects/plugin,
-  ;; which means when working in ~/projects/plugin, you can it get the cache path
-  ;; of the current file.
-  ;; So we realpath the fennel file so our cache paths are "real", we also take
-  ;; this chance to fail if the fennel file doesn't exist. This *may* be changed
-  ;; at a later date if there were ever a reason to request "potential fnl
-  ;; file" cache paths (can't really imagine a usecase for that...).
+  ;; We want to resolve symlinks inside vims `pack/**/start` folders back to
+  ;; their real on-disk path so the cache folder structure mirrors the real
+  ;; world. This is mostly a QOL thing for when you go manually poking at the
+  ;; cache, the lua files will be where you expect them to be, mirroring the disk.
   (local real-fnl-path (vim.loop.fs_realpath fnl-path))
   (assert real-fnl-path
           (.. "fnl-path did not resolve to real file!"))
 
-  ;; where the cache file should be, but path isn's cleaned up
+  ;; where the cache file should be, but path isnt's cleaned up
   (local want-path (-> real-fnl-path
                        ((partial .. cache-prefix))
                        (string.gsub "%.fnl$" ".lua")))
@@ -51,7 +45,7 @@
   ;; (string) :: string | nil
   ;; Given slashed-path, find the first matching $RUNTIMEPATH/$partial-path
   ;; Neovim actually uses a similar custom loader to us that will search
-  ;; the rtp for lua files, bypassing lua's package.path.
+  ;; the rtp for lua files, bypassing lua's package.path. TODO: still true?
   ;; It checks: "lua/"..basename..".lua", "lua/"..basename.."/init.lua"
   ;; This code is basically transcoded from nvim/lua/vim.lua _load_package
 
@@ -100,13 +94,10 @@
   ;; Lua's modules map from "my.mod" to "my/mod.lua", convert
   ;; the given module name into a "pathable" value, but do not
   ;; add an extension because we will check for both .lua and .fnl
-  (local slashed-path (string.gsub dotted-path "%." "/"))
-
-  ;; prefer rtp paths first since nvim does too
-  (or (search-rtp slashed-path)
-      (search-package-path slashed-path)
-      (error (.. "not found " dotted-path)) ;; TODO fix error returning here, should be nil, err and checked upchain
-      ))
+  (let [slashed-path (string.gsub dotted-path "%." "/")]
+    (or (search-rtp slashed-path)
+        (search-package-path slashed-path)
+        (values nil))))
 
 ;; TODO: not super into these names...
 {: modname-to-path

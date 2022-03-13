@@ -1,5 +1,6 @@
 ;; "path" functions operate on a possible file (may not resolve to on-disk)
 ;; "file" functions expect to hit the disk, though the file may not exist.
+(import-macros {: expect} :hotpot.macros)
 
 (local uv vim.loop)
 
@@ -30,8 +31,15 @@
   ;; (string) :: bool
   (not (file-exists? path)))
 
+(fn file-mtime [path]
+  (expect (file-exists? path)
+          "cant check mtime of %s, does not exist" path)
+  (let [{: mtime} (uv.fs_stat path)]
+    (values mtime.sec)))
+
 (fn file-stale? [newer older]
   ;; (string string) :: bool | error (unlikely)
+  ;; TODO use file-mtime
   (match [(uv.fs_stat newer) (uv.fs_stat older)]
     [new-stat old-stat] (> new-stat.mtime.sec old-stat.mtime.sec) ;; check
     [new-stat nil] true ;; no old file, so we are newer by default
@@ -45,5 +53,6 @@
  : file-exists?
  : file-missing?
  : file-stale?
+ : file-mtime
  : is-lua-path?
  : is-fnl-path?}

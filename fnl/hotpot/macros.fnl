@@ -29,7 +29,7 @@
                     (let [[call name val & flags] attr]
                       (when (not (= :attr (tostring call)))
                         (error "struct only accepts attr call"))
-                      {:name (tostring name)
+                      {:name name
                        :value val
                        :flags (collect [_ flag (ipairs flags)]
                                 (values (tostring flag) true))}))
@@ -44,7 +44,7 @@
            context# ,context
            to-string# (fn [_#]
                         (let [inner# (collect [attr# flags# (pairs attrs#)]
-                                       (when (. flags# :show)
+                                       (when (not (. flags# :hidden))
                                          (values attr# (. context# attr#))))]
                           (common#.fmt "(%s %s)" id# (common#.view inner#))))
            mt# {:__tostring to-string#

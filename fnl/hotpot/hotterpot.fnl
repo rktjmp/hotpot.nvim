@@ -1,11 +1,34 @@
-(local {: compile-string} (require :hotpot.compiler))
 (local {:searcher module-searcher} (require :hotpot.searcher.module))
-(import-macros {: require-fennel : dinfo} :hotpot.macros)
+(import-macros {: require-fennel : dinfo : expect : struct} :hotpot.macros)
+(local {: inspect} (require :hotpot.common))
 (local debug-modname "hotpot")
+(local {: loader-for-module} (require :hotpot.index))
 
 (var has-run-install false)
 (var searcher nil)
 (var cache {})
+(var runtime nil)
+
+(fn new-runtime []
+  ; (fn load-index [path]
+  ;   ;; TODO more accurate to check path exists, then return nil or load or error on loadfail (remove cache)
+  ;   (match (pcall #(with-open [fin (io.open path)]
+  ;                       (when fin
+  ;                         (let [data (fin:read :*a)
+  ;                               mpack vim.mpack
+  ;                               decoded (mpack.decode data)]
+  ;                           (set cache decoded)))))
+  ;     (true index) (values index)
+  ;     (false err) (values {})
+  ;     any (error any)))
+
+  (let [{: new-index} (require :hotpot.index)
+        index (new-index false :modcache.bin)]
+    (struct :hotpot/runtime
+            (attr :is-installed false mutable)
+            (attr :index-path :modcache.bin)
+            (attr :compiled-cache-path :.....)
+            (attr :index index))))
 
 (fn search [modname]
   ;; Search for module via hotpot's searcher, this lets you
@@ -14,15 +37,10 @@
   ;; can compile hotpot itself.
   (searcher modname))
 
+(tset _G :sum 0)
+
 (fn install []
-  ; (pcall (fn []
-  ;          (with-open [fin (io.open :modcache.bin)]
-  ;                     (when fin
-  ;                       (let [data (fin:read :*a)
-  ;                             mpack vim.mpack
-  ;                             decoded (mpack.decode data)]
-  ;                         (set cache decoded)
-  ;                         (print "loaded cache" cache))))))
+  (set runtime (new-runtime))
 
   (when (not has-run-install)
     ;; it's actually pretty important we have debugging message
@@ -33,11 +51,22 @@
     (dinfo "Installing Hotpot into searchers")
     (set searcher module-searcher)
     (table.insert package.loaders 1 (fn [modname]
-                                      (let [loader (searcher modname)]
-                                        (match (loader)
-                                          (nil err) (print "l err" err))
-                                        (print "l" modname loader (loader))
+                                      (let [a (vim.loop.hrtime)
+                                            loader (loader-for-module runtime.index modname)
+                                            b (vim.loop.hrtime)
+                                            t (/ (- b a) 1_000_000)]
+                                        (tset _G :sum (+ (. _G :sum) t))
                                         (values loader))))
+    (set has-run-install true)))
+  ; (pcall (fn []
+  ;          (with-open [fin (io.open :modcache.bin)]
+  ;                     (when fin
+  ;                       (let [data (fin:read :*a)
+  ;                             mpack vim.mpack
+  ;                             decoded (mpack.decode data)]
+  ;                         (set cache decoded)
+  ;                         (print "loaded cache" cache))))))
+
     ; (fn [mod]
     ;                                   (match (. cache mod)
     ;                                     loader (values loader)
@@ -48,7 +77,6 @@
     ;                                           (with-open [fout (io.open :modcache.bin :w)]
     ;                                                      (fout:write (mpack.encode cache)))
     ;                                           (values loader)))))
-    (set has-run-install true)))
 
 (fn uninstall []
   (when (has-run-install)

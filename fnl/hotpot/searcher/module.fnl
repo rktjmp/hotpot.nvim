@@ -1,5 +1,4 @@
-(local {: modname-to-path
-        : fnl-path-to-lua-path} (require :hotpot.path_resolver))
+(local {: modname-to-path } (require :hotpot.path_resolver))
 (local {: compile-file} (require :hotpot.compiler))
 (local config (require :hotpot.config))
 (local {: file-missing?
@@ -96,6 +95,7 @@
            (table.remove options.plugins 1)
 
            ; avoid circular compile loop while writing out the dependencies
+           ;; TODO: can just match tail of fnl-path
            (when (and ok (not (= modname :hotpot.dependency_map)))
              (write-dependencies fnl-path lua-path))
 
@@ -114,40 +114,12 @@
   ;; not a lua file so we have to transpile.
   (match [(is-lua-path? mod-path) (is-fnl-path? mod-path)]
     [true false] (create-lua-loader mod-path)
-    [false true] (let [lua-path (fnl-path-to-lua-path mod-path)]
+    [false true] (let [{: fnl-path-to-lua-path} (require :hotpot.path_resolver)
+                       lua-path (fnl-path-to-lua-path mod-path)]
                    (match (compile-fnl mod-path lua-path modname)
                      true (create-lua-loader lua-path)
                      (false errors) (values nil errors)))
     _ (error (.. "hotpot could not create loader for " mod-path))))
-
-(fn create-error-loader [modname path errors]
-  ;; We return a fake loader for the module which will print the original
-  ;; errors. This lets vim keep loading packages that *do* work instead of 
-  ;; collapsing entirely when a module doesn't load.
-  ;;
-  ;; This means you might have a recoverable editor if only a small module
-  ;; failed.
-  ;;
-  ;; We do act slightly naughtily by returning a proxy table for the would-be
-  ;; module that will re-alert the error on access. Not 100% on how good of an
-  ;; idea this is as it may semi-mask errors in other peoples code who are not
-  ;; expecting it.
-  (fn print-error []
-    (local lines [(.. modname
-                    " could not be loaded by Hotpot because of a previous compiler error.")
-                  (.. "Path: " path)
-                  "Check :messages or ~/.cache/nvim/hotpot.log"])
-    (error (table.concat lines "\n")))
-
-  (local proxy (setmetatable {} {:__index print-error
-                                 :__newindex print-error
-                                 :__call print-error}))
-  ;; actual loader function, will be called by require()
-  ;; we log out the errors, but return the fake module proxy so
-  ;; that vim can keep on loading
-  (fn error-loader [modname]
-    (vim.api.nvim_err_writeln errors)
-    proxy))
 
 ;;
 ;; The Searcher
@@ -170,4 +142,5 @@
 ;                          (false errors) (false errors)))))
 ;;(create-error-loader modname path errors)))))
 
-{: searcher}
+{: searcher
+ :create-loader create-loader!}
