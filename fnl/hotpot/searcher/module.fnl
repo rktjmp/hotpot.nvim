@@ -94,7 +94,6 @@
            (local (ok errors) (compile-file fnl-path lua-path options))
            (table.remove options.plugins 1)
            (when ok (write-dependencies fnl-path lua-path))
-
            (values ok errors))
     ;; no compilation needed, so just pretend that compile-file worked
     false (values true)))
@@ -103,17 +102,20 @@
 ;; Loaders
 ;;
 
-(fn create-loader! [modname mod-path]
+(fn create-loader [modname mod-path]
   (fn create-lua-loader [lua-path]
     (loadfile lua-path))
   ;; already a lua path so just make the loader directly
   ;; not a lua file so we have to transpile.
   (match [(is-lua-path? mod-path) (is-fnl-path? mod-path)]
-    [true false] (create-lua-loader mod-path)
+    [true false] (values (create-lua-loader mod-path) [])
     [false true] (let [{: fnl-path-to-lua-path} (require :hotpot.path_resolver)
+                       {: deps-for-fnl-path} (require :hotpot.dependency_map)
                        lua-path (fnl-path-to-lua-path mod-path)]
                    (match (compile-fnl mod-path lua-path modname)
-                     true (create-lua-loader lua-path)
+                     true (let [loader (create-lua-loader lua-path)
+                                deps (or (deps-for-fnl-path mod-path) [])]
+                            (values loader deps))
                      (false errors) (values nil errors)))
     _ (error (.. "hotpot could not create loader for " mod-path))))
 
@@ -122,6 +124,7 @@
 ;;
 
 (fn searcher [modname]
+  ;; TODO deprecated by hotpot.index
   ;; (table string) :: fn
   ;; Lua package searcher with hot-compile step, this is core to hotpot.
   ;;
@@ -130,13 +133,13 @@
   ;; If stale or missing, complile and return a loader for the cached file
   ;; If the original modname was for a lua file, just return a loader for that.
   (or (. package :preload modname)
-      (create-loader! modname (modname-to-path modname))))
+      (create-loader modname (modname-to-path modname))))
 
 ;       (match (modname-to-path modname)
-;              path (match (pcall create-loader! modname path)
+;              path (match (pcall create-loader modname path)
 ;                          (true loader) loader
 ;                          (false errors) (false errors)))))
 ;;(create-error-loader modname path errors)))))
 
 {: searcher
- :create-loader create-loader!}
+ : create-loader}

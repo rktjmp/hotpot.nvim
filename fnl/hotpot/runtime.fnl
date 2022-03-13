@@ -6,12 +6,11 @@
 (fn new-runtime []
   (let [{: new-index} (require :hotpot.index)
         cache-prefix (.. (vim.fn.stdpath :cache) :/hotpot/)
-        index (new-index true :modcache.bin)]
+        index-path (.. cache-prefix :/index.bin)]
     (struct :hotpot/runtime
             (attr :installed? false mutable)
             (attr :compiled-cache-prefix cache-prefix)
-            (attr :index-path (.. cache-prefix :/index.bin))
-            (attr :index index))))
+            (attr :index (new-index true index-path)))))
 
 (tset _G :__hotpot_profile_ms 0)
 (fn searcher [modname]
@@ -53,4 +52,7 @@
   (values nil))
 
 {: install ;; install searcher
+ :inspect (fn []
+            (let [{: inspect} (require :hotpot.common)]
+            (inspect runtime)))
  : setup}

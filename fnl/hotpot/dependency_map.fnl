@@ -19,8 +19,6 @@
   (tset *macro-mods-paths mod path))
 
 (fn fnl-path-depends-on-macro-module [fnl-path macro-module]
-  ; (print (.. "fnl-path-depends-on-macro-module " fnl-path " -> " macro-module))
-  ; create list if not existing then append macro module
   (let [list (or (. *fnl-file-macro-mods fnl-path) [])]
     (table.insert list macro-module)
     (tset *fnl-file-macro-mods fnl-path list)))
