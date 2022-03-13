@@ -17,6 +17,13 @@
 (fn profile-as [name ...] `,...)
 ;;(fn dinfo [...])
 
+(fn expect [assertion message ...]
+  `(when (not ,assertion)
+     (let [failed-what# ,(view assertion)
+           err# (string.format "%s [failed: %s]" ,message failed-what#)]
+       (error (string.format err# ,...)))))
+
 {: require-fennel
  : dinfo
+ : expect
  : profile-as}
