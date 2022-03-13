@@ -128,8 +128,9 @@
   ;; failed.
   ;;
   ;; We do act slightly naughtily by returning a proxy table for the would-be
-  ;; module that will re-alert the error on access. Not sure how I feel about
-  ;; in terms of having other peoples code still working
+  ;; module that will re-alert the error on access. Not 100% on how good of an
+  ;; idea this is as it may semi-mask errors in other peoples code who are not
+  ;; expecting it.
   (fn print-error []
     (local lines [(.. modname
                     " could not be loaded by Hotpot because of a previous compiler error.")

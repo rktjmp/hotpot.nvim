@@ -57,14 +57,12 @@
 
   ;; we preference finding lua/*.lua files, with the assumption that if those
   ;; exist, someone is providing us with compiled files which may have been
-  ;; through any kind of build process (see conjure) and we best not try to
+  ;; through any kind of build process and we best not try to
   ;; load the raw fnl (or recompile for no reason).
   (local paths [(.. :lua/ slashed-path :.lua)
                 (.. :lua/ slashed-path :/init.lua)
                 (.. :fnl/ slashed-path :.fnl)
                 (.. :fnl/ slashed-path :/init.fnl)])
-
-  ;; TODO we can thread this but perhaps to no gain?
   (var found nil)
   (each [_ possible-path (ipairs paths) :until found]
     (match (vim.api.nvim_get_runtime_file possible-path false)

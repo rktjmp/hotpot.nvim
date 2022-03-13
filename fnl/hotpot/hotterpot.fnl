@@ -7,8 +7,10 @@
 (var searcher nil)
 
 (fn search [modname]
-  ;; Search for module via hotpot's searcher.
-  ;; Will trigger compile if needed.
+  ;; Search for module via hotpot's searcher, this lets you
+  ;; access Fennel code without having installed the searcher
+  ;; into lua's runtime. This is really just exposed so we
+  ;; can compile hotpot itself.
   (searcher modname))
 
 (fn install []
