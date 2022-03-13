@@ -1,0 +1,38 @@
+#!/usr/bin/env sh
+
+selfhost() {
+  rm -rf lua/
+  mkdir -p lua/hotpot
+  cp deps/fennel.lua lua/hotpot/fennel.lua
+  fennel --compile hotpot.fnl > lua/hotpot.lua
+  echo "built lua/hotpot.lua: $(date)"
+}
+
+watch() {
+  fd -tf fnl | entr -sc './build selfhost; ./build canary'
+}
+
+
+# sha release and note it in canary file
+canary() {
+  canary=$(find . -type f | grep -v "canary\|git" | grep "fnl\|lua" | xargs -d'\n' -P0 -n1 md5sum | sort -k 2 | md5sum)
+  rm -rf canary/
+  mkdir -p canary/
+  touch canary/$canary
+}
+
+case "$1" in
+  "selfhost")
+    selfhost
+    exit 0;;
+  "watch")
+    watch
+    exit 0;;
+  "canary")
+    canary
+    exit 0;;
+  *)
+    echo "$0 canary   - write canary"
+    echo "$0 selfhost - build seflhosting lua/hotpot.lua"
+    echo "$0 watch    - watch fnl/*, build selfhost and canary"
+esac
