@@ -20,8 +20,8 @@ EOF
 # /root/.cache/nvim/hotpot/hotpot <- git repo root ("hotpot install location")
 # /root/.cache/nvim/hotpot/hotpot/fnl/hotpot <- hotpot module folder ("require hotpot.x") 
 cat <<EOF | assert "it produces some compiled output"
-  if [[ ! -f /root/.cache/nvim/hotpot/hotpot/fnl/hotpot/hotterpot.lua ]]; then
+  if [[ ! -f /root/.cache/nvim/hotpot/hotpot/fnl/hotpot/runtime.lua ]]; then
     exa --tree -a /root/.cache >> /run.log
-    fail "missing hotterpot.lua"
+    fail "missing runtime.lua"
   fi
 EOF

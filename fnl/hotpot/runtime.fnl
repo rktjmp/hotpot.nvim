@@ -10,24 +10,13 @@
 (var runtime nil)
 
 (fn new-runtime []
-  ; (fn load-index [path]
-  ;   ;; TODO more accurate to check path exists, then return nil or load or error on loadfail (remove cache)
-  ;   (match (pcall #(with-open [fin (io.open path)]
-  ;                       (when fin
-  ;                         (let [data (fin:read :*a)
-  ;                               mpack vim.mpack
-  ;                               decoded (mpack.decode data)]
-  ;                           (set cache decoded)))))
-  ;     (true index) (values index)
-  ;     (false err) (values {})
-  ;     any (error any)))
-
   (let [{: new-index} (require :hotpot.index)
+        cache-prefix (.. (vim.fn.stdpath :cache) :/hotpot/)
         index (new-index false :modcache.bin)]
     (struct :hotpot/runtime
             (attr :is-installed false mutable)
-            (attr :index-path :modcache.bin)
-            (attr :compiled-cache-path :.....)
+            (attr :compiled-cache-prefix cache-prefix)
+            (attr :index-path (.. cache-prefix :/index.bin))
             (attr :index index))))
 
 (fn search [modname]
@@ -58,25 +47,6 @@
                                         (tset _G :sum (+ (. _G :sum) t))
                                         (values loader))))
     (set has-run-install true)))
-  ; (pcall (fn []
-  ;          (with-open [fin (io.open :modcache.bin)]
-  ;                     (when fin
-  ;                       (let [data (fin:read :*a)
-  ;                             mpack vim.mpack
-  ;                             decoded (mpack.decode data)]
-  ;                         (set cache decoded)
-  ;                         (print "loaded cache" cache))))))
-
-    ; (fn [mod]
-    ;                                   (match (. cache mod)
-    ;                                     loader (values loader)
-    ;                                     nil (let [mpack vim.mpack
-    ;                                               loader (searcher mod)]
-    ;                                           (print "loaded " mod loader)
-    ;                                           (tset cache mod (string.dump loader))
-    ;                                           (with-open [fout (io.open :modcache.bin :w)]
-    ;                                                      (fout:write (mpack.encode cache)))
-    ;                                           (values loader)))))
 
 (fn uninstall []
   (when (has-run-install)

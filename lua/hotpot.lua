@@ -31,7 +31,7 @@ local function load_hotpot(cache_dir, fnl_dir)
   local _
   package.path = hotpot_path
   _ = nil
-  local hotpot = require("hotpot.hotterpot")
+  local hotpot = require("hotpot.runtime")
   hotpot.install()
   do end (hotpot)["install"] = nil
   hotpot["uninstall"] = nil

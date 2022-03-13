@@ -10,13 +10,14 @@
 ;; only want to do it on demand since this front end to the compiler
 ;; is always loaded but not always used.
 (var has-injected-macro-searcher false)
+
 (fn compile-string [string options]
   ;; (string table) :: (true string) | (false string)
   ;; we only require fennel here because it can be heavy to pull in and *most*
   ;; of the time we will shortcut to the compiled lua.
   (local fennel (require-fennel))
   (when (not has-injected-macro-searcher)
-    ;; we inject the macro searcher here, instead of in hotterpot.install because
+    ;; we inject the macro searcher here, instead of in runtime.install because
     ;; it requires access to fennel directly.
     (table.insert fennel.macro-searchers 1 macro-searcher)
     (set has-injected-macro-searcher true))

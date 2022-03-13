@@ -34,7 +34,7 @@
   (let [old-package-path package.path
         hotpot-path (.. cache-dir fnl-dir "/?.lua;" package.path)
         _ (set package.path hotpot-path)
-        hotpot (require :hotpot.hotterpot)]
+        hotpot (require :hotpot.runtime)]
     (hotpot.install)
     ;; we have to let hotpot know it's own path so it can continue to function
     ;; after we reset package.path
