@@ -104,7 +104,9 @@
 
   ;; prefer rtp paths first since nvim does too
   (or (search-rtp slashed-path)
-      (search-package-path slashed-path)))
+      (search-package-path slashed-path)
+      (error (.. "not found " dotted-path)) ;; TODO fix error returning here, should be nil, err and checked upchain
+      ))
 
 ;; TODO: not super into these names...
 {: modname-to-path

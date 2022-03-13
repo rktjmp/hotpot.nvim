@@ -5,6 +5,7 @@
 
 (var has-run-install false)
 (var searcher nil)
+(var cache {})
 
 (fn search [modname]
   ;; Search for module via hotpot's searcher, this lets you
@@ -14,6 +15,15 @@
   (searcher modname))
 
 (fn install []
+  ; (pcall (fn []
+  ;          (with-open [fin (io.open :modcache.bin)]
+  ;                     (when fin
+  ;                       (let [data (fin:read :*a)
+  ;                             mpack vim.mpack
+  ;                             decoded (mpack.decode data)]
+  ;                         (set cache decoded)
+  ;                         (print "loaded cache" cache))))))
+
   (when (not has-run-install)
     ;; it's actually pretty important we have debugging message
     ;; before we get into the searcher otherwise we get a recursive
@@ -22,7 +32,22 @@
     ;;      it via that in dinfo would fix that.
     (dinfo "Installing Hotpot into searchers")
     (set searcher module-searcher)
-    (table.insert package.loaders 1 searcher)
+    (table.insert package.loaders 1 (fn [modname]
+                                      (let [loader (searcher modname)]
+                                        (match (loader)
+                                          (nil err) (print "l err" err))
+                                        (print "l" modname loader (loader))
+                                        (values loader))))
+    ; (fn [mod]
+    ;                                   (match (. cache mod)
+    ;                                     loader (values loader)
+    ;                                     nil (let [mpack vim.mpack
+    ;                                               loader (searcher mod)]
+    ;                                           (print "loaded " mod loader)
+    ;                                           (tset cache mod (string.dump loader))
+    ;                                           (with-open [fout (io.open :modcache.bin :w)]
+    ;                                                      (fout:write (mpack.encode cache)))
+    ;                                           (values loader)))))
     (set has-run-install true)))
 
 (fn uninstall []

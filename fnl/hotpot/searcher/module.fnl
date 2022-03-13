@@ -114,9 +114,10 @@
   ;; not a lua file so we have to transpile.
   (match [(is-lua-path? mod-path) (is-fnl-path? mod-path)]
     [true false] (create-lua-loader mod-path)
-    [false true] (let [lua-path (fnl-path-to-lua-path mod-path)
-                       (ok? errors) (compile-fnl mod-path lua-path modname)]
-                   (if ok? (create-lua-loader lua-path) (error errors)))
+    [false true] (let [lua-path (fnl-path-to-lua-path mod-path)]
+                   (match (compile-fnl mod-path lua-path modname)
+                     true (create-lua-loader lua-path)
+                     (false errors) (values nil errors)))
     _ (error (.. "hotpot could not create loader for " mod-path))))
 
 (fn create-error-loader [modname path errors]
@@ -161,9 +162,12 @@
   ;; If stale or missing, complile and return a loader for the cached file
   ;; If the original modname was for a lua file, just return a loader for that.
   (or (. package :preload modname)
-      (match (modname-to-path modname)
-             path (match (pcall create-loader! modname path)
-                         (true loader) loader
-                         (false errors) (create-error-loader modname path errors)))))
+      (create-loader! modname (modname-to-path modname))))
+
+;       (match (modname-to-path modname)
+;              path (match (pcall create-loader! modname path)
+;                          (true loader) loader
+;                          (false errors) (false errors)))))
+;;(create-error-loader modname path errors)))))
 
 {: searcher}
