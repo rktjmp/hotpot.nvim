@@ -1,9 +1,9 @@
 local uv = vim.loop
 local function canary_link_path(cache_dir)
-  return (cache_dir .. "canary")
+  return (cache_dir .. "/canary")
 end
-local function canary_valid_3f(cache_dir)
-  local _1_, _2_ = uv.fs_realpath(canary_link_path(cache_dir))
+local function canary_valid_3f(canary_dir)
+  local _1_, _2_ = uv.fs_realpath(canary_link_path(canary_dir))
   if ((_1_ == nil) and (nil ~= _2_)) then
     local err = _2_
     return false
@@ -14,7 +14,7 @@ local function canary_valid_3f(cache_dir)
     return nil
   end
 end
-local function make_canary(cache_dir, fnl_dir)
+local function make_canary(fnl_dir, lua_dir)
   local canary_file
   do
     local dir = uv.fs_opendir((fnl_dir .. "/../canary/"), nil, 1)
@@ -22,15 +22,10 @@ local function make_canary(cache_dir, fnl_dir)
     local _ = uv.fs_closedir(dir)
     canary_file = content[1].name
   end
-  uv.fs_unlink(canary_link_path(cache_dir))
-  return uv.fs_symlink((fnl_dir .. "/../canary/" .. canary_file), canary_link_path(cache_dir))
+  uv.fs_unlink(canary_link_path(lua_dir))
+  return uv.fs_symlink((fnl_dir .. "/../canary/" .. canary_file), canary_link_path(lua_dir))
 end
 local function load_hotpot(cache_dir, fnl_dir)
-  local old_package_path = package.path
-  local hotpot_path = (cache_dir .. fnl_dir .. "/?.lua;" .. package.path)
-  local _
-  package.path = hotpot_path
-  _ = nil
   local hotpot = require("hotpot.runtime")
   hotpot.install()
   do end (hotpot)["install"] = nil
@@ -55,7 +50,7 @@ local function clear_cache(cache_dir)
   end
   return nil
 end
-local function bootstrap_compile(cache_dir, fnl_dir)
+local function bootstrap_compile(fnl_dir, lua_dir)
   local function compile_file(fnl_src, lua_dest)
     local _let_7_ = require("hotpot.fennel")
     local compile_string = _let_7_["compile-string"]
@@ -85,7 +80,7 @@ local function bootstrap_compile(cache_dir, fnl_dir)
     for name, type in _10_ do
       local _11_ = type
       if (_11_ == "directory") then
-        local out_down = (cache_dir .. "/" .. in_dir .. "/" .. name)
+        local out_down = (out_dir .. "/" .. name)
         local in_down = (in_dir .. "/" .. name)
         vim.fn.mkdir(out_down, "p")
         compile_dir(fennel, in_down, out_down)
@@ -106,7 +101,7 @@ local function bootstrap_compile(cache_dir, fnl_dir)
   fennel.path = (fnl_dir .. "/?.fnl;" .. fennel.path)
   fennel["macro-path"] = (fnl_dir .. "/?.fnl;" .. fennel.path)
   table.insert(package.loaders, fennel.searcher)
-  compile_dir(fennel, fnl_dir, cache_dir, "")
+  compile_dir(fennel, fnl_dir, lua_dir, "")
   fennel.path = saved.path
   fennel["macro-path"] = saved["macro-path"]
   do
@@ -120,17 +115,17 @@ local function bootstrap_compile(cache_dir, fnl_dir)
       end
     end
   end
-  return make_canary(cache_dir, fnl_dir)
+  return make_canary(fnl_dir, lua_dir)
 end
 local plugin_dir = string.gsub(uv.fs_realpath((vim.api.nvim_get_runtime_file("lua/hotpot.lua", false))[1]), "/lua/hotpot.lua$", "")
 local hotpot_fnl_dir = (plugin_dir .. "/fnl")
-local cache_root_dir = (vim.fn.stdpath("cache") .. "/hotpot")
-local _15_ = canary_valid_3f(cache_root_dir)
+local hotpot_lua_dir = (plugin_dir .. "/lua")
+local _15_ = canary_valid_3f(hotpot_lua_dir)
 if (_15_ == true) then
-  return load_hotpot(cache_root_dir, hotpot_fnl_dir)
+  return load_hotpot(hotpot_lua_dir, hotpot_fnl_dir)
 elseif (_15_ == false) then
-  bootstrap_compile(cache_root_dir, hotpot_fnl_dir)
-  return load_hotpot(cache_root_dir, hotpot_fnl_dir)
+  bootstrap_compile(hotpot_fnl_dir, hotpot_lua_dir)
+  return load_hotpot(hotpot_lua_dir, hotpot_fnl_dir)
 else
   return nil
 end

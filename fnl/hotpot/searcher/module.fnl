@@ -93,11 +93,7 @@
            (table.insert options.plugins 1 plug-macro-dep-tracking)
            (local (ok errors) (compile-file fnl-path lua-path options))
            (table.remove options.plugins 1)
-
-           ; avoid circular compile loop while writing out the dependencies
-           ;; TODO: can just match tail of fnl-path
-           (when (and ok (not (= modname :hotpot.dependency_map)))
-             (write-dependencies fnl-path lua-path))
+           (when ok (write-dependencies fnl-path lua-path))
 
            (values ok errors))
     ;; no compilation needed, so just pretend that compile-file worked

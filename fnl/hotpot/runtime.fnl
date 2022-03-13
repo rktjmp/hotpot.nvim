@@ -1,5 +1,4 @@
 (import-macros {: require-fennel : dinfo : expect : struct} :hotpot.macros)
-
 (local debug-modname "hotpot")
 
 (var runtime nil)
@@ -17,14 +16,10 @@
 (tset _G :__hotpot_profile_ms 0)
 (fn searcher [modname]
   (match (= :hotpot (string.sub modname 1 6))
-    ;; unfortnately we cant comfortably index hotpot *with* hotpot, but we
-    ;; directly inject hotpots cache location into the package path so
-    ;; we can rely on the normal loader to find it.
-    ;; TODO: instead of selfhosting to cache, maybe make the QOL concession
-    ;; and selfhost into hotpot/lua. This ... probably impacts package updating
-    ;; though, though I guess if I never ship stuff in lua/ it will never
-    ;; collide in the git pull? fennel builds DO go in there, but the selfhosting should
-    ;; not affect them.
+    ;; unfortunately we cant (currently?) comfortably index hotpot *with* hotpot
+    ;; so these requires are passed directly to the next searcher.
+    ;; It would not be unreasonable to pre-cook hotpot modules into the cache
+    ;; when bootstrapping.
     true (values nil)
     false (let [{: loader-for-module} (require :hotpot.index)
               a (vim.loop.hrtime)

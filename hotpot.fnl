@@ -5,42 +5,34 @@
 (local uv vim.loop)
 
 (fn canary-link-path [cache-dir]
-  (.. cache-dir "canary"))
+  (.. cache-dir "/canary"))
 
-(fn canary-valid? [cache-dir]
+(fn canary-valid? [canary-dir]
   ;; Hotpot will create a symlink from cache/hotpot/canary to
   ;; hotpot-clone/canary/<sha>. When hotpot is updated, the sha file will
   ;; disappear (replaced with a new sha file), which will break the symlink.
   ;;
   ;; By trying to get the symlink real path, we can tell if hotpot has been
   ;; updated and needs to recompiled.
-  (match (uv.fs_realpath (canary-link-path cache-dir))
+  (match (uv.fs_realpath (canary-link-path canary-dir))
     (nil err) false
     path true))
 
-(fn make-canary [cache-dir fnl-dir]
+(fn make-canary [fnl-dir lua-dir]
   ;; cache-dir/canary -> fnl-dir/canary/<file>
   (local canary-file (let [dir (uv.fs_opendir (.. fnl-dir "/../canary/") nil 1)
                            content (uv.fs_readdir dir)
                            _ (uv.fs_closedir dir)]
                        (. content 1 :name)))
-  (uv.fs_unlink (canary-link-path cache-dir))
-  (uv.fs_symlink (.. fnl-dir "/../canary/" canary-file) (canary-link-path cache-dir)))
+  (uv.fs_unlink (canary-link-path lua-dir))
+  (uv.fs_symlink (.. fnl-dir "/../canary/" canary-file) (canary-link-path lua-dir)))
 
 (fn load-hotpot [cache-dir fnl-dir]
   ;; We have already complied the files, so just fiddle with luas package.path
   ;; so we can run, then undo the change since nvims rtp will handle any future
   ;; needs
-  (let [old-package-path package.path
-        hotpot-path (.. cache-dir fnl-dir "/?.lua;" package.path)
-        _ (set package.path hotpot-path)
-        hotpot (require :hotpot.runtime)]
+  (let [hotpot (require :hotpot.runtime)]
     (hotpot.install)
-    ;; we have to let hotpot know it's own path so it can continue to function
-    ;; after we reset package.path
-    ;; TODO ?
-    ;; (hotpot set-hotpot-path hotpot-path)
-    ;; (set package.path old-package-path)
     (tset hotpot :install nil)
     (tset hotpot :uninstall nil)
     (values hotpot)))
@@ -55,7 +47,7 @@
             "file" (uv.fs_unlink (.. cache-dir :/ name))))))
 
 
-(fn bootstrap-compile [cache-dir fnl-dir]
+(fn bootstrap-compile [fnl-dir lua-dir]
   (fn compile-file [fnl-src lua-dest]
     ;; compile fnl src to lua dest, can raise.
     (let [{: compile-string} (require :hotpot.fennel)]
@@ -72,7 +64,7 @@
       (each [name type #(uv.fs_scandir_next scanner)]
         (match type
           "directory"
-          (let [out-down (.. cache-dir :/ in-dir :/ name)
+          (let [out-down (.. out-dir :/ name)
                 in-down (.. in-dir :/ name)]
             (vim.fn.mkdir out-down :p)
             (compile-dir fennel in-down out-down))
@@ -90,7 +82,7 @@
     (set fennel.macro-path (.. fnl-dir "/?.fnl;" fennel.path))
     (table.insert package.loaders fennel.searcher)
     ;; for every file in our fnl-dir, force hotpot to compile it
-    (compile-dir fennel fnl-dir cache-dir "")
+    (compile-dir fennel fnl-dir lua-dir "")
     ;; undo our path and searcher changes since hotpot will handle paths now.
     (set fennel.path saved.path)
     (set fennel.macro-path saved.macro-path)
@@ -98,7 +90,7 @@
                 (if (= check fennel.searcher)
                   (table.remove package.loaders i)))
     ;; mark that we've compiled and link to current version in plugin dir
-    (make-canary cache-dir fnl-dir)))
+    (make-canary fnl-dir lua-dir)))
 
 ;; If this file is executing, we know it exists in the RTP so we can use this
 ;; file to figure out related files needed for bootstraping.
@@ -111,9 +103,9 @@
                      (uv.fs_realpath)
                      (string.gsub :/lua/hotpot.lua$ ""))
       hotpot-fnl-dir (.. plugin-dir :/fnl)
-      cache-root-dir (.. (vim.fn.stdpath :cache) :/hotpot)]
-  (match (canary-valid? cache-root-dir)
-    true (load-hotpot cache-root-dir hotpot-fnl-dir)
+      hotpot-lua-dir (.. plugin-dir :/lua)]
+  (match (canary-valid? hotpot-lua-dir)
+    true (load-hotpot hotpot-lua-dir hotpot-fnl-dir)
     false (do
-            (bootstrap-compile cache-root-dir hotpot-fnl-dir)
-            (load-hotpot cache-root-dir hotpot-fnl-dir))))
+            (bootstrap-compile hotpot-fnl-dir hotpot-lua-dir)
+            (load-hotpot hotpot-lua-dir hotpot-fnl-dir))))
