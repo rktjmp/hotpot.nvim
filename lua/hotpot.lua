@@ -96,26 +96,33 @@ local function bootstrap_compile(fnl_dir, lua_dir)
     end
     return nil
   end
-  local fennel = require("hotpot.fennel")
-  local saved = {path = fennel.path, ["macro-path"] = fennel["macro-path"]}
-  fennel.path = (fnl_dir .. "/?.fnl;" .. fennel.path)
-  fennel["macro-path"] = (fnl_dir .. "/?.fnl;" .. fennel.path)
-  table.insert(package.loaders, fennel.searcher)
-  compile_dir(fennel, fnl_dir, lua_dir, "")
-  fennel.path = saved.path
-  fennel["macro-path"] = saved["macro-path"]
   do
-    local done = nil
-    for i, check in ipairs(package.loaders) do
-      if done then break end
-      if (check == fennel.searcher) then
-        done = table.remove(package.loaders, i)
-      else
-        done = nil
+    local fennel = require("hotpot.fennel")
+    local saved = {path = fennel.path, ["macro-path"] = fennel["macro-path"]}
+    fennel.path = (fnl_dir .. "/?.fnl;" .. fennel.path)
+    fennel["macro-path"] = (fnl_dir .. "/?.fnl;" .. fennel.path)
+    table.insert(package.loaders, fennel.searcher)
+    compile_dir(fennel, fnl_dir, lua_dir, "")
+    fennel.path = saved.path
+    fennel["macro-path"] = saved["macro-path"]
+    do
+      local done = nil
+      for i, check in ipairs(package.loaders) do
+        if done then break end
+        if (check == fennel.searcher) then
+          done = table.remove(package.loaders, i)
+        else
+          done = nil
+        end
       end
     end
+    make_canary(fnl_dir, lua_dir)
   end
-  return make_canary(fnl_dir, lua_dir)
+  do
+    local cache_dir = (vim.fn.stdpath("cache") .. "/hotpot")
+    vim.fn.mkdir(cache_dir, "p")
+  end
+  return true
 end
 local plugin_dir = string.gsub(uv.fs_realpath((vim.api.nvim_get_runtime_file("lua/hotpot.lua", false))[1]), "/lua/hotpot.lua$", "")
 local hotpot_fnl_dir = (plugin_dir .. "/fnl")

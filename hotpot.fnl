@@ -90,7 +90,11 @@
                 (if (= check fennel.searcher)
                   (table.remove package.loaders i)))
     ;; mark that we've compiled and link to current version in plugin dir
-    (make-canary fnl-dir lua-dir)))
+    (make-canary fnl-dir lua-dir))
+  (let [cache-dir (.. (vim.fn.stdpath :cache) :/hotpot)]
+    ;; make sure the cache dir exists
+    (vim.fn.mkdir cache-dir :p))
+  (values true))
 
 ;; If this file is executing, we know it exists in the RTP so we can use this
 ;; file to figure out related files needed for bootstraping.
