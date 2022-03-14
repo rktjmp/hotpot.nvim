@@ -10,7 +10,7 @@
     (struct :hotpot/runtime
             (attr :installed? false mutable)
             (attr :compiled-cache-prefix cache-prefix)
-            (attr :index (new-index true index-path)))))
+            (attr :index (new-index index-path)))))
 
 (tset _G :__hotpot_profile_ms 0)
 (fn searcher [modname]
@@ -37,7 +37,8 @@
     ;; TODO probably installing the logger here and accessing
     ;;      it via that in dinfo would fix that.
     (dinfo "Installing Hotpot into searchers")
-    (table.insert package.loaders 1 searcher)
+    (let [{: new-indexed-searcher-fn} (require :hotpot.index)]
+      (table.insert package.loaders 1 (new-indexed-searcher-fn runtime.index)))
     (tset runtime :installed? true)))
 
 (fn provide-require-fennel []
@@ -54,5 +55,8 @@
 {: install ;; install searcher
  :inspect (fn []
             (let [{: inspect} (require :hotpot.common)]
-            (inspect runtime)))
+              (each [modname entry (pairs runtime.index.modules)]
+                (inspect modname entry.path))
+              ; (inspect runtime)
+              ))
  : setup}

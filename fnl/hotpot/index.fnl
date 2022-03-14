@@ -1,15 +1,13 @@
 ;;; Hotpot Index
 ;;;
 ;;; The index is the primary interface point to find lua loaders for `require`
-;;; calls. The index can optionally persist these loaders to a on-disk store
-;;; as compiled lua bytecode.
+;;; calls. Module loaders are hydrated/dehydrated from disk and replaced when
+;;; they become out of sync with the original source.
 ;;;
-;;; The index will delegate modname -> path to path-resolver
 
 (import-macros {: expect : struct} :hotpot.macros)
-(local {: inspect} (require :hotpot.common))
 
-(fn new-index-entry [modname path macro-dependencies loader]
+(fn new-module-record [modname path macro-dependencies loader]
   (let [{: file-mtime} (require :hotpot.fs)]
     ;; these are directly mpack'd out, so we cant use a struct :<
     ;; at least not without re-iterating them onload which is kind 
@@ -22,85 +20,74 @@
      : macro-dependencies
      :loader (string.dump loader)}))
 
-(fn new-index [persist? path]
-  (fn hydrate [path]
-    ;; TODO: split this check up into file exist and decode failed errors
-    ;; file missing is sometimes expected, just recreate, decode error needs delete
-    (match (pcall #(with-open [fin (io.open path)]
-                              (when fin
-                                (let [bytes (fin:read :*a)
-                                      mpack vim.mpack
-                                      {: version : data} (mpack.decode bytes)]
-                                  (values data)))))
-      (true index) (values index)
-      (false err) (values {})))
+(fn hydrate-records [path]
+  ;; TODO: split this check up into file exist and decode failed errors
+  ;; file missing is sometimes expected, just recreate, decode error needs delete
+  (match (pcall #(with-open [fin (io.open path)]
+                            (when fin
+                              (let [bytes (fin:read :*a)
+                                    mpack vim.mpack
+                                    {: version : data} (mpack.decode bytes)]
+                                (values data)))))
+    (true index) (values index)
+    (false err) (values {})))
 
-  (struct :hotpot/index
-          (attr :persist? persist?)
-          (attr :path path)
-          (attr :modules (if persist? (hydrate path) {}))))
-
-(fn dehydrate [index]
+(fn dehydrate-records [index]
   "Write index.modules to index.path"
   (let [{: modules : path} index
         bytes (vim.mpack.encode {:version 1 :data modules})]
     (with-open [fout (io.open path :w)]
                (fout:write bytes))))
 
-(fn maybe-persist-entry [index modname entry]
-  "Update index.modules with entry and dehydrate if index.presist?"
-  (when index.persist?
-      (tset index.modules modname entry)
-      (dehydrate index)))
+(fn persist-record [index modname record]
+  "Update index.modules with record and dehydrate"
+  (tset index.modules modname record)
+  (dehydrate-records index))
 
-(fn create-loader-entry [modname]
-  (let [{: modname-to-path} (require :hotpot.path_resolver)
-        {: create-loader} (require :hotpot.searcher.module)
-        path (modname-to-path modname)]
-    (match path
-      nil (values "could not convert mod to path")
-      file (match (create-loader modname path)
-             (nil err) (values nil err)
-             (loader deps) (new-index-entry modname path deps loader)))))
-
-(fn get-entry-if-current [index modname]
-  "Get loader from the index if it's valid, will invalidate an entry
+(fn get-record-if-current [index modname]
+  "Get loader from the index if it's valid, will invalidate an record
   if it is stale and return nil"
-  (expect (= :table (type index))
-          "index must be table, got %q" index)
-  (expect (= :string (type modname))
-          "modname must be string, got %q" modname)
+  (expect (= :table (type index)) "index must be table, got %q" index)
+  (expect (= :string (type modname)) "modname must be string, got %q" modname)
   (match (. index :modules modname)
-    ;; if we have any entry, check its ok to use otherwise return nil
-    entry (let [{: file-mtime : file-exists?} (require :hotpot.fs)
-                {: path : timestamp : loader : macro-dependencies} entry
-                ;; dont use the cached entry if the file is removed
-                ;; or the file is stale or any dependency is stale
-                use-entry? (and (file-exists? path)
-                                (= timestamp (file-mtime path))
-                                (accumulate [ok? true _ dep (ipairs macro-dependencies) :until (not ok?)]
-                                            (and ok? (<= (file-mtime dep) timestamp))))]
-            ;; return good entry or nil out existing and return nil
-            (if use-entry? entry (tset index.modules modname nil)))))
+    ;; if we have any record, check its ok to use otherwise return nil
+    record (let [{: file-mtime : file-exists?} (require :hotpot.fs)
+                 {: path : timestamp : loader : macro-dependencies} record
+                 ;; dont use the cached record if the file is removed
+                 ;; or the file is stale or any dependency is stale
+                 use-record? (and (file-exists? path)
+                                  (= timestamp (file-mtime path))
+                                  (accumulate [ok? true _ dep (ipairs macro-dependencies) :until (not ok?)]
+                                              (and ok? (<= (file-mtime dep) timestamp))))]
+             ;; return good record or nil out existing and return nil
+             (if use-record? record (tset index.modules modname nil)))))
 
-(fn loader-for-module [index modname]
-  "Primary interface to the index. Will return a cached loader, a fresh loader
-  (after inserting into the cache) or (nil err) as per lua's loader specs."
-  (match (. package :preload modname)
-    loader (values loader)
-    nil (let [existing (get-entry-if-current index modname)]
-          (match existing
+(fn search-index [index modname]
+  (match (= :hotpot (string.sub modname 1 6))
+    ;; unfortunately we cant (currently?) comfortably index hotpot *with* hotpot
+    ;; so these requires are passed directly to the next searcher.
+    ;; It would not be unreasonable to pre-cook hotpot modules into the cache
+    ;; when bootstrapping.
+    true (values nil)
+    false (match (get-record-if-current index modname)
             {: loader} (loadstring loader)
-            nil (match (create-loader-entry modname)
-                  entry (let [{: loader} entry]
-                          (maybe-persist-entry index modname entry)
-                          ;; return function loader as per spec
-                          (loadstring loader))
-                  ;; return string error as per spec
-                  (nil err) (values err))))))
+            nil (let [{: searcher} (require :hotpot.searcher.module)]
+                  (match (searcher modname)
+                    (loader {: path : deps}) (let [record (new-module-record modname path deps loader)]
+                                               (persist-record index modname record)
+                                               (values (loadstring record.loader)))
+                    (where (err) (= :string (type err))) (values err))))))
 
+(fn new-indexed-searcher-fn [index]
+  "Primary interface to the index. Will return a cached loader, a fresh loader
+  (after inserting into the cache) or (nil Postgraphileerr) as per lua's loader specs."
+  (fn [modname]
+    (or (. package :preload modname)
+        (search-index index modname))))
 
-;; TODO always hit index to search but just dont save/load it if the user hasn't configured it on?
-;; allows for one code path. slower?
+(fn new-index [path]
+  (struct :hotpot/index
+          (attr :path path)
+          (attr :modules (hydrate-records path) {})))
 
-{: loader-for-module : new-index}
+{: new-index : new-indexed-searcher-fn}
