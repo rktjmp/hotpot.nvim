@@ -40,16 +40,21 @@
 ;;
 
 (fn create-loader [modname mod-path]
-  (let [{ : is-lua-path? : is-fnl-path? } (require :hotpot.fs)
-        ft (or (and (is-lua-path? mod-path) :lua)
-               (and (is-fnl-path? mod-path) :fnl)
-               (values :error))]
-    (match ft
-      :lua (loadfile mod-path)
+  (let [{ : is-lua-path? : is-fnl-path? : file-mtime} (require :hotpot.fs)
+        file-type (or (and (is-lua-path? mod-path) :lua)
+                      (and (is-fnl-path? mod-path) :fnl)
+                      (values :error))]
+    (match file-type
+      :lua {:loader (loadfile mod-path)
+            :deps []
+            :timestamp (file-mtime mod-path)}
       :fnl (let [{: fnl-path-to-lua-path} (require :hotpot.path_resolver)
+                 {: deps-for-fnl-path} (require :hotpot.dependency_map)
                  lua-path (fnl-path-to-lua-path mod-path)]
              (match (compile-fnl mod-path lua-path modname)
-               true (loadfile lua-path)
+               true {:loader (loadfile lua-path)
+                     :deps (or (deps-for-fnl-path mod-path) [])
+                     :timestamp (file-mtime lua-path)}
                (false err) (values nil err)))
       :error (values nil (.. "hotpot could not create loader for " mod-path)))))
 
@@ -57,16 +62,14 @@
   ;; searcher will *always* compile fnl code out to cache, the index
   ;; should determine whether calling the searcher is required.
   (let [{: modname-to-path} (require :hotpot.path_resolver)
-        {: deps-for-fnl-path} (require :hotpot.dependency_map)
         path (modname-to-path modname)]
     (match path
       nil (values "could not convert mod to path")
       file (match (create-loader modname path)
-             ;; lua's loader spec should return a function, we can stick our
-             ;; extra data as additional returns and stii be on-spec if we
-             ;; want to use the searcher outside of the index.
-             loader (let [deps (or (deps-for-fnl-path path) [])]
-                      (values loader {: path : deps}))
+             {: loader : timestamp : deps} (let [files (doto deps (table.insert 1 path))]
+                                             ;; return extra data as second value so we're
+                                             ;; still lua-loader compatible.
+                                             (values loader {: path : files : timestamp}))
              ;; return string on error
              (nil err) (values err)))))
 

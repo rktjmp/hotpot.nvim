@@ -7,17 +7,14 @@
 
 (import-macros {: expect : struct} :hotpot.macros)
 
-(fn new-module-record [modname path macro-dependencies loader]
+(fn new-module-record [modname files timestamp loader]
   (let [{: file-mtime} (require :hotpot.fs)]
     ;; these are directly mpack'd out, so we cant use a struct :<
-    ;; at least not without re-iterating them onload which is kind 
+    ;; at least not without re-iterating them onload which is kind
     ;; of against the whole point.
     {: modname
-     : path
-     :timestamp (file-mtime path)
-     ;; macro deps are just a flat list of files, if any of those are newer
-     ;; than *us* then we are out of date, so no need to store their mtimes.
-     : macro-dependencies
+     : files
+     : timestamp
      :loader (string.dump loader)}))
 
 (fn hydrate-records [path]
@@ -31,6 +28,7 @@
                                 (values data)))))
     (true index) (values index)
     (false err) (values {})))
+
 
 (fn dehydrate-records [index]
   "Write index.modules to index.path"
@@ -52,13 +50,13 @@
   (match (. index :modules modname)
     ;; if we have any record, check its ok to use otherwise return nil
     record (let [{: file-mtime : file-exists?} (require :hotpot.fs)
-                 {: path : timestamp : loader : macro-dependencies} record
+                 {: files : timestamp : loader} record
                  ;; dont use the cached record if the file is removed
                  ;; or the file is stale or any dependency is stale
-                 use-record? (and (file-exists? path)
-                                  (= timestamp (file-mtime path))
-                                  (accumulate [ok? true _ dep (ipairs macro-dependencies) :until (not ok?)]
-                                              (and ok? (<= (file-mtime dep) timestamp))))]
+                 use-record? (accumulate [ok? true _ file (ipairs files) :until (not ok?)]
+                                         (and ok?
+                                              (file-exists? file)
+                                              (<= (file-mtime file) timestamp)))]
              ;; return good record or nil out existing and return nil
              (if use-record? record (tset index.modules modname nil)))))
 
@@ -73,17 +71,29 @@
             {: loader} (loadstring loader)
             nil (let [{: searcher} (require :hotpot.searcher.module)]
                   (match (searcher modname)
-                    (loader {: path : deps}) (let [record (new-module-record modname path deps loader)]
-                                               (persist-record index modname record)
-                                               (values (loadstring record.loader)))
-                    (where (err) (= :string (type err))) (values err))))))
+                    ;; found module and got loader
+                    (loader {: path : files : timestamp})
+                    (let [record (new-module-record modname files timestamp loader)]
+                      (persist-record index modname record)
+                      (values (loadstring record.loader)))
+                    ;; failed out
+                    (where (err) (= :string (type err)))
+                    (values err))))))
 
+(tset _G :__hotpot_profile_ms 0)
 (fn new-indexed-searcher-fn [index]
   "Primary interface to the index. Will return a cached loader, a fresh loader
   (after inserting into the cache) or (nil Postgraphileerr) as per lua's loader specs."
   (fn [modname]
-    (or (. package :preload modname)
-        (search-index index modname))))
+    (let [uv vim.loop
+          a (uv.hrtime)
+          l (or (. package :preload modname)
+                (search-index index modname))
+          b (uv.hrtime)
+          sum (- b a)
+          ms (/ sum 1_000_000)]
+      (tset _G :__hotpot_profile_ms (+ _G.__hotpot_profile_ms ms))
+      (values l))))
 
 (fn new-index [path]
   (struct :hotpot/index
