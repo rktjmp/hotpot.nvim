@@ -1,7 +1,4 @@
-(local config (require :hotpot.config))
-(local { : is-lua-path? : is-fnl-path? } (require :hotpot.fs))
-(import-macros {: dinfo : require-fennel} :hotpot.macros)
-(local debug-modname "hotpot.searcher.module")
+(import-macros {: require-fennel} :hotpot.macros)
 
 ;;
 ;; Compilation
@@ -25,7 +22,8 @@
 
 (fn compile-fnl [fnl-path lua-path modname]
   ;; (string, string) :: true | false, errors
-  (let [{: compile-file} (require :hotpot.compiler)
+  (let [config (require :hotpot.config)
+        {: compile-file} (require :hotpot.compiler)
         options (config.get-option :compiler.modules)
         plugin (new-macro-dep-tracking-plugin fnl-path)]
     ; inject our plugin, must only exist for this compile-file call
@@ -42,7 +40,8 @@
 ;;
 
 (fn create-loader [modname mod-path]
-  (let [ft (or (and (is-lua-path? mod-path) :lua)
+  (let [{ : is-lua-path? : is-fnl-path? } (require :hotpot.fs)
+        ft (or (and (is-lua-path? mod-path) :lua)
                (and (is-fnl-path? mod-path) :fnl)
                (values :error))]
     (match ft
