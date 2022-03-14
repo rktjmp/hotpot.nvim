@@ -7,7 +7,7 @@
 ;;
 
 (fn eval-string [string]
-  (let [fennel(require-fennel)]
+  (let [fennel (require-fennel)]
     (fennel.eval string {:filename :hotpot-live-eval})))
 
 (fn eval-range [buf start-pos stop-pos]
@@ -27,7 +27,7 @@
 
 (fn eval-file [fnl-file]
   (assert fnl-file "eval-file: must provide path to .fnl file")
-  (let [fennel(require-fennel)]
+  (let [fennel (require-fennel)]
     (fennel.dofile fnl-file {:filename fnl-file})))
 
 (fn eval-module [modname]
@@ -63,7 +63,7 @@
   ;; code = "", means the expression will be "", meaning fnldo will
   ;; replace all the lines with nothing! Let's not do that.
   (assert (and code (~= code "")) "fnldo: code must not be blank")
-  (let [fennel(require-fennel)
+  (let [fennel (require-fennel)
         codestr (.. "(fn [line linenr] " code ")")
         ;; this can raise but that's probably what we want.
         func (fennel.eval codestr {:filename :hotpot-fnldo})]
