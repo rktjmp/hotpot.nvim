@@ -1,9 +1,3 @@
-(local {: is-lua-path?
-        : is-fnl-path?
-        : read-file!} (require :hotpot.fs))
-(local {: modname-to-path} (require :hotpot.path_resolver))
-(local config (require :hotpot.config))
-
 (import-macros {: require-fennel} :hotpot.macros)
 
 (fn create-lua-loader [path modname]
@@ -20,25 +14,27 @@
   ;; (string, string) :: fn, string
   ;; assumes path exists!
   (let [fennel (require-fennel)
+        {: read-file!} (require :hotpot.fs)
+        config (require :hotpot.config)
         code (read-file! path)]
     (fn [modname]
       ;; require the depencency map module *inside* the load function
       ;; to avoid circular dependencies.
       ;; By putting it here we can be sure that the cache is already in memory
       ;; before hotpot took over module searching.
-      (let [dep_map (require :hotpot.dependency_map)]
+      (let [dep_map (require :hotpot.dependency_map)
+            ;; eval macro as per fennel's implementation.
+            options (doto (config.get-option :compiler.macros)
+                          (tset :filename path))]
         ;; later, when a module needs a macro, we will know what file the
         ;; macro came from and can then track the macro file for changes
         ;; when refreshing the cache.
-        (dep_map.set-macro-mod-path modname path))
-
-      ;; eval macro as per fennel's implementation.
-      (local options (doto (config.get-option :compiler.macros)
-                           (tset :filename path)))
-      (fennel.eval code options modname))))
+        (dep_map.set-macro-mod-path modname path)
+        (fennel.eval code options modname)))))
 
 (fn create-loader [path modname]
-  (let [create (or (and (is-lua-path? path) create-lua-loader)
+  (let [{: is-lua-path? : is-fnl-path? } (require :hotpot.fs)
+        create (or (and (is-lua-path? path) create-lua-loader)
                    (and (is-fnl-path? path) create-fennel-loader))]
     (assert create (.. "Could not create loader for path (unknown extension): " path))
     ;; per Fennels spec, we should return a loader function and the
@@ -54,8 +50,9 @@
   ;;
   ;; This behaves similar to the module seacher, it will prefer .lua files in
   ;; the RTP if it exists, otherwise it looks for .fnl files in the package path.
-  (or (. package :preload modname)
-      (match (modname-to-path modname)
-        path (create-loader path modname))))
+  (let [{: modname-to-path} (require :hotpot.path_resolver)]
+    (or (. package :preload modname)
+        (match (modname-to-path modname)
+          path (create-loader path modname)))))
 
 {: searcher}
