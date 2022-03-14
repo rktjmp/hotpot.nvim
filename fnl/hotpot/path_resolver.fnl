@@ -1,6 +1,3 @@
-(local {: is-fnl-path?
-        : file-exists?} (require :hotpot.fs))
-
 ;;
 ;; Cache Resolver
 ;;
@@ -15,25 +12,26 @@
   ;; Converts given fnl file path into it's cache location
   ;; returns the path, true, if the path could be resolved to a real file via
   ;; fs_realpath or path, false if the file doesn't exist.
-  (assert (is-fnl-path? fnl-path)
-          (.. "path did not end in fnl: " fnl-path))
-  ;; We want to resolve symlinks inside vims `pack/**/start` folders back to
-  ;; their real on-disk path so the cache folder structure mirrors the real
-  ;; world. This is mostly a QOL thing for when you go manually poking at the
-  ;; cache, the lua files will be where you expect them to be, mirroring the disk.
-  (local real-fnl-path (vim.loop.fs_realpath fnl-path))
-  (assert real-fnl-path
-          (.. "fnl-path did not resolve to real file!"))
+  (let [{: is-fnl-path?} (require :hotpot.fs)]
+    (assert (is-fnl-path? fnl-path)
+            (.. "path did not end in fnl: " fnl-path))
+    ;; We want to resolve symlinks inside vims `pack/**/start` folders back to
+    ;; their real on-disk path so the cache folder structure mirrors the real
+    ;; world. This is mostly a QOL thing for when you go manually poking at the
+    ;; cache, the lua files will be where you expect them to be, mirroring the disk.
+    (local real-fnl-path (vim.loop.fs_realpath fnl-path))
+    (assert real-fnl-path
+            (.. "fnl-path did not resolve to real file!"))
 
-  ;; where the cache file should be, but path isnt's cleaned up
-  (local want-path (-> real-fnl-path
-                       ((partial .. cache-prefix))
-                       (string.gsub "%.fnl$" ".lua")))
+    ;; where the cache file should be, but path isnt's cleaned up
+    (local want-path (-> real-fnl-path
+                         ((partial .. cache-prefix))
+                         (string.gsub "%.fnl$" ".lua")))
 
-  (local real-path (vim.loop.fs_realpath want-path))
-  (if real-path
-    (values real-path true)
-    (values want-path false)))
+    (local real-path (vim.loop.fs_realpath want-path))
+    (if real-path
+      (values real-path true)
+      (values want-path false))))
 
 ;;
 ;; Modname Resolver
@@ -69,22 +67,23 @@
   ;; Iterate through templates, injecting path where appropriate,
   ;; returns full path if a file exists or nil
 
-  ;; append ; so regex is simpler
-  (local templates (.. package.path ";"))
+  (let [{: file-exists?} (require :hotpot.fs)]
+    ;; append ; so regex is simpler
+    (local templates (.. package.path ";"))
 
-  ;; search every template part and return first match or nil
-  (var found nil)
-  (each [template (string.gmatch templates "(.-);") :until found]
-    ;; actually check for 1 replacement otherwise gsub returns the original
-    ;; string uneffected.
-    ;; path strings are something like some/path/?.lua but we want to find .fnl
-    ;; files, so swap the extension.
-    (local full-path (match (string.gsub template "%?" slashed-path)
-                       (updated 1) (string.gsub updated "%.lua" ".fnl")
-                       _  nil))
-    (if (and full-path (file-exists? full-path))
-      (set found full-path)))
-  found)
+    ;; search every template part and return first match or nil
+    (var found nil)
+    (each [template (string.gmatch templates "(.-);") :until found]
+      ;; actually check for 1 replacement otherwise gsub returns the original
+      ;; string uneffected.
+      ;; path strings are something like some/path/?.lua but we want to find .fnl
+      ;; files, so swap the extension.
+      (local full-path (match (string.gsub template "%?" slashed-path)
+                         (updated 1) (string.gsub updated "%.lua" ".fnl")
+                         _  nil))
+      (if (and full-path (file-exists? full-path))
+        (set found full-path)))
+    (values found)))
 
 (fn modname-to-path [dotted-path]
   ;; (string) :: string | nil
