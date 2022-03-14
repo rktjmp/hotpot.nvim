@@ -1,7 +1,3 @@
-;;
-;; This should be compiled as lua/hotpot.lua
-;;
-
 (local uv vim.loop)
 
 (fn canary-link-path [cache-dir]
@@ -54,7 +50,7 @@
       (with-open [fnl-file (io.open fnl-src)
                   lua-file (io.open lua-dest :w)]
                  (let [fnl-code (fnl-file:read :*a)
-                       lua-code (compile-string fnl-code {:correlate true})]
+                       lua-code (compile-string fnl-code {:filename fnl-src :correlate true})]
                    (lua-file:write lua-code)))))
 
   (fn compile-dir [fennel in-dir out-dir]

@@ -67,7 +67,7 @@ local function bootstrap_compile(fnl_dir, lua_dir)
     end
     local function _9_()
       local fnl_code = fnl_file:read("*a")
-      local lua_code = compile_string(fnl_code, {correlate = true})
+      local lua_code = compile_string(fnl_code, {filename = fnl_src, correlate = true})
       return lua_file:write(lua_code)
     end
     return close_handlers_8_auto(_G.xpcall(_9_, (package.loaded.fennel or debug).traceback))
