@@ -1,3 +1,4 @@
+assert((1 == vim.fn.has("nvim-0.6")), "Hotpot requires neovim 0.6+")
 local uv = vim.loop
 local function canary_link_path(cache_dir)
   return (cache_dir .. "/canary")

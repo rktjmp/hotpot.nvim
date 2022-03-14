@@ -1,3 +1,5 @@
+(assert (= 1 (vim.fn.has "nvim-0.6")) "Hotpot requires neovim 0.6+")
+
 (local uv vim.loop)
 
 (fn canary-link-path [cache-dir]
