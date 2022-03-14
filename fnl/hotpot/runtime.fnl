@@ -59,4 +59,7 @@
                 (inspect modname entry.path))
               ; (inspect runtime)
               ))
+ :stat (fn []
+         (let [{: fmt} (require :hotpot.common)]
+           (print (fmt "hotpot index profile: %fms" _G.__hotpot_profile_ms))))
  : setup}
