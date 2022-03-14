@@ -56,7 +56,7 @@ run_test_sh() {
   kill_container $container_id
 }
 
-tests="require_hotpot bootstrap require_a_fnl_file"
+tests="require_hotpot bootstrap require_a_fnl_file cache_invalidation"
 for name in $tests; do
   run_test_sh $name
 done
