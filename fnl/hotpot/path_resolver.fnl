@@ -96,7 +96,6 @@
   ;; Lua's modules map from "my.mod" to "my/mod.lua", convert
   ;; the given module name into a "pathable" value, but do not
   ;; add an extension because we will check for both .lua and .fnl
-  ;; TODO WINDOWS
   (let [{: path-separator} (require :hotpot.fs)
         slashed-path (string.gsub dotted-path "%." (path-separator))]
     (or (search-rtp slashed-path)
