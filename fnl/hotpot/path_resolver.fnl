@@ -26,14 +26,15 @@
             (.. "fnl-path did not resolve to real file!"))
 
     ;; where the cache file should be, but path isnt's cleaned up
-    (local want-path (-> real-fnl-path
-                         ((partial join-path (cache-prefix)))
-                         (string.gsub "%.fnl$" ".lua")))
-
-    (local real-path (vim.loop.fs_realpath want-path))
-    (if real-path
-      (values real-path true)
-      (values want-path false))))
+    (let [safe-path (match (= 1 (vim.fn.has "win32"))
+                      ;; cant have C:\cache\C:\path, make it C:\cache\C\path
+                      true (string.gsub real-fnl-path "^(.-):" "%1")
+                      false (values real-fnl-path))
+          want-path (-> (join-path (cache-prefix) safe-path)
+                        (string.gsub "%.fnl$" ".lua"))]
+      (match (vim.loop.fs_realpath want-path)
+        real-path (values real-path true)
+        (nil err) (values want-path false)))))
 
 ;;
 ;; Modname Resolver
