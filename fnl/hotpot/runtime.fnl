@@ -5,11 +5,10 @@
 
 (fn new-runtime []
   (let [{: new-index} (require :hotpot.index)
-        cache-prefix (.. (vim.fn.stdpath :cache) :/hotpot/)
-        index-path (.. cache-prefix :/index.bin)]
+        {: join-path} (require :hotpot.common)
+        index-path (join-path (vim.fn.stdpath :cache) :hotpot :index.bin)]
     (struct :hotpot/runtime
             (attr :installed? false mutable)
-            (attr :compiled-cache-prefix cache-prefix)
             (attr :index (new-index index-path)))))
 
 (tset _G :__hotpot_profile_ms 0)
