@@ -31,7 +31,6 @@
 
 (fn compile-file [fnl-path lua-path options]
   ;; (string, string) :: (true, nil) | (false, errors)
-  ;; TODO: make a nicer check/try/happy macro?
   (pcall (fn []
            (assert (is-fnl-path? fnl-path)
                    (string.format "compile-file fnl-path not fnl file: %q" fnl-path))
@@ -39,16 +38,19 @@
                    (string.format "compile-file lua-path not lua file: %q" lua-path))
            (local fnl-code (read-file! fnl-path))
            (dinfo :compile-file fnl-path lua-path)
-           ; pass on any options to the compiler, but enforce the filename
+           ;; pass on any options to the compiler, but enforce the filename
+           ;; we use the whole fennel file path as that can be a bit clearer.
            (local options (doto (or options {})
                                 (tset :filename fnl-path)))
            (match (compile-string fnl-code options)
-             (true lua-code) (do
-                               ;; TODO normally this is fine if the dir exists
-                               ;;      except if it ends in .  which can happen if
-                               ;;      you're requiring a in-dir file
+             (true lua-code) (let [path-sep (string.sub package.config 1 1)
+                                   filename (-> lua-path
+                                                (string.reverse)
+                                                (string.match (.. "(.-)" path-sep))
+                                                (string.reverse))
+                                   containing-dir (string.gsub lua-path (.. filename "$") "")]
                                (dinfo :compile-file :OK)
-                               (vim.fn.mkdir (string.match lua-path "(.+)/.-%.lua") :p)
+                               (vim.fn.mkdir containing-dir :p)
                                (write-file! lua-path lua-code))
              (false errors) (do
                               (dinfo errors)
