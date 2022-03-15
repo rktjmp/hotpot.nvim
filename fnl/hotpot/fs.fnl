@@ -37,22 +37,10 @@
   (let [{: mtime} (uv.fs_stat path)]
     (values mtime.sec)))
 
-(fn file-stale? [newer older]
-  ;; (string string) :: bool | error (unlikely)
-  ;; TODO use file-mtime
-  (match [(uv.fs_stat newer) (uv.fs_stat older)]
-    [new-stat old-stat] (> new-stat.mtime.sec old-stat.mtime.sec) ;; check
-    [new-stat nil] true ;; no old file, so we are newer by default
-    [nil old-stat] false ;; no new file, so we are older (hard to get here..)
-    [nil nil] (error ;; uuuhhhhhh...
-                     (.. "file-stale? tried to stat two missing files"
-                         (vim.inspect [newer older])))))
-
 {: read-file!
  : write-file!
  : file-exists?
  : file-missing?
- : file-stale?
  : file-mtime
  : is-lua-path?
  : is-fnl-path?}
