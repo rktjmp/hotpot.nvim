@@ -29,12 +29,8 @@
     (let [id (set-mt count prefix)]
       (set prefix (coroutine.yield id)))))
 
-(lambda join-path [head ...]
-  (let [sep (string.sub package.config 1 1)]
-    (accumulate [t head _ part (ipairs [...])]
-                (.. t sep part))))
+
 {:fmt string.format
  : inspect
  : view
- :monotonic-id (coroutine.wrap generate-monotonic-id)
- : join-path}
+ :monotonic-id (coroutine.wrap generate-monotonic-id)}

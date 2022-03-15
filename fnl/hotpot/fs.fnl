@@ -37,10 +37,20 @@
   (let [{: mtime} (uv.fs_stat path)]
     (values mtime.sec)))
 
+;; dont recompute all the time
+(local path-sep (string.match package.config "(.-)\n"))
+(fn path-separator [] (values path-sep))
+
+(lambda join-path [head ...]
+  (accumulate [t head _ part (ipairs [...])]
+              (.. t (path-separator) part)))
+
 {: read-file!
  : write-file!
  : file-exists?
  : file-missing?
  : file-mtime
  : is-lua-path?
- : is-fnl-path?}
+ : is-fnl-path?
+ : join-path
+ : path-separator}

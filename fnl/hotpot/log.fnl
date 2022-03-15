@@ -1,4 +1,7 @@
-(local path (.. (vim.fn.stdpath :cache) :/hotpot.log))
+;; cant require anything in this file
+
+(local path-sep (string.match package.config "(.-)\n"))
+(local path (.. (vim.fn.stdpath :cache) path-sep :hotpot.log))
 (var out-file nil)
 
 (fn open []

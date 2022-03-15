@@ -2,6 +2,7 @@
 (local {:searcher macro-searcher} (require :hotpot.searcher.macro))
 (local {: read-file!
         : write-file!
+        : path-separator
         : is-lua-path?
         : is-fnl-path?} (require :hotpot.fs))
 (local debug-modname "hotpot.compiler")
@@ -43,10 +44,9 @@
            (local options (doto (or options {})
                                 (tset :filename fnl-path)))
            (match (compile-string fnl-code options)
-             (true lua-code) (let [path-sep (string.sub package.config 1 1)
-                                   filename (-> lua-path
+             (true lua-code) (let [filename (-> lua-path
                                                 (string.reverse)
-                                                (string.match (.. "(.-)" path-sep))
+                                                (string.match (.. "(.-)" (path-separator)))
                                                 (string.reverse))
                                    containing-dir (string.gsub lua-path (.. filename "$") "")]
                                (dinfo :compile-file :OK)

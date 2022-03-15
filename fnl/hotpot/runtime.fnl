@@ -5,7 +5,7 @@
 
 (fn new-runtime []
   (let [{: new-index} (require :hotpot.index)
-        {: join-path} (require :hotpot.common)
+        {: join-path} (require :hotpot.fs)
         index-path (join-path (vim.fn.stdpath :cache) :hotpot :index.bin)]
     (struct :hotpot/runtime
             (attr :installed? false mutable)

@@ -5,14 +5,16 @@
 ;;
 
 ;; cache path isn't configurable anyway so this is unparameterised for now
-(local cache-prefix (.. (vim.fn.stdpath :cache) :/hotpot/))
+(fn cache-prefix []
+  (let [{: join-path} (require :hotpot.fs)]
+    (join-path (vim.fn.stdpath :cache) :hotpot)))
 
 (fn fnl-path-to-lua-path [fnl-path]
   ;; (string) :: (string, true) | (string, false)
   ;; Converts given fnl file path into it's cache location
   ;; returns the path, true, if the path could be resolved to a real file via
   ;; fs_realpath or path, false if the file doesn't exist.
-  (let [{: is-fnl-path?} (require :hotpot.fs)]
+  (let [{: is-fnl-path? : join-path} (require :hotpot.fs)]
     (assert (is-fnl-path? fnl-path)
             (.. "path did not end in fnl: " fnl-path))
     ;; We want to resolve symlinks inside vims `pack/**/start` folders back to
@@ -25,7 +27,7 @@
 
     ;; where the cache file should be, but path isnt's cleaned up
     (local want-path (-> real-fnl-path
-                         ((partial .. cache-prefix))
+                         ((partial join-path (cache-prefix)))
                          (string.gsub "%.fnl$" ".lua")))
 
     (local real-path (vim.loop.fs_realpath want-path))
@@ -51,16 +53,15 @@
   ;; exist, someone is providing us with compiled files which may have been
   ;; through any kind of build process and we best not try to
   ;; load the raw fnl (or recompile for no reason).
-  (local paths [(.. :lua/ slashed-path :.lua)
-                (.. :lua/ slashed-path :/init.lua)
-                (.. :fnl/ slashed-path :.fnl)
-                (.. :fnl/ slashed-path :/init.fnl)])
-  (var found nil)
-  (each [_ possible-path (ipairs paths) :until found]
-    (match (vim.api.nvim_get_runtime_file possible-path false)
-      [path] (set found path)
-      _ nil))
-  found)
+  (let [{: join-path} (require :hotpot.fs)
+        paths [(join-path :lua (.. slashed-path :.lua))
+                      (join-path :lua slashed-path :init.lua)
+                      (join-path :fnl (.. slashed-path :.fnl))
+                      (join-path :fnl slashed-path :init.fnl)]]
+    (accumulate [found nil _ possible-path (ipairs paths) :until found]
+                (match (vim.api.nvim_get_runtime_file possible-path false)
+                  [path] (values path)
+                  _ nil))))
 
 (fn search-package-path [slashed-path]
   ;; (string) :: string | nil
@@ -73,6 +74,7 @@
 
     ;; search every template part and return first match or nil
     (var found nil)
+    ;; TODO accumulate
     (each [template (string.gmatch templates "(.-);") :until found]
       ;; actually check for 1 replacement otherwise gsub returns the original
       ;; string uneffected.
@@ -93,12 +95,13 @@
   ;; Lua's modules map from "my.mod" to "my/mod.lua", convert
   ;; the given module name into a "pathable" value, but do not
   ;; add an extension because we will check for both .lua and .fnl
-  (let [slashed-path (string.gsub dotted-path "%." "/")]
+  ;; TODO WINDOWS
+  (let [{: path-separator} (require :hotpot.fs)
+        slashed-path (string.gsub dotted-path "%." (path-separator))]
     (or (search-rtp slashed-path)
         (search-package-path slashed-path)
         (values nil))))
 
-;; TODO: not super into these names...
 {: modname-to-path
  : fnl-path-to-lua-path
- :cache-prefix (fn [] cache-prefix)} ;; fn for interface consistency
+ : cache-prefix}

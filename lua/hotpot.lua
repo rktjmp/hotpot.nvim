@@ -2,10 +2,12 @@
 
  local uv = vim.loop
 
- local function join_path(head, ...) _G.assert((nil ~= head), "Missing argument head on fnl/hotpot.fnl:5")
- local sep = string.sub(package.config, 1, 1)
+
+ local path_sep = string.match(package.config, "(.-)\n")
+ local function path_separator() return path_sep end
+ local function join_path(head, ...) _G.assert((nil ~= head), "Missing argument head on fnl/hotpot.fnl:8")
  local t = head for _, part in ipairs({...}) do
- t = (t .. sep .. part) end return t end
+ t = (t .. path_separator() .. part) end return t end
 
  local function canary_link_path(lua_dir)
  return join_path(lua_dir, "canary") end
@@ -92,8 +94,7 @@
 
  compile_file(in_file, out_file) else end else end end return nil end
 
- do local path_sep = string.sub(package.config, 1, 1)
- local fnl_dir_search_path = join_path(fnl_dir, "?.fnl")
+ do local fnl_dir_search_path = join_path(fnl_dir, "?.fnl")
  local fennel = require("hotpot.fennel")
  local saved = {path = fennel.path, ["macro-path"] = fennel["macro-path"]}
 

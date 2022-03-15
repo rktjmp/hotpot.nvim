@@ -2,10 +2,12 @@
 
 (local uv vim.loop)
 
+;; duplicated out of hotpot.fs because we can't require anything yet
+(local path-sep (string.match package.config "(.-)\n"))
+(fn path-separator [] (values path-sep))
 (lambda join-path [head ...]
-  (let [sep (string.sub package.config 1 1)]
-    (accumulate [t head _ part (ipairs [...])]
-                (.. t sep part))))
+  (accumulate [t head _ part (ipairs [...])]
+              (.. t (path-separator) part)))
 
 (fn canary-link-path [lua-dir]
   (join-path lua-dir :canary))
@@ -92,8 +94,7 @@
                            (= name :hotpot.fnl)))
               (compile-file in-file out-file)))))))
 
-  (let [path-sep (string.sub package.config 1 1)
-        fnl-dir-search-path (join-path fnl-dir "?.fnl")
+  (let [fnl-dir-search-path (join-path fnl-dir "?.fnl")
         fennel (require :hotpot.fennel)
         saved {:path fennel.path :macro-path fennel.macro-path}]
     ;; let fennel find hotpots source, compile to cache, then load
