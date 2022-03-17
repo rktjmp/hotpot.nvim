@@ -16,6 +16,8 @@
 
 ;; clear-cache-for-fnl-file
 (fn clear-cache-for-fnl-file [fnl-path]
+  "Clear compiled lua cache file that mirrors given fennel source file, does
+  _not_ clear index entry, instead use clear-cache-for-module"
   ;; (string) :: true | (false errors)
   (expect (= :string (type fnl-path))
           "clear-cache-for-fnl-file: must be given string, got: %q"
@@ -35,15 +37,21 @@
 
 ;; clear-cache-for-module
 (fn clear-cache-for-module [modname]
+  "Clear compiled lua cache file for given module name, also clears index entry"
   ;; (string) :: true | (false errors)
-  (expect (= :string (type modname)
-            "clear-cache-for-module: must provide modname, got %q" modname))
+  (expect (= :string (type modname))
+            "clear-cache-for-module: must provide modname, got %q" modname)
   (let [{: modname-to-path} (require :hotpot.path_resolver)
+        {: current-runtime} (require :hotpot.runtime)
+        {: index} (current-runtime)
+        {: clear-record} (require :hotpot.index)
         path (modname-to-path modname)
         _ (expect path "clear-cache-for-module: could not find file for %q" modname)]
+    (clear-record index modname)
     (clear-cache-for-fnl-file path)))
 
 (fn clear-cache []
+  "Clear all lua cache files and bytecode index"
   ;; () :: true
   (fn clear-dir [dir]
     (let [scanner (uv.fs_scandir dir)
@@ -57,7 +65,8 @@
           "link" (uv.fs_unlink (join-path dir name))
           "file" (uv.fs_unlink (join-path dir name))))))
   (let [{: cache-prefix} (require :hotpot.path_resolver)
-        _ (expect (and (cache-prefix) (not (= "" (cache-prefix))))
+        prefix (cache-prefix)
+        _ (expect (and prefix (not (= "" prefix)))
                   "cache-prefix was nil or blank, refusing to continue")
         message (.. "Remove all files under: " prefix)
         options "NO\nYes"]
@@ -68,6 +77,7 @@
       2 (clear-dir prefix))))
 
 (fn cache-path-for-fnl-file [fnl-path]
+  "Get on-disk path to compiled lua that mirrors given fennel source file"
   ;; (string) :: string
   ;; path must be absolute
   (let [{: is-fnl-path?}  (require :hotpot.fs)
@@ -82,6 +92,7 @@
       (_ false) nil)))
 
 (fn cache-path-for-module [modname]
+  "Get on-disk path to compiled lua for given module name"
   ;; (string) :: string
   (expect (= :string (type modname))
           modname "cache-path-for-module: modname must be string, got %q")
