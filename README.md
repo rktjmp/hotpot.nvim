@@ -153,9 +153,17 @@ See `h: hotpot-setup` for more details.
 require("hotpot").setup({
   provide_require_fennel = false, -- (require "fennel") -> hotpot.fennel
   compiler = {
-    modules = {}, -- options passed to fennel.compile for modules
-    macros = { -- options passed to fennel.compile for macros
-      env = "_COMPILER"
+
+    -- options passed to fennel.compile for modules, defaults to {}
+    modules = {
+      -- not default but recommended, align lua lines with fnl source
+      -- for more debuggable errors. See fennel docs.
+      -- correlate = true
+    },
+
+    -- options passed to fennel.compile for macros, defaults as shown
+    macros = {
+      env = "_COMPILER" -- MUST be set along with any other options
     }
   }
 })

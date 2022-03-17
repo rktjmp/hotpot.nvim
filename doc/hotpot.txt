@@ -122,9 +122,15 @@ You do not have to call setup unless you are altering a default option.
   require("hotpot").setup({
     provide_require_fennel = false, -- (require "fennel") -> hotpot.fennel
     compiler = {
-      modules = {}, -- options passed to fennel.compile for modules
-      macros = { -- options passed to fennel.compile for macros
-        env = "_COMPILER"
+      -- options passed to fennel.compile for modules, defaults to {}
+      modules = {
+        -- not default but recommended, align lua lines with fnl source
+        -- for more debuggable errors.
+        -- correlate = true
+      },
+      -- options passed to fennel.compile for macros, defaults as shown
+      macros = {
+        env = "_COMPILER" -- MUST be set along with any other options
       }
     }
   })
@@ -473,7 +479,7 @@ Returns
 
 `(clear-cache) -> true`
 
-Removes all files in Hotpot's cache.
+Removes all files in Hotpot's cache, including the bytecode index.
 
 Accepts
 
