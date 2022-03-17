@@ -483,6 +483,20 @@ Returns
 
   - `true`
 
+----------------------------------------------------------- *hotpot-cache-prefix*
+
+`(cache-prefix) -> string`
+
+Get path to root of on-disk compiled lua cache folder.
+
+Accepts
+
+  - `none`
+
+Returns
+
+  - `string` path to cache root
+
 ===================================================================== *hotpot-log*
 
 Log Functions ~
