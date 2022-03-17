@@ -25,7 +25,7 @@
     (assert real-fnl-path
             (.. "fnl-path did not resolve to real file!"))
 
-    ;; where the cache file should be, but path isnt's cleaned up
+    ;; where the cache file should be, but path isnt cleaned up
     (let [safe-path (match (= 1 (vim.fn.has "win32"))
                       ;; cant have C:\cache\C:\path, make it C:\cache\C\path
                       true (string.gsub real-fnl-path "^(.-):" "%1")
