@@ -26,7 +26,7 @@
                                     mpack vim.mpack
                                     {: version : data} (mpack.decode bytes)]
                                 (values data)))))
-    (true index) (values index)
+    (true records) (values records)
     (false err) (values {})))
 
 
@@ -83,7 +83,7 @@
 (tset _G :__hotpot_profile_ms 0)
 (fn new-indexed-searcher-fn [index]
   "Primary interface to the index. Will return a cached loader, a fresh loader
-  (after inserting into the cache) or (nil Postgraphileerr) as per lua's loader specs."
+  (after inserting into the cache) or (nil err) as per lua's loader specs."
   (fn [modname]
     (let [uv vim.loop
           a (uv.hrtime)
@@ -95,9 +95,14 @@
       (tset _G :__hotpot_profile_ms (+ _G.__hotpot_profile_ms ms))
       (values l))))
 
+(fn clear-record [index modname]
+  (tset index.modules modname nil))
+
 (fn new-index [path]
   (struct :hotpot/index
           (attr :path path)
-          (attr :modules (hydrate-records path) {})))
+          (attr :modules (hydrate-records path))))
 
-{: new-index : new-indexed-searcher-fn}
+{: new-index
+ : new-indexed-searcher-fn
+ : clear-record}
