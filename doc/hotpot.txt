@@ -150,8 +150,8 @@ Be sure to include `env = "_COMPILER"` unless you have a good reason not to.
 Note: the `filename` compilation option is always set to the appropriate value
       and can not be altered via the setup interface.
 
-Note: the `modules` and `macros` tables *replace* the defaults when given,
-      they are *not* merged. Include all options you wish to pass to the
+Note: the `modules` and `macros` tables _replace_ the defaults when given,
+      they are _not_ merged. Include all options you wish to pass to the
       compiler!
 
 Note: the `compiler` options are not currently passed to any `api.compile`
@@ -308,7 +308,7 @@ module.
 
 Every `compile-*` function returns `true, luacode` or `false, errors` .
 
-Note: The compiled code is *not* saved anywhere, nor is it placed in Hotpot's
+Note: The compiled code is _not_ saved anywhere, nor is it placed in Hotpot's
       cache. To compile into cache, use `require("modname")`.
 
 ---------------------------------------------------------- *hotpot-compile-string*
@@ -600,7 +600,7 @@ proceeding motion.
 
 Other Functions ~
 
-*Provisionally spec'd API, consider unstable*
+_Provisionally spec'd API, consider unstable_
 
 Access to Fennel, available under the `hotpot.api.fennel` module:
 
