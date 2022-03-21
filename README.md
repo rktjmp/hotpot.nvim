@@ -51,7 +51,6 @@ API](#using-the-api) for some example keymaps.
 - [Using the API](#using-the-api)
 - [How does Hotpot work?](#how-does-hotpot-work)
 - [See Also](#see-also)
-- [FAQ & Trouble Shooting](#faq--trouble-shooting)
 
 ## Requirements
 
@@ -324,13 +323,12 @@ detected and reloaded into the cache.
 
 The module loader will find and load lua (or fennel) modules. First it will
 search the `index` and then Neovims runtime path for source files that match
-the requested module name.
+the requested module name. If a source file is found, it is compiled to lua
+(if needed), then the bytecode is saved to the `index`, then the module is
+returned to the user.
 
-If a source file is found, it is compiled to lua (if needed), then the
-bytecode is saved to the `index`, then the module is returned to the user.
-
-Given `require("my.module")` Hotpot will check the following locations, in
-order, and return the first match.
+As an examlpe, given `require("my.module")` Hotpot will check the following
+locations, in order, and return the first match.
 
 - `index`
 - `$RUNTIMEPATH/lua/my/module.lua`
