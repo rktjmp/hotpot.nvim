@@ -14,8 +14,8 @@
 
                               ~ Fennel Programmers (probably)
 
-Hotpot is a in-process, transparent, global, on-demand Fennel compiler. It
-aims remove all barriers to using Fennel in Neovim.
+Hotpot is a transparent, on-demand Fennel compiler. It aims remove all barriers
+to using Fennel in Neovim.
 
 ===================================================================== *hotpot-toc*
 
@@ -60,10 +60,11 @@ How Hotpot Works......................................................|hotpot-ho
 
 Purpose ~
 
-Hotpot intends to provides a set of low level tools for interacting with Fennel
-code in Neovim (see |hotpot-api|). It has functions to compile and evaluate
-Fennel code, but provides no keymaps to run those functions, or methods of
-displaying the output.
+Hotpot intends to provide a minimal-setup, unobtrusive fennel compiler, as
+well as a set of low level tools for interacting with Fennel code in Neovim
+(see |hotpot-api|). It has functions to compile and evaluate Fennel code, but
+provides no keymaps to run those functions, or methods of displaying the
+output.
 
 Hotpot provides all the tools to build a Fennel REPL but does not provide one.
 
@@ -120,12 +121,12 @@ Hotpot accepts the following configuration options, with defaults as shown.
 You do not have to call setup unless you are altering a default option.
 >
   require("hotpot").setup({
-    provide_require_fennel = false, -- (require "fennel") -> hotpot.fennel
+    provide_require_fennel = false,
     compiler = {
       -- options passed to fennel.compile for modules, defaults to {}
       modules = {
         -- not default but recommended, align lua lines with fnl source
-        -- for more debuggable errors.
+        -- for more debuggable errors, but less readable lua.
         -- correlate = true
       },
       -- options passed to fennel.compile for macros, defaults as shown
@@ -136,9 +137,9 @@ You do not have to call setup unless you are altering a default option.
   })
 
 `provide_require_fennel` inserts a `package.preload` function that will load
-Hotpot's copy of fennel when you call `require("fennel")`. This can be useful
-for ergonomics or for compatility with libraries that expect Fennel to be in
-package.path.
+Hotpot's copy of fennel when you call `(require :fennel)`. This can be useful
+for ergonomics or for compatibility with libraries that expect Fennel to be in
+`package.path`.
 
 `compiler.modules` is passed to the Fennel compiler when compiling regular
 module files.
@@ -149,13 +150,14 @@ Be sure to include `env = "_COMPILER"` unless you have a good reason not to.
 Note: the `filename` compilation option is always set to the appropriate value
       and can not be altered via the setup interface.
 
-Note: the `modules` and `macros` tables **replace** the defaults when given,
-they are **not** merged. Include all options you wish to pass to the compiler!
+Note: the `modules` and `macros` tables *replace* the defaults when given,
+      they are *not* merged. Include all options you wish to pass to the
+      compiler!
 
 Note: the `compiler` options are not currently passed to any `api.compile`
-      functions and are only applied to Hotpots internal/automatic compilation.
-      If you have use for passing options to `api.compile` please open an
-      issue.
+      functions and are only applied to Hotpots internal/automatic
+      compilation. If you have use for passing options to `api.compile` please
+      open an issue.
 
 For a complete list of compiler options, see http://fennel-lang.org,
 specifically the API usage section.
@@ -306,7 +308,7 @@ module.
 
 Every `compile-*` function returns `true, luacode` or `false, errors` .
 
-Note: The compiled code is /not/ saved anywhere, nor is it placed in Hotpot's
+Note: The compiled code is *not* saved anywhere, nor is it placed in Hotpot's
       cache. To compile into cache, use `require("modname")`.
 
 ---------------------------------------------------------- *hotpot-compile-string*
@@ -405,9 +407,10 @@ The following functions can interact with Hotpot's cache.
 
 You can manually interact with the cache at `~/.cache/nvim/hotpot`.
 
-Hotpot will automatically refresh when required, but note: removing the cache
-file is not enough to force recompilation in a running session. The loaded
-module must be removed from Lua's `package.loaded` table, then re-required.
+The cache will automatically refresh when required, but note: removing the
+cache file is not enough to force recompilation in a running session. The
+loaded module must be removed from Lua's `package.loaded` table, then
+re-required.
 >
   (tset package.loaded :my_module nil) ;; Does NOT unload my_module.child
 
@@ -450,7 +453,8 @@ Returns
 
 `(clear-cache-for-fnl-file path) -> true`
 
-Removes corresponding `.lua` file for `.fnl` file if it exists.
+Removes corresponding `.lua` file for `.fnl` file if it exists. Does not clear
+index record.
 
 Accepts
 
@@ -465,7 +469,8 @@ Returns
 
 `(clear-cache-for-module modname) -> true`
 
-Removes corresponding `.lua` file for `modname` if it exists.
+Removes corresponding `.lua` file for `modname` if it exists. Will clear index
+record.
 
 Accepts
 
@@ -606,27 +611,41 @@ Access to Fennel, available under the `hotpot.api.fennel` module:
 
 How Hotpot Works ~
 
-Hotpot prepends itself onto Lua's module finder. It has a specific load order,
-that mirrors Neovims native process.
+Hotpot has three main systems, the lua cache, the bytecode cache and the
+module loader.
+
+The lua cache contains our compiled fennel code. When requiring a fennel
+module, we must first compile that fennel code into lua, then save the result
+to disk. This allows the user to easily view the result of the compilation for
+debugging. See |hotpot-cache|.
+
+The bytecode cache is a special file (normally called the `index`), loaded
+into memory when Neovim starts. It contains the machine readable code for
+every module that Neovim has previously loaded. By caching modules in-memory
+and in a machine readable format, we can find and resolve modules very quickly
+as most of the "heavy lifting" is already done. By maintaining a bytecode
+cache we can achieve up to 15x speed improvements.
+
+The bytecode cache contains information about when the cache was created for
+each module, so any modifications made to the original source files can be
+detected and reloaded into the cache.
+
+The module loader will find and load lua (or fennel) modules. First it will
+search the `index` and then Neovims runtime path for source files that match
+the requested module name.
+
+If a source file is found, it is compiled to lua (if needed), then the
+bytecode is saved to the `index`, then the module is returned to the user.
 
 Given `require("my.module")` Hotpot will check the following locations, in
 order, and return the first match.
 
+- `index`
 - `$RUNTIMEPATH/lua/my/module.lua`
 - `$RUNTIMEPATH/lua/my/module/init.lua`
 - `$RUNTIMEPATH/fnl/my/module.fnl`
 - `$RUNTIMEPATH/fnl/my/module/init.fnl`
 - `package.path/my/module.fnl`
 
-You can see that it will preference `.lua` files over `.fnl`, if they exist.
-
-If a `.fnl` file is found, it will check whether there is a matching `.lua`
-file in cache. Hotpot will transparently compile the Fennel into Lua if needed
-(when the file is missing, or is stale). Finally it loads and returns the Lua
-module.
-
-The compiled `.lua` files are stored in Neovims cache directory, under the
-`hotpot` subdirectory. You will not see the compiled artefacts among your
-`.fnl` files or in any `.lua` directory.
-
-You can find your cache directory by running `:echo stdpath("cache)"`.
+You can see that it will preference a bytecode cache, then `.lua` files over
+`.fnl`, if they exist.
