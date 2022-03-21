@@ -105,10 +105,13 @@
                   modname path)]
     (cache-path-for-fnl-file path)))
 
+(fn cache-prefix []
+  (let [pr (require :hotpot.path_resolver)]
+    (pr.cache-prefix)))
+
 {: cache-path-for-fnl-file
  : cache-path-for-module
  : clear-cache-for-fnl-file
  : clear-cache-for-module
  : clear-cache
- :cache-prefix #(let [{: cache-prefix} (require :hotpot.path_resolver)]
-                  (cache-prefix))}
+ : cache-prefix}
