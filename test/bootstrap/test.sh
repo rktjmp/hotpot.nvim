@@ -8,7 +8,7 @@ cat <<EOF | assert "ships with a canary"
 EOF
 
 cat <<EOF | assert "links the canary to the install on first compile"
-  /test/nvim.sh bootstrap || fail "coult not require bootstrap.test.lua"
+  /test/nvim.sh "lua require('bootstrap.test')" || fail "could not require bootstrap.test.lua"
   if [[ ! -f /hotpot/lua/canary ]]; then
     ls -la /hotpot/lua/ >> /run.log
     fail "no link created"

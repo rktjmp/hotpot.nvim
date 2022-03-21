@@ -4,7 +4,7 @@
 cp $2/my_file.fnl /config/fnl/my_file.fnl
 
 cat <<EOF | assert "can import a fennel file without crashing"
-  /test/nvim.sh $1 || fail "could not import fennel file"
+  /test/nvim.sh "lua require('require_a_fnl_file.test')" || fail "could not import fennel file"
 EOF
 
 cat <<EOF | assert "imported file is in cache"
