@@ -298,7 +298,8 @@ You can extend this to show results in floating windows, new splits, send via a
 HTTP post, pipe to `/dev/null`, etc.
 
 To implement these keymaps in Fennel, the [`pug` and
-`vlua` helpers](https://github.com/rktjmp/hotpot.nvim/discussions/6) listed on the discussion boards may be useful.
+`vlua` helpers](https://github.com/rktjmp/hotpot.nvim/discussions/6) listed on
+the discussion boards may be useful.
 
 ## How does Hotpot work?
 
