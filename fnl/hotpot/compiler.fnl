@@ -1,4 +1,4 @@
-(import-macros {: expect : struct : require-fennel : dinfo} :hotpot.macros)
+(import-macros {: expect : struct : require-fennel} :hotpot.macros)
 (local debug-modname "hotpot.compiler")
 
 ;; we only want to inject the macro searcher once, but we also
@@ -46,12 +46,9 @@
                                            (string.match (.. "(.-)" (path-separator)))
                                            (string.reverse))
                               containing-dir (string.gsub lua-path (.. filename "$") "")]
-                          (dinfo :compile-file :OK)
                           (vim.fn.mkdir containing-dir :p)
                           (write-file! lua-path lua-code))
-        (false errors) (do
-                         (dinfo errors)
-                         (error errors)))))
+        (false errors) (error errors))))
   (pcall do-compile))
 
 {: compile-string

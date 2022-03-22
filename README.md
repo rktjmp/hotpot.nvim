@@ -194,14 +194,6 @@ Available in the `hotpot.api.cache` module.
 - `(clear-cache) -> true`
 - `(cache-prefix) -> path`
 
-**Log Functions**
-
-Access Hotpot's log file.
-
-Available in the `hotpot.api.log` module.
-
-- `(log-path) -> path`
-
 **Commands**
 
 Commands to run snippets of Fennel, similar to Neovim's `:lua` et al commands.

@@ -1,4 +1,4 @@
-(import-macros {: require-fennel : dinfo : expect : struct} :hotpot.macros)
+(import-macros {: require-fennel : expect : struct} :hotpot.macros)
 (local debug-modname "hotpot")
 
 (var runtime nil)
@@ -29,12 +29,6 @@
 (fn install []
   (when (not runtime)
     (set runtime (new-runtime))
-    ;; it's actually pretty important we have debugging message
-    ;; before we get into the searcher otherwise we get a recursive
-    ;; loop because dinfo has a require call in itself.
-    ;; TODO probably installing the logger here and accessing
-    ;;      it via that in dinfo would fix that.
-    (dinfo "Installing Hotpot into searchers")
     (let [{: new-indexed-searcher-fn} (require :hotpot.index)]
       (table.insert package.loaders 1 (new-indexed-searcher-fn runtime.index)))))
 

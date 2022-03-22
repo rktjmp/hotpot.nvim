@@ -41,8 +41,6 @@ Cache Functions.....................................................|hotpot-cach
   clear-cache-for-fnl-file.......................|hotpot-clear-cache-for-fnl-file|
   clear-cache-for-module...........................|hotpot-clear-cache-for-module|
   clear-cache.................................................|hotpot-clear-cache|
-Log Functions.........................................................|hotpot-log|
-  log-path.......................................................|hotpot-log-path|
 Commands.........................................................|hotpot-commands|
   :Fnl........................................................|hotpot-command-fnl|
   :Fnldo....................................................|hotpot-command-fnldo|
@@ -505,30 +503,6 @@ Accepts
 Returns
 
   - `string` path to cache root
-
-===================================================================== *hotpot-log*
-
-Log Functions ~
-
-Available in the `hotpot.api.log` module.
-
-The following functions are helpers to access Hotpot's log file.
-
-You can manually open the log at `~/.cache/nvim/hotpot.log`.
-
----------------------------------------------------------------- *hotpot-log-path*
-
-`(log-path) -> path`
-
-Get Hotpot's log file path
-
-Accepts
-
-  - `nil`
-
-Returns
-
-  - `string` path to log file
 
 ================================================================ *hotpot-commands*
 
