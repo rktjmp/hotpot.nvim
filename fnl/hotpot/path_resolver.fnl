@@ -74,25 +74,20 @@
   ;; (string) :: string | nil
   ;; Iterate through templates, injecting path where appropriate,
   ;; returns full path if a file exists or nil
-
-  (let [{: file-exists?} (require :hotpot.fs)]
-    ;; append ; so regex is simpler
-    (local templates (.. package.path ";"))
-
+  (let [{: file-exists?} (require :hotpot.fs)
+        ;; append ; so regex is simpler
+        templates (.. package.path ";")]
     ;; search every template part and return first match or nil
-    (var found nil)
-    ;; TODO accumulate
-    (each [template (string.gmatch templates "(.-);") :until found]
-      ;; actually check for 1 replacement otherwise gsub returns the original
-      ;; string uneffected.
-      ;; path strings are something like some/path/?.lua but we want to find .fnl
-      ;; files, so swap the extension.
-      (local full-path (match (string.gsub template "%?" slashed-path)
-                         (updated 1) (string.gsub updated "%.lua" ".fnl")
-                         _  nil))
-      (if (and full-path (file-exists? full-path))
-        (set found full-path)))
-    (values found)))
+    (accumulate [found nil template (string.gmatch templates "(.-);") :until found]
+                ;; actually check for 1 replacement otherwise gsub returns the original
+                ;; string uneffected.
+                ;; path strings are something like some/path/?.lua but we want to find .fnl
+                ;; files, so swap the extension.
+                (let [full-path (match (string.gsub template "%?" slashed-path)
+                                   (updated 1) (string.gsub updated "%.lua" ".fnl")
+                                   _  nil)]
+                  (if (and full-path (file-exists? full-path))
+                    (values full-path))))))
 
 (fn modname-to-path [dotted-path]
   ;; (string) :: string | nil
