@@ -8,7 +8,6 @@
         {: join-path} (require :hotpot.fs)
         index-path (join-path (vim.fn.stdpath :cache) :hotpot :index.bin)]
     (struct :hotpot/runtime
-            (attr :installed? false mutable)
             (attr :index (new-index index-path)))))
 
 (tset _G :__hotpot_profile_ms 0)
@@ -28,7 +27,7 @@
           (values loader))))
 
 (fn install []
-  (when (or (not runtime) (not runtime.installed?))
+  (when (not runtime)
     (set runtime (new-runtime))
     ;; it's actually pretty important we have debugging message
     ;; before we get into the searcher otherwise we get a recursive
@@ -37,19 +36,18 @@
     ;;      it via that in dinfo would fix that.
     (dinfo "Installing Hotpot into searchers")
     (let [{: new-indexed-searcher-fn} (require :hotpot.index)]
-      (table.insert package.loaders 1 (new-indexed-searcher-fn runtime.index)))
-    (tset runtime :installed? true)))
+      (table.insert package.loaders 1 (new-indexed-searcher-fn runtime.index)))))
 
 (fn provide-require-fennel []
   (tset package.preload :fennel #(require :hotpot.fennel)))
 
 (fn setup [options]
-  (local config (require :hotpot.config))
-  (config.set-user-options (or options {}))
-  (if (config.get-option :provide_require_fennel)
-    (provide-require-fennel))
-  ; dont leak any return value
-  (values nil))
+  (let [config (require :hotpot.config)]
+    (config.set-user-options (or options {}))
+    (if (config.get-option :provide_require_fennel)
+      (provide-require-fennel))
+    ; dont leak any return value
+    (values nil)))
 
 {: install ;; install searcher
  :inspect (fn []
