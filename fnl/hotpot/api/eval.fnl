@@ -30,9 +30,9 @@
 
 (fn eval-module [modname]
   (assert modname "eval-module: must provide modname")
-  (let [{: modname-to-path} (require :hotpot.path_resolver)
+  (let [{: searcher} (require :hotpot.searcher.source)
         {: is-fnl-path?} (require :hotpot.fs)
-        path (modname-to-path modname)]
+        path (searcher modname)]
     (assert path (string.format "eval-modname: could not find file for module %s"
                                 modname))
     (assert (is-fnl-path? path)

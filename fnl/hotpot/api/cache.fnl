@@ -5,6 +5,13 @@
 ;; Tools to interact with Hotpot's cache
 ;;
 
+(fn cache-prefix []
+  ;; cache path isn't configurable anyway so this is unparameterised for now
+  ;; TODO shift this into config and get from that (or maybe runtime)
+  (let [{: join-path} (require :hotpot.fs)]
+    (join-path (vim.fn.stdpath :cache) :hotpot)))
+
+
 (fn confirm-remove [path]
   (let [message (.. "Remove file? " path)
         opts "NO\nYes"]
@@ -41,11 +48,11 @@
   ;; (string) :: true | (false errors)
   (expect (= :string (type modname))
             "clear-cache-for-module: must provide modname, got %q" modname)
-  (let [{: modname-to-path} (require :hotpot.path_resolver)
+  (let [{: searcher} (require :hotpot.searcher.source)
         {: current-runtime} (require :hotpot.runtime)
         {: index} (current-runtime)
         {: clear-record} (require :hotpot.index)
-        path (modname-to-path modname)
+        path (searcher modname)
         _ (expect path "clear-cache-for-module: could not find file for %q" modname)]
     (clear-record index modname)
     (clear-cache-for-fnl-file path)))
@@ -64,8 +71,7 @@
                         (uv.fs_rmdir child))
           "link" (uv.fs_unlink (join-path dir name))
           "file" (uv.fs_unlink (join-path dir name))))))
-  (let [{: cache-prefix} (require :hotpot.path_resolver)
-        prefix (cache-prefix)
+  (let [prefix (cache-prefix)
         _ (expect (and prefix (not (= "" prefix)))
                   "cache-prefix was nil or blank, refusing to continue")
         message (.. "Remove all files under: " prefix)
@@ -96,18 +102,14 @@
   ;; (string) :: string
   (expect (= :string (type modname))
           modname "cache-path-for-module: modname must be string, got %q")
-  (let [{: modname-to-path} (require :hotpot.path_resolver)
+  (let [{: searcher} (require :hotpot.searcher.source)
         {: is-fnl-path?} (require :hotpot.fs)
-        path (modname-to-path modname)
+        path (searcher modname)
         _ (expect path "cache-path-for-module: could not find file for %q" modname)
         _ (expect (is-fnl-path? path)
                   "cache-path-for-module: did not resolve to .fnl file: %q %q"
                   modname path)]
     (cache-path-for-fnl-file path)))
-
-(fn cache-prefix []
-  (let [pr (require :hotpot.path_resolver)]
-    (pr.cache-prefix)))
 
 {: cache-path-for-fnl-file
  : cache-path-for-module

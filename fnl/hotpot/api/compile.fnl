@@ -42,8 +42,8 @@
   ;; (string) :: (true luacode) | (false errors)
   (expect (= :string (type modname)) "compile-module: must provide modname")
   (let [{: is-fnl-path?} (require :hotpot.fs)
-        {: modname-to-path} (require :hotpot.path_resolver)
-        path (modname-to-path modname)]
+        {: searcher} (require :hotpot.searcher.source)
+        path (searcher modname)]
     (expect path "compile-modname: could not find file for %s" modname)
     (expect (is-fnl-path? path) "compile-modname: did not resolve to .fnl file: %s %s" modname path)
     (compile-file path)))
