@@ -29,7 +29,7 @@
         ;; later, when a module needs a macro, we will know what file the
         ;; macro came from and can then track the macro file for changes
         ;; when refreshing the cache.
-        (dep_map.set-macro-mod-path modname path)
+        (dep_map.set-macro-modname-path modname path)
         (fennel.eval code options modname)))))
 
 (fn create-loader [modname path]
