@@ -1,5 +1,4 @@
 (import-macros {: expect : struct} :hotpot.macros)
-(local debug-modname "hotpot.compiler")
 
 ;; we only want to inject the macro searcher once, but we also
 ;; only want to do it on demand since this front end to the compiler
