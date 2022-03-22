@@ -18,17 +18,18 @@
      :loader (string.dump loader)}))
 
 (fn hydrate-records [path]
-  ;; TODO: split this check up into file exist and decode failed errors
-  ;; file missing is sometimes expected, just recreate, decode error needs delete
   (match (pcall #(with-open [fin (io.open path)]
                             (when fin
                               (let [bytes (fin:read :*a)
                                     mpack vim.mpack
                                     {: version : data} (mpack.decode bytes)]
                                 (values data)))))
+    ;; load was fine, return records
     (true records) (values records)
+    ;; load failed, this could be due to a missing index or corrupted index,
+    ;; either way we can just return a empty map and let the next module load
+    ;; save a new clean index file.
     (false err) (values {})))
-
 
 (fn dehydrate-records [index]
   "Write index.modules to index.path"
