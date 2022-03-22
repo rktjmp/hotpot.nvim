@@ -9,6 +9,7 @@
     (view ...)))
 
 (fn generate-monotonic-id [fix]
+  "Generate an always increasing id value"
   (fn set-mt [id ?prefix]
     (let [fmt string.format
           t {: id}
@@ -28,7 +29,6 @@
     (set count (+ count 1))
     (let [id (set-mt count prefix)]
       (set prefix (coroutine.yield id)))))
-
 
 {:fmt string.format
  : inspect
