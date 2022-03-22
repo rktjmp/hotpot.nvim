@@ -23,6 +23,10 @@
            err# (string.format "%s [failed: %s]" ,message failed-what#)]
        (error (string.format err# ,...)))))
 
+(fn pinspect [...]
+  `(let [{:inspect inspect#} (require :hotpot.common)]
+     (inspect# ,...)))
+
 (fn struct [is-a ...]
   "(struct :my/struct (attr name :my-name mutable show)) ;; can tset, will appear in tostring"
   (let [processed (icollect [_ attr (ipairs [...])]
@@ -71,5 +75,6 @@
 {: require-fennel
  : dinfo
  : expect
+ : pinspect
  : struct
  : profile-as}
