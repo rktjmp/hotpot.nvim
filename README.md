@@ -333,7 +333,8 @@ locations, in order, and return the first match.
 - `$RUNTIMEPATH/lua/my/module/init.lua`
 - `$RUNTIMEPATH/fnl/my/module.fnl`
 - `$RUNTIMEPATH/fnl/my/module/init.fnl`
-- `package.path/my/module.fnl`
+- `<package.path>/my/module.lua`
+- `<package.path>/my/module.fnl`
 
 You can see that it will preference a bytecode cache, then `.lua` files over
 `.fnl`, if they exist.
