@@ -1,6 +1,3 @@
-(fn require-fennel []
-  `(require :hotpot.fennel))
-
 ; (fn profile-as [name ...]
 ;   `(let [name# ,name
 ;          ta# (_G.vim.loop.hrtime)
@@ -9,7 +6,6 @@
 ;      (
 ;        (.. "<profile> " name# " " (/ (- tb# ta#) 1_000_000) "ms"))
 ;      r#))
-
 (fn profile-as [name ...] `,...)
 
 (fn expect [assertion message ...]
@@ -67,8 +63,7 @@
                               (tset context# key# val#))}]
        (setmetatable {} mt#))))
 
-{: require-fennel
- : expect
+{: expect
  : pinspect
  : struct
  : profile-as}

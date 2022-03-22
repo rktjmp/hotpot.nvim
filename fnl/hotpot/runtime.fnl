@@ -1,4 +1,4 @@
-(import-macros {: require-fennel : expect : struct} :hotpot.macros)
+(import-macros {: expect : struct} :hotpot.macros)
 (local debug-modname "hotpot")
 
 (var runtime nil)

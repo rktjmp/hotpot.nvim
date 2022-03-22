@@ -1,3 +1,1 @@
-(import-macros {: require-fennel} :hotpot.macros)
-
-{:latest (fn [] (require-fennel))}
+{:latest (fn [] (require :hotpot.fennel))}
