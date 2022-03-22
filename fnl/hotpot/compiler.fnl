@@ -25,6 +25,11 @@
 
 (fn compile-file [fnl-path lua-path options]
   ;; (string, string) :: (true, nil) | (false, errors)
+  (fn check-existing [path]
+    (let [uv vim.loop
+          {: type} (or (uv.fs_stat path) {})]
+      (expect (or (= :file type) (= nil type))
+              "Refusing to write to %q, it exists as a %s" path type)))
   (fn do-compile []
     (let [{: read-file!
            : write-file!
@@ -43,7 +48,12 @@
                                            (string.reverse)
                                            (string.match (.. "(.-)" (path-separator)))
                                            (string.reverse))
-                              containing-dir (string.gsub lua-path (.. filename "$") "")]
+                              chop (-> filename
+                                       (length)
+                                       (+ 1)
+                                       (* -1))
+                              containing-dir (string.sub lua-path 1 chop)]
+                          (check-existing lua-path)
                           (vim.fn.mkdir containing-dir :p)
                           (write-file! lua-path lua-code))
         (false errors) (error errors))))
