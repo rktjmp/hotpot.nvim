@@ -1,70 +1,48 @@
+;; Preflight checks
 (assert (= 1 (vim.fn.has "nvim-0.6")) "Hotpot requires neovim 0.6+")
-
 (local uv vim.loop)
 
 ;; duplicated out of hotpot.fs because we can't require anything yet
-(local path-sep (string.match package.config "(.-)\n"))
-(fn path-separator [] (values path-sep))
+(local path-separator (string.match package.config "(.-)\n"))
 (lambda join-path [head ...]
   (accumulate [t head _ part (ipairs [...])]
-              (.. t (path-separator) part)))
+              (.. t path-separator part)))
 
-(fn canary-link-path [lua-dir]
-  (join-path lua-dir :canary))
+(fn new-canary [hotpot-dir]
+  ;; represents both ends of the "canary", which lets hotpot know when it has
+  ;; to rebuild. repo-canary is the repo "true" canary, build-canary is made
+  ;; after compiliation and symlinks to the repo canary that was present at
+  ;; that time.
+  (let [repo-canary (let [canary-folder (join-path hotpot-dir :canary)
+                           handle (uv.fs_opendir canary-folder nil 1)
+                           files (uv.fs_readdir handle)
+                           _ (uv.fs_closedir handle)
+                           [{: name}] files]
+                       (join-path canary-folder name))
+        build-canary (join-path hotpot-dir :lua :canary)]
+    {: repo-canary
+     : build-canary}))
 
-(fn canary-valid? [canary-link-dir]
-  ;; Hotpot will create a symlink from cache/hotpot/canary to
-  ;; hotpot-clone/canary/<sha>. When hotpot is updated, the sha file will
-  ;; disappear (replaced with a new sha file), which will break the symlink.
-  ;;
-  ;; By trying to get the symlink real path, we can tell if hotpot has been
-  ;; updated and needs to recompiled.
-  (match (uv.fs_realpath (canary-link-path canary-link-dir))
+(fn canary-valid? [{: build-canary}]
+  ;; resolve link to real file, if that fails, the link is stale
+  ;; and we need to rebuild.
+  (match (uv.fs_realpath build-canary)
     (nil err) false
     path true))
 
-(fn canary-path [fnl-dir]
-  ;; current canary shipped with hotpot, will be at hotpot/fnl/../canary/<sha>
-  (let [canary-folder (join-path fnl-dir :.. :canary)
-        handle (uv.fs_opendir canary-folder nil 1)
-        files (uv.fs_readdir handle)
-        _ (uv.fs_closedir handle)
-        canary-name (. files 1 :name)]
-    (join-path canary-folder canary-name)))
+(fn create-canary-link [{: build-canary : repo-canary}]
+  ;; create the canary link
+  (uv.fs_unlink build-canary)
+  (uv.fs_symlink repo-canary build-canary))
 
-(fn make-canary [fnl-dir lua-dir]
-  ;; Create link from lua compiled dir to hotpot/canary/<sha>
-  (let [current-canary-path (canary-path fnl-dir)
-        canary-link-from (canary-link-path lua-dir)]
-    (uv.fs_unlink canary-link-from)
-    (uv.fs_symlink current-canary-path canary-link-from)))
-
-(fn load-hotpot [cache-dir fnl-dir]
-  ;; We have already complied the files, so just fiddle with luas package.path
-  ;; so we can run, then undo the change since nvims rtp will handle any future
-  ;; needs
+(fn load-hotpot []
   (let [hotpot (require :hotpot.runtime)]
     (hotpot.install)
+    ;; user should never have to run install
     (tset hotpot :install nil)
-    (tset hotpot :uninstall nil)
     (values hotpot)))
 
-;; Currently not used as we build directly into the lua folder. Does mean that
-;; between updates, some old files *may* remain but the code "wont call them"
-;; so it wont really matter.
-;; Otherwise, needs to have a list of "good" files that it shouldn't delete and
-;; scrub the rest. TODO?
-;; (fn clear-cache [cache-dir]
-;;   (let [scanner (uv.fs_scandir cache-dir)]
-;;         (each [name type #(uv.fs_scandir_next scanner)]
-;;           (match type
-;;             "directory" (let [child (join-path cache-dir name)]
-;;                           (clear-cache child)
-;;                           (uv.fs_rmdir child))
-;;             "file" (uv.fs_unlink (join-path cache-dir name))))))
-
-
-(fn bootstrap-compile [fnl-dir lua-dir]
+(fn compile-hotpot [hotpot-dir]
   (fn compile-file [fnl-src lua-dest]
     ;; compile fnl src to lua dest, can raise.
     (let [{: compile-string} (require :hotpot.fennel)]
@@ -75,17 +53,17 @@
                                                           :correlate true})]
                    (lua-file:write lua-code)))))
 
-  (fn compile-dir [fennel in-dir out-dir]
-    ;; recursively scan in-dir, compile fnl files to out-dir except for
-    ;; macros.fnl.
+  (fn compile-dir [in-dir out-dir]
+    ;; recursively scan in-dir, compile fnl files to out-dir,
+    ;; except for some special files.
     (let [scanner (uv.fs_scandir in-dir)]
-      (each [name type #(uv.fs_scandir_next scanner)]
-        (match type
+      (each [name kind #(uv.fs_scandir_next scanner)]
+        (match kind
           "directory"
           (let [in-down (join-path in-dir name)
                 out-down (join-path out-dir name)]
             (vim.fn.mkdir out-down :p)
-            (compile-dir fennel in-down out-down))
+            (compile-dir in-down out-down))
           "file"
           (let [in-file (join-path in-dir name)
                 out-name (string.gsub name ".fnl$" ".lua")
@@ -94,42 +72,31 @@
                            (= name :hotpot.fnl)))
               (compile-file in-file out-file)))))))
 
-  (let [fnl-dir-search-path (join-path fnl-dir "?.fnl")
-        fennel (require :hotpot.fennel)
-        saved {:path fennel.path :macro-path fennel.macro-path}]
-    ;; let fennel find hotpots source, compile to cache, then load
-    ;; hotpot while we're still working 
-    (set fennel.path (.. fnl-dir-search-path ";" fennel.path))
-    (set fennel.macro-path (.. fnl-dir-search-path ";" fennel.path))
-    (table.insert package.loaders fennel.searcher)
-    ;; for every file in our fnl-dir, force hotpot to compile it
-    (compile-dir fennel fnl-dir lua-dir)
-    ;; undo our path and searcher changes since hotpot will handle paths now.
-    (set fennel.path saved.path)
-    (set fennel.macro-path saved.macro-path)
-    (accumulate [done nil i check (ipairs package.loaders) :until done]
-                (if (= check fennel.searcher)
-                  (table.remove package.loaders i)))
-    ;; mark that we've compiled and link to current version in plugin dir
-    (make-canary fnl-dir lua-dir))
+  (let [fennel (require :hotpot.fennel)
+        saved {:macro-path fennel.macro-path}
+        fnl-dir (join-path hotpot-dir :fnl)
+        lua-dir (join-path hotpot-dir :lua)
+        fnl-dir-search-path (join-path fnl-dir "?.fnl")]
+    ;; let fennel find hotpot macros while compiling, then restore old path
+    (set fennel.macro-path (.. fnl-dir-search-path ";" fennel.macro-path))
+    (compile-dir fnl-dir lua-dir)
+    (set fennel.macro-path saved.macro-path))
   ;; make sure the cache dir exists
   (let [cache-dir (join-path (vim.fn.stdpath :cache) :hotpot)]
     (vim.fn.mkdir cache-dir :p))
   (values true))
 
 ;; If this file is executing, we know it exists in the RTP so we can use this
-;; file to figure out related files needed for bootstraping.
+;; file to figure out related paths needed to boostrap.
 (let [hotpot-dot-lua (join-path :lua :hotpot.lua)
-      lop (* -1 (+ 1 (length hotpot-dot-lua)))
-      hotpot-rtp-path (-> hotpot-dot-lua
-                          (vim.api.nvim_get_runtime_file false)
-                          (. 1)
-                          (uv.fs_realpath)
-                          (string.sub 1 lop))
-      hotpot-fnl-dir (join-path hotpot-rtp-path :fnl)
-      hotpot-lua-dir (join-path hotpot-rtp-path :lua)]
-  (match (canary-valid? hotpot-lua-dir)
-    true (load-hotpot hotpot-lua-dir hotpot-fnl-dir)
-    false (do
-            (bootstrap-compile hotpot-fnl-dir hotpot-lua-dir)
-            (load-hotpot hotpot-lua-dir hotpot-fnl-dir))))
+      hotpot-dir (-> hotpot-dot-lua
+                     (vim.api.nvim_get_runtime_file false)
+                     (. 1)
+                     (uv.fs_realpath)
+                     ;; trim the path to just "/.../hotpot.nvim/", need extra char for -index
+                     (string.sub 1 (* -1 (length (.. :_ hotpot-dot-lua)))))
+      canary (new-canary hotpot-dir)]
+  (when (not (canary-valid? canary))
+    (compile-hotpot hotpot-dir)
+    (create-canary-link canary))
+  (load-hotpot))
