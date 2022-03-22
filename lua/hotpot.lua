@@ -88,13 +88,18 @@
 
 
 
- local hotpot_dot_lua = join_path("lua", "hotpot.lua")
 
 
 
 
 
- local hotpot_dir = string.sub(uv.fs_realpath(vim.api.nvim_get_runtime_file(hotpot_dot_lua, false)[1]), 1, (-1 * #("_" .. hotpot_dot_lua)))
+
+
+
+
+
+
+ local hotpot_dir = string.match((debug.getinfo(1, "S")).source, "@(.+)..?lua..?hotpot%.lua$")
  local canary = new_canary(hotpot_dir)
  if not canary_valid_3f(canary) then
  compile_hotpot(hotpot_dir)

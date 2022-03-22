@@ -86,15 +86,20 @@
     (vim.fn.mkdir cache-dir :p))
   (values true))
 
-;; If this file is executing, we know it exists in the RTP so we can use this
-;; file to figure out related paths needed to boostrap.
-(let [hotpot-dot-lua (join-path :lua :hotpot.lua)
-      hotpot-dir (-> hotpot-dot-lua
-                     (vim.api.nvim_get_runtime_file false)
-                     (. 1)
-                     (uv.fs_realpath)
-                     ;; trim the path to just "/.../hotpot.nvim/", need extra char for -index
-                     (string.sub 1 (* -1 (length (.. :_ hotpot-dot-lua)))))
+;; nb: on windows debug.getinfo.source comes back with *mixed* separators,
+;; something like @c:\\abc\\hotpot.nvim/lua/hotpot.lua, this may be a windows,
+;; lua or nvim thing.
+;;
+;; benchmarking between string.match and string.sub is pretty tiny
+;; (~0.0005ms???) but match will be more resilient to upstream changes.
+;;
+;; finding the source via debug is ~0.002ms while "safely" searching the rtp is
+;; ~0.02ms but could be much longer with large runtimepaths.
+(let [hotpot-dir (-> (debug.getinfo 1 :S)
+                     (. :source)
+                     ;; we cant be certain what folder hotpot was installed to
+                     ;; so instead match on <sep><maybe-sep?>lua<...>hotpot.lua
+                     (string.match "@(.+)..?lua..?hotpot%.lua$"))
       canary (new-canary hotpot-dir)]
   (when (not (canary-valid? canary))
     (compile-hotpot hotpot-dir)
