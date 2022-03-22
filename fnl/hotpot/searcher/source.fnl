@@ -35,7 +35,7 @@
     ;; string uneffected. path strings are something like some/path/?.lua so swap
     ;; the extension.
     (match (string.gsub template "%?" slashed-modname)
-      (updated 1) updated ;; (string.gsub updated "%.lua" ".fnl")
+      (updated 1) updated
       _  nil))
   (fn lua-template->fnl-template [template]
     ;; template may be nil, if the modname subtitution failed
