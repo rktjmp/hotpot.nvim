@@ -12,7 +12,7 @@
   `(when (not ,assertion)
      (let [failed-what# ,(view assertion)
            err# (string.format "%s [failed: %s]" ,message failed-what#)]
-       (error (string.format err# ,...)))))
+       (error (string.format err# ,...) 0))))
 
 (fn pinspect [...]
   `(let [{:inspect inspect#} (require :hotpot.common)]
