@@ -1,3 +1,5 @@
+(import-macros {: expect} :hotpot.macros)
+
 ;;
 ;; Cache Resolver
 ;;
@@ -15,15 +17,13 @@
   ;; returns the path, true, if the path could be resolved to a real file via
   ;; fs_realpath or path, false if the file doesn't exist.
   (let [{: is-fnl-path? : join-path} (require :hotpot.fs)]
-    (assert (is-fnl-path? fnl-path)
-            (.. "path did not end in fnl: " fnl-path))
+    (expect (is-fnl-path? fnl-path) "path did not end in fnl: %q" fnl-path)
     ;; We want to resolve symlinks inside vims `pack/**/start` folders back to
     ;; their real on-disk path so the cache folder structure mirrors the real
     ;; world. This is mostly a QOL thing for when you go manually poking at the
     ;; cache, the lua files will be where you expect them to be, mirroring the disk.
     (local real-fnl-path (vim.loop.fs_realpath fnl-path))
-    (assert real-fnl-path
-            (.. "fnl-path did not resolve to real file!"))
+    (expect real-fnl-path "fnl-path did not resolve to real file!")
 
     ;; where the cache file should be, but path isnt cleaned up
     (let [safe-path (match (= 1 (vim.fn.has "win32"))
