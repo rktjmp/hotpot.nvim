@@ -40,7 +40,7 @@
 
 (fn compile-module [modname]
   ;; (string) :: (true luacode) | (false errors)
-  (expect modname "compile-module: must provide modname")
+  (expect (= :string (type modname)) "compile-module: must provide modname")
   (let [{: is-fnl-path?} (require :hotpot.fs)
         {: modname-to-path} (require :hotpot.path_resolver)
         path (modname-to-path modname)]
