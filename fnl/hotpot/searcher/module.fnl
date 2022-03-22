@@ -36,10 +36,10 @@
          :timestamp (file-mtime mod-path)}))
 
 (fn create-fnl-loader [modname mod-path]
-  (let [{: fnl-path-to-lua-path} (require :hotpot.path_resolver)
+  (let [{: fnl-path->lua-cache-path} (require :hotpot.index)
         {: deps-for-fnl-path} (require :hotpot.dependency_map)
         {: file-mtime} (require :hotpot.fs)
-        lua-path (fnl-path-to-lua-path mod-path)]
+        lua-path (fnl-path->lua-cache-path mod-path)]
     (match (compile-fnl mod-path lua-path modname)
       true {:loader (loadfile lua-path)
             :deps (or (deps-for-fnl-path mod-path) [])
@@ -66,9 +66,9 @@
 (fn searcher [modname]
   ;; searcher will *always* compile fnl code out to cache, the index
   ;; should determine whether calling the searcher is required.
-  (let [{: modname-to-path} (require :hotpot.path_resolver)]
-    (match (modname-to-path modname)
+  (let [{:searcher modname->path} (require :hotpot.searcher.source)]
+    (match (modname->path modname)
       path (create-loader modname path)
-      nil (values "could not convert mod to path"))))
+      nil (values "could not convert modname to path"))))
 
 {: searcher}

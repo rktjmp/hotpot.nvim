@@ -22,13 +22,13 @@
   (expect (= :string (type fnl-path))
           "clear-cache-for-fnl-file: must be given string, got: %q"
           fnl-path)
-  (let [{: fnl-path-to-lua-path} (require :hotpot.path_resolver)
+  (let [{: fnl-path->lua-cache-path} (require :hotpot.index)
         {: is-fnl-path? : file-exists?} (require :hotpot.fs)
         {: fmt} (require :hotpot.common)
         _ (expect (is-fnl-path? fnl-path)
                   "clear-cache-for-fnl-file: must be given path to .fnl file, got: %q"
                   fnl-path)
-        lua-path (fnl-path-to-lua-path fnl-path)]
+        lua-path (fnl-path->lua-cache-path fnl-path)]
     (match (file-exists? lua-path)
       true (confirm-remove lua-path)
       false (do
@@ -81,12 +81,12 @@
   ;; (string) :: string
   ;; path must be absolute
   (let [{: is-fnl-path? : file-exists?} (require :hotpot.fs)
-        {: fnl-path-to-lua-path} (require :hotpot.path_resolver)
+        {: fnl-path->lua-cache-path} (require :hotpot.index)
         _ (expect (= :string (type fnl-path))
                   "cache-path-for-fnl-file: must be given string, got %q" fnl-path)
         _ (expect (is-fnl-path? fnl-path)
                   "cache-path-for-fnl-file: must be given path to .fnl file: %q" fnl-path)
-        lua-path (fnl-path-to-lua-path fnl-path)]
+        lua-path (fnl-path->lua-cache-path fnl-path)]
     (match (file-exists? lua-path)
       true (values lua-path)
       false (values nil))))

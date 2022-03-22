@@ -7,6 +7,43 @@
 
 (import-macros {: expect : struct} :hotpot.macros)
 
+(fn fnl-path->lua-cache-path [fnl-path]
+  ;; (string) :: string
+  ;; Converts given fnl file path to lua path inside cache (file may or may not exist)
+  (fn cache-prefix []
+    ;; cache path isn't configurable anyway so this is unparameterised for now
+    ;; TODO shift this into config and get from that (or maybe runtime)
+    (let [{: join-path} (require :hotpot.fs)]
+      (join-path (vim.fn.stdpath :cache) :hotpot)))
+
+  (fn sanitise-joinable-path [path]
+    (if (= 1 (vim.fn.has "win32"))
+      ;; cant have C:\cache\C:\path, make it C:\cache\C\path
+      (string.gsub path "^(.-):" "%1")
+      (values path)))
+
+  (let [{: is-fnl-path? : join-path} (require :hotpot.fs)]
+    (expect (is-fnl-path? fnl-path) "path did not end in fnl: %q" fnl-path)
+    ;; We want to resolve symlinks inside vims `pack/**/start` folders back to
+    ;; their real on-disk path so the cache folder structure mirrors the real
+    ;; world. This is mostly a QOL thing for when you go manually poking at the
+    ;; cache, the lua files will be where you expect them to be, mirroring the
+    ;; disk.
+    (local real-fnl-path (vim.loop.fs_realpath fnl-path))
+    (expect real-fnl-path "fnl-path did not resolve to real file! %q" fnl-path)
+    ;; where the cache file should be, but path isnt cleaned up
+    (let [safe-path (sanitise-joinable-path real-fnl-path)
+          in-cache-path (-> (join-path (cache-prefix) safe-path)
+                            (string.gsub "%.fnl$" ".lua"))]
+      (match (vim.loop.fs_realpath in-cache-path)
+        ;; real path returned something, which *may* be different to what we
+        ;; gave it, depending on symlinks etc, so we will return the "real
+        ;; path" incase its nicer.
+        real-path (values real-path)
+        ;; no real path means the file does not exist on disk, but we will
+        ;; still return the in-cache-path as a "hope"
+        (nil err) (values in-cache-path)))))
+
 (fn new-module-record [modname files timestamp loader]
   (let [{: file-mtime} (require :hotpot.fs)]
     ;; these are directly mpack'd out, so we cant use a struct :<
@@ -106,4 +143,5 @@
 
 {: new-index
  : new-indexed-searcher-fn
+ : fnl-path->lua-cache-path
  : clear-record}

@@ -1,6 +1,6 @@
 (import-macros {: expect} :hotpot.macros)
 
-(fn create-lua-loader [path modname]
+(fn create-lua-loader [modname path]
   ;; WARNING: For now, the lua file is *not* treated as a dependency,
   ;;          it *should* be reasonably safe to assume a lua require here
   ;;          is a lua require elsewhere, and so it can't be "stale".
@@ -10,7 +10,7 @@
   ;;          edgiest of edge cases.
   (loadfile path))
 
-(fn create-fennel-loader [path modname]
+(fn create-fennel-loader [modname path]
   ;; (string, string) :: fn, string
   ;; assumes path exists!
   (let [fennel (require :hotpot.fennel)
@@ -32,7 +32,7 @@
         (dep_map.set-macro-mod-path modname path)
         (fennel.eval code options modname)))))
 
-(fn create-loader [path modname]
+(fn create-loader [modname path]
   "Returns a loader function for either a lua or fnl source file"
   (let [{: is-lua-path? : is-fnl-path? } (require :hotpot.fs)
         create-loader-fn (or (and (is-lua-path? path) create-lua-loader)
@@ -41,7 +41,7 @@
             "Could not create loader for path (unknown extension): %q" path)
     ;; per Fennels spec, we should return a loader function and the
     ;; path for debugging purposes.
-    (values (create-loader-fn path modname) path)))
+    (values (create-loader-fn modname path) path)))
 
 (fn searcher [modname]
   ;; By fennel.specials lua-macro-searcher, fennel-macro-searcher, it's legal
@@ -52,9 +52,9 @@
   ;;
   ;; This behaves similar to the module seacher, it will prefer .lua files in
   ;; the RTP if it exists, otherwise it looks for .fnl files in the package path.
-  (let [{: modname-to-path} (require :hotpot.path_resolver)]
+  (let [{:searcher modname->path} (require :hotpot.searcher.source)]
     (or (. package :preload modname)
-        (match (modname-to-path modname)
-          path (create-loader path modname)))))
+        (match (modname->path modname)
+          path (create-loader modname path)))))
 
 {: searcher}
