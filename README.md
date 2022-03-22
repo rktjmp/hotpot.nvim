@@ -79,13 +79,13 @@ Your init.lua file may look like this:
 -- paq
 -- local hotpot_path = vim.fn.stdpath('data')..'/site/pack/paqs/start/hotpot.nvim'
 
--- You can automatically install hotpot if it is missing (i.e for fresh
--- nvim setups). Don't forget to add hotpot to your package manager or
--- it may uninstall hotpot!
+-- You can automatically install hotpot if it is missing (i.e for fresh nvim setups).
+-- Don't forget to add hotpot to your package manager or it may uninstall hotpot!
 if vim.fn.empty(vim.fn.glob(hotpot_path)) > 0 then
   print("Could not find hotpot.nvim, cloning new copy to", hotpot_path)
   vim.fn.system({'git', 'clone',
                  'https://github.com/rktjmp/hotpot.nvim', hotpot_path})
+  vim.cmd("helptags " .. hotpot_path .. "/doc")
 end
 
 -- Bootstrap .fnl support

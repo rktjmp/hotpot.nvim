@@ -14,9 +14,6 @@
 
                               ~ Fennel Programmers (probably)
 
-Hotpot is a transparent, on-demand Fennel compiler. It aims remove all barriers
-to using Fennel in Neovim.
-
 ===================================================================== *hotpot-toc*
 
 Purpose...........................................................|hotpot-purpose|
@@ -102,6 +99,7 @@ possible in your `init.lua`. An example `init.lua` is provided below:
     print("Could not find hotpot.nvim, cloning new copy to", hotpot_path)
     vim.fn.system({'git', 'clone',
                    'https://github.com/rktjmp/hotpot.nvim', hotpot_path})
+    vim.cmd("helptags " .. hotpot_path .. "/doc")
   end
 
   -- Bootstrap .fnl support
