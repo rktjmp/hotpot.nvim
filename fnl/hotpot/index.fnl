@@ -118,20 +118,12 @@
                     (where (err) (= :string (type err)))
                     (values err))))))
 
-(tset _G :__hotpot_profile_ms 0)
 (fn new-indexed-searcher-fn [index]
   "Primary interface to the index. Will return a cached loader, a fresh loader
   (after inserting into the cache) or (nil err) as per lua's loader specs."
   (fn [modname]
-    (let [uv vim.loop
-          a (uv.hrtime)
-          l (or (. package :preload modname)
-                (search-index index modname))
-          b (uv.hrtime)
-          sum (- b a)
-          ms (/ sum 1_000_000)]
-      (tset _G :__hotpot_profile_ms (+ _G.__hotpot_profile_ms ms))
-      (values l))))
+    (or (. package :preload modname)
+        (search-index index modname))))
 
 (fn clear-record [index modname]
   (tset index.modules modname nil))
