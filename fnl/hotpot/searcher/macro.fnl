@@ -1,4 +1,4 @@
-(import-macros {: require-fennel} :hotpot.macros)
+(import-macros {: expect} :hotpot.macros)
 
 (fn create-lua-loader [path modname]
   ;; WARNING: For now, the lua file is *not* treated as a dependency,
@@ -13,15 +13,15 @@
 (fn create-fennel-loader [path modname]
   ;; (string, string) :: fn, string
   ;; assumes path exists!
-  (let [fennel (require-fennel)
+  (let [fennel (require :hotpot.fennel)
         {: read-file!} (require :hotpot.fs)
         config (require :hotpot.config)
         code (read-file! path)]
     (fn [modname]
       ;; require the depencency map module *inside* the load function
       ;; to avoid circular dependencies.
-      ;; By putting it here we can be sure that the cache is already in memory
-      ;; before hotpot took over module searching.
+      ;; By putting it here we can be sure that the dep map module is already
+      ;; in memory before hotpot took over macro module searching.
       (let [dep_map (require :hotpot.dependency_map)
             ;; eval macro as per fennel's implementation.
             options (doto (config.get-option :compiler.macros)
@@ -33,20 +33,22 @@
         (fennel.eval code options modname)))))
 
 (fn create-loader [path modname]
+  "Returns a loader function for either a lua or fnl source file"
   (let [{: is-lua-path? : is-fnl-path? } (require :hotpot.fs)
-        create (or (and (is-lua-path? path) create-lua-loader)
-                   (and (is-fnl-path? path) create-fennel-loader))]
-    (assert create (.. "Could not create loader for path (unknown extension): " path))
+        create-loader-fn (or (and (is-lua-path? path) create-lua-loader)
+                             (and (is-fnl-path? path) create-fennel-loader))]
+    (expect create-loader-fn
+            "Could not create loader for path (unknown extension): %q" path)
     ;; per Fennels spec, we should return a loader function and the
     ;; path for debugging purposes.
-    (values (create path modname) path)))
+    (values (create-loader-fn path modname) path)))
 
 (fn searcher [modname]
-  ;; By fennel.specials lua-macro-searcher, fennel-macro-searcher,
-  ;; it's legal to require full modules, fennel or lua inside a macro file and
-  ;; they should just be loaded into memory (i.e. do not save fennel->lua to cache)
-  ;; So this searcher is similar to the module loader without the stale checks
-  ;; and file-write stuff (macros are never "compiled to lua").
+  ;; By fennel.specials lua-macro-searcher, fennel-macro-searcher, it's legal
+  ;; to require full modules, fennel or lua inside a macro file and they should
+  ;; just be loaded into memory (i.e. do not save fennel->lua to cache) So this
+  ;; searcher is similar to the module loader without the stale checks and
+  ;; file-write stuff (macros are never "compiled to lua").
   ;;
   ;; This behaves similar to the module seacher, it will prefer .lua files in
   ;; the RTP if it exists, otherwise it looks for .fnl files in the package path.
