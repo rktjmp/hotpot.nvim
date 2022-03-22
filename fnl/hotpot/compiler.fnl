@@ -1,21 +1,20 @@
 (import-macros {: expect : struct} :hotpot.macros)
-
 ;; we only want to inject the macro searcher once, but we also
 ;; only want to do it on demand since this front end to the compiler
 ;; is always loaded but not always used.
-(var has-injected-macro-searcher false)
+(var injected-macro-searcher? false)
 
 (fn compile-string [string options]
   ;; (string table) :: (true string) | (false string)
   ;; we only require fennel here because it can be heavy to pull in and *most*
   ;; of the time we will shortcut to the compiled lua.
   (local fennel (require :hotpot.fennel))
-  (when (not has-injected-macro-searcher)
-    (let [{:searcher macro-searcher} (require :hotpot.searcher.macro)]
+  (when (not injected-macro-searcher?)
+    (let [{: searcher} (require :hotpot.searcher.macro)]
       ;; we inject the macro searcher here, instead of in runtime.install because
       ;; it requires access to fennel directly.
-      (table.insert fennel.macro-searchers 1 macro-searcher)
-      (set has-injected-macro-searcher true)))
+      (table.insert fennel.macro-searchers 1 searcher)
+      (set injected-macro-searcher? true)))
 
   (local options (doto (or options {})
                        (tset :filename (or options.filename :hotpot-compile-string))))
