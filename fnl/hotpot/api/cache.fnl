@@ -80,16 +80,16 @@
   "Get on-disk path to compiled lua that mirrors given fennel source file"
   ;; (string) :: string
   ;; path must be absolute
-  (let [{: is-fnl-path?}  (require :hotpot.fs)
-        {: fnl-path-to-lua-path} (require :hotpot.path_resolver)]
-    (expect (= :string (type fnl-path))
-            "cache-path-for-fnl-file: must be given string, got %q" fnl-path)
-    (expect (is-fnl-path? fnl-path)
-            "cache-path-for-fnl-file: must be given path to .fnl file: %q" fnl-path)
-    (match (fnl-path-to-lua-path fnl-path)
-      (lua-path true) lua-path
-      ;; lua file didn't exist on disk
-      (_ false) nil)))
+  (let [{: is-fnl-path? : file-exists?} (require :hotpot.fs)
+        {: fnl-path-to-lua-path} (require :hotpot.path_resolver)
+        _ (expect (= :string (type fnl-path))
+                  "cache-path-for-fnl-file: must be given string, got %q" fnl-path)
+        _ (expect (is-fnl-path? fnl-path)
+                  "cache-path-for-fnl-file: must be given path to .fnl file: %q" fnl-path)
+        lua-path (fnl-path-to-lua-path fnl-path)]
+    (match (file-exists? lua-path)
+      true (values lua-path)
+      false (values nil))))
 
 (fn cache-path-for-module [modname]
   "Get on-disk path to compiled lua for given module name"
