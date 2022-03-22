@@ -41,6 +41,11 @@ one.* It does not contain pre-provided functions and macros to configure
 Neovim with. See [API](#api), [`:h hotpot-api`](doc/hotpot.txt) and [using the
 API](#using-the-api) for some example keymaps.
 
+As a side effect of managing the `fnl -> lua` compilation process,
+Hotpot also maintains a lua bytecode cache which can dramatically
+improve your Neovim startup time, even if you write zero lines of
+fennel. (See [How does Hotpot work?](#how-does-hotpot-work))
+
 ## TOC
 
 - [Requirements](#requirements)
@@ -308,11 +313,11 @@ into memory when Neovim starts. It contains the machine readable code for
 every module that Neovim has previously loaded. By caching modules in-memory
 and in a machine readable format, we can find and resolve modules very quickly
 as most of the "heavy lifting" is already done. By maintaining a bytecode
-cache we can achieve up to 15x speed improvements.
+cache we can achieve up to 15x performance increases.
 
 The bytecode cache contains information about when the cache was created for
-each module, so any modifications made to the original source files can be
-detected and reloaded into the cache.
+each module, so any modifications made to the original source files or
+dependencies can be detected and reloaded into the cache.
 
 The module loader will find and load lua (or fennel) modules. First it will
 search the `index` and then Neovims runtime path for source files that match
@@ -320,7 +325,7 @@ the requested module name. If a source file is found, it is compiled to lua
 (if needed), then the bytecode is saved to the `index`, then the module is
 returned to the user.
 
-As an examlpe, given `require("my.module")` Hotpot will check the following
+As an example, given `require("my.module")` Hotpot will check the following
 locations, in order, and return the first match.
 
 - `index`
