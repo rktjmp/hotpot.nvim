@@ -60,6 +60,7 @@ fennel. (See [How does Hotpot work?](#how-does-hotpot-work))
 ## Requirements
 
 - Neovim 0.6.1+
+  - (The `0.1.0` tag is Neovim 0.5 compatible.)
 - ~~Fanatical devotion to parentheses.~~
 
 ## Install
