@@ -1996,6 +1996,7 @@ package.preload["fennel.specials"] = package.preload["fennel.specials"] or funct
       do end (macro_loaded)[modname] = loader(modname, filename)
     else
     end
+    utils.hook("require-macros", ast, scope)
     if ("import-macros" == tostring(ast[1])) then
       return macro_loaded[modname]
     else
