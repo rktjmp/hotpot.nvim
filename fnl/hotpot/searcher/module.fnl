@@ -1,5 +1,5 @@
 (fn new-macro-dep-tracking-plugin [fnl-path]
-  {:versions [:1.0.0]
+  {:versions [:1.1.0]
    :name :hotpot-macro-dep-tracking
    :require-macros
    (fn plug-require-macros [ast scope]
@@ -31,9 +31,9 @@
 
 (fn create-lua-loader [modname mod-path]
   (let [{: file-mtime} (require :hotpot.fs)]
-        {:loader (loadfile mod-path)
-         :deps []
-         :timestamp (file-mtime mod-path)}))
+       {:loader (loadfile mod-path)
+        :deps []
+        :timestamp (file-mtime mod-path)}))
 
 (fn create-fnl-loader [modname mod-path]
   (let [{: fnl-path->lua-cache-path} (require :hotpot.index)
