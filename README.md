@@ -140,8 +140,8 @@ require("hotpot").setup({
   compiler = {
     -- options passed to fennel.compile for modules, defaults to {}
     modules = {
-        -- not default but recommended, align lua lines with fnl source
-        -- for more debuggable errors, but less readable lua.
+      -- not default but recommended, align lua lines with fnl source
+      -- for more debuggable errors, but less readable lua.
       -- correlate = true
     },
     -- options passed to fennel.compile for macros, defaults as shown
