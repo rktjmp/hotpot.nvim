@@ -42,7 +42,7 @@
     (tset hotpot :install nil)
     (values hotpot)))
 
-(fn compile-hotpot [hotpot-dir]
+(fn compile-hotpot [fnl-dir lua-dir]
   (fn compile-file [fnl-src lua-dest]
     ;; compile fnl src to lua dest, can raise.
     (let [{: compile-string} (require :hotpot.fennel)]
@@ -74,8 +74,6 @@
 
   (let [fennel (require :hotpot.fennel)
         saved {:macro-path fennel.macro-path}
-        fnl-dir (join-path hotpot-dir :fnl)
-        lua-dir (join-path hotpot-dir :lua)
         fnl-dir-search-path (join-path fnl-dir "?.fnl")]
     ;; let fennel find hotpot macros while compiling, then restore old path
     (set fennel.macro-path (.. fnl-dir-search-path ";" fennel.macro-path))
@@ -100,8 +98,21 @@
                      ;; we cant be certain what folder hotpot was installed to
                      ;; so instead match on <sep><maybe-sep?>lua<...>hotpot.lua
                      (string.match "@(.+)..?lua..?hotpot%.lua$"))
+      fnl-dir (join-path hotpot-dir :fnl)
+      ;; nix home-manager wont let us write to hotpot.nvim/lua, so
+      ;; when that occurs we redirect our output to cache/hotpot.nvim/lua
+      ;; and add that path to lua's package.path
+      lua-dir (let [ideal-path (join-path hotpot-dir :lua)]
+                (if (uv.fs_access ideal-path "W")
+                  (values ideal-path)
+                  (let [cache-dir (vim.fn.stdpath :cache)
+                        build-to-cache-dir (join-path cache-dir :hotpot :hotpot.nvim :lua)
+                        search-path (join-path build-to-cache-dir "?.lua;")]
+                    (vim.fn.mkdir build-to-cache-dir :p)
+                    (tset package :path (.. search-path package.path))
+                    (values build-to-cache-dir))))
       canary (new-canary hotpot-dir)]
   (when (not (canary-valid? canary))
-    (compile-hotpot hotpot-dir)
+    (compile-hotpot fnl-dir lua-dir)
     (create-canary-link canary))
   (load-hotpot))
