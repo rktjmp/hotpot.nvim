@@ -55,7 +55,7 @@
      :loader (string.dump loader)}))
 
 (fn hydrate-records [path]
-  (match (pcall #(with-open [fin (io.open path)]
+  (match (pcall #(with-open [fin (io.open path :rb)]
                             (when fin
                               (let [bytes (fin:read :*a)
                                     mpack vim.mpack
@@ -72,7 +72,7 @@
   "Write index.modules to index.path"
   (let [{: modules : path} index
         bytes (vim.mpack.encode {:version 1 :data modules})]
-    (with-open [fout (io.open path :w)]
+    (with-open [fout (io.open path :wb)]
                (fout:write bytes))))
 
 (fn persist-record [index modname record]
