@@ -55,6 +55,7 @@ fennel. (See [How does Hotpot work?](#how-does-hotpot-work))
 - [Operator Pending](#operator-pending)
 - [Using the API](#using-the-api)
 - [How does Hotpot work?](#how-does-hotpot-work)
+- [Windows](#windows)
 - [See Also](#see-also)
 
 ## Requirements
@@ -123,6 +124,9 @@ require "paq" {
   "rktjmp/hotpot.nvim"
 }
 ```
+
+Windows installations may [require additional setup](#windows)
+depending on your account privileges.
 
 ### Setup
 
@@ -339,6 +343,20 @@ locations, in order, and return the first match.
 
 You can see that it will preference a bytecode cache, then `.lua` files over
 `.fnl`, if they exist.
+
+## Windows
+
+Hotpot must be able to create symlinks for some core functionality which
+Windows may disallow by default, depending on your account type and Windows
+version.
+
+To enable symlink creation without elevated privileges, you may have to enable
+"Developer Mode" in your account settings.
+
+See ["Enable your device for
+development"](https://docs.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development)
+and ["Symlinks in Windows
+10"](https://blogs.windows.com/windowsdeveloper/2016/12/02/symlinks-windows-10/).
 
 ## See Also
 
