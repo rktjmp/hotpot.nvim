@@ -21,8 +21,15 @@
 
 (fn fnl-path-depends-on-macro-module [fnl-path macro-module]
   (let [list (or (. fnl-file-macro-mods fnl-path) [])]
-    (table.insert list macro-module)
-    (tset fnl-file-macro-mods fnl-path list)))
+    ;; guard nil inserts because they will effectively truncate the list also
+    ;; we will raise a hard error because it's likely a pretty ununsual case
+    ;; but one that we want to reproduce and fix if possible.
+    (if macro-module
+      (do
+        (table.insert list macro-module)
+        (tset fnl-file-macro-mods fnl-path list))
+      (error (.. "tried to insert nil macro dependencies for "
+                 fnl-path ", please report this issue with a reproduction")))))
 
 (fn deps-for-fnl-path [fnl-path]
   (match (. fnl-file-macro-mods fnl-path)
