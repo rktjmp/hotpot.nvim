@@ -54,7 +54,7 @@
   ;; the RTP if it exists, otherwise it looks for .fnl files in the package path.
   (let [{:searcher modname->path} (require :hotpot.searcher.source)]
     (or (. package :preload modname)
-        (match (modname->path modname)
+        (match (modname->path modname true)
           path (create-loader modname path)))))
 
 {: searcher}
