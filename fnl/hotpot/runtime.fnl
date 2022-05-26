@@ -18,12 +18,12 @@
     ;; when bootstrapping.
     true (values nil)
     false (let [{: loader-for-module} (require :hotpot.index)
-              a (vim.loop.hrtime)
-              loader (loader-for-module runtime.index modname)
-              b (vim.loop.hrtime)
-              t (/ (- b a) 1_000_000)]
-          (tset _G :__hotpot_profile_ms (+ (. _G :__hotpot_profile_ms) t))
-          (values loader))))
+                a (vim.loop.hrtime)
+                loader (loader-for-module runtime.index modname)
+                b (vim.loop.hrtime)
+                t (/ (- b a) 1_000_000)]
+           (tset _G :__hotpot_profile_ms (+ (. _G :__hotpot_profile_ms) t))
+           (values loader))))
 
 (fn install []
   (when (not runtime)
@@ -46,9 +46,7 @@
  :inspect (fn []
             (let [{: inspect} (require :hotpot.common)]
               (each [modname entry (pairs runtime.index.modules)]
-                (inspect modname entry.path))
-              ; (inspect runtime)
-              ))
+                (inspect modname entry.path))))
  :stat (fn []
          (let [{: fmt} (require :hotpot.common)]
            (print (fmt "hotpot index profile: %fms" _G.__hotpot_profile_ms))))
