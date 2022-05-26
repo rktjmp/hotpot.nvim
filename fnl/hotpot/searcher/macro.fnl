@@ -30,7 +30,6 @@
         ;; macro came from and can then track the macro file for changes
         ;; when refreshing the cache.
         (dep_map.set-macro-modname-path modname path)
-        (print "passing to eval" (fennel.view [options.module-name modname]))
         ;; eval macro as per fennel's implementation.
         (fennel.eval code options modname)))))
 
