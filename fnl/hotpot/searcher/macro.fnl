@@ -23,13 +23,15 @@
       ;; By putting it here we can be sure that the dep map module is already
       ;; in memory before hotpot took over macro module searching.
       (let [dep_map (require :hotpot.dependency_map)
-            ;; eval macro as per fennel's implementation.
             options (doto (config.get-option :compiler.macros)
-                          (tset :filename path))]
+                          (tset :filename path)
+                          (tset :module-name modname))]
         ;; later, when a module needs a macro, we will know what file the
         ;; macro came from and can then track the macro file for changes
         ;; when refreshing the cache.
         (dep_map.set-macro-modname-path modname path)
+        (print "passing to eval" (fennel.view [options.module-name modname]))
+        ;; eval macro as per fennel's implementation.
         (fennel.eval code options modname)))))
 
 (fn create-loader [modname path]
