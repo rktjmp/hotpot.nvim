@@ -8,7 +8,7 @@
   ;;          fennel.special.load-code ... because that API is private and
   ;;          writing a lua module, to execute fennel macro code seems like the
   ;;          edgiest of edge cases.
-  (loadfile path))
+  (loadfile path modname))
 
 (fn create-fennel-loader [modname path]
   ;; (string, string) :: fn, string
