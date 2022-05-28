@@ -4,9 +4,21 @@
 ;; Every one of these methods return the result or raise an error.
 ;;
 
+;; we must capure all values returned from the xpcall,
+;; which could be interspersed nils. We would normally just
+;; [(call)] and match on the array but sparse arrays will
+;; be truncated, so we do this bind swap to capture everything.
+(fn xpcall-wrapper [status ...]
+  (if status
+    (values ...)
+    (error (select 1 ...))))
+
 (fn eval-string [string]
-  (let [fennel (require :hotpot.fennel)]
-    (fennel.eval string {:filename :hotpot-live-eval})))
+  (let [{: eval} (require :hotpot.fennel)
+        {: hotpot-traceback} (require :hotpot.compiler)]
+    (xpcall-wrapper
+      (xpcall #(eval string {:filename :hotpot-live-eval})
+              hotpot-traceback))))
 
 (fn eval-range [buf start-pos stop-pos]
   (let [{: get-range} (require :hotpot.api.get_text)]
@@ -25,8 +37,10 @@
 
 (fn eval-file [fnl-file]
   (assert fnl-file "eval-file: must provide path to .fnl file")
-  (let [fennel (require :hotpot.fennel)]
-    (fennel.dofile fnl-file {:filename fnl-file})))
+  (let [{: dofile} (require :hotpot.fennel)
+        {: hotpot-traceback} (require :hotpot.compiler)]
+    (xpcall-wrapper
+      (xpcall #(dofile fnl-file {:filename fnl-file}) hotpot-traceback))))
 
 (fn eval-module [modname]
   (assert modname "eval-module: must provide modname")
@@ -61,10 +75,12 @@
   ;; code = "", means the expression will be "", meaning fnldo will
   ;; replace all the lines with nothing! Let's not do that.
   (assert (and code (~= code "")) "fnldo: code must not be blank")
-  (let [fennel (require :hotpot.fennel)
+  (let [{: eval} (require :hotpot.fennel)
+        {: hotpot-traceback} (require :hotpot.compiler)
         codestr (.. "(fn [line linenr] " code ")")
-        ;; this can raise but that's probably what we want.
-        func (fennel.eval codestr {:filename :hotpot-fnldo})]
+        func (match (xpcall #(eval codestr {:filename :hotpot-fnldo}) hotpot-traceback)
+               (true func) func
+               (false err) (error err))]
     (for [i start stop]
       (let [line (. (vim.api.nvim_buf_get_lines 0 (- i 1) i false) 1)]
         ;; luado replaces line 
