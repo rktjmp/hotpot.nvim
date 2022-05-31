@@ -18,6 +18,12 @@ COPY ./test/fail.sh /usr/bin/fail
 
 # Make sure you build with hotpot's root dir as the build context!
 COPY ./ /home/user/hotpot
+# dont copy "working set" of lua files
+RUN rm -rf /home/user/hotpot/lua && \
+    mkdir -p /home/user/hotpot/lua/hotpot
+COPY ./lua/hotpot.lua /home/user/hotpot/lua/hotpot.lua
+COPY ./lua/hotpot/fennel.lua /home/user/hotpot/lua/hotpot/fennel.lua
+# copy test files
 COPY ./test /home/user/test
 RUN ln -s /home/user/test /home/user/test/lua && \
     mkdir -p /home/user/config/fnl
