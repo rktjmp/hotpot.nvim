@@ -28,9 +28,9 @@ run_test_sh() {
   # pass the name of the test, and the path of the test to the test file
   output=$($podman_command exec \
             $container_id \
-            /test/$1/test.sh $1 /test/$1/)
+            /home/user/test/$1/test.sh $1 /home/user/test/$1/)
 
-  _hide=$($podman_command exec $container_id [ ! -f /fail ])
+  _hide=$($podman_command exec $container_id [ ! -f /home/user/fail ])
 
   if [ "$?" -eq "0" ]; then
     echo "PASS"
@@ -47,16 +47,16 @@ run_test_sh() {
       printf "  => $line\n"
     done <<< "$output"
 #   sed -i -e 's/^/  \|/' test.log > test.log.new
-    reason=$($podman_command exec $container_id cat /fail)
+    reason=$($podman_command exec $container_id cat /home/user/fail)
     echo "$reason"
-    log=$($podman_command exec $container_id cat /run.log)
+    log=$($podman_command exec $container_id cat /home/user/run.log)
     echo "$log"
   fi
 
   kill_container $container_id
 }
 
-tests="require_hotpot bootstrap require_a_fnl_file api cache_invalidation user_53_kebab_filename"
+tests="require_hotpot bootstrap require_a_fnl_file api cache_invalidation user_53_kebab_filename " #nix_compat"
 for name in $tests; do
   run_test_sh $name
 done

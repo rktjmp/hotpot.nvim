@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 
 # place test file to into runtime
-cp $2/my_file.fnl /config/fnl/my_file.fnl
+cp $2/my_file.fnl ~/config/fnl/my_file.fnl
 
 cat <<EOF | assert "can import a fennel file without crashing"
-  /test/nvim.sh "lua require('require_a_fnl_file.test')" || fail "could not import fennel file"
+  ~/test/nvim.sh "lua require('require_a_fnl_file.test')" || fail "could not import fennel file"
 EOF
 
 cat <<EOF | assert "imported file is in cache"
-  if [[ ! -f /root/.cache/nvim/hotpot/config/fnl/my_file.lua ]]; then
-    exa --tree -a /root/.cache/nvim/hotpot >> /run.log
+  if [[ ! -f ~/.cache/nvim/hotpot/home/user/config/fnl/my_file.lua ]]; then
+    exa --tree -a ~/.cache/nvim/hotpot >> ~/run.log
     fail "no cache file created"
   fi
 EOF

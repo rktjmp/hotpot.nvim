@@ -8,17 +8,23 @@ RUN apt update && \
     grep nvim-linux64.tar.gz | \
     head -n 1 | \
     xargs curl -LO && \
-    tar zxf nvim-linux64.tar.gz
+    tar zxf nvim-linux64.tar.gz && \
+    useradd -ms /bin/bash user
 
 RUN ln -s /nvim-linux64/bin/nvim /bin/nvim
+COPY ./test/assert.sh /usr/bin/assert
+COPY ./test/fail.sh /usr/bin/fail
+
 
 # Make sure you build with hotpot's root dir as the build context!
-COPY ./ /hotpot
-COPY ./test /test
-RUN ln -s /test /test/lua && \
-    ln -s /test/assert.sh /usr/bin/assert && \
-    ln -s /test/fail.sh /usr/bin/fail && \
-    mkdir -p /config/fnl
+COPY ./ /home/user/hotpot
+COPY ./test /home/user/test
+RUN ln -s /home/user/test /home/user/test/lua && \
+    mkdir -p /home/user/config/fnl
+
+RUN chown -R user:user /home/user
+USER user
+WORKDIR /home/user
 
 # we want the container to keep running and we'll exec commands in it.
 # this is so we can run lua and sh in stages, on the same fs
