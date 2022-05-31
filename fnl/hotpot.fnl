@@ -8,7 +8,7 @@
   (accumulate [t head _ part (ipairs [...])]
               (.. t path-separator part)))
 
-(fn new-canary [hotpot-dir]
+(fn new-canary [hotpot-dir lua-dir]
   ;; represents both ends of the "canary", which lets hotpot know when it has
   ;; to rebuild. repo-canary is the repo "true" canary, build-canary is made
   ;; after compiliation and symlinks to the repo canary that was present at
@@ -19,7 +19,7 @@
                            _ (uv.fs_closedir handle)
                            [{: name}] files]
                        (join-path canary-folder name))
-        build-canary (join-path hotpot-dir :lua :canary)]
+        build-canary (join-path lua-dir :canary)]
     {: repo-canary
      : build-canary}))
 
@@ -101,7 +101,7 @@
       fnl-dir (join-path hotpot-dir :fnl)
       ;; nix home-manager wont let us write to hotpot.nvim/lua, so
       ;; when that occurs we redirect our output to cache/hotpot.nvim/lua
-      ;; and add that path to lua's package.path
+      ;; and add that path to lua's package.path.
       lua-dir (let [ideal-path (join-path hotpot-dir :lua)]
                 (if (uv.fs_access ideal-path "W")
                   (values ideal-path)
@@ -111,7 +111,7 @@
                     (vim.fn.mkdir build-to-cache-dir :p)
                     (tset package :path (.. search-path package.path))
                     (values build-to-cache-dir))))
-      canary (new-canary hotpot-dir)]
+      canary (new-canary hotpot-dir lua-dir)]
   (when (not (canary-valid? canary))
     (compile-hotpot fnl-dir lua-dir)
     (create-canary-link canary))

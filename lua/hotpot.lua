@@ -8,7 +8,7 @@
  local t = head for _, part in ipairs({...}) do
  t = (t .. path_separator .. part) end return t end
 
- local function new_canary(hotpot_dir)
+ local function new_canary(hotpot_dir, lua_dir)
 
 
 
@@ -19,7 +19,7 @@
  local _ = uv.fs_closedir(handle)
  local _let_1_ = files local _let_2_ = _let_1_[1] local name = _let_2_["name"]
  repo_canary = join_path(canary_folder, name) end
- local build_canary = join_path(hotpot_dir, "lua", "canary")
+ local build_canary = join_path(lua_dir, "canary")
  return {["repo-canary"] = repo_canary, ["build-canary"] = build_canary} end
 
 
@@ -93,11 +93,11 @@
 
 
 
-
-
-
-
  local hotpot_dir = string.match((debug.getinfo(1, "S")).source, "@(.+)..?lua..?hotpot%.lua$")
+
+
+
+
  local fnl_dir = join_path(hotpot_dir, "fnl") local lua_dir
 
 
@@ -111,7 +111,7 @@
  vim.fn.mkdir(build_to_cache_dir, "p")
  do end (package)["path"] = (search_path .. package.path)
  lua_dir = build_to_cache_dir end end
- local canary = new_canary(hotpot_dir)
+ local canary = new_canary(hotpot_dir, lua_dir)
  if not canary_valid_3f(canary) then
  compile_hotpot(fnl_dir, lua_dir)
  create_canary_link(canary) else end
