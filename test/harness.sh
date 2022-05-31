@@ -56,7 +56,8 @@ run_test_sh() {
   kill_container $container_id
 }
 
-tests="require_hotpot bootstrap require_a_fnl_file api cache_invalidation user_53_kebab_filename " #nix_compat"
+tests="require_hotpot bootstrap require_a_fnl_file api cache_invalidation \
+       user_53_kebab_filename nix_compat"
 for name in $tests; do
   run_test_sh $name
 done
