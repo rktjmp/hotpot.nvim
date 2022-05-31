@@ -33,7 +33,7 @@
  local function create_canary_link(_8_) local _arg_9_ = _8_ local build_canary = _arg_9_["build-canary"] local repo_canary = _arg_9_["repo-canary"]
 
  uv.fs_unlink(build_canary)
- return uv.fs_symlink(repo_canary, build_canary) end
+ return assert(uv.fs_symlink(repo_canary, build_canary), "could not create canary symlink") end
 
  local function load_hotpot()
  local hotpot = require("hotpot.runtime")
@@ -80,8 +80,9 @@
  compile_dir(fnl_dir, lua_dir)
  fennel["macro-path"] = saved["macro-path"] end
 
- do local cache_dir = join_path(vim.fn.stdpath("cache"), "hotpot")
- vim.fn.mkdir(cache_dir, "p") end
+ vim.fn.mkdir(join_path(vim.fn.stdpath("cache"), "hotpot"), "p")
+
+
  return true end
 
 
@@ -99,6 +100,15 @@
 
 
  local fnl_dir = join_path(hotpot_dir, "fnl") local lua_dir
+
+
+
+
+
+
+
+
+
 
 
 

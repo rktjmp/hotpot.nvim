@@ -33,7 +33,7 @@
 (fn create-canary-link [{: build-canary : repo-canary}]
   ;; create the canary link
   (uv.fs_unlink build-canary)
-  (uv.fs_symlink repo-canary build-canary))
+  (assert (uv.fs_symlink repo-canary build-canary) "could not create canary symlink"))
 
 (fn load-hotpot []
   (let [hotpot (require :hotpot.runtime)]
@@ -80,8 +80,9 @@
     (compile-dir fnl-dir lua-dir)
     (set fennel.macro-path saved.macro-path))
   ;; make sure the cache dir exists
-  (let [cache-dir (join-path (vim.fn.stdpath :cache) :hotpot)]
-    (vim.fn.mkdir cache-dir :p))
+  (-> (vim.fn.stdpath :cache)
+      (join-path :hotpot)
+      (vim.fn.mkdir :p))
   (values true))
 
 ;; nb: on windows debug.getinfo.source comes back with *mixed* separators,
@@ -99,9 +100,18 @@
                      ;; so instead match on <sep><maybe-sep?>lua<...>hotpot.lua
                      (string.match "@(.+)..?lua..?hotpot%.lua$"))
       fnl-dir (join-path hotpot-dir :fnl)
-      ;; nix home-manager wont let us write to hotpot.nvim/lua, so
+      ;; We compile the rest of hotpot to lua on first load, or when the canary
+      ;; has been invalidated. We compile to hotpot.nvim/lua so we don't have
+      ;; to manipulate any search paths to load the lua. We *only* compile
+      ;; hotpot itsef this way, everything else ends up in the index.bin and
+      ;; cache directory but this does not require adjusting the search path
+      ;; beyond finding .fnl files.
+      ;;
+      ;; Nix home-manager wont let us write to hotpot.nvim/lua, so
       ;; when that occurs we redirect our output to cache/hotpot.nvim/lua
       ;; and add that path to lua's package.path.
+      ;;
+      ;; The canary is also placed in the same dir.
       lua-dir (let [ideal-path (join-path hotpot-dir :lua)]
                 (if (uv.fs_access ideal-path "W")
                   (values ideal-path)
