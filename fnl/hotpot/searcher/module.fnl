@@ -90,6 +90,6 @@
   (let [{:searcher modname->path} (require :hotpot.searcher.source)]
     (match (modname->path modname)
       path (create-loader modname path)
-      nil (values "could not convert modname to path"))))
+      nil nil))) ;; dont customise the error message, lua's default is fine
 
 {: searcher}
