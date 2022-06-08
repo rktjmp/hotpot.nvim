@@ -15,10 +15,9 @@
 
 (fn eval-string [string]
   (let [{: eval} (require :hotpot.fennel)
-        {: hotpot-traceback} (require :hotpot.compiler)]
-    (xpcall-wrapper
-      (xpcall #(eval string {:filename :hotpot-live-eval})
-              hotpot-traceback))))
+        {: hotpot-traceback} (require :hotpot.compiler)
+        doeval #(eval string {:filename :hotpot-live-eval})]
+    (xpcall-wrapper (xpcall doeval hotpot-traceback))))
 
 (fn eval-range [buf start-pos stop-pos]
   (let [{: get-range} (require :hotpot.api.get_text)]
