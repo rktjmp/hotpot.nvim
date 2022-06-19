@@ -54,7 +54,7 @@
                 ;; the fennel template should be exactly the same but ending in .fnl
                 (let [lua-template (apply-modname-substitution template slashed-modname)
                       fnl-template (lua-template->fnl-template lua-template)
-                      macro-template (if (and looking-for-macro? 
+                      macro-template (if (and looking-for-macro?
                                               (string.match template "init%.lua$"))
                                        (-> template
                                            (string.gsub "init%.lua" "init-macros.lua")
