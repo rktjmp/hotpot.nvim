@@ -1,5 +1,5 @@
 (fn new-macro-dep-tracking-plugin [fnl-path]
-  {:versions [:1.1.0]
+  {:versions [:1.2.0]
    :name :hotpot-macro-dep-tracking
    :require-macros
    (fn plug-require-macros [ast scope]
