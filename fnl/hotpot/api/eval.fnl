@@ -4,10 +4,10 @@
 ;; Every one of these methods return the result or raise an error.
 ;;
 
-;; we must capure all values returned from the xpcall,
-;; which could be interspersed nils. We would normally just
-;; [(call)] and match on the array but sparse arrays will
-;; be truncated, so we do this bind swap to capture everything.
+;; we must capture all values returned from the xpcall, which could be
+;; interspersed nils. We would normally just capture the call inside a seq
+;; [(call)] and match on the array but sparse arrays will be truncated, so we
+;; do this bind swap to capture everything.
 (fn xpcall-wrapper [status ...]
   (if status
     (values ...)

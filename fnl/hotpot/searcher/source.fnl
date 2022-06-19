@@ -22,9 +22,10 @@
                (join-path :fnl (.. slashed-modname :.fnl))
                (join-path :fnl slashed-modname :init.fnl)]
         _ (if looking-for-macro?
-            ;; insert init-macros.fnl just before init.fnl since that takes
-            ;; precedence but both are valid.
-            (table.insert paths (length paths) (join-path :fnl slashed-modname :init-macros.fnl)))]
+            ;; search preference is init-macros.fnl, init.fnl
+            (table.insert paths
+                          (length paths)
+                          (join-path :fnl slashed-modname :init-macros.fnl)))]
     (accumulate [found nil _ possible-path (ipairs paths) :until found]
                 (match (vim.api.nvim_get_runtime_file possible-path false)
                   [path] (values path)
