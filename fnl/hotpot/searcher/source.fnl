@@ -58,7 +58,7 @@
                       macro-template (if (and looking-for-macro?
                                               (string.match template "init%.lua$"))
                                        (-> template
-                                           (string.gsub "init%.lua" "init-macros.lua")
+                                           (string.gsub "init%.lua$" "init-macros.lua")
                                            (#(values $1))
                                            (apply-modname-substitution slashed-modname)
                                            (lua-template->fnl-template)))]
