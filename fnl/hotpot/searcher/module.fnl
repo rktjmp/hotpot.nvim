@@ -89,7 +89,6 @@
   ;; should determine whether calling the searcher is required.
   (let [{:searcher modname->path} (require :hotpot.searcher.source)]
     (match (modname->path modname)
-      path (create-loader modname path)
-      nil nil))) ;; dont customise the error message, lua's default is fine
+      path (create-loader modname path))))
 
 {: searcher}
