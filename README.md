@@ -14,7 +14,7 @@ you want.
 
 ```fennel
 ;; ~/.config/nvim/fnl/is_neat.fnl
-;; some kind of fennel code
+;; some fennel code
 (fn [what]
   (print what "is neat!"))
 ```
@@ -24,6 +24,25 @@ you want.
 local neat = require('is_neat')
 neat("fennel") -- => "fennel is neat!"
 ```
+
+## TOC
+
+- [Requirements](#requirements)
+- [Purpose](#purpose)
+- [Install](#install)
+- [Setup](#setup)
+- [Hotpot API](#api)
+- [Operator Pending](#operator-pending)
+- [Using the API](#using-the-api)
+- [How does Hotpot work?](#how-does-hotpot-work)
+- [Windows](#windows)
+- [See Also](#see-also)
+
+## Requirements
+
+- Neovim 0.6.1+
+  - (The `0.1.0` tag is Neovim 0.5 compatible.)
+- ~~Fanatical devotion to parentheses.~~
 
 ## Purpose
 
@@ -46,48 +65,36 @@ Hotpot also maintains a lua bytecode cache which can dramatically
 improve your Neovim startup time, even if you write zero lines of
 fennel. (See [How does Hotpot work?](#how-does-hotpot-work))
 
-## TOC
-
-- [Requirements](#requirements)
-- [Install](#install)
-- [Setup](#setup)
-- [Hotpot API](#api)
-- [Operator Pending](#operator-pending)
-- [Using the API](#using-the-api)
-- [How does Hotpot work?](#how-does-hotpot-work)
-- [Windows](#windows)
-- [See Also](#see-also)
-
-## Requirements
-
-- Neovim 0.6.1+
-  - (The `0.1.0` tag is Neovim 0.5 compatible.)
-- ~~Fanatical devotion to parentheses.~~
 
 ## Install
 
-Hotpot only needs you to call `require("hotpot")` *before* you attempt to
-require any Fennel files.
+Hotpot can be installed via any package manager but you may prefer to manually
+*install* it and let your package manager *update* it. This allows you to
+configure your package manger with Fennel.
 
-Hotpot will automatically require itself via `hotpot/plugin/hotpot.vim`
-however this may occur later than you would like.
+You must call `require("hotpot")` before you attempt to require any Fennel
+files. If you do not do this manually, Neovim will call it for you but the
+order and time that this occurs may be non-deterministic.
 
-It may be helpful to use a package manager to install and update Hotpot, but
-inject it manually as soon as possible, so you can use Fennel to *configure the
-package manager*.
+If you only want to experiment with Fennel, adding `rktjmp/hotpot.nvim` to your
+plugin manager is probably good enough.
 
-Your init.lua file may look like this:
+<details>
+<summary>Automatic Install & Update (Recommended)</summary>
 
 ```lua
 -- ~/.config/nvim/init.lua
 
--- packer
--- local hotpot_path = vim.fn.stdpath('data')..'/site/pack/packer/start/hotpot.nvim'
--- paq
--- local hotpot_path = vim.fn.stdpath('data')..'/site/pack/paqs/start/hotpot.nvim'
+-- This init.lua file will clone hotpot into your plugins directory if
+-- it is missing. Do not forget to also add hotpot to your plugin manager
+-- or it may uninstall hotpot!
 
--- You can automatically install hotpot if it is missing (i.e for fresh nvim setups).
--- Don't forget to add hotpot to your package manager or it may uninstall hotpot!
+-- Consult your plugin-manager documentation for where it installs plugins.
+-- packer.nvim
+-- local hotpot_path = vim.fn.stdpath('data') .. '/site/pack/packer/start/hotpot.nvim'
+-- paq.nvim
+local hotpot_path = vim.fn.stdpath('data') .. '/site/pack/paqs/start/hotpot.nvim'
+
 if vim.fn.empty(vim.fn.glob(hotpot_path)) > 0 then
   print("Could not find hotpot.nvim, cloning new copy to", hotpot_path)
   vim.fn.system({'git', 'clone',
@@ -95,40 +102,57 @@ if vim.fn.empty(vim.fn.glob(hotpot_path)) > 0 then
   vim.cmd("helptags " .. hotpot_path .. "/doc")
 end
 
--- Bootstrap .fnl support
+-- Enable fnl/ support
 require("hotpot")
 
 -- Now you can load fennel code, so you could put the rest of your
--- config in a separate `~/.config/nvim/fnl/fenneled_init.fnl` or
+-- config in a separate `~/.config/nvim/fnl/my_config.fnl` or
 -- `~/.config/nvim/fnl/plugins.fnl`, etc.
-require("fenneled_init")
+require("my_config")
 ```
 
-Generally just remember you must call `require("hotpot")` before you attempt
-to `require("a_fnl_module")`. `:scriptnames` and `--startuptime` may help you
-diagnose any load order problems, as well as `:h initialization`.
+</details>
 
-### packer
-
-```lua
-return require('packer').startup(function()
-  use 'wbthomason/packer.nvim'
-  use 'rktjmp/hotpot.nvim'
-end)
-```
-
-### paq
+<details>
+<summary>Plugin Managers</summary>
 
 ```lua
+-- example using paq.nvim
 require "paq" {
   "rktjmp/hotpot.nvim"
 }
 ```
 
-Windows installations may [require additional setup](#windows)
-depending on your account privileges.
+</details>
 
-### Setup
+<details>
+<summary>Want to use an unreleased version of Fennel?</summary>
+
+The `nightly` branch merges Fennel `HEAD` into Hotpot each day.
+
+The main purpose of this is to run the test suite against upcoming releases.
+If the test suite fails, the changes will not be merged, so it should be
+reasonably stable to use day-to-day.
+
+Because the `nightly` branch's primary purpose is to run tests, there is no
+guarantee that it wont be recreated, renamed or force-pushed onto at some point
+in the future, which would require you do manually force pull or create a fresh
+clone.
+
+For a preview of upcoming Fennel features, you can view the
+[changelog](https://git.sr.ht/~technomancy/fennel/tree/main/item/changelog.md).
+
+</details>
+
+<details>
+<summary>Windows</summary>
+
+Windows installations may [require additional setup](#windows) depending on
+your account privileges.
+
+</details>
+
+## Setup
 
 Hotpot accepts the following configuration options, with defaults as shown.
 
@@ -138,9 +162,12 @@ See `h: hotpot-setup` for more details.
 
 ```lua
 require("hotpot").setup({
-  -- injects a loader so you can ergonomically call `(require :fennel)`.
+  -- allows you to call `(require :fennel)`.
   -- recommended you enable this unless you have another fennel in your path.
+  -- you can always call `(require :hotpot.fennel)`.
   provide_require_fennel = false,
+  -- compiler options are passed directly to the fennel compiler, see
+  -- fennels own documentation for details.
   compiler = {
     -- options passed to fennel.compile for modules, defaults to {}
     modules = {
