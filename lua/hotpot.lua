@@ -13,27 +13,27 @@
 
 
 
- local repo_canary do local canary_folder = join_path(hotpot_dir, "canary")
+ local canary_in_repo do local canary_folder = join_path(hotpot_dir, "canary")
  local handle = uv.fs_opendir(canary_folder, nil, 1)
  local files = uv.fs_readdir(handle)
  local _ = uv.fs_closedir(handle)
  local _let_1_ = files local _let_2_ = _let_1_[1] local name = _let_2_["name"]
- repo_canary = join_path(canary_folder, name) end
- local build_canary = join_path(lua_dir, "canary")
- return {["repo-canary"] = repo_canary, ["build-canary"] = build_canary} end
+ canary_in_repo = join_path(canary_folder, name) end
+ local canary_in_build = join_path(lua_dir, "canary")
+ return {["canary-in-repo"] = canary_in_repo, ["canary-in-build"] = canary_in_build} end
 
 
- local function canary_valid_3f(_3_) local _arg_4_ = _3_ local build_canary = _arg_4_["build-canary"]
+ local function canary_valid_3f(_3_) local _arg_4_ = _3_ local canary_in_build = _arg_4_["canary-in-build"]
 
 
- local _5_, _6_ = uv.fs_realpath(build_canary) if ((_5_ == nil) and (nil ~= _6_)) then local err = _6_ return false elseif (nil ~= _5_) then local path = _5_ return true else return nil end end
+ local _5_, _6_ = uv.fs_realpath(canary_in_build) if ((_5_ == nil) and (nil ~= _6_)) then local err = _6_ return false elseif (nil ~= _5_) then local path = _5_ return true else return nil end end
 
 
 
- local function create_canary_link(_8_) local _arg_9_ = _8_ local build_canary = _arg_9_["build-canary"] local repo_canary = _arg_9_["repo-canary"]
+ local function create_canary_link(_8_) local _arg_9_ = _8_ local canary_in_build = _arg_9_["canary-in-build"] local canary_in_repo = _arg_9_["canary-in-repo"]
 
- uv.fs_unlink(build_canary)
- return assert(uv.fs_symlink(repo_canary, build_canary), "could not create canary symlink") end
+ uv.fs_unlink(canary_in_build)
+ return assert(uv.fs_symlink(canary_in_repo, canary_in_build), "could not create canary symlink") end
 
  local function load_hotpot()
  local hotpot = require("hotpot.runtime")

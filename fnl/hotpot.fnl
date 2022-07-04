@@ -10,30 +10,30 @@
 
 (fn new-canary [hotpot-dir lua-dir]
   ;; represents both ends of the "canary", which lets hotpot know when it has
-  ;; to rebuild. repo-canary is the repo "true" canary, build-canary is made
+  ;; to rebuild. canary-in-repo is the repo "true" canary, canary-in-build is made
   ;; after compiliation and symlinks to the repo canary that was present at
   ;; that time.
-  (let [repo-canary (let [canary-folder (join-path hotpot-dir :canary)
-                           handle (uv.fs_opendir canary-folder nil 1)
-                           files (uv.fs_readdir handle)
-                           _ (uv.fs_closedir handle)
-                           [{: name}] files]
-                       (join-path canary-folder name))
-        build-canary (join-path lua-dir :canary)]
-    {: repo-canary
-     : build-canary}))
+  (let [canary-in-repo (let [canary-folder (join-path hotpot-dir :canary)
+                              handle (uv.fs_opendir canary-folder nil 1)
+                              files (uv.fs_readdir handle)
+                              _ (uv.fs_closedir handle)
+                              [{: name}] files]
+                          (join-path canary-folder name))
+        canary-in-build (join-path lua-dir :canary)]
+    {: canary-in-repo
+     : canary-in-build}))
 
-(fn canary-valid? [{: build-canary}]
+(fn canary-valid? [{: canary-in-build}]
   ;; resolve link to real file, if that fails, the link is stale
   ;; and we need to rebuild.
-  (match (uv.fs_realpath build-canary)
+  (match (uv.fs_realpath canary-in-build)
     (nil err) false
     path true))
 
-(fn create-canary-link [{: build-canary : repo-canary}]
+(fn create-canary-link [{: canary-in-build : canary-in-repo}]
   ;; create the canary link
-  (uv.fs_unlink build-canary)
-  (assert (uv.fs_symlink repo-canary build-canary) "could not create canary symlink"))
+  (uv.fs_unlink canary-in-build)
+  (assert (uv.fs_symlink canary-in-repo canary-in-build) "could not create canary symlink"))
 
 (fn load-hotpot []
   (let [hotpot (require :hotpot.runtime)]
