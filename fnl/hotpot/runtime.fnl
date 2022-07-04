@@ -1,4 +1,9 @@
 (import-macros {: expect : struct} :hotpot.macros)
+(local {: set-lazy-proxy} (require :hotpot.common))
+
+;;; The hotpot runtime is actally what is returned to the user when they
+;;; (require :hotpot), as the hotpot module does the business of preparing the
+;;; runtime but isn't actually useful for a user to engage with.
 
 (var runtime nil)
 
@@ -10,6 +15,8 @@
             (attr :index (new-index index-path)))))
 
 (fn install []
+  ;; hotpot.fnl will call this once it's compiled any internal files, etc
+  ;; and we will actually setup the searcher infrastructure.
   (when (not runtime)
     (set runtime (new-runtime))
     (let [{: new-indexed-searcher-fn} (require :hotpot.index)]
@@ -36,6 +43,6 @@
     ; dont leak any return value
     (values nil)))
 
-{: install
- : setup
- :current-runtime #(values runtime)}
+(-> {: install : setup :current-runtime #(values runtime)}
+    ;; convenience accessor
+    (set-lazy-proxy {:api :hotpot.api}))
