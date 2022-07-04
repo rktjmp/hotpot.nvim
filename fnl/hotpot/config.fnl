@@ -5,6 +5,7 @@
 ; under api.compile, etc etc.
 (local default-options {:compiler {:modules {}
                                    :macros {:env :_COMPILER}}
+                        :traceback :hotpot
                         :provide_require_fennel false})
 (var user-options {})
 
