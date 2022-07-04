@@ -35,13 +35,6 @@
  uv.fs_unlink(canary_in_build)
  return assert(uv.fs_symlink(canary_in_repo, canary_in_build), "could not create canary symlink") end
 
- local function load_hotpot()
- local hotpot = require("hotpot.runtime")
- hotpot.install()
-
- do end (hotpot)["install"] = nil
- return hotpot end
-
  local function compile_hotpot(fnl_dir, lua_dir)
  local function compile_file(fnl_src, lua_dest)
 
@@ -125,4 +118,10 @@
  if not canary_valid_3f(canary) then
  compile_hotpot(fnl_dir, lua_dir)
  create_canary_link(canary) else end
- return load_hotpot()
+
+
+ local runtime = require("hotpot.runtime")
+ runtime.install()
+
+ do end (runtime)["install"] = nil
+ return runtime

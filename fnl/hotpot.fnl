@@ -35,13 +35,6 @@
   (uv.fs_unlink canary-in-build)
   (assert (uv.fs_symlink canary-in-repo canary-in-build) "could not create canary symlink"))
 
-(fn load-hotpot []
-  (let [hotpot (require :hotpot.runtime)]
-    (hotpot.install)
-    ;; user should never have to run install
-    (tset hotpot :install nil)
-    (values hotpot)))
-
 (fn compile-hotpot [fnl-dir lua-dir]
   (fn compile-file [fnl-src lua-dest]
     ;; compile fnl src to lua dest, can raise.
@@ -125,4 +118,10 @@
   (when (not (canary-valid? canary))
     (compile-hotpot fnl-dir lua-dir)
     (create-canary-link canary))
-  (load-hotpot))
+  ;; `require :hotpot` is transparently `require :hotpot.runtime`
+  ;; as nothing in this module is end-user servicable.
+  (let [runtime (require :hotpot.runtime)]
+    (runtime.install)
+    ;; user should never have to run install
+    (tset runtime :install nil)
+    (values runtime)))
