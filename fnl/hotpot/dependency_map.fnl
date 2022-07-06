@@ -29,7 +29,7 @@
         (table.insert list macro-module)
         (tset fnl-file-macro-mods fnl-path list))
       (error (.. "tried to insert nil macro dependencies for "
-                 fnl-path ", please report this issue with a reproduction")))))
+                 fnl-path ", please report this issue")))))
 
 (fn deps-for-fnl-path [fnl-path]
   (match (. fnl-file-macro-mods fnl-path)
