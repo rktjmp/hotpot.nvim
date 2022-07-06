@@ -1,4 +1,6 @@
 (fn traceback [msg]
+  "Customised traceback formatter which strips Fennels internal stackframes
+  from the stacktrace, as they are often more noise than signal."
   ;; we *do* want to use the fennel traceback handler, but we also want
   ;; to do our own clean up as fennel.traceback still includes fennel
   ;; stackframes which will (never?) be useful to the end user (probably?).

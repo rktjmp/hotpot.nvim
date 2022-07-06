@@ -96,6 +96,8 @@
              (if use-record? record (tset index.modules modname nil)))))
 
 (fn search-index [index modname]
+  "Search the index for module. Will return a bytecode loader if one exists and
+  is not stale, otherwise fall back to disk searchers."
   (match (= :hotpot (string.sub modname 1 6))
     ;; unfortunately we cant (currently?) comfortably index hotpot *with* hotpot
     ;; so these requires are passed directly to the next searcher.
@@ -123,11 +125,13 @@
         (search-index index modname))))
 
 (fn clear-record [index modname]
+  "Clear in-memory record of a module, which will force a re-fetch from disk
+  next if combined with setting package.loaded[modname] = nil"
   (tset index.modules modname nil))
 
 (fn new-index [path]
-  {: path
-   :modules (hydrate-records path)})
+  "Hydrate records from path and package into index table"
+  {: path :modules (hydrate-records path)})
 
 {: new-index
  : new-indexed-searcher-fn

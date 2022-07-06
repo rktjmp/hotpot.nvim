@@ -1,10 +1,12 @@
 (import-macros {: expect} :hotpot.macros)
+
 ;; we only want to inject the macro searcher once, but we also
 ;; only want to do it on demand since this front end to the compiler
 ;; is always loaded but not always used.
 (var injected-macro-searcher? false)
 
 (fn compile-string [string options]
+  "Compile given string of fennel into lua, returns `true lua` or `false error`"
   ;; (string table) :: (true string) | (false string)
   ;; we only require fennel here because it can be heavy to pull in and *most*
   ;; of the time we will shortcut to the compiled lua.
@@ -25,6 +27,7 @@
   (xpcall compile traceback))
 
 (fn compile-file [fnl-path lua-path options]
+  "Compile fennel code from `fnl-path` and save to `lua-path`"
   ;; (string, string) :: (true, nil) | (false, errors)
   (fn check-existing [path]
     (let [uv vim.loop
