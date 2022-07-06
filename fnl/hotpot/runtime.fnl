@@ -9,6 +9,8 @@
 (var config (default-config))
 
 (fn lazy-traceback []
+  ;; loading the traceback is potentially heavy, so we don't get it until we
+  ;; need it.
   (let [mod-name (match config.traceback
                    :hotpot :hotpot.traceback
                    :fennel :fennel
@@ -38,17 +40,14 @@
             (tset package.loaded :fennel nil))))
 
 (fn update [what value]
+  "Update runtime settings with values"
   (match what
     :index (set index value)
     :config (patch-config value)
-
     _ (error (.. "cant update runtime." (tostring what)))))
 
-(fn proxy [t k]
-  (match k
-    :index (values index)
-    :config (values config)
-    :traceback (lazy-traceback)))
-
 (-> {: update :proxied-keys "index, config, traceback"}
-    (setmetatable {:__index proxy}))
+    (setmetatable {:__index #(match $2
+                               :index (values index)
+                               :config (values config)
+                               :traceback (lazy-traceback))}))
