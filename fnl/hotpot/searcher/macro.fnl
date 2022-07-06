@@ -56,7 +56,7 @@
   (let [{:searcher modname->path} (require :hotpot.searcher.source)]
     ;; TODO probably dont look for macros in-preloaded to avoid init.fnl files instead of macro file
     (or (. package :preload modname)
-        (match (modname->path modname true)
+        (match (modname->path modname {:macro? true})
           path (create-loader modname path)))))
 
 {: searcher}

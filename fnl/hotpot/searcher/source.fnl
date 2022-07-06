@@ -35,39 +35,37 @@
   ;; (string) :: string | nil
   ;; Iterate through templates, injecting path where appropriate,
   ;; returns full path if a file exists or nil
-  (fn apply-modname-substitution [template slashed-modname]
+  (fn expand-template [template slashed-modname]
     ;; actually check for 1 replacement otherwise gsub returns the original
     ;; string uneffected. path strings are something like some/path/?.lua so swap
     ;; the extension.
     (match (string.gsub template "%?" slashed-modname)
       (updated 1) updated
       _  nil))
-  (fn lua-template->fnl-template [template]
+  (fn lua-ext->fnl-ext [template]
     ;; template may be nil, if the modname subtitution failed
-    (if template
-      (string.gsub template "%.lua$" ".fnl")))
+    (if template (string.gsub template "%.lua$" ".fnl")))
   (let [{: file-exists?} (require :hotpot.fs)
         ;; append ; so regex is simpler
         templates (.. package.path ";")]
     (accumulate [found nil template (string.gmatch templates "(.-);") :until found]
-                ;; a template part will look like "~/some/path/?.lua;", where `?`
-                ;; should be substituted with the pathed-module-name (~/some/path/my/mod.lua).
-                ;; the fennel template should be exactly the same but ending in .fnl
-                (let [lua-template (apply-modname-substitution template slashed-modname)
-                      fnl-template (lua-template->fnl-template lua-template)
-                      macro-template (if (and looking-for-macro?
-                                              (string.match template "init%.lua$"))
-                                       (-> template
-                                           (string.gsub "init%.lua$" "init-macros.lua")
-                                           (#(values $1))
-                                           (apply-modname-substitution slashed-modname)
-                                           (lua-template->fnl-template)))]
-                  (or (and lua-template (file-exists? lua-template) (values lua-template))
-                      (and fnl-template (file-exists? fnl-template) (values fnl-template))
-                      (and macro-template (file-exists? macro-template) (values macro-template))
-                      (values nil))))))
+      ;; a template part will look like "~/some/path/?.lua;", where `?`
+      ;; should be substituted with the pathed-module-name (~/some/path/my/mod.lua).
+      ;; the fennel template should be exactly the same but ending in .fnl
+      (let [lua-template (expand-template template slashed-modname)
+            fnl-template (lua-ext->fnl-ext lua-template)
+            macro-template (if (and looking-for-macro? (string.match template "init%.lua$"))
+                             (-> template
+                                 (string.gsub "init%.lua$" "init-macros.lua")
+                                 (#(values $1))
+                                 (expand-template slashed-modname)
+                                 (lua-ext->fnl-ext)))]
+        (or (and lua-template (file-exists? lua-template) (values lua-template))
+            (and fnl-template (file-exists? fnl-template) (values fnl-template))
+            (and macro-template (file-exists? macro-template) (values macro-template))
+            (values nil))))))
 
-(fn searcher [dotted-modname looking-for-macro?]
+(fn searcher [dotted-modname opts]
   ;; (string) :: string | nil
   ;; Search nvim rtp for module, then search lua package.path
   ;; this mirrors nvims default behaviour for lua files
@@ -77,7 +75,9 @@
   ;; the given module name into a "pathable" value, but do not
   ;; add an extension because we will check for both .lua and .fnl
   (let [{: path-separator} (require :hotpot.fs)
-        slashed-modname (string.gsub dotted-modname "%." (path-separator))]
+        slashed-modname (string.gsub dotted-modname "%." (path-separator))
+        opts (or opts {})
+        looking-for-macro? (or (. opts :macro?) false)]
     (or (search-rtp slashed-modname looking-for-macro?)
         (search-package-path slashed-modname looking-for-macro?)
         (values nil))))
