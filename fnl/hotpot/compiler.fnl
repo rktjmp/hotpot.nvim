@@ -1,4 +1,4 @@
-(import-macros {: expect : struct} :hotpot.macros)
+(import-macros {: expect} :hotpot.macros)
 ;; we only want to inject the macro searcher once, but we also
 ;; only want to do it on demand since this front end to the compiler
 ;; is always loaded but not always used.

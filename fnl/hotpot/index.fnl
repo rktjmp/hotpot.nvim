@@ -5,7 +5,7 @@
 ;;; they become out of sync with the original source.
 ;;;
 
-(import-macros {: expect : struct} :hotpot.macros)
+(import-macros {: expect} :hotpot.macros)
 
 (fn fnl-path->lua-cache-path [fnl-path]
   ;; (string) :: string
@@ -46,9 +46,6 @@
 
 (fn new-module-record [modname files timestamp loader]
   (let [{: file-mtime} (require :hotpot.fs)]
-    ;; these are directly mpack'd out, so we cant use a struct :<
-    ;; at least not without re-iterating them onload which is kind
-    ;; of against the whole point.
     {: modname
      : files
      : timestamp
@@ -129,9 +126,8 @@
   (tset index.modules modname nil))
 
 (fn new-index [path]
-  (struct :hotpot/index
-          (attr :path path)
-          (attr :modules (hydrate-records path))))
+  {: path
+   :modules (hydrate-records path)})
 
 {: new-index
  : new-indexed-searcher-fn
