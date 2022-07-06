@@ -1,4 +1,4 @@
-(fn hotpot-traceback [msg]
+(fn traceback [msg]
   ;; we *do* want to use the fennel traceback handler, but we also want
   ;; to do our own clean up as fennel.traceback still includes fennel
   ;; stackframes which will (never?) be useful to the end user (probably?).
@@ -71,10 +71,4 @@
           (string.gsub "\n\n\n+" "\n\n")
           (#(string.format "\n%s\n" $1)))))
 
-(fn fennel-traceback []
-  (let [{: traceback} (require :fennel)]
-    (values traceback)))
-
-{: hotpot-traceback
- : fennel-traceback
- :traceback hotpot-traceback}
+{: traceback}

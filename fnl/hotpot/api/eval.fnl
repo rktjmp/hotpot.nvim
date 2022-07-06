@@ -15,7 +15,7 @@
 
 (fn eval-string [string]
   (let [{: eval} (require :hotpot.fennel)
-        traceback (require :hotpot.configuration.traceback)
+        {: traceback} (require :hotpot.runtime)
         doeval #(eval string {:filename :hotpot-live-eval})]
     (xpcall-wrapper (xpcall doeval traceback))))
 
@@ -37,7 +37,7 @@
 (fn eval-file [fnl-file]
   (assert fnl-file "eval-file: must provide path to .fnl file")
   (let [{: dofile} (require :hotpot.fennel)
-        traceback (require :hotpot.configuration.traceback)]
+        {: traceback} (require :hotpot.runtime)]
     (xpcall-wrapper
       (xpcall #(dofile fnl-file {:filename fnl-file}) traceback))))
 
@@ -75,7 +75,7 @@
   ;; replace all the lines with nothing! Let's not do that.
   (assert (and code (~= code "")) "fnldo: code must not be blank")
   (let [{: eval} (require :hotpot.fennel)
-        traceback (require :hotpot.configuration.traceback)
+        {: traceback} (require :hotpot.runtime)
         codestr (.. "(fn [line linenr] " code ")")
         func (match (xpcall #(eval codestr {:filename :hotpot-fnldo}) traceback)
                (true func) func

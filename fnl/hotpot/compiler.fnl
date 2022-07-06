@@ -9,7 +9,7 @@
   ;; we only require fennel here because it can be heavy to pull in and *most*
   ;; of the time we will shortcut to the compiled lua.
   (local fennel (require :hotpot.fennel))
-  (local traceback (require :hotpot.configuration.traceback))
+  (local {: traceback} (require :hotpot.runtime))
   (when (not injected-macro-searcher?)
     (let [{: searcher} (require :hotpot.searcher.macro)]
       ;; we inject the macro searcher here, instead of in runtime.install because

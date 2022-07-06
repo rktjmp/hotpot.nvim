@@ -15,7 +15,6 @@
   ;; assumes path exists!
   (let [fennel (require :hotpot.fennel)
         {: read-file!} (require :hotpot.fs)
-        config (require :hotpot.config)
         code (read-file! path)]
     (fn [modname]
       ;; require the depencency map module *inside* the load function
@@ -23,7 +22,8 @@
       ;; By putting it here we can be sure that the dep map module is already
       ;; in memory before hotpot took over macro module searching.
       (let [dep_map (require :hotpot.dependency_map)
-            options (doto (config.get-option :compiler.macros)
+            {: config} (require :hotpot.runtime)
+            options (doto (. config :compiler :macros)
                           (tset :filename path)
                           (tset :module-name modname))]
         ;; later, when a module needs a macro, we will know what file the
@@ -54,6 +54,7 @@
   ;; This behaves similar to the module seacher, it will prefer .lua files in
   ;; the RTP if it exists, otherwise it looks for .fnl files in the package path.
   (let [{:searcher modname->path} (require :hotpot.searcher.source)]
+    ;; TODO probably dont look for macros in-preloaded to avoid init.fnl files instead of macro file
     (or (. package :preload modname)
         (match (modname->path modname true)
           path (create-loader modname path)))))

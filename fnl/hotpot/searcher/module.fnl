@@ -36,9 +36,9 @@
 
 (fn compile-fnl [fnl-path lua-path modname]
   ;; (string, string) :: true | false, errors
-  (let [config (require :hotpot.config)
-        {: compile-file} (require :hotpot.compiler)
-        options (config.get-option :compiler.modules)
+  (let [{: compile-file} (require :hotpot.compiler)
+        {: config} (require :hotpot.runtime)
+        options (. config :compiler :modules)
         plugin (new-macro-dep-tracking-plugin fnl-path modname)]
     ;; inject our plugin, must only exist for this compile-file call
     ;; because it depends on the specific fnl-path closure value, so we
