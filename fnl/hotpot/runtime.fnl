@@ -1,48 +1,48 @@
-(import-macros {: expect : struct} :hotpot.macros)
-(local {: set-lazy-proxy} (require :hotpot.common))
+(fn default-config []
+  "Create a default configuration table"
+  {:compiler {:modules {}
+              :macros {:env :_COMPILER}
+              :traceback :hotpot
+              :provide_require_fennel false}})
 
-;;; The hotpot runtime is actally what is returned to the user when they
-;;; (require :hotpot), as the hotpot module does the business of preparing the
-;;; runtime but isn't actually useful for a user to engage with.
+(var index nil)
+(var config (default-config))
 
-(var runtime nil)
-
-(fn new-runtime []
-  (let [{: new-index} (require :hotpot.index)
-        {: join-path} (require :hotpot.fs)
-        index-path (join-path (vim.fn.stdpath :cache) :hotpot :index.bin)]
-    (struct :hotpot/runtime
-            (attr :index (new-index index-path)))))
-
-(fn install []
-  ;; hotpot.fnl will call this once it's compiled any internal files, etc
-  ;; and we will actually setup the searcher infrastructure.
-  (when (not runtime)
-    (set runtime (new-runtime))
-    (let [{: new-indexed-searcher-fn} (require :hotpot.index)]
-      (table.insert package.loaders 1 (new-indexed-searcher-fn runtime.index)))))
-
-(fn setup-provide-require-fennel []
-  (tset package.preload :fennel #(require :hotpot.fennel)))
-
-(fn setup-traceback [name]
-  (let [mod-name (match name
+(fn lazy-traceback []
+  (let [mod-name (match config.traceback
                    :hotpot :hotpot.traceback
                    :fennel :fennel
-                   _ (error (string.format "Unknown traceback option: %s. Only accepts 'hotpot' (default) or 'fennel'")))
-        loader #(let [{: traceback} (require mod-name)]
-                  (values traceback))]
-    (tset package.preload :hotpot.configuration.traceback loader)))
+                   _ (error "invalid traceback value, must be :hotpot or :fennel"))
+        {: traceback} (require mod-name)]
+    (values traceback)))
 
-(fn setup [options]
-  (let [config (require :hotpot.config)]
-    (config.set-user-options (or options {}))
-    (when (config.get-option :provide_require_fennel)
-      (setup-provide-require-fennel))
-    (setup-traceback (config.get-option :traceback))
-    ; dont leak any return value
-    (values nil)))
+(fn patch-config [new-config]
+  ;; modules and macros config are passed as is to the compiler
+  (set config.modules (or new-config.modules
+                          config.modules))
+  (set config.macros (or new-config.macros
+                         config.macros))
+  (set config.traceback (or new-config.traceback
+                            config.traceback))
+  (set config.provide_require_fennel (or new-config.provide_require_fennel
+                                         config.provide_require_fennel))
+  (match config.provide_require_fennel
+    true (tset package.preload :fennel #(require :hotpot.fennel))
+    false (do
+            (tset package.preload :fennel nil)
+            (tset package.loaded :fennel nil))))
 
-(-> {: install : setup :current-runtime #(values runtime)}
-    ;; convenience accessor
-    (set-lazy-proxy {:api :hotpot.api}))
+(fn update [what value]
+  (match what
+    :index (set index value)
+    :config (patch-config value)
+    _ (error (.. "cant update runtime." (tostring what)))))
+
+(fn proxy [t k]
+  (match k
+    :index (values index)
+    :config (values config)
+    :traceback (lazy-traceback)))
+
+(-> {: update :proxied-keys "index, config, traceback"}
+    (setmetatable {:__index proxy}))
