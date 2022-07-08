@@ -29,7 +29,9 @@
                                       {:module-name context-modname}
                                       context-modname)
            dep_map (require :hotpot.dependency_map)]
-       (assert macro-modname "congratulations, you're doing something weird, probably with recursive relative macro requires, please open a bug with an example of your setup")
+       (assert macro-modname (.. "congratulations, you're doing something weird, "
+                                 "probably with recursive relative macro requires, "
+                                 "please open a bug with an example of your setup"))
        (dep_map.fnl-path-depends-on-macro-module fnl-path macro-modname))
      ;; dont halt other plugins
      (values nil))})
