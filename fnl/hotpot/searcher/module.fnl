@@ -97,15 +97,15 @@
                              (and (is-fnl-path? mod-path) create-fnl-loader)
                              #(values nil (.. "hotpot could not create loader for " mod-path)))]
     (match (create-loader-fn modname mod-path)
-      {: loader : timestamp : deps} (let [path mod-path
-                                          ;; modules are stale when their deps
-                                          ;; update or the source updates, so
-                                          ;; merge mod path with deps.
-                                          files (doto deps (table.insert 1 mod-path))]
-                                      ;; return extra index data as second
-                                      ;; value so we're still lua-loader
-                                      ;; compatible.
-                                      (values loader {: path : files : timestamp}))
+      {: loader : timestamp : deps}
+      (let [path mod-path
+            ;; From the index's perspective, source files can also become stale
+            ;; when they're modified, so add the source file to the dependencies list
+            ;; so the index can track it too.
+            files (doto deps (table.insert 1 mod-path))]
+        ;; We return our extra index data as a second value so the searcher is
+        ;; still technically lua compatible.
+        (values loader {: path : files : timestamp}))
       (nil err) (values err))))
 
 (fn searcher [modname]
