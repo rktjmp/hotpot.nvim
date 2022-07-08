@@ -12,13 +12,15 @@
       index (new-index index-path)
       searcher (new-indexed-searcher-fn index)]
   (table.insert package.loaders 1 searcher)
-  (runtime.update :index index))
+  (runtime.set-index index))
 
 (local M {})
 
 (fn M.setup [options]
-  (let [runtime (require :hotpot.runtime)]
-    (runtime.update :config options)))
+  (let [runtime (require :hotpot.runtime)
+        config (runtime.set-config options)]
+    (if config.provide_require_fennel
+      (tset package.preload :fennel #(require :hotpot.fennel)))))
 
 ;; return module that is mostly proxying other modules ...
 (let [{: set-lazy-proxy} (require :hotpot.common)]
