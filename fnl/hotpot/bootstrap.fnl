@@ -1,3 +1,6 @@
+;;; Code to detect whether hotpots own code needs to be recompiled, and code to
+;;; do that recompilation. This is `include`'d into hotpot.fnl on distribution.
+
 (local uv vim.loop)
 
 ;; duplicated out of hotpot.fs because we can't require anything yet
