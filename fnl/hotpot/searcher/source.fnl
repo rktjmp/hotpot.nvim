@@ -59,8 +59,8 @@
                                  (expand-template slashed-modname)
                                  (lua-ext->fnl-ext)))]
         (or (and lua-template (file-exists? lua-template) (values lua-template))
-            (and fnl-template (file-exists? fnl-template) (values fnl-template))
             (and macro-template (file-exists? macro-template) (values macro-template))
+            (and fnl-template (file-exists? fnl-template) (values fnl-template))
             (values nil))))))
 
 (fn searcher [dotted-modname opts]
