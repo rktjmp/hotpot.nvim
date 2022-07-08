@@ -58,7 +58,7 @@
     (expect (is-fnl-path? fnl-path) "compile-file: must provide .fnl path, got: %q" fnl-path)
     (expect (file-exists? fnl-path) "compile-file: doesn't exist: %q" fnl-path)
     (-> (read-file! fnl-path)
-        (compile-string fnl-path options))))
+        (compile-string options))))
 
 (fn compile-module [modname ?options]
   "Use hotpots module searcher to find `modname` and compile it into lua code,
