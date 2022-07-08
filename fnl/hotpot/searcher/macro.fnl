@@ -46,7 +46,7 @@
 
 (fn searcher [modname]
   ;; By fennel.specials lua-macro-searcher, fennel-macro-searcher, it's legal
-  ;; to require full modules, fennel or lua inside a macro file and they should
+  ;; to require fennel or lua modules inside a macro file and they should
   ;; just be loaded into memory (i.e. do not save fennel->lua to cache) So this
   ;; searcher is similar to the module loader without the stale checks and
   ;; file-write stuff (macros are never "compiled to lua").
