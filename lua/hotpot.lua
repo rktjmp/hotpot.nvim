@@ -12,14 +12,16 @@
  local index = new_index(index_path)
  local searcher = new_indexed_searcher_fn(index)
  table.insert(package.loaders, 1, searcher)
- runtime.update("index", index) end
+ runtime["set-index"](index) end
 
  local M = {}
 
  M.setup = function(options)
  local runtime = require("hotpot.runtime")
- return runtime.update("config", options) end
+ local config = runtime["set-config"](options)
+ if config.provide_require_fennel then
+ local function _21_() return require("hotpot.fennel") end package.preload["fennel"] = _21_ return nil else return nil end end
 
 
- local _let_21_ = require("hotpot.common") local set_lazy_proxy = _let_21_["set-lazy-proxy"]
+ local _let_23_ = require("hotpot.common") local set_lazy_proxy = _let_23_["set-lazy-proxy"]
  return set_lazy_proxy(M, {api = "hotpot.api", runtime = "hotpot.runtime"})
