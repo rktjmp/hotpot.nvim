@@ -20,12 +20,10 @@
         paths [(join-path :lua (.. slashed-modname :.lua))
                (join-path :lua slashed-modname :init.lua)
                (join-path :fnl (.. slashed-modname :.fnl))
-               (join-path :fnl slashed-modname :init.fnl)]
-        _ (if looking-for-macro?
-            ;; search preference is init-macros.fnl, init.fnl
-            (table.insert paths
-                          (length paths)
-                          (join-path :fnl slashed-modname :init-macros.fnl)))]
+               (join-path :fnl slashed-modname :init.fnl)]]
+    (if looking-for-macro?
+      ;; search preference is init-macros.fnl, init.fnl
+      (table.insert paths 4 (join-path :fnl slashed-modname :init-macros.fnl)))
     (accumulate [found nil _ possible-path (ipairs paths) :until found]
                 (match (vim.api.nvim_get_runtime_file possible-path false)
                   [path] (values path)
