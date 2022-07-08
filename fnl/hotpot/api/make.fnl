@@ -287,8 +287,9 @@
     (when (< 0 (length errs))
       (let [text []]
         (if options.atomic
-          (table.insert text ["*** Compilation errors occured while in atomic mode, refusing to write any files! ***\n" :Error])
-          (table.insert text ["*** Compilation errors occured! ***\n" :Error]))
+          (table.insert text [(.. "*** Compilation errors occured while in atomic mode, "
+                                  "refusing to write any files! ***\n") :ErrorMsg])
+          (table.insert text ["*** Compilation errors occured! ***\n" :ErrorMsg]))
         (table.insert text [" \n" :Normal]) ;; force line break
         (each [_ [_ _ [_ e]] (ipairs errs)]
           (do
