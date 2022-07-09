@@ -39,7 +39,8 @@
            : write-file!
            : path-separator
            : is-lua-path?
-           : is-fnl-path?} (require :hotpot.fs)
+           : is-fnl-path?
+           : dirname} (require :hotpot.fs)
           _ (expect (is-fnl-path? fnl-path) "compile-file fnl-path not fnl file: %q" fnl-path)
           _ (expect (is-lua-path? lua-path) "compile-file lua-path not lua file: %q" lua-path)
           fnl-code (read-file! fnl-path)
@@ -48,17 +49,9 @@
           options (doto (or options {})
                         (tset :filename fnl-path))]
       (match (compile-string fnl-code options)
-        (true lua-code) (let [filename (-> lua-path
-                                           (string.reverse)
-                                           (string.match (.. "(.-)" (path-separator)))
-                                           (string.reverse))
-                              chop (-> filename
-                                       (length)
-                                       (+ 1)
-                                       (* -1))
-                              containing-dir (string.sub lua-path 1 chop)]
+        (true lua-code) (let []
                           (check-existing lua-path)
-                          (vim.fn.mkdir containing-dir :p)
+                          (vim.fn.mkdir (dirname lua-path) :p)
                           (write-file! lua-path lua-code))
         (false errors) (error errors))))
   (pcall do-compile))
