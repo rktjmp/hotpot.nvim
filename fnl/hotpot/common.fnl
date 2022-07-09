@@ -4,10 +4,6 @@
     (print (view [...]))
     (values ...)))
 
-(fn view [...]
-  (let [{: view} (require :hotpot.fennel)]
-    (view ...)))
-
 (fn set-lazy-proxy [t lookup]
   (each [k _ (pairs lookup)]
     (tset t (.. :__ k) (string.format "lazy loaded on %s key access" k)))
@@ -23,5 +19,4 @@
 
 {:fmt string.format
  : inspect
- : view
  : set-lazy-proxy}
