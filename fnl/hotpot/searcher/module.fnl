@@ -45,7 +45,7 @@
                                       {:module-name required-from-modname}
                                       required-from-modname
                                       fnl-path)
-           dep-map (require :hotpot.dependency_map)]
+           dep-map (require :hotpot.dependency-map)]
        (assert macro-modname (.. "congratulations, you're doing something weird, "
                                  "probably with recursive relative macro requires, "
                                  "please open a bug with an example of your setup"))
@@ -82,7 +82,7 @@
 
 (fn create-fnl-loader [modname mod-path]
   (let [{: fnl-path->lua-cache-path} (require :hotpot.index)
-        {: deps-for-fnl-path} (require :hotpot.dependency_map)
+        {: deps-for-fnl-path} (require :hotpot.dependency-map)
         {: file-mtime} (require :hotpot.fs)
         lua-path (fnl-path->lua-cache-path mod-path)]
     (match (compile-fnl mod-path lua-path modname)

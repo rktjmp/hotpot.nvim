@@ -21,7 +21,7 @@
       ;; to avoid circular dependencies.
       ;; By putting it here we can be sure that the dep map module is already
       ;; in memory before hotpot took over macro module searching.
-      (let [dep_map (require :hotpot.dependency_map)
+      (let [dep-map (require :hotpot.dependency-map)
             {: config} (require :hotpot.runtime)
             options (doto (. config :compiler :macros)
                           (tset :filename path)
@@ -29,7 +29,7 @@
         ;; later, when a module needs a macro, we will know what file the
         ;; macro came from and can then track the macro file for changes
         ;; when refreshing the cache.
-        (dep_map.set-macro-modname-path modname path)
+        (dep-map.set-macro-modname-path modname path)
         ;; eval macro as per fennel's implementation.
         (fennel.eval code options modname)))))
 
