@@ -52,12 +52,14 @@
       ;; the fennel template should be exactly the same but ending in .fnl
       (let [lua-template (expand-template template slashed-modname)
             fnl-template (lua-ext->fnl-ext lua-template)
-            macro-template (if (and looking-for-macro? (string.match template "init%.lua$"))
+            macro-template (if (and looking-for-macro? 
+                                    (string.match template "init%.lua$"))
                              (-> template
                                  (string.gsub "init%.lua$" "init-macros.lua")
                                  (#(values $1))
                                  (expand-template slashed-modname)
                                  (lua-ext->fnl-ext)))]
+        ;; preference lua files, init-macros.fnl, then init.fnl.
         (or (and lua-template (file-exists? lua-template) (values lua-template))
             (and macro-template (file-exists? macro-template) (values macro-template))
             (and fnl-template (file-exists? fnl-template) (values fnl-template))
