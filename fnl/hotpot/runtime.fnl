@@ -8,7 +8,7 @@
   ;; we don't get it until we need it.
   (let [mod-name (match config.compiler.traceback
                    :hotpot :hotpot.traceback
-                   :fennel :fennel
+                   :fennel :hotpot.fennel
                    _ (error "invalid traceback value, must be :hotpot or :fennel"))
         {: traceback} (require mod-name)]
     (values traceback)))
