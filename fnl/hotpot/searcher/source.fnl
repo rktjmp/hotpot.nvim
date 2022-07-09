@@ -5,17 +5,17 @@
 ;;
 
 (fn search-rtp [slashed-modname looking-for-macro?]
-  ;; (string) :: string | nil
-  ;; Given slashed-modname, find the first matching $RUNTIMEPATH/$partial-path
-  ;; Neovim actually uses a similar custom loader to us that will search
-  ;; the rtp for lua files, bypassing lua's package.path. TODO: still true?
-  ;; It checks: "lua/"..basename..".lua", "lua/"..basename.."/init.lua"
-  ;; This code is basically transcoded from nvim/lua/vim.lua _load_package
+  "Given slashed-modname, find the first matching $RUNTIMEPATH/$partial-path
+  Neovim actually uses a similar custom loader to us that will search
+  the rtp for lua files, bypassing lua's package.path. TODO: still true?
+  It checks: `lua/..basename...lua`, `lua/..basename../init.lua`
+  This code is basically transcoded from nvim/lua/vim.lua _load_package.
 
-  ;; we preference finding lua/*.lua files, with the assumption that if those
-  ;; exist, someone is providing us with compiled files which may have been
-  ;; through any kind of build process and we best not try to
-  ;; load the raw fnl (or recompile for no reason).
+  We preference finding lua/*.lua files, with the assumption that if those
+  exist, someone is providing us with compiled files which may have been
+  through any kind of build process and we best not try to
+  load the raw fnl (or recompile for no reason)."
+  ;; (string) :: string | nil
   (let [{: join-path} (require :hotpot.fs)
         paths [(join-path :lua (.. slashed-modname :.lua))
                (join-path :lua slashed-modname :init.lua)
@@ -30,9 +30,9 @@
                   _ nil))))
 
 (fn search-package-path [slashed-modname looking-for-macro?]
+  "Iterate through templates, injecting path where appropriate, returns full
+  path if a file exists or nil"
   ;; (string) :: string | nil
-  ;; Iterate through templates, injecting path where appropriate,
-  ;; returns full path if a file exists or nil
   (fn expand-template [template slashed-modname]
     ;; actually check for 1 replacement otherwise gsub returns the original
     ;; string uneffected. path strings are something like some/path/?.lua so swap
