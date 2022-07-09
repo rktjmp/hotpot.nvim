@@ -5,6 +5,9 @@
     (values ...)))
 
 (fn set-lazy-proxy [t lookup]
+  "Attach metatable __index method to `t`, which searches `lookup` for
+  the accessed key. `lookup` should be a table of `name module-name` pairs.
+  If the key is found in lookup, the module is required and returned."
   (each [k _ (pairs lookup)]
     (tset t (.. :__ k) (string.format "lazy loaded on %s key access" k)))
 
