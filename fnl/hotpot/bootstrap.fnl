@@ -10,10 +10,17 @@
               (.. t path-separator part)))
 
 (fn new-canary [hotpot-dir lua-dir]
-  ;; represents both ends of the "canary", which lets hotpot know when it has
-  ;; to rebuild. canary-in-repo is the repo "true" canary, canary-in-build is made
-  ;; after compiliation and symlinks to the repo canary that was present at
-  ;; that time.
+  ;; The "canary" lets hotpot know when it should rebuild itself. A new unique
+  ;; canary is generated for each release, and the old canary is removed. The
+  ;; canary lives at `canary/xxx` where xxx is a checksum per-release.
+  ;;
+  ;; When we build hotpot, we create a symlink to the canary file. If an update
+  ;; is deployed, the old canary will be removed and a new canary will have
+  ;; been added. The symlink will then be broken and we'll know to build hotpot
+  ;; and recreate a new symlink.
+  ;;
+  ;; To that end, this function returns paths to both "ends" of the canary, the
+  ;; shipped file and the symlink.
   (let [canary-in-repo (let [canary-folder (join-path hotpot-dir :canary)
                               handle (uv.fs_opendir canary-folder nil 1)
                               files (uv.fs_readdir handle)
@@ -27,9 +34,7 @@
 (fn canary-valid? [{: canary-in-build}]
   ;; resolve link to real file, if that fails, the link is stale
   ;; and we need to rebuild.
-  (match (uv.fs_realpath canary-in-build)
-    (nil err) false
-    path true))
+  (not (= nil (uv.fs_realpath canary-in-build))))
 
 (fn create-canary-link [{: canary-in-build : canary-in-repo}]
   ;; create the canary link
@@ -64,22 +69,19 @@
           (let [in-file (join-path in-dir name)
                 out-name (string.gsub name ".fnl$" ".lua")
                 out-file (join-path out-dir out-name)]
-            (when (not (or (= name :macros.fnl)
-                           (= name :hotpot.fnl)))
+            (when (not (or (= name :macros.fnl) ;; not compilable
+                           (= name :hotpot.fnl))) ;; already exists
               (compile-file in-file out-file)))))))
 
   (let [fennel (require :hotpot.fennel)
-        saved {:macro-path fennel.macro-path}
-        fnl-dir-search-path (join-path fnl-dir "?.fnl")]
-    ;; let fennel find hotpot macros while compiling, then restore old path
-    (set fennel.macro-path (.. fnl-dir-search-path ";" fennel.macro-path))
+        default-macro-path fennel.macro-path
+        fnl-dir-search-path (join-path fnl-dir "?.fnl")
+        cache-dir (join-path (vim.fn.stdpath :cache) :hotpot)]
+    (set fennel.macro-path (.. fnl-dir-search-path ";" default-macro-path))
     (compile-dir fnl-dir lua-dir)
-    (set fennel.macro-path saved.macro-path))
-  ;; make sure the cache dir exists
-  (-> (vim.fn.stdpath :cache)
-      (join-path :hotpot)
-      (vim.fn.mkdir :p))
-  (values true))
+    (set fennel.macro-path default-macro-path)
+    (vim.fn.mkdir cache-dir :p)
+    (values true)))
 
 (fn bootstrap []
   ;; nb: on windows debug.getinfo.source comes back with *mixed* separators,
