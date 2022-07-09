@@ -55,8 +55,10 @@
         options (or ?options {})]
     (if (= nil options.filename)
       (tset options :filename fnl-path))
-    (expect (is-fnl-path? fnl-path) "compile-file: must provide .fnl path, got: %q" fnl-path)
-    (expect (file-exists? fnl-path) "compile-file: doesn't exist: %q" fnl-path)
+    (expect (is-fnl-path? fnl-path)
+            "compile-file: must provide .fnl path, got: %q" fnl-path)
+    (expect (file-exists? fnl-path)
+            "compile-file: doesn't exist: %q" fnl-path)
     (-> (read-file! fnl-path)
         (compile-string options))))
 
@@ -65,7 +67,8 @@
   returns `true fnl-code` or `false error`. Accepts an optional `options` table
   as described by Fennels API documentation."
   ;; (string) :: (true luacode) | (false errors)
-  (expect (= :string (type modname)) "compile-module: must provide modname")
+  (expect (= :string (type modname))
+          "compile-module: must provide modname")
   (let [{: is-fnl-path?} (require :hotpot.fs)
         {: searcher} (require :hotpot.searcher.source)
         path (searcher modname)
@@ -74,8 +77,10 @@
       (tset options :module-name modname))
     (if (= nil options.filename)
       (tset options :filename path))
-    (expect path "compile-modname: could not find file for %s" modname)
-    (expect (is-fnl-path? path) "compile-modname: did not resolve to .fnl file: %s %s" modname path)
+    (expect path
+            "compile-modname: could not find file for %s" modname)
+    (expect (is-fnl-path? path)
+            "compile-modname: did not resolve to .fnl file: %s %s" modname path)
     (compile-file path options)))
 
 {: compile-string
