@@ -34,7 +34,9 @@
 (fn create-canary-link [{: canary-in-build : canary-in-repo}]
   ;; create the canary link
   (uv.fs_unlink canary-in-build)
-  (assert (uv.fs_symlink canary-in-repo canary-in-build) "could not create canary symlink"))
+  (assert (uv.fs_symlink canary-in-repo canary-in-build)
+          (.. "Could not create canary symlink. If you are using window you may have "
+              "to enable developer mode. See hotpots readme for details.")))
 
 (fn compile-hotpot [fnl-dir lua-dir]
   (fn compile-file [fnl-src lua-dest]
