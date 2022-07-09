@@ -13,7 +13,9 @@
       index (new-index index-path)
       searcher (new-indexed-searcher-fn index)]
   (table.insert package.loaders 1 searcher)
-  (runtime.set-index index))
+  (runtime.set-index index)
+  ;; empty options -> just use default config
+  (runtime.set-config {}))
 
 (let [{: set-lazy-proxy} (require :hotpot.common)]
   (local M {})

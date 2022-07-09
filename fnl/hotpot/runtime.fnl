@@ -41,7 +41,6 @@
     (values config)))
 
 (set M.proxied-keys "index, config, traceback")
-(M.set-config {})
 (setmetatable M {:__index #(match $2
                              :index (values index)
                              :config (values config)
