@@ -14,7 +14,7 @@
   "Return a new default configuration table"
   {:compiler {:modules {}
               :macros {:env :_COMPILER}
-              :traceback :hotpot}
+              :traceback :fennel}
    :provide_require_fennel false})
 
 (fn M.set-index [i]
