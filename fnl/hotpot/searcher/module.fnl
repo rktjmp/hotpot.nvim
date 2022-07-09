@@ -67,6 +67,9 @@
     ;; depends on the specific fnl-path closure value, so we will table.remove
     ;; it after calling compile. It *is* possible to have multiple plugins
     ;; attached for nested requires but this is ok.
+    ;; TODO: this should *probably* be a copy, but would have to be, half
+    ;; shallow, half not (as the options may be heavy for things using _G etc).
+    ;; It could be a shallow-copy + plugins copy since we directly modify that?
     (tset options :plugins (or options.plugins []))
     (tset options :module-name modname)
     (table.insert options.plugins 1 plugin)
