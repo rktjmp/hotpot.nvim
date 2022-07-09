@@ -13,7 +13,9 @@
  local index = new_index(index_path)
  local searcher = new_indexed_searcher_fn(index)
  table.insert(package.loaders, 1, searcher)
- runtime["set-index"](index) end
+ runtime["set-index"](index)
+
+ runtime["set-config"]({}) end
 
  local _let_18_ = require("hotpot.common") local set_lazy_proxy = _let_18_["set-lazy-proxy"]
  local M = {}
