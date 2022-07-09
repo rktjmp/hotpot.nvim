@@ -4,7 +4,11 @@ selfhost() {
   rm -rf lua/
   mkdir -p lua/hotpot
   cp deps/fennel.lua lua/hotpot/fennel.lua
-  fennel --add-fennel-path "fnl/?.fnl" --correlate --compile fnl/hotpot.fnl > lua/hotpot.lua
+  # We only need to compile hotpot.fnl which includes a bootstrapper but we do
+  # need to add our fnl code so the `include` call can find it.
+  fennel --add-fennel-path "fnl/?.fnl" \
+         --correlate \
+         --compile fnl/hotpot.fnl > lua/hotpot.lua
   echo "built lua/hotpot.lua: $(date)"
 }
 
