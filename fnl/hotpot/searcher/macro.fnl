@@ -54,9 +54,11 @@
   ;; This behaves similar to the module seacher, it will prefer .lua files in
   ;; the RTP if it exists, otherwise it looks for .fnl files in the package path.
   (let [{:searcher modname->path} (require :hotpot.searcher.source)]
-    ;; TODO probably dont look for macros in-preloaded to avoid init.fnl files instead of macro file
-    (or (. package :preload modname)
-        (match (modname->path modname {:macro? true})
-          path (create-loader modname path)))))
+    ;; logically, we should not search preloaded modules for macros as given
+    ;; `mod/init.fnl` (preloaded into `mod`), `mod/init-macros.fnl` would not
+    ;; be found.
+    ;; (or (. package :preload modname) (match ...))
+    (match (modname->path modname {:macro? true})
+      path (create-loader modname path))))
 
 {: searcher}
