@@ -179,6 +179,10 @@ require("hotpot").setup({
     macros = {
       env = "_COMPILER" -- MUST be set along with any other options
     }
+    -- traceback can be "fennel" (default, fennels built-in handler)
+    -- or "hotpot", which attempts to strip fennel internal stackframes
+    -- from error stacks for simpler messages.
+    traceback = "fennel"
   }
 })
 ```
