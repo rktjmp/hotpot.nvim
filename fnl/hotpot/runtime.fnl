@@ -1,12 +1,9 @@
 (local M {})
 
-(var index nil)
-(var config {})
-
 (fn lazy-traceback []
   ;; loading the traceback is potentially heavy if it has to require fennel, so
   ;; we don't get it until we need it.
-  (let [mod-name (match config.compiler.traceback
+  (let [mod-name (match M.config.compiler.traceback
                    :hotpot :hotpot.traceback
                    :fennel :hotpot.fennel
                    _ (error "invalid traceback value, must be :hotpot or :fennel"))
@@ -22,8 +19,8 @@
 
 (fn M.set-index [i]
   "Set the current runtime index"
-  (set index i)
-  (values index))
+  (set M.index i)
+  (values M.index))
 
 (fn M.set-config [user-config]
   (let [new-config (M.default-config)]
@@ -37,11 +34,8 @@
         :hotpot true
         :fennel true
         _ (error "invalid config.compiler.traceback value, must be 'hotpot' or 'fennel'"))
-    (set config new-config)
-    (values config)))
+    (set M.config new-config)
+    (values M.config)))
 
-(set M.proxied-keys "index, config, traceback")
-(setmetatable M {:__index #(match $2
-                             :index (values index)
-                             :config (values config)
-                             :traceback (lazy-traceback))})
+(set M.proxied-keys "traceback")
+(setmetatable M {:__index #(match $2 :traceback (lazy-traceback))})
