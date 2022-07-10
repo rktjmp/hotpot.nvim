@@ -21,6 +21,7 @@
   (fn table? [x] (= :table (type x)))
   (fn default-options []
     {:compiler nil ;; will be proxied
+     :force false
      :verbosity 1
      :atomic true})
   (fn proxy-options [user-options]
@@ -165,13 +166,48 @@
         _ (set-config previous-config)]
     (values result)))
 
-(fn M.build [source-dir ...]
+(fn do-make [source-dir ...]
+  ;; `...` may be `opts pat fn ...` or `pat fn pat fn`, so first we'll detect
+  ;; what arguments we were given and validate those arguments before passing
+  ;; off do do-build to ... do ... the building.
+  (let [(raw-opts raw-patterns-handlers) (match [...]
+                                           (where [opts & patterns-handlers] (= :table (type opts)))
+                                           (values opts patterns-handlers)
+                                           _no-options-given
+                                           (values {} [...]))
+        options (-> (prepare-options raw-opts)
+                    (R.unwrap!))
+        patterns-handlers (-> (prepare-patterns-handlers raw-patterns-handlers)
+                              (R.unwrap!))
+        source-dir (-> (prepare-source-dir source-dir)
+                       (R.unwrap!))
+        source-target-pairs (-> (find-source-target-pairs source-dir options patterns-handlers)
+                                (R.unwrap!))
+        compile-if (if options.force
+                     #true
+                     #(fn [source-file target-file]
+                        (let [{: file-mtime : file-missing?} (require :hotpot.fs)]
+                          (or (file-missing? target-file)
+                              (< (file-mtime target-file) (file-mtime source))))))
+        compiled (icollect [_ [fnl-file lua-file] (ipairs source-target-pairs)]
+                   (if (compile-if fnl-file lua-file)
+                      [fnl-file lua-file (compile fnl-file options)]))
+        (oks errs) (accumulate [(oks errs) (values [] []) _ x (ipairs compiled)]
+                    (match x
+                      (where [_ _ r] (R.ok? r)) (values [x (unpack oks)] errs)
+                      (where [_ _ r] (R.err? r)) (values oks [x (unpack errs)])))]
+    (values oks errs)))
+
+(fn M.build [...]
   "Build fennel code found inside a directory, according to user defined rules.
   Files are only built if the output file is missing or if the source file is
   newer.
 
+  Returns `[result<ok> ...] [result<err> ...]`
+
   Usage example:
 
+  ```fennel
   ;; build all fnl files inside config dir
   (build \"/home/user/.config/.nvim\"
         ;; config/fnl/*.fnl -> config/lua/*.lua
@@ -181,6 +217,7 @@
                                            (join-path root :lua path)))
         ;; config/ftplugins/*.fnl -> config/ftplugins/*.lua
         \"(~/.config/nvim/ftplugins/.+)\" (fn [whole-path] (values whole-path)))
+  ```
 
   Arguments are as given,
 
@@ -194,7 +231,7 @@
 
   `options-table` (may be omitted)
 
-  ```
+  ```fennel
   {:atomic true
    :verbosity 1
    :compiler {:modules {...}
@@ -207,9 +244,11 @@
             to disk. Defaults to true.
 
   `verbosity`: Adjusts information output. Errors are always output.
-               0: No output
-               1: Outputs compilation messages and nothing-to-do message
+               - `0`: No output
+               - `1`: Outputs compilation messages and nothing-to-do message
                Defaults to 1.
+
+  `force`: Force compilation, even if output is not stale.
 
   `compiler`: The compiler table has the same form and function as would be
               given to `hotpot.setup`. If the table is not given, the
@@ -262,27 +301,7 @@
   ;; `...` may be `opts pat fn ...` or `pat fn pat fn`, so first we'll detect
   ;; what arguments we were given and validate those arguments before passing
   ;; off do do-build to ... do ... the building.
-  (let [(raw-opts raw-patterns-handlers) (match [...]
-                                           (where [opts & patterns-handlers] (= :table (type opts)))
-                                           (values opts patterns-handlers)
-                                           _no-options-given
-                                           (values {} [...]))
-        options (-> (prepare-options raw-opts)
-                    (R.unwrap!))
-        patterns-handlers (-> (prepare-patterns-handlers raw-patterns-handlers)
-                              (R.unwrap!))
-        source-dir (-> (prepare-source-dir source-dir)
-                       (R.unwrap!))
-        source-target-pairs (-> (find-source-target-pairs source-dir options patterns-handlers)
-                                (R.unwrap!))
-        compiled (icollect [_ [fnl-file lua-file] (ipairs source-target-pairs)]
-                   (let [{: file-mtime : file-missing?} (require :hotpot.fs)]
-                     (if (or (file-missing? lua-file) (< (file-mtime lua-file) (file-mtime fnl-file)))
-                      [fnl-file lua-file (compile fnl-file options)])))
-        (oks errs) (accumulate [(oks errs) (values [] []) _ x (ipairs compiled)]
-                    (match x
-                      (where [_ _ r] (R.ok? r)) (values [x (unpack oks)] errs)
-                      (where [_ _ r] (R.err? r)) (values oks [x (unpack errs)])))]
+  (let [(oks errs) (do-make ...)]
     ;; log errors first, we might not do anything else
     (when (< 0 (length errs))
       (let [text []]
@@ -319,5 +338,20 @@
             (table.insert text [(string.format "ok %s\n-> %s\n" fnl-file lua-file) :DiagnosticInfo])))
         (if (<= 1 options.verbosity)
           (vim.api.nvim_echo text true {}))))))
+
+(fn M.check [...]
+  "Functionally identical to `build' but wont output any files. `check' is always verbose.
+   Returns `[result<ok> ...] [result<err> ...]`"
+  (let [(oks errs) (do-make ...)
+        err-text (accumulate [text [] _ [fnl-file _ [_ msg]] (ipairs errs)]
+                   (doto text
+                     (table.insert [(string.format "x %s\n" fnl-file) :DiagnosticWarn])
+                     (table.insert [(string.format "%s\n" msg) :DiagnosticError])))
+        ok-text (accumulate [text [] _ [fnl-file _ [_ msg]] (ipairs oks)]
+                  (doto text
+                    (table.insert [(string.format "OK %s\n" fnl-file) :DiagnosticInfo])))]
+    (vim.api.nvim_echo err-text true {})
+    (vim.api.nvim_echo ok-text true {})
+    (values oks errs)))
 
 (values M)
