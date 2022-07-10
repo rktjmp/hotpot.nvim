@@ -183,20 +183,17 @@
                        (R.unwrap!))
         source-target-pairs (-> (find-source-target-pairs source-dir options patterns-handlers)
                                 (R.unwrap!))
-        compile-if (if options.force
-                     #true
-                     #(fn [source-file target-file]
-                        (let [{: file-mtime : file-missing?} (require :hotpot.fs)]
-                          (or (file-missing? target-file)
-                              (< (file-mtime target-file) (file-mtime source))))))
         compiled (icollect [_ [fnl-file lua-file] (ipairs source-target-pairs)]
-                   (if (compile-if fnl-file lua-file)
-                      [fnl-file lua-file (compile fnl-file options)]))
+                   (let [{: file-mtime : file-missing?} (require :hotpot.fs)]
+                     (if (or (= true options.force)
+                             (file-missing? lua-file)
+                             (< (file-mtime lua-file) (file-mtime fnl-file)))
+                       [fnl-file lua-file (compile fnl-file options)])))
         (oks errs) (accumulate [(oks errs) (values [] []) _ x (ipairs compiled)]
                     (match x
                       (where [_ _ r] (R.ok? r)) (values [x (unpack oks)] errs)
                       (where [_ _ r] (R.err? r)) (values oks [x (unpack errs)])))]
-    (values oks errs)))
+    (values options oks errs)))
 
 (fn M.build [...]
   "Build fennel code found inside a directory, according to user defined rules.
@@ -301,7 +298,7 @@
   ;; `...` may be `opts pat fn ...` or `pat fn pat fn`, so first we'll detect
   ;; what arguments we were given and validate those arguments before passing
   ;; off do do-build to ... do ... the building.
-  (let [(oks errs) (do-make ...)]
+  (let [(options oks errs) (do-make ...)]
     ;; log errors first, we might not do anything else
     (when (< 0 (length errs))
       (let [text []]
@@ -340,9 +337,9 @@
           (vim.api.nvim_echo text true {}))))))
 
 (fn M.check [...]
-  "Functionally identical to `build' but wont output any files. `check' is always verbose.
-   Returns `[result<ok> ...] [result<err> ...]`"
-  (let [(oks errs) (do-make ...)
+  "Functionally identical to `build' but wont output any files. `check' is
+  always verbose. Returns `[result<ok> ...] [result<err> ...]`"
+  (let [(options oks errs) (do-make ...)
         err-text (accumulate [text [] _ [fnl-file _ [_ msg]] (ipairs errs)]
                    (doto text
                      (table.insert [(string.format "x %s\n" fnl-file) :DiagnosticWarn])
