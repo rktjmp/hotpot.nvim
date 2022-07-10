@@ -200,6 +200,12 @@
   Files are only built if the output file is missing or if the source file is
   newer.
 
+  `build` accepts a `source-dir`, an optional `options` table and then a set of
+  `pattern function` argument pairs. Each `*.fnl` file in `source-dir` is
+  checked against each `pattern` given, and if any match the `function` is called
+  with the pattern captures as arguments. The function should return a path to
+  save the compiled file to, or `nil`.
+
   You may want to use this to build plugins written in Fennel or to compile
   small sections of your configuration that are never loaded via lua's
   `require` function. An example of these are `ftplugins/*.lua` or
@@ -218,14 +224,17 @@
 
   ```fennel
   ;; build all fnl files inside config dir
-  (build \"/home/user/.config/.nvim\"
-        ;; config/fnl/*.fnl -> config/lua/*.lua
-        \"(~/%.config/nvim/)fnl/(.+)\" (fn [root path]
-                                         ;; ignore our own macro file
-                                         (if (not (string.match path \"my-macros%.fnl$\"))
-                                           (join-path root :lua path)))
-        ;; config/ftplugins/*.fnl -> config/ftplugins/*.lua
-        \"(~/.config/nvim/ftplugins/.+)\" (fn [whole-path] (values whole-path)))
+  (build \"~/.config/nvim\"
+         ;; ~/.config/nvim/fnl/*.fnl -> ~/.config/nvim/lua/*.lua
+         \"(.+)/fnl/(.+)\" 
+         (fn [root path {: join-path}] ;; root is the first match, path is the second
+           ;; ignore our own macro file (init-macros.fnl is ignored by default)
+           (if (not (string.match path \"my-macros%.fnl$\"))
+             ;; join-path automatically uses the os-appropriate path separator
+             (join-path root :lua path)))
+         ;; config/ftplugins/*.fnl -> config/ftplugins/*.lua
+         \"(~/.config/nvim/ftplugins/.+)\"
+         (fn [whole-path] (values whole-path)))
   ```
 
   Arguments are as given,
