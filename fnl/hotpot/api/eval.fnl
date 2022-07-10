@@ -13,10 +13,21 @@
     (values ...)
     (error (select 1 ...))))
 
+(fn inject-macro-searcher []
+  ;; The macro-searcher is not inserted until we compile something because it
+  ;; needs to load fennel firsts which has a performance impact. This has the
+  ;; side effect of making macros un-findable if you try to eval code before
+  ;; ever compiling anything, so to fix that we'll compile some code before we
+  ;; try to eval anything.
+  ;; This isn't run in every function, only the delegates.
+  (let [{: compile-string} (require :hotpot.api.compile)]
+    (compile-string "(+ 1 1)")))
+
 (fn eval-string [code ?options]
   "Evaluate given fennel `code` and return the results, or raise on error.
   Accepts an optional `options` table as described by Fennels API
   documentation."
+  (inject-macro-searcher)
   (let [{: eval} (require :hotpot.fennel)
         {: traceback} (require :hotpot.runtime)
         options (or ?options {})
@@ -52,6 +63,7 @@
   "Read contents of `fnl-path` and evaluate the contents, returns the result or
   raises an error. Accepts an optional `options` table as described by Fennels
   API documentation."
+  (inject-macro-searcher)
   (assert fnl-file "eval-file: must provide path to .fnl file")
   (let [{: dofile} (require :hotpot.fennel)
         {: traceback} (require :hotpot.runtime)
