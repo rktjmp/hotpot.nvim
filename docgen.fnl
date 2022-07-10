@@ -89,7 +89,12 @@ Tools to compile Fennel code ahead of time."}
               :title "Compile API"
               :desc "
 Tools to compile Fennel code in-editor. All functions return `true code` or
-`false err`. To compile fennel code to disk, see |hotpot.api.make|."}
+`false err`. To compile fennel code to disk, see |hotpot.api.make|.
+
+Every `compile-*` function returns `true, luacode` or `false, errors` .
+
+Note: The compiled code is _not_ saved anywhere, nor is it placed in Hotp
+      cache. To compile into cache, use `require(\"modname\")`."}
              {:modname "hotpot.api.eval"
               :title "Eval API"
               :desc "Tools to evaluate Fennel code in-editor.
@@ -110,7 +115,21 @@ Note: If your Fennel code does not output anything, running these functions by
              {:modname "hotpot.api.cache"
               :title "Cache API"
               :desc "Tools to interact with Hotpots cache and index, such as
-getting paths to cached lua files or clearing index entries."}])
+getting paths to cached lua files or clearing index entries.
+
+You can manually interact with the cache at `~/.cache/nvim/hotpot`.
+
+The cache will automatically refresh when required, but note: removing the
+cache file is not enough to force recompilation in a running session. The
+loaded module must be removed from Lua's `package.loaded` table, then
+re-required.
+>
+  (tset package.loaded :my_module nil) ;; Does NOT unload my_module.child
+
+(Hint: You can iterate `package.loaded` and match the key for `\"^my_module\"`.)
+
+Note: Some of these functions are destructive, Hotpot bears no responsibility for
+      any unfortunate events."}])
 
 (each [_ mod (ipairs mods)]
   (let [docs (dump-mod mod.modname)]
@@ -119,7 +138,7 @@ getting paths to cached lua files or clearing index entries."}])
       (table.insert index [(.. "  " fname) (.. "|" mod.modname "." fname "|")]))
     (tset mod :docs docs)))
 
-(#(with-open [fout (io.open "api.txt" :w)]
+(#(with-open [fout (io.open "doc/hotpot-api.txt" :w)]
     (fout:write "*hotpot-api*\n\n")
     ;; write index
     (fout:write (.. (text-with-lead-fill "=" " *hotpot-api-toc*") "\n\n"))
