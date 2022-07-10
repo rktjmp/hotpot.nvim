@@ -27,8 +27,8 @@
 
 (fn eval-range [buf start-pos stop-pos ?options]
   "Evaluate `buf` from `start-pos` to `end-pos` and return the results, or
-  raise on error. Accepts an optional `options` table as described by Fennels
-  API documentation."
+  raise on error. Positions can be `line` or `line col`. Accepts an optional
+  `options` table as described by Fennels API documentation."
   (let [{: get-range} (require :hotpot.api.get_text)]
     (-> (get-range buf start-pos stop-pos)
         (eval-string ?options))))

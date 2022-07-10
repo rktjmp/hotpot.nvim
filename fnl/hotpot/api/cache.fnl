@@ -23,7 +23,8 @@
 ;; clear-cache-for-fnl-file
 (fn clear-cache-for-fnl-file [fnl-path]
   "Clear compiled lua cache file that mirrors given fennel source file, does
-  _not_ clear index entry, instead use clear-cache-for-module"
+  _not_ clear index entry, instead use clear-cache-for-module. File path should
+  be absoulute, see |expand| or `fs_realpath` from |vim.loop|."
   ;; (string) :: true | (false errors)
   (expect (= :string (type fnl-path))
           "clear-cache-for-fnl-file: must be given string, got: %q"
@@ -45,8 +46,8 @@
 (fn clear-cache-for-module [modname]
   "Clear compiled lua cache file for given module name, also clears index entry"
   ;; (string) :: true | (false errors)
-  (expect (= :string (type modname))
-            "clear-cache-for-module: must provide modname, got %q" modname)
+  (expect (= :string (type modname)
+            "clear-cache-for-module: must provide modname, got %q" modname))
   (let [{: searcher} (require :hotpot.searcher.source)
         {: current-runtime} (require :hotpot.runtime)
         {: index} (current-runtime)
@@ -82,7 +83,8 @@
       2 (clear-dir prefix))))
 
 (fn cache-path-for-fnl-file [fnl-path]
-  "Get on-disk path to compiled lua that mirrors given fennel source file"
+  "Get on-disk path to compiled lua that mirrors given fennel source file. File
+  path should be absoulute, see |expand| or `fs_realpath` from |vim.loop|."
   ;; (string) :: string
   ;; path must be absolute
   (let [{: is-fnl-path? : file-exists?} (require :hotpot.fs)
