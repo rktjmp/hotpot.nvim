@@ -4,7 +4,7 @@
 ;; Search RTP and package.path for fnl or lua source files matching modname
 ;;
 
-(fn search-rtp [slashed-modname looking-for-macro?]
+(fn search-rtp [slashed-modname opts]
   "Given slashed-modname, find the first matching $RUNTIMEPATH/$partial-path
   Neovim actually uses a similar custom loader to us that will search
   the rtp for lua files, bypassing lua's package.path. TODO: still true?
@@ -21,15 +21,18 @@
                (join-path :lua slashed-modname :init.lua)
                (join-path :fnl (.. slashed-modname :.fnl))
                (join-path :fnl slashed-modname :init.fnl)]]
-    (if looking-for-macro?
+    (when opts.fennel-only?
+      (table.remove paths 1)
+      (table.remove paths 1))
+    (if opts.macro?
       ;; search preference is init-macros.fnl, init.fnl
-      (table.insert paths 4 (join-path :fnl slashed-modname :init-macros.fnl)))
+      (table.insert paths (length paths) (join-path :fnl slashed-modname :init-macros.fnl)))
     (accumulate [found nil _ possible-path (ipairs paths) :until found]
                 (match (vim.api.nvim_get_runtime_file possible-path false)
                   [path] (values path)
                   _ nil))))
 
-(fn search-package-path [slashed-modname looking-for-macro?]
+(fn search-package-path [slashed-modname opts]
   "Iterate through templates, injecting path where appropriate, returns full
   path if a file exists or nil"
   ;; (string) :: string | nil
@@ -52,7 +55,7 @@
       ;; the fennel template should be exactly the same but ending in .fnl
       (let [lua-template (expand-template template slashed-modname)
             fnl-template (lua-ext->fnl-ext lua-template)
-            macro-template (if (and looking-for-macro? 
+            macro-template (if (and opts.macro?
                                     (string.match template "init%.lua$"))
                              (-> template
                                  (string.gsub "init%.lua$" "init-macros.lua")
@@ -60,7 +63,7 @@
                                  (expand-template slashed-modname)
                                  (lua-ext->fnl-ext)))]
         ;; preference lua files, init-macros.fnl, then init.fnl.
-        (or (and lua-template (file-exists? lua-template) (values lua-template))
+        (or (and (not opts.fennel-only?) lua-template (file-exists? lua-template) (values lua-template))
             (and macro-template (file-exists? macro-template) (values macro-template))
             (and fnl-template (file-exists? fnl-template) (values fnl-template))
             (values nil))))))
@@ -74,6 +77,7 @@
   Options accepts the following keys:
 
   `macro?`: enable seaching for `init-macros.fnl` files also.
+  `fennel-only?`: only look for fennel files
 
   Returns path to module source or nil."
   ;; Lua's modules map from "my.mod" to "my/mod.lua", convert
@@ -81,10 +85,9 @@
   ;; add an extension because we will check for both .lua and .fnl
   (let [{: path-separator} (require :hotpot.fs)
         slashed-modname (string.gsub dotted-modname "%." (path-separator))
-        opts (or opts {})
-        looking-for-macro? (or (. opts :macro?) false)]
-    (or (search-rtp slashed-modname looking-for-macro?)
-        (search-package-path slashed-modname looking-for-macro?)
+        opts (or opts {})]
+    (or (search-rtp slashed-modname opts)
+        (search-package-path slashed-modname opts)
         (values nil))))
 
 {: searcher}

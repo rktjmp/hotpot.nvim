@@ -62,13 +62,13 @@
       (xpcall #(dofile fnl-file options) traceback))))
 
 (fn eval-module [modname ?options]
-  "Use hotpots module searcher to find the *file* for `modname`, load and
+  "Use hotpots module searcher to find the file for `modname`, load and
   evaluate its contents then return the result or raises an error. Accepts an
   optional `options` table as described by Fennels API documentation."
   (assert modname "eval-module: must provide modname")
   (let [{: searcher} (require :hotpot.searcher.source)
         {: is-fnl-path?} (require :hotpot.fs)
-        path (searcher modname)
+        path (searcher modname {:fennel-only? true})
         options (or ?options {})]
     (assert path (string.format "eval-modname: could not find file for module %s"
                                 modname))

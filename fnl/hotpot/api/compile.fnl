@@ -71,7 +71,7 @@
           "compile-module: must provide modname")
   (let [{: is-fnl-path?} (require :hotpot.fs)
         {: searcher} (require :hotpot.searcher.source)
-        path (searcher modname)
+        path (searcher modname {:fennel-only? true})
         options (or ?options {})]
     (if (= nil options.module-name)
       (tset options :module-name modname))
