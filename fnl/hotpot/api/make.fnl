@@ -200,6 +200,18 @@
   Files are only built if the output file is missing or if the source file is
   newer.
 
+  You may want to use this to build plugins written in Fennel or to compile
+  small sections of your configuration that are never loaded via lua's
+  `require` function. An example of these are `ftplugins/*.lua` or
+  `colors/*.lua` files which are directly interpreted via Neovim and never
+  loaded \"as modules\".
+
+  Note: Regular Hotpot operation will track staleness due to dependency
+  changes, a file will be \"stale\" if a macro it uses was changed, even if the
+  file itself was not updated. Because `make.build` operates outside of Hotpots
+  regular infrastructure, it does not currently track stale-ness to this level
+  and only compares the source file vs the target file. See the `force` option.
+
   Returns `[result<ok> ...] [result<err> ...]`
 
   Usage example:
