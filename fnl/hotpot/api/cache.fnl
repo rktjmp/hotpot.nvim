@@ -46,8 +46,8 @@
 (fn clear-cache-for-module [modname]
   "Clear compiled lua cache file for given module name, also clears index entry"
   ;; (string) :: true | (false errors)
-  (expect (= :string (type modname)
-            "clear-cache-for-module: must provide modname, got %q" modname))
+  (expect (= :string (type modname))
+          "clear-cache-for-module: must provide modname, got %q" modname)
   (let [{: searcher} (require :hotpot.searcher.source)
         {: current-runtime} (require :hotpot.runtime)
         {: index} (current-runtime)
