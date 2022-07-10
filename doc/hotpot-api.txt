@@ -18,8 +18,8 @@ Eval API......................................................|hotpot.api.eval|
   eval-file.........................................|hotpot.api.eval.eval-file|
   eval-module.....................................|hotpot.api.eval.eval-module|
   eval-range.......................................|hotpot.api.eval.eval-range|
-  eval-string.....................................|hotpot.api.eval.eval-string|
   eval-selection...............................|hotpot.api.eval.eval-selection|
+  eval-string.....................................|hotpot.api.eval.eval-string|
 Cache API....................................................|hotpot.api.cache|
   cache-path-for-fnl-file............|hotpot.api.cache.cache-path-for-fnl-file|
   cache-path-for-module................|hotpot.api.cache.cache-path-for-module|
@@ -288,20 +288,20 @@ raise on error. Positions can be `line` or `line col`. Accepts an optional
 `options` table as described by Fennels API documentation.
 
 
-------------------------------------------------- *hotpot.api.eval.eval-string*
-
-`(eval-string code ?options)`
-
-Evaluate given fennel `code` and return the results, or raise on error.
-Accepts an optional `options` table as described by Fennels API
-documentation.
-
-
 ---------------------------------------------- *hotpot.api.eval.eval-selection*
 
 `(eval-selection ?options)`
 
 Evaluate the current selection and return the result, or raise an error.
+Accepts an optional `options` table as described by Fennels API
+documentation.
+
+
+------------------------------------------------- *hotpot.api.eval.eval-string*
+
+`(eval-string code ?options)`
+
+Evaluate given fennel `code` and return the results, or raise on error.
 Accepts an optional `options` table as described by Fennels API
 documentation.
 
@@ -330,7 +330,8 @@ Note: Some of these functions are destructive, Hotpot bears no responsibility fo
 
 `(cache-path-for-fnl-file fnl-path)`
 
-Get on-disk path to compiled lua that mirrors given fennel source file
+Get on-disk path to compiled lua that mirrors given fennel source file. File
+path should be absoulute, see |expand| or `fs_realpath` from |vim.loop|.
 
 
 -------------------------------------- *hotpot.api.cache.cache-path-for-module*
@@ -359,7 +360,8 @@ Clear all lua cache files and bytecode index
 `(clear-cache-for-fnl-file fnl-path)`
 
 Clear compiled lua cache file that mirrors given fennel source file, does
-_not_ clear index entry, instead use clear-cache-for-module
+_not_ clear index entry, instead use clear-cache-for-module. File path should
+be absoulute, see |expand| or `fs_realpath` from |vim.loop|.
 
 
 ------------------------------------- *hotpot.api.cache.clear-cache-for-module*
