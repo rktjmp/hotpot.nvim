@@ -1,0 +1,370 @@
+*hotpot-api*
+
+============================================================== *hotpot-api-toc*
+
+The Hotpot API.....................................................|hotpot.api|
+Make API......................................................|hotpot.api.make|
+  build.................................................|hotpot.api.make.build|
+  check.................................................|hotpot.api.make.check|
+Compile API................................................|hotpot.api.compile|
+  compile-buffer............................|hotpot.api.compile.compile-buffer|
+  compile-file................................|hotpot.api.compile.compile-file|
+  compile-module............................|hotpot.api.compile.compile-module|
+  compile-range..............................|hotpot.api.compile.compile-range|
+  compile-string............................|hotpot.api.compile.compile-string|
+  compile-selection......................|hotpot.api.compile.compile-selection|
+Eval API......................................................|hotpot.api.eval|
+  eval-buffer.....................................|hotpot.api.eval.eval-buffer|
+  eval-file.........................................|hotpot.api.eval.eval-file|
+  eval-module.....................................|hotpot.api.eval.eval-module|
+  eval-range.......................................|hotpot.api.eval.eval-range|
+  eval-string.....................................|hotpot.api.eval.eval-string|
+  eval-selection...............................|hotpot.api.eval.eval-selection|
+Cache API....................................................|hotpot.api.cache|
+  cache-path-for-fnl-file............|hotpot.api.cache.cache-path-for-fnl-file|
+  cache-path-for-module................|hotpot.api.cache.cache-path-for-module|
+  cache-prefix..................................|hotpot.api.cache.cache-prefix|
+  clear-cache....................................|hotpot.api.cache.clear-cache|
+  clear-cache-for-fnl-file..........|hotpot.api.cache.clear-cache-for-fnl-file|
+  clear-cache-for-module..............|hotpot.api.cache.clear-cache-for-module|
+
+================================================================== *hotpot.api*
+
+The Hotpot API~
+
+The Hotpot API provides tools for compiling and evaluating fennel code inside
+neovim, as well as performing ahead-of-time compiliation to disk - compared to
+Hotpots normal on-demand behaviour.
+
+The API is proxied and may be accessed in a few ways:
+>
+  (let [hotpot (require :hotpot)]
+    (hotpot.api.compile-string ...))
+
+  (let [api (require :hotpot.api)]
+    (api.compile-string ...))
+
+  (let [{: compile-string} (require :hotpot.api.compile)]
+    (compile-string ...))
+
+All position arguments are "linewise", starting at 1, 1 for line 1, column 1.
+Ranges are end-inclusive.
+
+============================================================= *hotpot.api.make*
+
+Make API~
+
+
+Tools to compile Fennel code ahead of time.
+
+------------------------------------------------------- *hotpot.api.make.build*
+
+`(build ...)`
+
+Build fennel code found inside a directory, according to user defined rules.
+Files are only built if the output file is missing or if the source file is
+newer.
+
+Returns `[result<ok> ...] [result<err> ...]`
+
+Usage example:
+
+>
+  ;; build all fnl files inside config dir
+  (build "/home/user/.config/.nvim"
+        ;; config/fnl/*.fnl -> config/lua/*.lua
+        "(~/%.config/nvim/)fnl/(.+)" (fn [root path]
+                                         ;; ignore our own macro file
+                                         (if (not (string.match path "my-macros%.fnl$"))
+                                           (join-path root :lua path)))
+        ;; config/ftplugins/*.fnl -> config/ftplugins/*.lua
+        "(~/.config/nvim/ftplugins/.+)" (fn [whole-path] (values whole-path)))
+<
+
+Arguments are as given,
+
+`source-dir`
+
+Directory to recursively search inside for `*.fnl` files. Any file named
+`init-macros.fnl` is ignored, as macros do not compile to lua. Any leading
+`~` is expanded via `os.getenv :HOME`, if the expansion fails an error is
+raised. Paths may be relative to the current working directory with a leading
+`.`.
+
+`options-table` (may be omitted)
+
+>
+  {:atomic true
+   :verbosity 1
+   :compiler {:modules {...}
+              :macros {...}}}
+<
+
+The options table may contain the following keys:
+
+`atomic`: When true, if there is any compilation error, no files are written
+          to disk. Defaults to true.
+
+`verbosity`: Adjusts information output. Errors are always output.
+             - `0`: No output
+             - `1`: Outputs compilation messages and nothing-to-do message
+             Defaults to 1.
+
+`force`: Force compilation, even if output is not stale.
+
+`compiler`: The compiler table has the same form and function as would be
+            given to `hotpot.setup`. If the table is not given, the
+            `compiler` options given to `hotpot.setup` are used.
+
+`pattern`
+
+A string that each found file path will be tested against.
+
+Ex: `"(.+)/fnl/health/(.+)"`
+
+`function`
+
+A function that's called if a file path matched the pattern. The function
+should return the output path, ending in .fnl or .lua.
+
+The extension must be `.lua` or `.fnl`. A `.lua` file is always output, but
+the extension must be present in the return value.
+
+`~` expansion is *not* applied to this path.
+
+If the function returns nil, the file will be checked against the remaining
+patterns, if all patterns return nil, the file is ignored and not compiled.
+
+The function is called with each capture group in its associated pattern and
+a final table containing helper functions.
+
+Ex: (fn [source-dir path-inside-health-dir {: join-path}
+         (join-path some-dir :lua path-inside-health-dir))
+
+Helpers: `join-path` joins all arguments with platform-specific separator.
+
+You can provide any number of patterns function pairs. Patterns are checked
+in the order given and match will stop future checks.
+
+Notes:
+
+Each time you run your build function, the directory must be recursively
+iterated for matching files. Configurations with thousands of files and
+hundreds of match-function pairs may suffer negative performance impacts.
+
+Even with no changes to the source files, the directory must be iterated and
+*checked* for changes each time the build function is run. This check is
+reasonably fast as we only have to check a few bytes of filesystem metadata
+but it *is* a non-zero cost.
+
+When in doubt, benchmark your build time and potentially limit its source
+directory scope if searching is unreasonably long.
+
+
+------------------------------------------------------- *hotpot.api.make.check*
+
+`(check ...)`
+
+Functionally identical to `build' but wont output any files. `check' is
+always verbose. Returns `[result<ok> ...] [result<err> ...]`
+
+========================================================== *hotpot.api.compile*
+
+Compile API~
+
+
+Tools to compile Fennel code in-editor. All functions return `true code` or
+`false err`. To compile fennel code to disk, see |hotpot.api.make|.
+
+Every `compile-*` function returns `true, luacode` or `false, errors` .
+
+Note: The compiled code is _not_ saved anywhere, nor is it placed in Hotp
+      cache. To compile into cache, use `require("modname")`.
+
+------------------------------------------- *hotpot.api.compile.compile-buffer*
+
+`(compile-buffer buf ?options)`
+
+Read the contents of `buf` and compile into lua, returns `true lua` or
+`false error`. Accepts an optional `options` table as described by Fennels
+API documentation.
+
+
+--------------------------------------------- *hotpot.api.compile.compile-file*
+
+`(compile-file fnl-path ?options)`
+
+Read contents of `fnl-path` and compile into lua, returns `true lua` or
+`false error`. Will raise if file does not exist. Accepts an optional
+`options` table as described by Fennels API documentation.
+
+
+------------------------------------------- *hotpot.api.compile.compile-module*
+
+`(compile-module modname ?options)`
+
+Use hotpots module searcher to find `modname` and compile it into lua code,
+returns `true fnl-code` or `false error`. Accepts an optional `options` table
+as described by Fennels API documentation.
+
+
+-------------------------------------------- *hotpot.api.compile.compile-range*
+
+`(compile-range buf start-pos stop-pos ?options)`
+
+Read `buf` from `start-pos` to `end-pos` and compile into lua, returns `true
+lua` or `false error`. Positions can be `line-nr` or `[line-nr col]`. Accepts
+an optional `options` table as described by Fennels API documentation.
+
+
+------------------------------------------- *hotpot.api.compile.compile-string*
+
+`(compile-string str ?options)`
+
+Compile given `str` into lua, returns `true lua` or `false error`. Accepts
+an optional `options` table as described by Fennels API documentation.
+
+
+---------------------------------------- *hotpot.api.compile.compile-selection*
+
+`(compile-selection ?options)`
+
+Read the current selection and compile into lua, returns `true lua` or
+`false error`. Accepts an optional `options` table as described by Fennels
+API documentation.
+
+============================================================= *hotpot.api.eval*
+
+Eval API~
+
+Tools to evaluate Fennel code in-editor.
+
+Available in the `hotpot.api.eval` module.
+
+Every `eval-*` function has the potential to raise an error, by:
+
+  - bad arguments
+  - compile errors
+  - evaluated code errors
+
+Handling these errors is left to the user.
+
+Note: If your Fennel code does not output anything, running these functions by
+      themselves will not show any output! You may wish to wrap them in a
+      `(print (eval-* ...))` expression for a simple REPL.
+
+------------------------------------------------- *hotpot.api.eval.eval-buffer*
+
+`(eval-buffer buf ?options)`
+
+Evaluate the given `buf` and return the result, or raise an error. Accepts
+an optional `options` table as described by Fennels API documentation.
+
+
+--------------------------------------------------- *hotpot.api.eval.eval-file*
+
+`(eval-file fnl-file ?options)`
+
+Read contents of `fnl-path` and evaluate the contents, returns the result or
+raises an error. Accepts an optional `options` table as described by Fennels
+API documentation.
+
+
+------------------------------------------------- *hotpot.api.eval.eval-module*
+
+`(eval-module modname ?options)`
+
+Use hotpots module searcher to find the file for `modname`, load and
+evaluate its contents then return the result or raises an error. Accepts an
+optional `options` table as described by Fennels API documentation.
+
+
+-------------------------------------------------- *hotpot.api.eval.eval-range*
+
+`(eval-range buf start-pos stop-pos ?options)`
+
+Evaluate `buf` from `start-pos` to `end-pos` and return the results, or
+raise on error. Positions can be `line` or `line col`. Accepts an optional
+`options` table as described by Fennels API documentation.
+
+
+------------------------------------------------- *hotpot.api.eval.eval-string*
+
+`(eval-string code ?options)`
+
+Evaluate given fennel `code` and return the results, or raise on error.
+Accepts an optional `options` table as described by Fennels API
+documentation.
+
+
+---------------------------------------------- *hotpot.api.eval.eval-selection*
+
+`(eval-selection ?options)`
+
+Evaluate the current selection and return the result, or raise an error.
+Accepts an optional `options` table as described by Fennels API
+documentation.
+
+============================================================ *hotpot.api.cache*
+
+Cache API~
+
+Tools to interact with Hotpots cache and index, such as
+getting paths to cached lua files or clearing index entries.
+
+You can manually interact with the cache at `~/.cache/nvim/hotpot`.
+
+The cache will automatically refresh when required, but note: removing the
+cache file is not enough to force recompilation in a running session. The
+loaded module must be removed from Lua's `package.loaded` table, then
+re-required.
+>
+  (tset package.loaded :my_module nil) ;; Does NOT unload my_module.child
+
+(Hint: You can iterate `package.loaded` and match the key for `"^my_module"`.)
+
+Note: Some of these functions are destructive, Hotpot bears no responsibility for
+      any unfortunate events.
+
+------------------------------------ *hotpot.api.cache.cache-path-for-fnl-file*
+
+`(cache-path-for-fnl-file fnl-path)`
+
+Get on-disk path to compiled lua that mirrors given fennel source file
+
+
+-------------------------------------- *hotpot.api.cache.cache-path-for-module*
+
+`(cache-path-for-module modname)`
+
+Get on-disk path to compiled lua for given module name
+
+
+----------------------------------------------- *hotpot.api.cache.cache-prefix*
+
+`(cache-prefix)`
+
+undocumented
+
+
+------------------------------------------------ *hotpot.api.cache.clear-cache*
+
+`(clear-cache)`
+
+Clear all lua cache files and bytecode index
+
+
+----------------------------------- *hotpot.api.cache.clear-cache-for-fnl-file*
+
+`(clear-cache-for-fnl-file fnl-path)`
+
+Clear compiled lua cache file that mirrors given fennel source file, does
+_not_ clear index entry, instead use clear-cache-for-module
+
+
+------------------------------------- *hotpot.api.cache.clear-cache-for-module*
+
+`(clear-cache-for-module modname)`
+
+Clear compiled lua cache file for given module name, also clears index entry
+
