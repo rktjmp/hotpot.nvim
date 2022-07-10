@@ -5,10 +5,12 @@ Breaking changes are in bold.
 ## x.x.x
 
 - Added ahead of time compilation via `hotpot.api.make`.
-- **Improved `x-selection` API selection accuracy**
+- **Improved `x-selection` API selection accuracy.**
   - Now uses `nvim_get_mode` which is sometimes incorrectly reported in keymaps
     set by `whichkey.nvim`, so this is potentially breaking. `vim.keymap.set`
     seems to behave correctly.
+- **Moved `fnl`, `fnlfile`, `fnldo`, `eval-operator` and `eval-operator-bang`
+  to `hotpot.api.command`.**
 
 ## 0.2.5
 
