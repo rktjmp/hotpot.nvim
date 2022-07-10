@@ -51,14 +51,14 @@
 (fn get-selection []
   ;; Marks are only set after leaving selection mode, so we have to fiddle a
   ;; bit to grab the correct positions.
-  (fn get-start [mode]
+  (fn get-sel-start [mode]
     (match [mode (vim.fn.getpos :v)]
       ;; character-wise selection
       [:v [_buf line col _offset]] (values [line col])
       ;; line-wise selection
       [:V [_buf line col _offset]] (values [line 1])
       _ (error "Tried to get selection while not in v or V mode")))
-  (fn get-stop [mode]
+  (fn get-cur [mode]
     (match [mode (vim.fn.getpos :.)]
       ;; character-wise selection
       [:v [_buf line col _offset]] (values [line col])
@@ -67,8 +67,8 @@
       _ (error "Tried to get selection while not in v or V mode")))
 
   (let [{: mode} (vim.api.nvim_get_mode)
-        sel-start-pos (get-start mode)
-        cur-pos (get-stop mode)
+        sel-start-pos (get-sel-start mode)
+        cur-pos (get-cur mode)
         ;; its possible to start a selection and go "up", so sort
         ;; the positions to always run down the buffer.
         (start stop) (match [sel-start-pos cur-pos]
@@ -93,6 +93,14 @@
                        (values [cl cc] [sl sc])
                        _ (error (string.format "unhandled selection-case :sel-start %s :cur-pos %s"
                                                (vim.inspect sel-start-pos) (vim.inspect cur-pos))))
+        ;; we have to adjust line wise selections to be col-1 to col-max-int when
+        ;; the selection has been done "upwards"
+        ;; TODO: Probably all this can be slimmed up.
+        (start stop) (match [mode start stop]
+                       ;; char wise will be ok after sorting
+                       [:v start stop] (values start stop)
+                       ;; bump line wise selections
+                       [:V [start-line _] [stop-line _]] (values [start-line 1] [stop-line 2147483647]))
         ;; now adjust the positions to be col-0-based
         ;; TODO: try and figure the best interface for get-range, need to weigh
         ;; consistency with nvim-api vs logical consistency ("highlighter on paper")
