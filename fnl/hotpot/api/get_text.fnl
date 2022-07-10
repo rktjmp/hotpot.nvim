@@ -1,4 +1,11 @@
 (fn get-range [buf start stop]
+  ;; TODO: move this to nvim_buf_get_text, which is a 0.7+ breaking change
+  ;;       but it will be less hassle to maintain and document (i.e. "see nvim_buf_get_text")
+  ; "Get text from buf, start and stop are `line` or `[line col]` where both line
+  ; and col are 1 indexed. So `[1 1]` is the first line, first column. Values are
+  ; end inclusive, `[1 1] [2 10]` returns the first line first column up to and
+  ; including the second line 10th column."
+
   (assert buf "get-range missing buf arg")
   (assert start "get-range missing start arg")
   (assert stop "get-range missing stop arg")
@@ -12,10 +19,10 @@
   ;; +1 ends up rolling over and breaking string.sub, so we limit the max column
   ;; to 10,000 which should be fine in the real world.
   (local [start-line start-col] (match start
-                                  [row col] [row (math.min 10_000 (+ col 1))]
+                                  [line col] [line (math.min 10_000 (+ col 1))]
                                   line [line 1]))
   (local [stop-line stop-col] (match stop
-                                [row col] [row (math.min 10_000 (+ col 1))]
+                                [line col] [line (math.min 10_000 (+ col 1))]
                                 line [line -1]))
 
   ;; we intentionally don't sanitise positions because a user
@@ -40,10 +47,57 @@
               (tset lines last (string.sub (. lines last) 1 stop-col)))))
   (table.concat lines "\n"))
 
+
 (fn get-selection []
-  (let [start (vim.api.nvim_buf_get_mark 0 "<")
-        stop (vim.api.nvim_buf_get_mark 0 ">")]
-    ;; selection always locked to current buffer
+  ;; Marks are only set after leaving selection mode, so we have to fiddle a
+  ;; bit to grab the correct positions.
+  (fn get-start [mode]
+    (match [mode (vim.fn.getpos :v)]
+      ;; character-wise selection
+      [:v [_buf line col _offset]] (values [line col])
+      ;; line-wise selection
+      [:V [_buf line col _offset]] (values [line 1])
+      _ (error "Tried to get selection while not in v or V mode")))
+  (fn get-stop [mode]
+    (match [mode (vim.fn.getpos :.)]
+      ;; character-wise selection
+      [:v [_buf line col _offset]] (values [line col])
+      ;; line-wise selection, cannonically MAX_INT is how vim describes end of line
+      [:V [_buf line col _offset]] (values [line 2147483647])
+      _ (error "Tried to get selection while not in v or V mode")))
+
+  (let [{: mode} (vim.api.nvim_get_mode)
+        sel-start-pos (get-start mode)
+        cur-pos (get-stop mode)
+        ;; its possible to start a selection and go "up", so sort
+        ;; the positions to always run down the buffer.
+        (start stop) (match [sel-start-pos cur-pos]
+                       ;; all values are the same, so return whatever
+                       (where [[sl sc] [cl cc]] (and (= sl cl) (= sc cc)))
+                       (values [sl sc] [cl cc])
+                       ;; lines are the same, cursor is after start
+                       ;; sel -> cur
+                       (where [[sl sc] [cl cc]] (and (= sl cl) (< sc cc)))
+                       (values [sl sc] [cl cc])
+                       ;; lines are the same, cursor is before start
+                       ;; cur -> sel
+                       (where [[sl sc] [cl cc]] (and (= sl cl) (< cc sc)))
+                       (values [cl cc] [sl sc])
+                       ;; sel-line before cur-line
+                       ;; sel -> cur
+                       (where [[sl sc] [cl cc]] (< sl cl))
+                       (values [sl sc] [cl cc])
+                       ;; cur-line before sel-line
+                       ;; cur -> sel
+                       (where [[sl sc] [cl cc]] (< cl sl))
+                       (values [cl cc] [sl sc])
+                       _ (error (string.format "unhandled selection-case :sel-start %s :cur-pos %s"
+                                               (vim.inspect sel-start-pos) (vim.inspect cur-pos))))
+        ;; now adjust the positions to be col-0-based
+        ;; TODO: try and figure the best interface for get-range, need to weigh
+        ;; consistency with nvim-api vs logical consistency ("highlighter on paper")
+        start (let [[l c] start] [l (- c 1)])
+        stop (let [[l c] stop] [l (- c 1)])]
     (get-range 0 start stop)))
 
 (fn get-buf [buf]

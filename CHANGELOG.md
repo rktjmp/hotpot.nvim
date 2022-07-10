@@ -5,6 +5,10 @@ Breaking changes are in bold.
 ## x.x.x
 
 - Added ahead of time compilation via `hotpot.api.make`.
+- **Improved `x-selection` API selection accuracy**
+  - Now uses `nvim_get_mode` which is sometimes incorrectly reported in keymaps
+    set by `whichkey.nvim`, so this is potentially breaking. `vim.keymap.set`
+    seems to behave correctly.
 
 ## 0.2.5
 
@@ -29,6 +33,7 @@ Breaking changes are in bold.
 ## 0.2.0
 
 - **Neovim 0.6 required**.
+  - `0.1.0` was the last Neovim 0.5 compatible release.
 - Added lua bytecode cache.
 - 🪟 Added windows support.
 - Localised all `require` calls for performance improvements.
