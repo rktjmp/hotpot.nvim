@@ -109,10 +109,6 @@ You do not have to call setup unless you are altering a default option.
       macros = {
         env = "_COMPILER" -- MUST be set along with any other options
       }
-      -- traceback can be "fennel" (default, fennels built-in handler)
-      -- or "hotpot", which attempts to strip fennel internal stackframes
-      -- from error stacks for simpler messages.
-      traceback = "fennel"
     }
   })
 
@@ -126,9 +122,6 @@ module files.
 
 `compiler.macros` is passed to the Fennel compiler when compiling macro files.
 Be sure to include `env = "_COMPILER"` unless you have a good reason not to.
-
-`compiler.traceback` may be "fennel" (default) or "hotpot". "hotpot"
-attempts to remove some "noise" from error stack-frames.
 
 Note: the `filename` compilation option is always set to the appropriate value
       and can not be altered via the setup interface.
