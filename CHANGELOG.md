@@ -4,11 +4,16 @@ Breaking changes are in bold.
 
 ## x.x.x
 
+- **Neovim 0.7 required**
+- Added in-editor diagnostics via `hotpot.api.diagnostics`
+  - Enabled automatically in Fennel files. See documentation for details and
+    how to disable.
 - Added ahead of time compilation via `hotpot.api.make`.
 - **Improved `x-selection` API selection accuracy.**
-  - Now uses `nvim_get_mode` which is sometimes incorrectly reported in keymaps
-    set by `whichkey.nvim`, so this is potentially breaking. `vim.keymap.set`
-    seems to behave correctly.
+  - Now uses `nvim_get_mode`, sometimes bindings set by `whichkey.nvim`
+    incorrectly report the current mode, so this is potentially breaking if you
+    use a non-standard way to set keys. Keymaps set via `vim.keymap.set` behave
+    correctly.
 - **Moved `fnl`, `fnlfile`, `fnldo`, `eval-operator` and `eval-operator-bang`
   to `hotpot.api.command`.**
 

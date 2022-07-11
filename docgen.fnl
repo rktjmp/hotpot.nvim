@@ -81,10 +81,22 @@ The API is proxied and may be accessed in a few ways:
 All position arguments are \"linewise\", starting at 1, 1 for line 1, column 1.
 Ranges are end-inclusive.")
 (local index [["The Hotpot API" "|hotpot.api|"]])
-(local mods [{:modname "hotpot.api.make"
+(local mods [{:modname "hotpot.api.diagnostics"
+              :title "Diagnostics API"
+              :desc "Framework for rendering compiler diagnostics inside Neovim.
+
+The diagnostics framework is enabled by default for the `fennel` FileType
+autocommand , see `hotpot.setup` for instructions on disabling it. You can
+manually attach to buffers by calling `attach`.
+
+The diagnostic is limited to one sentence (as provided by Fennel), but the
+entire error, including hints can be accessed via the `user_data` field of the
+diagnostic, or via `error-for-buf`."}
+             ;; make
+             {:modname "hotpot.api.make"
               :title "Make API"
-              :desc "
-Tools to compile Fennel code ahead of time."}
+              :desc "Tools to compile Fennel code ahead of time."}
+             ;; compile
              {:modname "hotpot.api.compile"
               :title "Compile API"
               :desc "
@@ -95,6 +107,7 @@ Every `compile-*` function returns `true, luacode` or `false, errors` .
 
 Note: The compiled code is _not_ saved anywhere, nor is it placed in Hotp
       cache. To compile into cache, use `require(\"modname\")`."}
+             ;; eval
              {:modname "hotpot.api.eval"
               :title "Eval API"
               :desc "Tools to evaluate Fennel code in-editor.
@@ -112,6 +125,7 @@ Handling these errors is left to the user.
 Note: If your Fennel code does not output anything, running these functions by
       themselves will not show any output! You may wish to wrap them in a
       `(print (eval-* ...))` expression for a simple REPL."}
+      ;; cache
              {:modname "hotpot.api.cache"
               :title "Cache API"
               :desc "Tools to interact with Hotpots cache and index, such as

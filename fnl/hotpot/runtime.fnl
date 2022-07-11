@@ -15,6 +15,7 @@
   {:compiler {:modules {}
               :macros {:env :_COMPILER}
               :traceback :fennel}
+   :attach_hotpot_diagnostics true
    :provide_require_fennel false})
 
 (fn M.set-index [i]
@@ -29,6 +30,8 @@
         val (tset new-config :compiler k val)))
     (match (?. user-config :provide_require_fennel)
       val (tset new-config :provide_require_fennel val))
+    (match (?. user-config :attach_hotpot_diagnostics)
+      val (tset new-config :attach_hotpot_diagnostics val))
     ;; better to hard fail this now, than fail it when something else fails
     (match new-config.compiler.traceback
         :hotpot true
