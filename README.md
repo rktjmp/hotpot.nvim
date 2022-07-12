@@ -45,8 +45,7 @@ neat("fennel") -- => "fennel is neat!"
 
 ## Requirements
 
-- Neovim 0.6.1+
-  - (The `0.1.0` tag is Neovim 0.5 compatible.)
+- Neovim 0.7.2+
 - ~~Fanatical devotion to parentheses.~~
 
 ## Purpose

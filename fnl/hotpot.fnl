@@ -1,5 +1,5 @@
 ;; Preflight checks
-(assert (= 1 (vim.fn.has "nvim-0.6")) "Hotpot requires neovim 0.6+")
+(assert (= 1 (vim.fn.has "nvim-0.7")) "Hotpot requires neovim 0.7+")
 
 ;; compile hotpot source if we need to
 ;; (let [fennel (require :fennel)]
