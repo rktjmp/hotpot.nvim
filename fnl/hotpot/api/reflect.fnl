@@ -22,24 +22,67 @@
 
 (fn session-for-buf [buf]
   (accumulate [found nil _ session (pairs sessions) :until found]
-    (do
-      (if (= session.source-buf buf)
-        (values session)))))
+      (if (= session.source-buf buf) session)))
+
+(fn update-extmarks [session start-line start-col stop-line stop-col]
+  ;; we use two marks instead of end_row end_col because the end_*
+  ;; seem to not handle edits well, they probably have no "gravity"
+  ;; attached?
+  ;; This is also eaiser to mark a start and stop region
+  ;; TODO par-infer dictates that this be done in a pcall
+  (let [{: nvim_buf_set_extmark} vim.api
+        start (nvim_buf_set_extmark session.source-buf
+                                    session.ns
+                                    start-line start-col
+                                    {:id session.mark-start ;; may be nil on new session
+                                     :virt_text [["(* " :DiagnosticHint]]
+                                     :virt_text_pos :right_align})
+        stop (nvim_buf_set_extmark session.source-buf
+                                   session.ns
+                                   stop-line stop-col
+                                   {:id session.mark-stop ;; may be nil on new session
+                                    :virt_text [[" *)" :DiagnosticHint]]
+                                    :virt_text_pos :right_align})]
+    (tset session :mark-start start)
+    (tset session :mark-stop stop))
+  (values session))
+
+
 
 (fn handle-session [session]
   (fn get-extmark-content []
     (local {: nvim_buf_get_extmark_by_id
             : nvim_buf_get_text} vim.api)
     (local {: get-range} (require :hotpot.api.get_text))
-    (let [[start-l start-c {: end_row : end_col}] (nvim_buf_get_extmark_by_id session.source-buf
-                                                                              session.ns
-                                                                              session.mark
-                                                                              {:details true})]
-      (pcall nvim_buf_get_text session.source-buf start-l start-c end_row end_col {})))
+    (let [[start-l start-c] (nvim_buf_get_extmark_by_id session.source-buf
+                                                        session.ns
+                                                        session.mark-start
+                                                        {})
+          [stop-l stop-c] (nvim_buf_get_extmark_by_id session.source-buf
+                                                      session.ns
+                                                      session.mark-stop
+                                                      {})
+          ;; parinfer seems to break extmarks by smashing them into the one
+          ;; location, so we'll hack around that by looking for equal posisions
+          ;; and restoring them from the last known good values
+          [start-l start-c stop-l stop-c] (match [start-l start-c stop-l stop-c]
+                                            ;; same values, probably got broken extmarks so try to restore them
+                                            [l c l c] (let [[s-l s-c ss-l ss-c] session.__parinfer_hack]
+                                                        (print :restore s-l s-c ss-c ss-c)
+                                                        (match (pcall update-extmarks session s-l s-c ss-l ss-c)
+                                                          (true _) (values nil)
+                                                          (false e) (vim.api.nvim_echo [["extmark-parinfer-fix failed" :DiagnosticError]] false {}))
+                                                        [s-l s-c ss-l ss-c])
+                                            _ [start-l start-c stop-l stop-c])]
+      (tset session :__parinfer_hack [start-l start-c stop-l stop-c])
+      (vim.pretty_print :start start-l start-c :stop stop-l stop-c)
+      (pcall nvim_buf_get_text session.source-buf start-l start-c stop-l stop-c {})))
 
  (fn do-eval [str]
    (let [{: eval-string} (require :hotpot.api.eval)]
-     (pcall eval-string str)))
+     (pcall eval-string (string.format "(let [{: view} (require :hotpot.fennel)
+                                              val (do %s)]
+                                          (view val))" str))))
 
  (fn do-compile [str]
    (let [{: compile-string} (require :hotpot.api.compile)]
@@ -74,7 +117,9 @@
      (append (prefixed line)))
    (each [key val (pairs {:buftype :nofile :bufhidden :hide})]
      (vim.api.nvim_buf_set_option session.target-buf key val))
-   (vim.api.nvim_buf_set_option session.target-buf :filetype :lua)
+   (if (= :eval session.mode)
+     (vim.api.nvim_buf_set_option session.target-buf :filetype :fennel)
+     (vim.api.nvim_buf_set_option session.target-buf :filetype :lua))
    (vim.api.nvim_buf_set_lines session.target-buf 0 -1 false lines)))
 
   ;; get the contents of the ext-mark range
@@ -88,7 +133,7 @@
   (local {: nvim_create_autocmd : nvim_del_autocmd} vim.api)
   (let [handler (fn []
                   (if session.target-buf (handle-session session)))
-        au (nvim_create_autocmd [:TextChanged :TextChangedI :InsertLeave]
+        au (nvim_create_autocmd [:TextChanged :InsertLeave]
                                 {:buffer session.source-buf
                                  :desc (.. "hotpot-reflect aucmnd for buf#" session.source-buf)
                                  :callback handler})]
@@ -103,31 +148,14 @@
                  :target-buf nil
                  :mode :compile ;; default to compile mode as its less destructive
                  :au nil
-                 :mark nil
+                 :mark-start nil
+                 :mark-stop nil
+                 :__parinfer_hack nil
                  :id ns
                  :ns ns}]
     (set-autocmd session)
     (tset sessions ns session)
     (values session)))
-
-(fn update-extmark [session]
-  "Update session mark to reflect current highlight"
-  (local {: nvim_buf_set_extmark} vim.api)
-  (local {: get-highlight} (require :hotpot.api.get_text))
-  (let [([start-line start-col] [stop-line stop-col]) (get-highlight)
-        ;; if we have existing marks, update them, otherwise create new,
-        ;; we can rely on the nil keys to do this simply.
-        mark (nvim_buf_set_extmark session.source-buf
-                                   session.ns
-                                   (- start-line 1) (- start-col 1)
-                                   {:id session.mark ;; may be nil on new session
-                                    :strict false
-                                    :end_row (- stop-line 1)
-                                    :end_col stop-col})]
-    (tset session :mark mark)
-    (session.handler)
-    (values session)))
-
 
 (fn M.set-region [user-buf ?mode]
   "Set session region inside buf. Creates a new session if one does not exist,
@@ -138,13 +166,14 @@
   (local {: get-highlight : get-range} (require :hotpot.api.get_text))
   (let [buf (resolve-buf-id user-buf)
         ;; get session or make a new one
-        session (match (session-for-buf buf)
-                  nil (make-session buf)
-                  session session)]
-    (update-extmark session)
+        session (match (session-for-buf buf) nil (make-session buf) session session)
+        ([start-line start-col] [stop-line stop-col]) (get-highlight)]
+    (update-extmarks session (- start-line 1) (- start-col 1) (- stop-line 1) stop-col)
+    (tset session :__parinfer_hack [(- start-line 1) (- start-col 1) (- stop-line 1) stop-col])
     (if ?mode (M.set-mode session.id ?mode))
     ;; use the namespace as a reliably unique session id
     (set last-used-session session)
+    (session.handler)
     (values session.id)))
 
 (fn M.set-mode [session-id mode]
