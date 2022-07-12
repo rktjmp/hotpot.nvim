@@ -15,12 +15,12 @@ Breaking changes are in bold.
 - **Moved `fnl`, `fnlfile`, `fnldo`, `eval-operator` and `eval-operator-bang`
   to `hotpot.api.command`.**
 - Added in-editor diagnostics via `hotpot.api.diagnostics`
-  - Enabled automatically in Fennel files. See documentation for details and
-    how to disable.
+  - Enabled automatically in Fennel files. See `:h hotpot.api.diagnostics` for
+    details and how to disable.
 - Added ahead of time compilation via `hotpot.api.make`.
 - Added in-editor repl-like via `hotpot.api.reflect`
   - Mark regions of your code and show the results of the compilation or
-    evaluation as you edit. See documentation for details.
+    evaluation as you edit. See `:h hotpot.api.reflect` for details.
 
 ## 0.2.5
 

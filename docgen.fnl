@@ -47,7 +47,7 @@
           fill (- 79 (length tag))
           line (.. (string.rep "-" fill) tag)]
       (table.insert doc 1 (.. "`" sig "`\n"))
-      (table.insert doc 1 (.. fname "~\n\n"))
+      (table.insert doc 1 (.. fname "~\n"))
       (table.insert doc 1 "")
       (table.insert doc 1 (text-with-lead-fill "-" (.. " *" modname "." fname "*")))
       (table.insert doc 1 "")

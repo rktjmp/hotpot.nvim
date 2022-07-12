@@ -6,13 +6,14 @@ The Hotpot API.....................................................|hotpot.api|
 Diagnostics API........................................|hotpot.api.diagnostics|
   attach........................................|hotpot.api.diagnostics.attach|
   detatch......................................|hotpot.api.diagnostics.detatch|
+  disable......................................|hotpot.api.diagnostics.disable|
   enable........................................|hotpot.api.diagnostics.enable|
   error-for-buf..........................|hotpot.api.diagnostics.error-for-buf|
 Reflect API................................................|hotpot.api.reflect|
   attach-input................................|hotpot.api.reflect.attach-input|
   attach-output..............................|hotpot.api.reflect.attach-output|
-  detatch-input..............................|hotpot.api.reflect.detatch-input|
   set-mode........................................|hotpot.api.reflect.set-mode|
+  detatch-input..............................|hotpot.api.reflect.detatch-input|
 Make API......................................................|hotpot.api.make|
   build.................................................|hotpot.api.make.build|
   check.................................................|hotpot.api.make.check|
@@ -21,8 +22,8 @@ Eval API......................................................|hotpot.api.eval|
   eval-file.........................................|hotpot.api.eval.eval-file|
   eval-module.....................................|hotpot.api.eval.eval-module|
   eval-range.......................................|hotpot.api.eval.eval-range|
-  eval-selection...............................|hotpot.api.eval.eval-selection|
   eval-string.....................................|hotpot.api.eval.eval-string|
+  eval-selection...............................|hotpot.api.eval.eval-selection|
 Compile API................................................|hotpot.api.compile|
   compile-buffer............................|hotpot.api.compile.compile-buffer|
   compile-file................................|hotpot.api.compile.compile-file|
@@ -34,9 +35,9 @@ Cache API....................................................|hotpot.api.cache|
   cache-path-for-fnl-file............|hotpot.api.cache.cache-path-for-fnl-file|
   cache-path-for-module................|hotpot.api.cache.cache-path-for-module|
   cache-prefix..................................|hotpot.api.cache.cache-prefix|
+  clear-cache-for-module..............|hotpot.api.cache.clear-cache-for-module|
   clear-cache....................................|hotpot.api.cache.clear-cache|
   clear-cache-for-fnl-file..........|hotpot.api.cache.clear-cache-for-fnl-file|
-  clear-cache-for-module..............|hotpot.api.cache.clear-cache-for-module|
 
 ================================================================== *hotpot.api*
 
@@ -98,13 +99,22 @@ detatch~
 Remove hotpot-diagnostic instance from buffer.
 
 
+---------------------------------------------- *hotpot.api.diagnostics.disable*
+
+disable~
+
+`(disable)`
+
+Disables filetype autocommand and detatches any attached buffers
+
+
 ----------------------------------------------- *hotpot.api.diagnostics.enable*
 
 enable~
 
 `(enable)`
 
-undocumented
+Enables autocommand to attach diagnostics to Fennel filetype buffers
 
 
 ---------------------------------------- *hotpot.api.diagnostics.error-for-buf*
@@ -237,6 +247,15 @@ act as the module level `attach` and `detatch` with the session-id
 argument already filled.
 
 
+------------------------------------------------- *hotpot.api.reflect.set-mode*
+
+set-mode~
+
+`(set-mode session-id mode)`
+
+Set session to eval or compile mode
+
+
 -------------------------------------------- *hotpot.api.reflect.detatch-input*
 
 detatch-input~
@@ -246,15 +265,6 @@ detatch-input~
 Detatch buffer from session, which removes marks and autocmds.
 
 Returns session-id
-
-
-------------------------------------------------- *hotpot.api.reflect.set-mode*
-
-set-mode~
-
-`(set-mode session-id mode)`
-
-Set session to eval or compile mode
 
 ============================================================= *hotpot.api.make*
 
@@ -462,17 +472,6 @@ raise on error. Positions can be `line` or `line col`. Accepts an optional
 `options` table as described by Fennels API documentation.
 
 
----------------------------------------------- *hotpot.api.eval.eval-selection*
-
-eval-selection~
-
-`(eval-selection ?options)`
-
-Evaluate the current selection and return the result, or raise an error.
-Accepts an optional `options` table as described by Fennels API
-documentation.
-
-
 ------------------------------------------------- *hotpot.api.eval.eval-string*
 
 eval-string~
@@ -480,6 +479,17 @@ eval-string~
 `(eval-string code ?options)`
 
 Evaluate given fennel `code` and return the results, or raise on error.
+Accepts an optional `options` table as described by Fennels API
+documentation.
+
+
+---------------------------------------------- *hotpot.api.eval.eval-selection*
+
+eval-selection~
+
+`(eval-selection ?options)`
+
+Evaluate the current selection and return the result, or raise an error.
 Accepts an optional `options` table as described by Fennels API
 documentation.
 
@@ -609,6 +619,15 @@ cache-prefix~
 undocumented
 
 
+------------------------------------- *hotpot.api.cache.clear-cache-for-module*
+
+clear-cache-for-module~
+
+`(clear-cache-for-module modname)`
+
+Clear compiled lua cache file for given module name, also clears index entry
+
+
 ------------------------------------------------ *hotpot.api.cache.clear-cache*
 
 clear-cache~
@@ -627,13 +646,4 @@ clear-cache-for-fnl-file~
 Clear compiled lua cache file that mirrors given fennel source file, does
 _not_ clear index entry, instead use clear-cache-for-module. File path should
 be absoulute, see |expand| or `fs_realpath` from |vim.loop|.
-
-
-------------------------------------- *hotpot.api.cache.clear-cache-for-module*
-
-clear-cache-for-module~
-
-`(clear-cache-for-module modname)`
-
-Clear compiled lua cache file for given module name, also clears index entry
 
