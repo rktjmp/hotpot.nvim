@@ -19,10 +19,6 @@
 
 (let [{: set-lazy-proxy} (require :hotpot.common)]
   (local M {})
-  (fn attach-hotpot-diagnostics [au-event]
-    (let [{: attach} (require :hotpot.api.diagnostics)]
-      (match au-event
-        {:match "fennel" :buf buf} (attach buf {:silent? true}))))
   (fn M.setup [options]
     ;; runtime will parse the given options as needed, but effects from
     ;; the options make more sense to be run "during setup".
@@ -30,7 +26,7 @@
           config (runtime.set-config options)]
       (if config.provide_require_fennel
         (tset package.preload :fennel #(require :hotpot.fennel)))
-      (when config.attach_hotpot_diagnostics
-        (vim.api.nvim_create_autocmd "FileType" {:pattern "fennel"
-                                                 :callback attach-hotpot-diagnostics}))))
+      (if config.attach_hotpot_diagnostics
+        (let [{: enable} (require :hotpot.api.diagnostics)]
+          (enable)))))
   (set-lazy-proxy M {:api :hotpot.api :runtime :hotpot.runtime}))
