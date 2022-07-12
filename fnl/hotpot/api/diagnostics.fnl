@@ -1,5 +1,6 @@
 ;; track error data per-buffer so we can get full errors or interrogate "has error?"
 (local data {})
+(var au-group nil)
 (local M {})
 (local api vim.api)
 
@@ -102,10 +103,11 @@
   "Remove hotpot-diagnostic instance from buffer."
   (let [buf (resolve-buf-id user-buf)]
     (match (data-for-buf buf)
-      any (do
-            (api.nvim_clear_autocmds {:buffer buf})
-            (record-detatchment buf)
-            (values nil)))))
+      {: ns} (do
+               (reset-diagnostic ns)
+               (api.nvim_clear_autocmds {:buffer buf})
+               (record-detatchment buf)
+               (values nil)))))
 
 (fn M.error-for-buf [user-buf]
   "Get current error for buffer (includes all Fennel hints) or nil if no error.
@@ -120,10 +122,20 @@
       {:err nil} (values nil))))
 
 (fn M.enable []
+  "Enables autocommand to attach diagnostics to Fennel filetype buffers"
   (fn attach-hotpot-diagnostics [event]
      (match event
        {:match "fennel" :buf buf} (M.attach buf)))
-  (vim.api.nvim_create_autocmd "FileType" {:pattern "fennel"
-                                           :callback attach-hotpot-diagnostics}))
+  (if (not au-group)
+    (set au-group (api.nvim_create_augroup :hotpot-diagnostics-group {:clear true}))
+    (api.nvim_create_autocmd "FileType" {:group au-group
+                                         :pattern "fennel"
+                                         :callback attach-hotpot-diagnostics})))
+(fn M.disable []
+  "Disables filetype autocommand and detatches any attached buffers"
+  (api.nvim_clear_autocmds {:group au-group})
+  (each [_ {: buf} (pairs data)]
+    (M.detatch buf))
+  (set au-group nil))
 
 (values M)
