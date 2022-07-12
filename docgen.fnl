@@ -47,6 +47,7 @@
           fill (- 79 (length tag))
           line (.. (string.rep "-" fill) tag)]
       (table.insert doc 1 (.. "`" sig "`\n"))
+      (table.insert doc 1 (.. fname "~\n\n"))
       (table.insert doc 1 "")
       (table.insert doc 1 (text-with-lead-fill "-" (.. " *" modname "." fname "*")))
       (table.insert doc 1 "")
@@ -54,7 +55,7 @@
 
 (fn dump-mod [modname]
   (let [{: eval-module} (require :hotpot.api.eval)
-        mod (eval-module modname {:useMetadata true})]
+        (_ mod) (eval-module modname {:useMetadata true})]
     (-> mod
         (#(icollect [fname f (pairs $1)] [fname f]))
         (#(doto $1 (table.sort (fn [[a _] [b _]] (<= a b)))))
@@ -64,7 +65,7 @@
 (local preamble-text "The Hotpot API~
 
 The Hotpot API provides tools for compiling and evaluating fennel code inside
-neovim, as well as performing ahead-of-time compiliation to disk - compared to
+Neovim, as well as performing ahead-of-time compilation to disk - compared to
 Hotpots normal on-demand behaviour.
 
 The API is proxied and may be accessed in a few ways:
@@ -80,70 +81,171 @@ The API is proxied and may be accessed in a few ways:
 
 All position arguments are \"linewise\", starting at 1, 1 for line 1, column 1.
 Ranges are end-inclusive.")
+
 (local index [["The Hotpot API" "|hotpot.api|"]])
-(local mods [{:modname "hotpot.api.diagnostics"
-              :title "Diagnostics API"
-              :desc "Framework for rendering compiler diagnostics inside Neovim.
+
+(local mod-diagnostic
+  {:modname "hotpot.api.diagnostics"
+   :title "Diagnostics API"
+   :desc "Framework for rendering compiler diagnostics inside Neovim.
 
 The diagnostics framework is enabled by default for the `fennel` FileType
-autocommand , see `hotpot.setup` for instructions on disabling it. You can
+autocommand, see `hotpot.setup` for instructions on disabling it. You can
 manually attach to buffers by calling `attach`.
 
 The diagnostic is limited to one sentence (as provided by Fennel), but the
 entire error, including hints can be accessed via the `user_data` field of the
-diagnostic, or via `error-for-buf`."}
-             ;; make
-             {:modname "hotpot.api.make"
-              :title "Make API"
-              :desc "Tools to compile Fennel code ahead of time."}
-             ;; compile
-             {:modname "hotpot.api.compile"
-              :title "Compile API"
-              :desc "
-Tools to compile Fennel code in-editor. All functions return `true code` or
-`false err`. To compile fennel code to disk, see |hotpot.api.make|.
+diagnostic, or via `error-for-buf`."})
 
-Every `compile-*` function returns `true, luacode` or `false, errors` .
+(local mod-reflect
+  {:modname "hotpot.api.reflect"
+   :title "Reflect API"
+   :desc "A REPL-like toolkit.
 
-Note: The compiled code is _not_ saved anywhere, nor is it placed in Hotp
-      cache. To compile into cache, use `require(\"modname\")`."}
-             ;; eval
-             {:modname "hotpot.api.eval"
-              :title "Eval API"
-              :desc "Tools to evaluate Fennel code in-editor.
+!! The Reflect API is experimental and its shape may change, particularly around
+accepting ranges instead of requiring a visual selection and some API terms
+such as what a `session` is. !!
 
-Available in the `hotpot.api.eval` module.
+!! Do NOT run dangerous code inside an evaluation block! You could cause
+massive damage to your system! !!
 
-Every `eval-*` function has the potential to raise an error, by:
+!! Some plugins (Parinfer) can be quite destructive to the buffer and can cause
+marks to be lost or damaged. In this event you can just reselect your range. !!
 
-  - bad arguments
-  - compile errors
-  - evaluated code errors
+Reflect API acts similarly to a REPL environment but instead of entering
+statements in a conversational manner, you mark sections of your code and the
+API will \"reflect\" the result to you and update itself as you change your
+code.
 
-Handling these errors is left to the user.
+The basic usage of the API is:
 
-Note: If your Fennel code does not output anything, running these functions by
-      themselves will not show any output! You may wish to wrap them in a
-      `(print (eval-* ...))` expression for a simple REPL."}
-      ;; cache
-             {:modname "hotpot.api.cache"
-              :title "Cache API"
-              :desc "Tools to interact with Hotpots cache and index, such as
-getting paths to cached lua files or clearing index entries.
+1. Get an output buffer pass it to `attach-output`. A `session-id` is returned.
 
-You can manually interact with the cache at `~/.cache/nvim/hotpot`.
+2. Visually select a region of code and call `attach-input session-id <buf>`
+where buf is probably `0` for current buffer.
 
-The cache will automatically refresh when required, but note: removing the
-cache file is not enough to force recompilation in a running session. The
-loaded module must be removed from Lua's `package.loaded` table, then
-re-required.
+Note that windowing is not mentioned. The Reflect API leaves general window
+management to the user as they can best decide how they wish to structure their
+editor - with floating windows, splits above, below, etc. The Reflect API also
+does not provide any default bindings.
+
+The following is an example binding setup that will open a new window and
+connect the output and inputs with one binding. It tracks the session and only
+allows one per-editor session. This code is written verbosely for education and
+could be condensed.
+
 >
-  (tset package.loaded :my_module nil) ;; Does NOT unload my_module.child
+  ;; Open session and attach input in one step.
+  ;; Note the complexity here is mostly due to nvim not having an api to create a
+  ;; split window, so we must shuffle some code to create a buf, pair input and output
+  ;; then put that buf inside a window.
+  (local reflect-session {:id nil :mode :compile})
+  (fn new-or-attach-reflect []
+    (let [reflect (require :hotpot.api.reflect)
+          with-session-id (if reflect-session.id
+                            (fn [f]
+                              ;; session id already exists, so we can just pass
+                              ;; it to whatever needs it
+                              (f reflect-session.id))
+                            (fn [f]
+                              ;; session id does not exist, so we need to create
+                              ;; an output buffer first then we can pass the
+                              ;; session id on, and finally hook up the output
+                              ;; buffer to a window
+                              (let [buf (api.nvim_create_buf true true)
+                                    id (reflect.attach-output buf)]
+                                (set reflect-session.id id)
+                                (f id)
+                                ;; create window, which will forcibly assume focus, swap the buffer
+                                ;; to our output buffer and setup an autocommand to drop the session id
+                                ;; when the session window is closed.
+                                (vim.schedule #(do
+                                                 (api.nvim_command \"botright vnew\")
+                                                 (api.nvim_win_set_buf (api.nvim_get_current_win) buf)
+                                                 (api.nvim_create_autocmd :BufWipeout
+                                                                          {:buffer buf
+                                                                           :once true
+                                                                           :callback #(set reflect-session.id nil)}))))))]
+      ;; we want to set the session mode to our current mode, and attach the
+      ;; input buffer once we have a session id
+      (with-session-id (fn [session-id]
+                         ;; we manually set the mode each time so it is persisted if we close the session.
+                         ;; By default `reflect` will use compile mode.
+                         (reflect.set-mode session-id reflect-session.mode)
+                         (reflect.attach-input session-id 0)))))
+  (vim.keymap.set :v :hr new-or-attach-reflect)
 
-(Hint: You can iterate `package.loaded` and match the key for `\"^my_module\"`.)
+  (fn swap-reflect-mode []
+    (let [reflect (require :hotpot.api.reflect)]
+      ;; only makes sense to do this when we have a session active
+      (when reflect-session.id
+        ;; swap held mode
+        (if (= reflect-session.mode :compile)
+          (set reflect-session.mode :eval)
+          (set reflect-session.mode :compile))
+        ;; tell session to use new mode
+        (reflect.set-mode reflect-session.id reflect-session.mode))))
+  (vim.keymap.set :n :hx swap-reflect-mode)
 
-Note: Some of these functions are destructive, Hotpot bears no responsibility for
-      any unfortunate events."}])
+"})
+
+(local mod-make
+  {:modname "hotpot.api.make"
+   :title "Make API"
+   :desc "Tools to compile Fennel code ahead of time."})
+
+(local mod-eval
+  {:modname "hotpot.api.eval"
+   :title "Eval API"
+   :desc "Tools to evaluate Fennel code in-editor.
+
+   Available in the `hotpot.api.eval` module.
+
+   Every `eval-*` function has the potential to raise an error, by:
+
+   - bad arguments
+   - compile errors
+   - evaluated code errors
+
+   Handling these errors is left to the user.
+
+   Note: If your Fennel code does not output anything, running these functions by
+   themselves will not show any output! You may wish to wrap them in a
+   `(print (eval-* ...))` expression for a simple REPL."})
+
+(local mod-compile
+  {:modname "hotpot.api.compile"
+   :title "Compile API"
+   :desc "
+   Tools to compile Fennel code in-editor. All functions return `true code` or
+   `false err`. To compile fennel code to disk, see |hotpot.api.make|.
+
+   Every `compile-*` function returns `true, luacode` or `false, errors` .
+
+   Note: The compiled code is _not_ saved anywhere, nor is it placed in Hotp
+   cache. To compile into cache, use `require(\"modname\")`."})
+
+(local mod-cache
+  {:modname "hotpot.api.cache"
+    :title "Cache API"
+    :desc "Tools to interact with Hotpots cache and index, such as
+   getting paths to cached lua files or clearing index entries.
+
+   You can manually interact with the cache at `~/.cache/nvim/hotpot`.
+
+   The cache will automatically refresh when required, but note: removing the
+   cache file is not enough to force recompilation in a running session. The
+   loaded module must be removed from Lua's `package.loaded` table, then
+   re-required.
+   >
+   (tset package.loaded :my_module nil) ;; Does NOT unload my_module.child
+
+   (Hint: You can iterate `package.loaded` and match the key for `\"^my_module\"`.)
+
+   Note: Some of these functions are destructive, Hotpot bears no responsibility for
+   any unfortunate events."})
+
+(local mods [mod-diagnostic mod-reflect mod-make mod-eval mod-compile mod-cache])
 
 (each [_ mod (ipairs mods)]
   (let [docs (dump-mod mod.modname)]

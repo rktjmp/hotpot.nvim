@@ -5,25 +5,31 @@
 The Hotpot API.....................................................|hotpot.api|
 Diagnostics API........................................|hotpot.api.diagnostics|
   attach........................................|hotpot.api.diagnostics.attach|
-  detach........................................|hotpot.api.diagnostics.detach|
+  detatch......................................|hotpot.api.diagnostics.detatch|
+  enable........................................|hotpot.api.diagnostics.enable|
   error-for-buf..........................|hotpot.api.diagnostics.error-for-buf|
+Reflect API................................................|hotpot.api.reflect|
+  attach-input................................|hotpot.api.reflect.attach-input|
+  attach-output..............................|hotpot.api.reflect.attach-output|
+  detatch-input..............................|hotpot.api.reflect.detatch-input|
+  set-mode........................................|hotpot.api.reflect.set-mode|
 Make API......................................................|hotpot.api.make|
   build.................................................|hotpot.api.make.build|
   check.................................................|hotpot.api.make.check|
-Compile API................................................|hotpot.api.compile|
-  compile-buffer............................|hotpot.api.compile.compile-buffer|
-  compile-file................................|hotpot.api.compile.compile-file|
-  compile-module............................|hotpot.api.compile.compile-module|
-  compile-range..............................|hotpot.api.compile.compile-range|
-  compile-string............................|hotpot.api.compile.compile-string|
-  compile-selection......................|hotpot.api.compile.compile-selection|
 Eval API......................................................|hotpot.api.eval|
   eval-buffer.....................................|hotpot.api.eval.eval-buffer|
   eval-file.........................................|hotpot.api.eval.eval-file|
   eval-module.....................................|hotpot.api.eval.eval-module|
   eval-range.......................................|hotpot.api.eval.eval-range|
-  eval-string.....................................|hotpot.api.eval.eval-string|
   eval-selection...............................|hotpot.api.eval.eval-selection|
+  eval-string.....................................|hotpot.api.eval.eval-string|
+Compile API................................................|hotpot.api.compile|
+  compile-buffer............................|hotpot.api.compile.compile-buffer|
+  compile-file................................|hotpot.api.compile.compile-file|
+  compile-module............................|hotpot.api.compile.compile-module|
+  compile-range..............................|hotpot.api.compile.compile-range|
+  compile-selection......................|hotpot.api.compile.compile-selection|
+  compile-string............................|hotpot.api.compile.compile-string|
 Cache API....................................................|hotpot.api.cache|
   cache-path-for-fnl-file............|hotpot.api.cache.cache-path-for-fnl-file|
   cache-path-for-module................|hotpot.api.cache.cache-path-for-module|
@@ -37,7 +43,7 @@ Cache API....................................................|hotpot.api.cache|
 The Hotpot API~
 
 The Hotpot API provides tools for compiling and evaluating fennel code inside
-neovim, as well as performing ahead-of-time compiliation to disk - compared to
+Neovim, as well as performing ahead-of-time compilation to disk - compared to
 Hotpots normal on-demand behaviour.
 
 The API is proxied and may be accessed in a few ways:
@@ -61,7 +67,7 @@ Diagnostics API~
 Framework for rendering compiler diagnostics inside Neovim.
 
 The diagnostics framework is enabled by default for the `fennel` FileType
-autocommand , see `hotpot.setup` for instructions on disabling it. You can
+autocommand, see `hotpot.setup` for instructions on disabling it. You can
 manually attach to buffers by calling `attach`.
 
 The diagnostic is limited to one sentence (as provided by Fennel), but the
@@ -70,7 +76,9 @@ diagnostic, or via `error-for-buf`.
 
 ----------------------------------------------- *hotpot.api.diagnostics.attach*
 
-`(attach user-buf ?opts)`
+attach~
+
+`(attach user-buf)`
 
 Attach handler to buffer which will render compilation errors as diagnostics.
 
@@ -81,20 +89,172 @@ when given 0, this id will be the 'real' buffer id, otherwise it will match
 the original `buf` argument.
 
 
------------------------------------------------ *hotpot.api.diagnostics.detach*
+---------------------------------------------- *hotpot.api.diagnostics.detatch*
 
-`(detach user-buf)`
+detatch~
+
+`(detatch user-buf ?opts)`
 
 Remove hotpot-diagnostic instance from buffer.
 
 
+----------------------------------------------- *hotpot.api.diagnostics.enable*
+
+enable~
+
+`(enable)`
+
+undocumented
+
+
 ---------------------------------------- *hotpot.api.diagnostics.error-for-buf*
+
+error-for-buf~
 
 `(error-for-buf user-buf)`
 
 Get current error for buffer (includes all Fennel hints) or nil if no error.
 The raw fennel error is also attached to the `user_data` field of the
 diagnostic structure returned by Neovim.
+
+========================================================== *hotpot.api.reflect*
+
+Reflect API~
+
+A REPL-like toolkit.
+
+!! The Reflect API is experimental and its shape may change, particularly around
+accepting ranges instead of requiring a visual selection and some API terms
+such as what a `session` is. !!
+
+!! Do NOT run dangerous code inside an evaluation block! You could cause
+massive damage to your system! !!
+
+!! Some plugins (Parinfer) can be quite destructive to the buffer and can cause
+marks to be lost or damaged. In this event you can just reselect your range. !!
+
+Reflect API acts similarly to a REPL environment but instead of entering
+statements in a conversational manner, you mark sections of your code and the
+API will "reflect" the result to you and update itself as you change your
+code.
+
+The basic usage of the API is:
+
+1. Get an output buffer pass it to `attach-output`. A `session-id` is returned.
+
+2. Visually select a region of code and call `attach-input session-id <buf>`
+where buf is probably `0` for current buffer.
+
+Note that windowing is not mentioned. The Reflect API leaves general window
+management to the user as they can best decide how they wish to structure their
+editor - with floating windows, splits above, below, etc. The Reflect API also
+does not provide any default bindings.
+
+The following is an example binding setup that will open a new window and
+connect the output and inputs with one binding. It tracks the session and only
+allows one per-editor session. This code is written verbosely for education and
+could be condensed.
+
+>
+  ;; Open session and attach input in one step.
+  ;; Note the complexity here is mostly due to nvim not having an api to create a
+  ;; split window, so we must shuffle some code to create a buf, pair input and output
+  ;; then put that buf inside a window.
+  (local reflect-session {:id nil :mode :compile})
+  (fn new-or-attach-reflect []
+    (let [reflect (require :hotpot.api.reflect)
+          with-session-id (if reflect-session.id
+                            (fn [f]
+                              ;; session id already exists, so we can just pass
+                              ;; it to whatever needs it
+                              (f reflect-session.id))
+                            (fn [f]
+                              ;; session id does not exist, so we need to create
+                              ;; an output buffer first then we can pass the
+                              ;; session id on, and finally hook up the output
+                              ;; buffer to a window
+                              (let [buf (api.nvim_create_buf true true)
+                                    id (reflect.attach-output buf)]
+                                (set reflect-session.id id)
+                                (f id)
+                                ;; create window, which will forcibly assume focus, swap the buffer
+                                ;; to our output buffer and setup an autocommand to drop the session id
+                                ;; when the session window is closed.
+                                (vim.schedule #(do
+                                                 (api.nvim_command "botright vnew")
+                                                 (api.nvim_win_set_buf (api.nvim_get_current_win) buf)
+                                                 (api.nvim_create_autocmd :BufWipeout
+                                                                          {:buffer buf
+                                                                           :once true
+                                                                           :callback #(set reflect-session.id nil)}))))))]
+      ;; we want to set the session mode to our current mode, and attach the
+      ;; input buffer once we have a session id
+      (with-session-id (fn [session-id]
+                         ;; we manually set the mode each time so it is persisted if we close the session.
+                         ;; By default `reflect` will use compile mode.
+                         (reflect.set-mode session-id reflect-session.mode)
+                         (reflect.attach-input session-id 0)))))
+  (vim.keymap.set :v :hr new-or-attach-reflect)
+
+  (fn swap-reflect-mode []
+    (let [reflect (require :hotpot.api.reflect)]
+      ;; only makes sense to do this when we have a session active
+      (when reflect-session.id
+        ;; swap held mode
+        (if (= reflect-session.mode :compile)
+          (set reflect-session.mode :eval)
+          (set reflect-session.mode :compile))
+        ;; tell session to use new mode
+        (reflect.set-mode reflect-session.id reflect-session.mode))))
+  (vim.keymap.set :n :hx swap-reflect-mode)
+
+
+
+--------------------------------------------- *hotpot.api.reflect.attach-input*
+
+attach-input~
+
+`(attach-input session-id given-buf-id)`
+
+Attach given buffer to session. This will detatch any existing attachment first.
+
+Returns session-id
+
+
+-------------------------------------------- *hotpot.api.reflect.attach-output*
+
+attach-output~
+
+`(attach-output given-buf-id)`
+
+Configures a new Hotpot reflect session. Accepts a buffer id. Assumes
+the buffer is already in a window that was configured by the caller
+(float, split, etc). The contents of this buffer should be treated as
+ephemeral, do not pass an important buffer in!
+
+Returns `session-id {: attach : detatch}` where `attach` and `detatch`
+act as the module level `attach` and `detatch` with the session-id
+argument already filled.
+
+
+-------------------------------------------- *hotpot.api.reflect.detatch-input*
+
+detatch-input~
+
+`(detatch-input session-id given-buf-id)`
+
+Detatch buffer from session, which removes marks and autocmds.
+
+Returns session-id
+
+
+------------------------------------------------- *hotpot.api.reflect.set-mode*
+
+set-mode~
+
+`(set-mode session-id mode)`
+
+Set session to eval or compile mode
 
 ============================================================= *hotpot.api.make*
 
@@ -103,6 +263,8 @@ Make API~
 Tools to compile Fennel code ahead of time.
 
 ------------------------------------------------------- *hotpot.api.make.build*
+
+build~
 
 `(build ...)`
 
@@ -230,75 +392,12 @@ directory scope if searching is unreasonably long.
 
 ------------------------------------------------------- *hotpot.api.make.check*
 
+check~
+
 `(check ...)`
 
 Functionally identical to `build' but wont output any files. `check' is
 always verbose. Returns `[result<ok> ...] [result<err> ...]`
-
-========================================================== *hotpot.api.compile*
-
-Compile API~
-
-
-Tools to compile Fennel code in-editor. All functions return `true code` or
-`false err`. To compile fennel code to disk, see |hotpot.api.make|.
-
-Every `compile-*` function returns `true, luacode` or `false, errors` .
-
-Note: The compiled code is _not_ saved anywhere, nor is it placed in Hotp
-      cache. To compile into cache, use `require("modname")`.
-
-------------------------------------------- *hotpot.api.compile.compile-buffer*
-
-`(compile-buffer buf ?options)`
-
-Read the contents of `buf` and compile into lua, returns `true lua` or
-`false error`. Accepts an optional `options` table as described by Fennels
-API documentation.
-
-
---------------------------------------------- *hotpot.api.compile.compile-file*
-
-`(compile-file fnl-path ?options)`
-
-Read contents of `fnl-path` and compile into lua, returns `true lua` or
-`false error`. Will raise if file does not exist. Accepts an optional
-`options` table as described by Fennels API documentation.
-
-
-------------------------------------------- *hotpot.api.compile.compile-module*
-
-`(compile-module modname ?options)`
-
-Use hotpots module searcher to find `modname` and compile it into lua code,
-returns `true fnl-code` or `false error`. Accepts an optional `options` table
-as described by Fennels API documentation.
-
-
--------------------------------------------- *hotpot.api.compile.compile-range*
-
-`(compile-range buf start-pos stop-pos ?options)`
-
-Read `buf` from `start-pos` to `end-pos` and compile into lua, returns `true
-lua` or `false error`. Positions can be `line-nr` or `[line-nr col]`. Accepts
-an optional `options` table as described by Fennels API documentation.
-
-
-------------------------------------------- *hotpot.api.compile.compile-string*
-
-`(compile-string str ?options)`
-
-Compile given `str` into lua, returns `true lua` or `false error`. Accepts
-an optional `options` table as described by Fennels API documentation.
-
-
----------------------------------------- *hotpot.api.compile.compile-selection*
-
-`(compile-selection ?options)`
-
-Read the current selection and compile into lua, returns `true lua` or
-`false error`. Accepts an optional `options` table as described by Fennels
-API documentation.
 
 ============================================================= *hotpot.api.eval*
 
@@ -306,21 +405,23 @@ Eval API~
 
 Tools to evaluate Fennel code in-editor.
 
-Available in the `hotpot.api.eval` module.
+   Available in the `hotpot.api.eval` module.
 
-Every `eval-*` function has the potential to raise an error, by:
+   Every `eval-*` function has the potential to raise an error, by:
 
-  - bad arguments
-  - compile errors
-  - evaluated code errors
+   - bad arguments
+   - compile errors
+   - evaluated code errors
 
-Handling these errors is left to the user.
+   Handling these errors is left to the user.
 
-Note: If your Fennel code does not output anything, running these functions by
-      themselves will not show any output! You may wish to wrap them in a
-      `(print (eval-* ...))` expression for a simple REPL.
+   Note: If your Fennel code does not output anything, running these functions by
+   themselves will not show any output! You may wish to wrap them in a
+   `(print (eval-* ...))` expression for a simple REPL.
 
 ------------------------------------------------- *hotpot.api.eval.eval-buffer*
+
+eval-buffer~
 
 `(eval-buffer buf ?options)`
 
@@ -329,6 +430,8 @@ an optional `options` table as described by Fennels API documentation.
 
 
 --------------------------------------------------- *hotpot.api.eval.eval-file*
+
+eval-file~
 
 `(eval-file fnl-file ?options)`
 
@@ -339,6 +442,8 @@ API documentation.
 
 ------------------------------------------------- *hotpot.api.eval.eval-module*
 
+eval-module~
+
 `(eval-module modname ?options)`
 
 Use hotpots module searcher to find the file for `modname`, load and
@@ -348,6 +453,8 @@ optional `options` table as described by Fennels API documentation.
 
 -------------------------------------------------- *hotpot.api.eval.eval-range*
 
+eval-range~
+
 `(eval-range buf start-pos stop-pos ?options)`
 
 Evaluate `buf` from `start-pos` to `end-pos` and return the results, or
@@ -355,16 +462,9 @@ raise on error. Positions can be `line` or `line col`. Accepts an optional
 `options` table as described by Fennels API documentation.
 
 
-------------------------------------------------- *hotpot.api.eval.eval-string*
-
-`(eval-string code ?options)`
-
-Evaluate given fennel `code` and return the results, or raise on error.
-Accepts an optional `options` table as described by Fennels API
-documentation.
-
-
 ---------------------------------------------- *hotpot.api.eval.eval-selection*
+
+eval-selection~
 
 `(eval-selection ?options)`
 
@@ -372,28 +472,118 @@ Evaluate the current selection and return the result, or raise an error.
 Accepts an optional `options` table as described by Fennels API
 documentation.
 
+
+------------------------------------------------- *hotpot.api.eval.eval-string*
+
+eval-string~
+
+`(eval-string code ?options)`
+
+Evaluate given fennel `code` and return the results, or raise on error.
+Accepts an optional `options` table as described by Fennels API
+documentation.
+
+========================================================== *hotpot.api.compile*
+
+Compile API~
+
+
+   Tools to compile Fennel code in-editor. All functions return `true code` or
+   `false err`. To compile fennel code to disk, see |hotpot.api.make|.
+
+   Every `compile-*` function returns `true, luacode` or `false, errors` .
+
+   Note: The compiled code is _not_ saved anywhere, nor is it placed in Hotp
+   cache. To compile into cache, use `require("modname")`.
+
+------------------------------------------- *hotpot.api.compile.compile-buffer*
+
+compile-buffer~
+
+`(compile-buffer buf ?options)`
+
+Read the contents of `buf` and compile into lua, returns `true lua` or
+`false error`. Accepts an optional `options` table as described by Fennels
+API documentation.
+
+
+--------------------------------------------- *hotpot.api.compile.compile-file*
+
+compile-file~
+
+`(compile-file fnl-path ?options)`
+
+Read contents of `fnl-path` and compile into lua, returns `true lua` or
+`false error`. Will raise if file does not exist. Accepts an optional
+`options` table as described by Fennels API documentation.
+
+
+------------------------------------------- *hotpot.api.compile.compile-module*
+
+compile-module~
+
+`(compile-module modname ?options)`
+
+Use hotpots module searcher to find `modname` and compile it into lua code,
+returns `true fnl-code` or `false error`. Accepts an optional `options` table
+as described by Fennels API documentation.
+
+
+-------------------------------------------- *hotpot.api.compile.compile-range*
+
+compile-range~
+
+`(compile-range buf start-pos stop-pos ?options)`
+
+Read `buf` from `start-pos` to `end-pos` and compile into lua, returns `true
+lua` or `false error`. Positions can be `line-nr` or `[line-nr col]`. Accepts
+an optional `options` table as described by Fennels API documentation.
+
+
+---------------------------------------- *hotpot.api.compile.compile-selection*
+
+compile-selection~
+
+`(compile-selection ?options)`
+
+Read the current selection and compile into lua, returns `true lua` or
+`false error`. Accepts an optional `options` table as described by Fennels
+API documentation.
+
+
+------------------------------------------- *hotpot.api.compile.compile-string*
+
+compile-string~
+
+`(compile-string str ?options)`
+
+Compile given `str` into lua, returns `true lua` or `false error`. Accepts
+an optional `options` table as described by Fennels API documentation.
+
 ============================================================ *hotpot.api.cache*
 
 Cache API~
 
 Tools to interact with Hotpots cache and index, such as
-getting paths to cached lua files or clearing index entries.
+   getting paths to cached lua files or clearing index entries.
 
-You can manually interact with the cache at `~/.cache/nvim/hotpot`.
+   You can manually interact with the cache at `~/.cache/nvim/hotpot`.
 
-The cache will automatically refresh when required, but note: removing the
-cache file is not enough to force recompilation in a running session. The
-loaded module must be removed from Lua's `package.loaded` table, then
-re-required.
->
-  (tset package.loaded :my_module nil) ;; Does NOT unload my_module.child
+   The cache will automatically refresh when required, but note: removing the
+   cache file is not enough to force recompilation in a running session. The
+   loaded module must be removed from Lua's `package.loaded` table, then
+   re-required.
+   >
+   (tset package.loaded :my_module nil) ;; Does NOT unload my_module.child
 
-(Hint: You can iterate `package.loaded` and match the key for `"^my_module"`.)
+   (Hint: You can iterate `package.loaded` and match the key for `"^my_module"`.)
 
-Note: Some of these functions are destructive, Hotpot bears no responsibility for
-      any unfortunate events.
+   Note: Some of these functions are destructive, Hotpot bears no responsibility for
+   any unfortunate events.
 
 ------------------------------------ *hotpot.api.cache.cache-path-for-fnl-file*
+
+cache-path-for-fnl-file~
 
 `(cache-path-for-fnl-file fnl-path)`
 
@@ -403,12 +593,16 @@ path should be absoulute, see |expand| or `fs_realpath` from |vim.loop|.
 
 -------------------------------------- *hotpot.api.cache.cache-path-for-module*
 
+cache-path-for-module~
+
 `(cache-path-for-module modname)`
 
 Get on-disk path to compiled lua for given module name
 
 
 ----------------------------------------------- *hotpot.api.cache.cache-prefix*
+
+cache-prefix~
 
 `(cache-prefix)`
 
@@ -417,12 +611,16 @@ undocumented
 
 ------------------------------------------------ *hotpot.api.cache.clear-cache*
 
+clear-cache~
+
 `(clear-cache)`
 
 Clear all lua cache files and bytecode index
 
 
 ----------------------------------- *hotpot.api.cache.clear-cache-for-fnl-file*
+
+clear-cache-for-fnl-file~
 
 `(clear-cache-for-fnl-file fnl-path)`
 
@@ -432,6 +630,8 @@ be absoulute, see |expand| or `fs_realpath` from |vim.loop|.
 
 
 ------------------------------------- *hotpot.api.cache.clear-cache-for-module*
+
+clear-cache-for-module~
 
 `(clear-cache-for-module modname)`
 
