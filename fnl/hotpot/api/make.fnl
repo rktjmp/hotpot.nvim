@@ -204,7 +204,8 @@
   `pattern function` argument pairs. Each `*.fnl` file in `source-dir` is
   checked against each `pattern` given, and if any match the `function` is called
   with the pattern captures as arguments. The function should return a path to
-  save the compiled file to, or `nil`.
+  save the compiled file to, or `nil` (`.fnl` extensions are automatically
+  converted to `.lua` for QOL).
 
   You may want to use this to build plugins written in Fennel or to compile
   small sections of your configuration that are never loaded via lua's
@@ -353,7 +354,7 @@
             (vim.fn.mkdir (dirname lua-file) :p)
             (with-open [fout (io.open lua-file :w)]
                        (fout:write code))
-            (table.insert text [(string.format "ok %s\n-> %s\n" fnl-file lua-file) :DiagnosticInfo])))
+            (table.insert text [(string.format "OK %s\n-> %s\n" fnl-file lua-file) :DiagnosticInfo])))
         (if (<= 1 options.verbosity)
           (vim.api.nvim_echo text true {}))))))
 
@@ -363,7 +364,7 @@
   (let [(options oks errs) (do-make ...)
         err-text (accumulate [text [] _ [fnl-file _ [_ msg]] (ipairs errs)]
                    (doto text
-                     (table.insert [(string.format "x %s\n" fnl-file) :DiagnosticWarn])
+                     (table.insert [(string.format "XX %s\n" fnl-file) :DiagnosticWarn])
                      (table.insert [(string.format "%s\n" msg) :DiagnosticError])))
         ok-text (accumulate [text [] _ [fnl-file _ [_ msg]] (ipairs oks)]
                   (doto text
