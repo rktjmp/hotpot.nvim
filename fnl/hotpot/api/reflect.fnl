@@ -1,3 +1,14 @@
+(fn split-string [s by]
+  (local result [])
+  (var from 1)
+  (var (d-from d-to) (string.find s by from))
+  (while d-from
+    (table.insert result (string.sub s from (- d-from 1)))
+    (set from (+ d-from 1))
+    (set (d-from d-to) (string.find s by from)))
+  (table.insert result (string.sub s from))
+  (values result))
+
 (local M {})
 
 (local api vim.api)
@@ -10,10 +21,23 @@
 (fn do-eval [str]
   "Evaluate str and return fennel-view of result. Returns `true view` or `false err`."
   (let [{: eval-string} (require :hotpot.api.eval)
-        code (string.format "(let [{: view} (require :hotpot.fennel)
-                                   val (do %s)]
-                               (view val))" str)]
-    (eval-string code)))
+        {: view} (require :hotpot.fennel)
+        code (string.format "(do %s)" str)
+        printed []
+        ;; TODO: vim.pretty_print too?
+        ;; TODO: better "multi-value" render style
+        env (setmetatable {:print #(-> (accumulate [s "" _ v (ipairs [$...])]
+                                         (.. s (view v) "\t"))
+                                       (#(table.insert printed $1)))}
+                          {:__index _G})
+        ;; TODO use R.x and get multiple return values nicely
+        ; pack #(doto [$...] (tset :n (select :# $...)))
+        (ok? viewed) (match (eval-string code {: env})
+                       (true val-1) (values true (view val-1))
+                       (true nil) (values true (view nil))
+                       (false err) (values false err)
+                       (false nil) (values false "::reflect caught an error but the error had no text::"))]
+    (values ok? viewed printed)))
 
 (fn do-compile [str]
   "Compile string as given. Returns `true lua` or `false err`."
@@ -99,11 +123,26 @@
     (values ok? positions)))
 
 (fn _get-extmarks-content [session start-l start-c stop-l stop-c]
-  (-> (api.nvim_buf_get_text session.input-buf start-l start-c stop-l stop-c {})
-      (table.concat "\n")))
+  (-> (match (pcall api.nvim_buf_get_text session.input-buf start-l start-c stop-l stop-c {})
+        (true text) (table.concat text "\n")
+        (false err) (values err))))
 
 (fn autocmd-handler [session]
-  ;; only try to run if we have marks, whcih implies a connected session
+  ;; only try to run if we have marks, which implies a connected session
+  (fn process-eval [source]
+    (let [(ok? viewed printed) (do-eval source)
+          ;; TODO or printed can be better
+          output (-> (icollect [i p (ipairs (or printed []))]
+                       (.. ";;=> " p))
+                     (table.concat "\n")
+                     (#(if (< 0 (length $1))
+                         (.. $1 "\n\n" viewed)
+                         (.. viewed))))]
+      (values ok? output)))
+
+  (fn process-compile [source]
+    (do-compile source))
+
   (if (and session.mark-start session.mark-stop)
     (let [(positions? positions) (_get-extmarks session)
           text (match (values positions? positions)
@@ -112,12 +151,13 @@
                                         "try re-selecting a range.\n"
                                         "Error:\n"
                                         positions)))
-          f (match session.mode :eval do-eval :compile do-compile)
           (result-ok? result) (if positions?
-                                (f text)
-                                (values false text))
+                                (match session.mode
+                                  :eval (process-eval text)
+                                  :compile (process-compile text))
+                                (values false positions))
           lines []
-          split-lines #(string.gmatch $1 "[^\n]+")
+          ; split-lines #(string.gmatch $1 "[^\n]+")
           append #(table.insert lines $1)
           blank #(table.insert lines "")
           commented #(.. (if (= session.mode :compile) "-- " ";; ") $1)]
@@ -125,11 +165,11 @@
         (append (commented (.. session.mode " = OK")))
         (append (commented (.. session.mode " = ERROR"))))
       (blank)
-      (each [line (split-lines result)]
+      (each [_ line (ipairs (split-string result "\n"))]
         (append line))
       (blank)
       (append (commented (.. "Source (" (table.concat positions ",") "):")))
-      (each [line (split-lines text)]
+      (each [_ line (ipairs (split-string text "\n"))]
         (append (commented line)))
       (vim.schedule
         (fn []
