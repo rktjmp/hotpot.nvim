@@ -1,18 +1,3 @@
-;;
-;; Tools to take a fennel code, run it, and return the result
-;;
-;; Every one of these methods return the result or raise an error.
-;;
-
-;; we must capture all values returned from the xpcall, which could be
-;; interspersed nils. We would normally just capture the call inside a seq
-;; [(call)] and match on the array but sparse arrays will be truncated, so we
-;; do this bind swap to capture everything.
-(fn xpcall-wrapper [status ...]
-  (if status
-    (values ...)
-    (error (select 1 ...))))
-
 (fn inject-macro-searcher []
   ;; The macro-searcher is not inserted until we compile something because it
   ;; needs to load fennel firsts which has a performance impact. This has the
@@ -34,7 +19,7 @@
         _ (if (= nil options.filename)
             (tset options :filename :hotpot-live-eval))
         do-eval #(eval code options)]
-    (xpcall-wrapper (xpcall do-eval traceback))))
+    (xpcall do-eval traceback)))
 
 (fn eval-range [buf start-pos stop-pos ?options]
   "Evaluate `buf` from `start-pos` to `end-pos` and return the results, or
@@ -70,8 +55,7 @@
         options (or ?options {})]
     (if (= nil options.filename)
       (tset options :filename fnl-file))
-    (xpcall-wrapper
-      (xpcall #(dofile fnl-file options) traceback))))
+    (xpcall #(dofile fnl-file options) traceback)))
 
 (fn eval-module [modname ?options]
   "Use hotpots module searcher to find the file for `modname`, load and

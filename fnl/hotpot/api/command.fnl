@@ -2,23 +2,27 @@
   (let [{: eval-range} (require :hotpot.api.eval)
         start (vim.api.nvim_buf_get_mark 0 "[")
         stop (vim.api.nvim_buf_get_mark 0 "]")]
-    (eval-range 0 start stop)))
+    (match (eval-range 0 start stop)
+      (false err) (error err))))
 
 (fn eval-operator-bang []
-  (set vim.go.operatorfunc "v:lua.require'hotpot.api.eval'.eval_operator")
+  (set vim.go.operatorfunc "v:lua.require'hotpot.api.command'.eval_operator")
   (vim.api.nvim_feedkeys "g@" "n" false))
 
 (fn fnl [start stop code]
   "Code to support `:Fnl`"
-  (let [{: eval-range : eval-string} (require :hotpot.api.eval)]
-    (if (and code (~= code ""))
-      (eval-string code)
-      (eval-range 0 start stop))))
+  (let [{: eval-range : eval-string} (require :hotpot.api.eval)
+        f (if (and code (~= code ""))
+            #(eval-string code)
+            #(eval-range 0 start stop))]
+    (match (f)
+      (false err) (error err))))
 
 (fn fnlfile [file]
   "Code to support `:Fnlfile`"
   (let [{: eval-file} (require :hotpot.api.eval)]
-    (eval-file file)))
+    (match (eval-file file)
+      (false err) (error err))))
 
 (fn fnldo [start stop code]
   "Code to support `:Fnldo`"
