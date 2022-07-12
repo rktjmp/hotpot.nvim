@@ -18,6 +18,9 @@ Breaking changes are in bold.
   - Enabled automatically in Fennel files. See documentation for details and
     how to disable.
 - Added ahead of time compilation via `hotpot.api.make`.
+- Added in-editor repl-like via `hotpot.api.reflect`
+  - Mark regions of your code and show the results of the compilation or
+    evaluation as you edit. See documentation for details.
 
 ## 0.2.5
 
