@@ -2,6 +2,8 @@
 (assert (= 1 (vim.fn.has "nvim-0.6")) "Hotpot requires neovim 0.6+")
 
 ;; compile hotpot source if we need to
+;; (let [fennel (require :fennel)]
+;;   (set fennel.path (.. "./fnl/?.fnl;./fnl/?/init.fnl;" fennel.path))
 ((include :hotpot.bootstrap))
 
 ;; Setup module index and module searcher, macro searcher is installed
