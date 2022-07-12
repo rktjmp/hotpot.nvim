@@ -29,43 +29,38 @@
                  :au nil
                  :mark-start nil
                  :mark-stop nil
-                 :__parinfer_hack nil
+                 :extmark-memory nil
                  :id ns
                  :ns ns}]
     (values session)))
 
-(fn _set-extmarks [session buf start-line start-col stop-line stop-col]
+(fn _set-extmarks [session start-line start-col stop-line stop-col]
   "Update extmarks in given buffer and save those marks to the session."
-  (print "_set-extmarks" start-line start-col stop-line stop-col)
   (let [{: nvim_buf_set_extmark} vim.api
-        start (nvim_buf_set_extmark buf
+        start (nvim_buf_set_extmark session.input-buf
                                     session.ns
                                     start-line start-col
                                     {:id session.mark-start ;; may be nil on new session
-                                     ; :virt_text [["(* " :DiagnosticHint]]
-                                     ; :virt_text_pos :right_align
                                      :sign_text "(*"
-                                     :sign_hl_group :DiagnosticHint})
-        stop (nvim_buf_set_extmark buf
+                                     :sign_hl_group :DiagnosticHint
+                                     ;; TODO: unstrict for now but we could instead grab
+                                     ;; the lnine and adjust to be at line-length if over
+                                     ;; and I guess N if over buffer length
+                                     :strict false})
+        stop (nvim_buf_set_extmark session.input-buf
                                    session.ns
                                    stop-line stop-col
                                    {:id session.mark-stop ;; may be nil on new session
                                     :virt_text [[" *)" :DiagnosticHint]]
-                                    :virt_text_pos :eol})]
+                                    :virt_text_pos :eol
+                                    :strict false})]
     (tset session :mark-start start)
     (tset session :mark-stop stop)
-    ;; TODO document this again
-    (tset session :__parinfer_hack [start-line start-col stop-line stop-col]))
+    (tset session :extmark-memory [start-line start-col stop-line stop-col]))
   (values session))
 
-(fn _repair-exmarks [session buf start-line start-col stop-line stop-col]
-  (match [start-line start-col stop-line stop-col]
-    [l c l c] (let [[sl sc ssl ssc] session.__parinfer_hack]
-                (_set-extmarks session buf sl sc ssl ssc)
-                (values false session))
-    _ (values true session)))
 
-(fn _get-extmarks [session ?already-tried]
+(fn _get-extmarks [session]
   "Get text content of extmarks, may repair extmarks if needed."
   (local {: get-range} (require :hotpot.api.get_text))
   (let [[start-l start-c] (api.nvim_buf_get_extmark_by_id session.input-buf
@@ -75,39 +70,57 @@
         [stop-l stop-c] (api.nvim_buf_get_extmark_by_id session.input-buf
                                                         session.ns
                                                         session.mark-stop
-                                                        {})]
-    (if (and (not ?already-tried)
-             (not (_repair-exmarks session session.input-buf start-l start-c stop-l stop-c)))
-      ;; repair -> true, re-get and re-try but dont loop forever
-      ;; TODO this is kinda ugly bae.
-      (_get-extmarks session true))
-    ;; update history to current probably-good values
-    (tset session :__parinfer_hack [start-l start-c stop-l stop-c])
-    (vim.pretty_print :start start-l start-c :stop stop-l stop-c)
-    ;; get text from buffer, this may fail if extmarks are goofy so we 
-    ;; have catch and notify on that.
-    (match (pcall api.nvim_buf_get_text session.input-buf start-l start-c stop-l stop-c {})
-      (true text) (values true (table.concat text "\n"))
-      (false err) (values false (.. "Range was irrecoverably damaged by the editor\n"
-                                    "Please select your range\n"
-                                    "Error:\n"
-                                    err)))))
+                                                        {})
+        positions [start-l start-c stop-l stop-c]
+        (ok? positions) (match positions
+                          ;; Line & cols are identical which means the range may be
+                          ;; damaged by a plugin modifying the buffer wholesale or
+                          ;; simply the user deleted the wrapped lines. We will try
+                          ;; to restore the last known good values but this may or
+                          ;; may not raise of the positions are out of range, at
+                          ;; which point we consider them truely dead.
+                          [l c l c] (match (do
+                                             (pcall _set-extmarks session (unpack session.extmark-memory)))
+                                      ;; set worked, so the memory values were
+                                      ;; ok, so we'll return those as the use
+                                      ;; positions
+                                      (true _) (values true session.extmark-memory)
+                                      ;; set failed, which means even the last
+                                      ;; good positions are now bad possibly,
+                                      ;; unrecoverable.
+                                      (false err) (values false err))
+                          ;; values seem fine so yolo it
+                          _ (values true positions))]
+    (if ok?
+      ;; marks can be altered by the user, so every time we get them
+      ;; successfully we should update our memory, in addition to when we set
+      ;; them specificaly.
+      (tset session :extmark-memory positions))
+    (values ok? positions)))
+
+(fn _get-extmarks-content [session start-l start-c stop-l stop-c]
+  (-> (api.nvim_buf_get_text session.input-buf start-l start-c stop-l stop-c {})
+      (table.concat "\n")))
 
 (fn autocmd-handler [session]
   ;; only try to run if we have marks, whcih implies a connected session
   (if (and session.mark-start session.mark-stop)
-    (let [(source-ok? source) (_get-extmarks session)
-          (f comment-prefix) (match session.mode
-                               :eval (values do-eval ";; ")
-                               :compile (values do-compile "-- "))
-          (result-ok? result) (if source-ok?
-                                (f source)
-                                (values false source))
-           lines []
-           split-lines #(string.gmatch $1 "[^\n]+")
-           append #(table.insert lines $1)
-           blank #(table.insert lines "")
-           commented #(.. comment-prefix $1)]
+    (let [(positions? positions) (_get-extmarks session)
+          text (match (values positions? positions)
+                (true positions) (_get-extmarks-content session (unpack positions))
+                (false err) (values (.. "Range was irrecoverably damaged by the editor, "
+                                        "try re-selecting a range.\n"
+                                        "Error:\n"
+                                        positions)))
+          f (match session.mode :eval do-eval :compile do-compile)
+          (result-ok? result) (if positions?
+                                (f text)
+                                (values false text))
+          lines []
+          split-lines #(string.gmatch $1 "[^\n]+")
+          append #(table.insert lines $1)
+          blank #(table.insert lines "")
+          commented #(.. (if (= session.mode :compile) "-- " ";; ") $1)]
       (if result-ok?
         (append (commented (.. session.mode " = OK")))
         (append (commented (.. session.mode " = ERROR"))))
@@ -115,8 +128,8 @@
       (each [line (split-lines result)]
         (append line))
       (blank)
-      (append (commented "Source:"))
-      (each [line (split-lines source)]
+      (append (commented (.. "Source (" (table.concat positions ",") "):")))
+      (each [line (split-lines text)]
         (append (commented line)))
       (vim.schedule
         (fn []
@@ -125,7 +138,7 @@
             (vim.api.nvim_buf_set_option session.output-buf :filetype :fennel)
             (vim.api.nvim_buf_set_option session.output-buf :filetype :lua)))))))
 
-(fn attach-extmarks [session buf]
+(fn attach-extmarks [session]
   "Pull highlighted region from buf and use that to set the extmarks.
   This should only be called during `attach`"
   (let [{: get-highlight} (require :hotpot.api.get_text)
@@ -136,28 +149,29 @@
         ex-start-c (- vis-start-c 1)
         ex-stop-l (- vis-stop-l 1)
         ex-stop-c vis-stop-c]
-    (_set-extmarks session buf ex-start-l ex-start-c ex-stop-l ex-stop-c)
+    (_set-extmarks session ex-start-l ex-start-c ex-stop-l ex-stop-c)
     (values session)))
 
-(fn clear-extmarks [session buf]
+(fn clear-extmarks [session]
   "Remove any extmarks from buffer and drop marks from session."
   (let [{: mark-start : mark-stop} session]
-    (api.nvim_buf_del_extmark buf session.ns mark-start)
-    (api.nvim_buf_del_extmark buf session.ns mark-stop)
+    (api.nvim_buf_del_extmark session.input-buf session.ns mark-start)
+    (api.nvim_buf_del_extmark session.input-buf session.ns mark-stop)
     (tset session :mark-start nil)
     (tset session :mark-stop nil)
+    (tset session :extmark-memory nil)
     (values session)))
 
-(fn attach-autocmd [session buf]
+(fn attach-autocmd [session]
   "Setup TextChanged/InsertLeave autocommands on buf and store au-id on session."
   (let [au (api.nvim_create_autocmd [:TextChanged :InsertLeave]
-                                    {:buffer buf
-                                     :desc (.. "hotpot-reflect autocmd for buf#" buf)
+                                    {:buffer session.input-buf
+                                     :desc (.. "hotpot-reflect autocmd for buf#" session.input-buf)
                                      :callback #(autocmd-handler session)})]
     (tset session :au au)
     (values session)))
 
-(fn clear-autocmd [session buf]
+(fn clear-autocmd [session]
   "Delete autocmd from buffer and remove from session"
   (let [{: au} session]
     (api.nvim_del_autocmd au)
@@ -167,9 +181,8 @@
 (fn close-session [session]
   "Close a session which should detatch any attached buffers. Not to be
   called by the user, who should just remove the buffer."
-  (print "close-session" session.id)
   (if session.input-buf
-    (M.detatch-input session.id session.input-buf))
+    (M.detatch-input session.id))
   (tset sessions session.id nil))
 
 (fn M.attach-output [given-buf-id]
@@ -198,15 +211,14 @@
     (values session.id {:attach #(M.attach session.id $1)
                         :detatch #(M.detatch session.id $1)})))
 
-(fn M.detatch-input [session-id given-buf-id]
+(fn M.detatch-input [session-id]
   "Detatch buffer from session, which removes marks and autocmds.
 
   Returns session-id"
-  (local session (. sessions session-id))
-  (assert session (string.format "Could not find session with given id %s" (tostring session-id)))
-  (let [buf (resolve-buf-id given-buf-id)]
-    (clear-extmarks session buf)
-    (clear-autocmd session buf)
+  (let [session (. sessions session-id)]
+    (assert session (string.format "Could not find session with given id %s" (tostring session-id)))
+    (clear-extmarks session)
+    (clear-autocmd session)
     (tset session :input-buf nil)
     (values session.id)))
 
@@ -226,9 +238,14 @@
   ;; now attach the new buf, which means grabbing the current highlight
   ;; range, setting up the content-changed autocmd, firing the handler first time
   (let [buf (resolve-buf-id given-buf-id)]
-    (attach-extmarks session buf)
-    (attach-autocmd session buf)
+    ;; TODO: functions have been altered to use session.input-buf internally
+    ;; for now. architecturally I would prefer to push the buf value around but
+    ;; we currently dont support attaching mutiple buffers to one session as
+    ;; it's probably more of an UX displeasure as you'd have to bind the
+    ;; detatch keymap too.
     (tset session :input-buf buf)
+    (attach-extmarks session)
+    (attach-autocmd session)
     ;; manually fire first time instead of waiting for au event
     (autocmd-handler session)
     (values session.id)))
