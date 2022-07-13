@@ -21,9 +21,9 @@
   (fn table? [x] (= :table (type x)))
   (fn default-options []
     {:compiler nil ;; will be proxied
-     :force false
+     :force? false
      :verbosity 1
-     :atomic true})
+     :atomic? true})
   (fn proxy-options [user-options]
     ;; !! This function has side effects on the given options but copying all
     ;; !! the keys and all that is boring af. Probably it wont matter.
@@ -185,7 +185,7 @@
                                 (R.unwrap!))
         compiled (icollect [_ [fnl-file lua-file] (ipairs source-target-pairs)]
                    (let [{: file-mtime : file-missing?} (require :hotpot.fs)]
-                     (if (or (= true options.force)
+                     (if (or (= true options.force?)
                              (file-missing? lua-file)
                              (< (file-mtime lua-file) (file-mtime fnl-file)))
                        [fnl-file lua-file (compile fnl-file options)])))
@@ -217,7 +217,7 @@
   changes, a file will be \"stale\" if a macro it uses was changed, even if the
   file itself was not updated. Because `make.build` operates outside of Hotpots
   regular infrastructure, it does not currently track stale-ness to this level
-  and only compares the source file vs the target file. See the `force` option.
+  and only compares the source file vs the target file. See the `force?` option.
 
   Returns `[result<ok> ...] [result<err> ...]`
 
@@ -251,7 +251,7 @@
   `options-table` (may be omitted)
 
   ```fennel
-  {:atomic true
+  {:atomic? true
    :verbosity 1
    :compiler {:modules {...}
               :macros {...}}}
@@ -259,7 +259,7 @@
 
   The options table may contain the following keys:
 
-  `atomic`: When true, if there is any compilation error, no files are written
+  `atomic?`: When true, if there is any compilation error, no files are written
             to disk. Defaults to true.
 
   `verbosity`: Adjusts information output. Errors are always output.
@@ -267,7 +267,7 @@
                - `1`: Outputs compilation messages and nothing-to-do message
                Defaults to 1.
 
-  `force`: Force compilation, even if output is not stale.
+  `force?`: Force compilation, even if output is not stale.
 
   `compiler`: The compiler table has the same form and function as would be
               given to `hotpot.setup`. If the table is not given, the
@@ -324,7 +324,7 @@
     ;; log errors first, we might not do anything else
     (when (< 0 (length errs))
       (let [text []]
-        (if options.atomic
+        (if options.atomic?
           (table.insert text [(.. "*** Compilation errors occured while in atomic mode, "
                                   "refusing to write any files! ***\n") :ErrorMsg])
           (table.insert text ["*** Compilation errors occured! ***\n" :ErrorMsg]))
@@ -337,7 +337,7 @@
         (vim.api.nvim_echo text true {})))
 
     ;; write files if we're allowed
-    (match [options.atomic (length oks) (length errs)]
+    (match [options.atomic? (length oks) (length errs)]
       ;; atomic and non-zero errors, dont proceed
       (where [true _ n] (< 0 n))
       (values nil)
