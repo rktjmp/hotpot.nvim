@@ -9,19 +9,20 @@ Diagnostics API........................................|hotpot.api.diagnostics|
   disable......................................|hotpot.api.diagnostics.disable|
   enable........................................|hotpot.api.diagnostics.enable|
   error-for-buf..........................|hotpot.api.diagnostics.error-for-buf|
+  set-options..............................|hotpot.api.diagnostics.set-options|
 Reflect API................................................|hotpot.api.reflect|
   attach-input................................|hotpot.api.reflect.attach-input|
   attach-output..............................|hotpot.api.reflect.attach-output|
-  detatch-input..............................|hotpot.api.reflect.detatch-input|
   set-mode........................................|hotpot.api.reflect.set-mode|
+  detatch-input..............................|hotpot.api.reflect.detatch-input|
 Make API......................................................|hotpot.api.make|
   build.................................................|hotpot.api.make.build|
   check.................................................|hotpot.api.make.check|
 Eval API......................................................|hotpot.api.eval|
   eval-buffer.....................................|hotpot.api.eval.eval-buffer|
   eval-file.........................................|hotpot.api.eval.eval-file|
-  eval-module.....................................|hotpot.api.eval.eval-module|
   eval-string.....................................|hotpot.api.eval.eval-string|
+  eval-module.....................................|hotpot.api.eval.eval-module|
   eval-range.......................................|hotpot.api.eval.eval-range|
   eval-selection...............................|hotpot.api.eval.eval-selection|
 Compile API................................................|hotpot.api.compile|
@@ -29,14 +30,14 @@ Compile API................................................|hotpot.api.compile|
   compile-file................................|hotpot.api.compile.compile-file|
   compile-module............................|hotpot.api.compile.compile-module|
   compile-range..............................|hotpot.api.compile.compile-range|
-  compile-string............................|hotpot.api.compile.compile-string|
   compile-selection......................|hotpot.api.compile.compile-selection|
+  compile-string............................|hotpot.api.compile.compile-string|
 Cache API....................................................|hotpot.api.cache|
   cache-path-for-fnl-file............|hotpot.api.cache.cache-path-for-fnl-file|
   cache-path-for-module................|hotpot.api.cache.cache-path-for-module|
   cache-prefix..................................|hotpot.api.cache.cache-prefix|
-  clear-cache....................................|hotpot.api.cache.clear-cache|
   clear-cache-for-module..............|hotpot.api.cache.clear-cache-for-module|
+  clear-cache....................................|hotpot.api.cache.clear-cache|
   clear-cache-for-fnl-file..........|hotpot.api.cache.clear-cache-for-fnl-file|
 
 ================================================================== *hotpot.api*
@@ -126,6 +127,18 @@ error-for-buf~
 Get current error for buffer (includes all Fennel hints) or nil if no error.
 The raw fennel error is also attached to the `user_data` field of the
 diagnostic structure returned by Neovim.
+
+
+------------------------------------------ *hotpot.api.diagnostics.set-options*
+
+set-options~
+
+`(set-options user-buf opts)`
+
+Set compiler options for a buffer, where the defaults are incompatible.
+
+This API is EXPERIMENTAL and behaviour may change in the future if future
+options are suported, which may dictate how missing options are handled.
 
 ========================================================== *hotpot.api.reflect*
 
@@ -247,6 +260,15 @@ act as the module level `attach` and `detatch` with the session-id
 argument already filled.
 
 
+------------------------------------------------- *hotpot.api.reflect.set-mode*
+
+set-mode~
+
+`(set-mode session-id mode)`
+
+Set session to eval or compile mode
+
+
 -------------------------------------------- *hotpot.api.reflect.detatch-input*
 
 detatch-input~
@@ -256,15 +278,6 @@ detatch-input~
 Detatch buffer from session, which removes marks and autocmds.
 
 Returns session-id
-
-
-------------------------------------------------- *hotpot.api.reflect.set-mode*
-
-set-mode~
-
-`(set-mode session-id mode)`
-
-Set session to eval or compile mode
 
 ============================================================= *hotpot.api.make*
 
@@ -450,17 +463,6 @@ raises an error. Accepts an optional `options` table as described by Fennels
 API documentation.
 
 
-------------------------------------------------- *hotpot.api.eval.eval-module*
-
-eval-module~
-
-`(eval-module modname ?options)`
-
-Use hotpots module searcher to find the file for `modname`, load and
-evaluate its contents then return the result or raises an error. Accepts an
-optional `options` table as described by Fennels API documentation.
-
-
 ------------------------------------------------- *hotpot.api.eval.eval-string*
 
 eval-string~
@@ -470,6 +472,17 @@ eval-string~
 Evaluate given fennel `code` and return the results, or raise on error.
 Accepts an optional `options` table as described by Fennels API
 documentation.
+
+
+------------------------------------------------- *hotpot.api.eval.eval-module*
+
+eval-module~
+
+`(eval-module modname ?options)`
+
+Use hotpots module searcher to find the file for `modname`, load and
+evaluate its contents then return the result or raises an error. Accepts an
+optional `options` table as described by Fennels API documentation.
 
 
 -------------------------------------------------- *hotpot.api.eval.eval-range*
@@ -550,16 +563,6 @@ lua` or `false error`. Positions can be `line-nr` or `[line-nr col]`. Accepts
 an optional `options` table as described by Fennels API documentation.
 
 
-------------------------------------------- *hotpot.api.compile.compile-string*
-
-compile-string~
-
-`(compile-string str ?options)`
-
-Compile given `str` into lua, returns `true lua` or `false error`. Accepts
-an optional `options` table as described by Fennels API documentation.
-
-
 ---------------------------------------- *hotpot.api.compile.compile-selection*
 
 compile-selection~
@@ -569,6 +572,16 @@ compile-selection~
 Read the current selection and compile into lua, returns `true lua` or
 `false error`. Accepts an optional `options` table as described by Fennels
 API documentation.
+
+
+------------------------------------------- *hotpot.api.compile.compile-string*
+
+compile-string~
+
+`(compile-string str ?options)`
+
+Compile given `str` into lua, returns `true lua` or `false error`. Accepts
+an optional `options` table as described by Fennels API documentation.
 
 ============================================================ *hotpot.api.cache*
 
@@ -619,15 +632,6 @@ cache-prefix~
 undocumented
 
 
------------------------------------------------- *hotpot.api.cache.clear-cache*
-
-clear-cache~
-
-`(clear-cache)`
-
-Clear all lua cache files and bytecode index
-
-
 ------------------------------------- *hotpot.api.cache.clear-cache-for-module*
 
 clear-cache-for-module~
@@ -635,6 +639,15 @@ clear-cache-for-module~
 `(clear-cache-for-module modname)`
 
 Clear compiled lua cache file for given module name, also clears index entry
+
+
+------------------------------------------------ *hotpot.api.cache.clear-cache*
+
+clear-cache~
+
+`(clear-cache)`
+
+Clear all lua cache files and bytecode index
 
 
 ----------------------------------- *hotpot.api.cache.clear-cache-for-fnl-file*
