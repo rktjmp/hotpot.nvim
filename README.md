@@ -60,7 +60,7 @@ breaking changes. See [the changelog](CHANGELOG.md).
 
 Hotpot can be installed via any package manager but you may prefer to manually
 *install* it and let your package manager *update* it. This allows you to
-configure your package manger with Fennel.
+configure your package manager with Fennel.
 
 You must call `require("hotpot")` before you attempt to require any Fennel
 files. If you do not do this manually, Neovim will call it for you but the
