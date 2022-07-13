@@ -47,9 +47,12 @@
                                    :severity vim.diagnostic.severity.ERROR
                                    :source :hotpot-diagnostic
                                    :user_data err}])))
-  (match (string.match err "([%w]+) error in (.+):([%d?]+)\n[%s]-(.-)\n")
+  (match (string.match err "([%w]+) error in (.+):([%d?]+):([%d?]+)\n[%s]-(.-)\n")
     (kind "unknown" "?" msg) (set-diagnostic kind "unknown" 0 (.. "(error had no line number)" msg) err)
-    (kind file line msg) (set-diagnostic kind file (- (tonumber line) 1) msg err)
+    (kind file line col msg) (set-diagnostic kind
+                                             file
+                                             (- (tonumber line) 1)
+                                             msg err)
     ;; hard error for unmatched errors
     _ (error err)))
 
