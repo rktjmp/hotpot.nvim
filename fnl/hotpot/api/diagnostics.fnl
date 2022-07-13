@@ -85,7 +85,8 @@
         allowed-globals (icollect [n _ (pairs _G)] n)
         ns (api.nvim_create_namespace (.. :hotpot-diagnostic-for-buf- buf))
         handler (make-handler buf ns)
-        au-group (api.nvim_create_augroup :hotpot-diagnostics-group {:clear true})]
+        au-group (api.nvim_create_augroup (.. :hotpot-diagnostics-for-buf- buf)
+                                          {:clear true})]
     (api.nvim_create_autocmd [:TextChanged :InsertLeave]
                              {:buffer buf
                               :group au-group
@@ -130,7 +131,7 @@
   (let [buf (resolve-buf-id user-buf)]
     (match (data-for-buf buf)
       {: ns : au-group} (do
-                          (api.nvim_clear_autocmts {:group au-group
+                          (api.nvim_clear_autocmds {:group au-group
                                                     :buffer buf})
                           (reset-diagnostic ns)
                           (record-detatchment buf)
@@ -151,12 +152,14 @@
 (fn M.enable []
   "Enables autocommand to attach diagnostics to Fennel filetype buffers"
   (fn attach-hotpot-diagnostics [event]
-     (match event
-       {:match "fennel" :buf buf} (M.attach buf)))
+    (match event
+      {:match "fennel" :buf buf} (M.attach buf))
+    (values nil))
   (when (not data.au-group)
-    (set data.au-group (api.nvim_create_augroup :hotpot-diagnostics-group {:clear true}))
+    (set data.au-group (api.nvim_create_augroup :hotpot-diagnostics-enabled {:clear true}))
     (api.nvim_create_autocmd "FileType" {:group data.au-group
                                          :pattern "fennel"
+                                         :desc "Hotpot diagnostics auto-attach"
                                          :callback attach-hotpot-diagnostics})))
 (fn M.disable []
   "Disables filetype autocommand and detatches any attached buffers"
