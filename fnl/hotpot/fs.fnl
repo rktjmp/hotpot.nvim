@@ -45,6 +45,12 @@
   (accumulate [t head _ part (ipairs [...])]
               (.. t (path-separator) part)))
 
+(fn dirname [path]
+  (let [pattern (string.format "%s[^%s]+$" path-sep path-sep)]
+    (match (string.find path pattern)
+      nil (error (.. "Could not extract dirname from path: " path))
+      n (string.sub path 1 n))))
+
 {: read-file!
  : write-file!
  : file-exists?
@@ -53,4 +59,5 @@
  : is-lua-path?
  : is-fnl-path?
  : join-path
+ : dirname
  : path-separator}

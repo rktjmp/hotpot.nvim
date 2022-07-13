@@ -17,3 +17,11 @@ cat <<EOF | assert "can run :Fnlfile"
 EOF
 
 # fnldo is a bit awkward to test.
+
+cat <<EOF | assert "can compile-string"
+  ~/test/nvim.sh "lua require('test.api.test-compile')" || fail
+EOF
+
+cat <<EOF | assert "can eval-string"
+  ~/test/nvim.sh "lua require('test.api.test-eval')" || fail
+EOF

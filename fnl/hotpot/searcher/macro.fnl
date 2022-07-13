@@ -8,28 +8,29 @@
   ;;          fennel.special.load-code ... because that API is private and
   ;;          writing a lua module, to execute fennel macro code seems like the
   ;;          edgiest of edge cases.
-  (loadfile path))
+  (loadfile path modname))
 
 (fn create-fennel-loader [modname path]
   ;; (string, string) :: fn, string
   ;; assumes path exists!
   (let [fennel (require :hotpot.fennel)
         {: read-file!} (require :hotpot.fs)
-        config (require :hotpot.config)
         code (read-file! path)]
     (fn [modname]
       ;; require the depencency map module *inside* the load function
       ;; to avoid circular dependencies.
       ;; By putting it here we can be sure that the dep map module is already
       ;; in memory before hotpot took over macro module searching.
-      (let [dep_map (require :hotpot.dependency_map)
-            ;; eval macro as per fennel's implementation.
-            options (doto (config.get-option :compiler.macros)
-                          (tset :filename path))]
+      (let [dep-map (require :hotpot.dependency-map)
+            {: config} (require :hotpot.runtime)
+            options (doto (. config :compiler :macros)
+                          (tset :filename path)
+                          (tset :module-name modname))]
         ;; later, when a module needs a macro, we will know what file the
         ;; macro came from and can then track the macro file for changes
         ;; when refreshing the cache.
-        (dep_map.set-macro-modname-path modname path)
+        (dep-map.set-macro-modname-path modname path)
+        ;; eval macro as per fennel's implementation.
         (fennel.eval code options modname)))))
 
 (fn create-loader [modname path]
@@ -45,7 +46,7 @@
 
 (fn searcher [modname]
   ;; By fennel.specials lua-macro-searcher, fennel-macro-searcher, it's legal
-  ;; to require full modules, fennel or lua inside a macro file and they should
+  ;; to require fennel or lua modules inside a macro file and they should
   ;; just be loaded into memory (i.e. do not save fennel->lua to cache) So this
   ;; searcher is similar to the module loader without the stale checks and
   ;; file-write stuff (macros are never "compiled to lua").
@@ -53,8 +54,11 @@
   ;; This behaves similar to the module seacher, it will prefer .lua files in
   ;; the RTP if it exists, otherwise it looks for .fnl files in the package path.
   (let [{:searcher modname->path} (require :hotpot.searcher.source)]
-    (or (. package :preload modname)
-        (match (modname->path modname)
-          path (create-loader modname path)))))
+    ;; logically, we should not search preloaded modules for macros as given
+    ;; `mod/init.fnl` (preloaded into `mod`), `mod/init-macros.fnl` would not
+    ;; be found.
+    ;; (or (. package :preload modname) (match ...))
+    (match (modname->path modname {:macro? true})
+      path (create-loader modname path))))
 
 {: searcher}

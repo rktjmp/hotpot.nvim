@@ -1,14 +1,17 @@
-(import-macros {: expect : struct} :hotpot.macros)
+(import-macros {: expect} :hotpot.macros)
+
 ;; we only want to inject the macro searcher once, but we also
 ;; only want to do it on demand since this front end to the compiler
 ;; is always loaded but not always used.
 (var injected-macro-searcher? false)
 
 (fn compile-string [string options]
+  "Compile given string of fennel into lua, returns `true lua` or `false error`"
   ;; (string table) :: (true string) | (false string)
   ;; we only require fennel here because it can be heavy to pull in and *most*
   ;; of the time we will shortcut to the compiled lua.
   (local fennel (require :hotpot.fennel))
+  (local {: traceback} (require :hotpot.runtime))
   (when (not injected-macro-searcher?)
     (let [{: searcher} (require :hotpot.searcher.macro)]
       ;; we inject the macro searcher here, instead of in runtime.install because
@@ -21,9 +24,10 @@
   (fn compile []
     ;; drop the options table that is also returned
     (pick-values 1 (fennel.compile-string string options)))
-  (xpcall compile fennel.traceback))
+  (xpcall compile traceback))
 
 (fn compile-file [fnl-path lua-path options]
+  "Compile fennel code from `fnl-path` and save to `lua-path`"
   ;; (string, string) :: (true, nil) | (false, errors)
   (fn check-existing [path]
     (let [uv vim.loop
@@ -35,7 +39,8 @@
            : write-file!
            : path-separator
            : is-lua-path?
-           : is-fnl-path?} (require :hotpot.fs)
+           : is-fnl-path?
+           : dirname} (require :hotpot.fs)
           _ (expect (is-fnl-path? fnl-path) "compile-file fnl-path not fnl file: %q" fnl-path)
           _ (expect (is-lua-path? lua-path) "compile-file lua-path not lua file: %q" lua-path)
           fnl-code (read-file! fnl-path)
@@ -44,17 +49,9 @@
           options (doto (or options {})
                         (tset :filename fnl-path))]
       (match (compile-string fnl-code options)
-        (true lua-code) (let [filename (-> lua-path
-                                           (string.reverse)
-                                           (string.match (.. "(.-)" (path-separator)))
-                                           (string.reverse))
-                              chop (-> filename
-                                       (length)
-                                       (+ 1)
-                                       (* -1))
-                              containing-dir (string.sub lua-path 1 chop)]
+        (true lua-code) (let []
                           (check-existing lua-path)
-                          (vim.fn.mkdir containing-dir :p)
+                          (vim.fn.mkdir (dirname lua-path) :p)
                           (write-file! lua-path lua-code))
         (false errors) (error errors))))
   (pcall do-compile))

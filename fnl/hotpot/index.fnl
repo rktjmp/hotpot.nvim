@@ -5,7 +5,7 @@
 ;;; they become out of sync with the original source.
 ;;;
 
-(import-macros {: expect : struct} :hotpot.macros)
+(import-macros {: expect} :hotpot.macros)
 
 (fn fnl-path->lua-cache-path [fnl-path]
   ;; (string) :: string
@@ -46,9 +46,6 @@
 
 (fn new-module-record [modname files timestamp loader]
   (let [{: file-mtime} (require :hotpot.fs)]
-    ;; these are directly mpack'd out, so we cant use a struct :<
-    ;; at least not without re-iterating them onload which is kind
-    ;; of against the whole point.
     {: modname
      : files
      : timestamp
@@ -99,6 +96,8 @@
              (if use-record? record (tset index.modules modname nil)))))
 
 (fn search-index [index modname]
+  "Search the index for module. Will return a bytecode loader if one exists and
+  is not stale, otherwise fall back to disk searchers."
   (match (= :hotpot (string.sub modname 1 6))
     ;; unfortunately we cant (currently?) comfortably index hotpot *with* hotpot
     ;; so these requires are passed directly to the next searcher.
@@ -126,12 +125,13 @@
         (search-index index modname))))
 
 (fn clear-record [index modname]
+  "Clear in-memory record of a module, which will force a re-fetch from disk
+  next if combined with setting package.loaded[modname] = nil"
   (tset index.modules modname nil))
 
 (fn new-index [path]
-  (struct :hotpot/index
-          (attr :path path)
-          (attr :modules (hydrate-records path))))
+  "Hydrate records from path and package into index table"
+  {: path :modules (hydrate-records path)})
 
 {: new-index
  : new-indexed-searcher-fn

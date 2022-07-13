@@ -1,56 +1,44 @@
-(import-macros {: expect : struct} :hotpot.macros)
+(local M {})
 
-(var runtime nil)
+(fn lazy-traceback []
+  ;; loading the traceback is potentially heavy if it has to require fennel, so
+  ;; we don't get it until we need it.
+  (let [mod-name (match M.config.compiler.traceback
+                   :hotpot :hotpot.traceback
+                   :fennel :hotpot.fennel
+                   _ (error "invalid traceback value, must be :hotpot or :fennel"))
+        {: traceback} (require mod-name)]
+    (values traceback)))
 
-(fn new-runtime []
-  (let [{: new-index} (require :hotpot.index)
-        {: join-path} (require :hotpot.fs)
-        index-path (join-path (vim.fn.stdpath :cache) :hotpot :index.bin)]
-    (struct :hotpot/runtime
-            (attr :index (new-index index-path)))))
+(fn M.default-config []
+  "Return a new default configuration table"
+  {:compiler {:modules {}
+              :macros {:env :_COMPILER}
+              :traceback :fennel}
+   :enable_hotpot_diagnostics true
+   :provide_require_fennel false})
 
-(tset _G :__hotpot_profile_ms 0)
-(fn searcher [modname]
-  (match (= :hotpot (string.sub modname 1 6))
-    ;; unfortunately we cant (currently?) comfortably index hotpot *with* hotpot
-    ;; so these requires are passed directly to the next searcher.
-    ;; It would not be unreasonable to pre-cook hotpot modules into the cache
-    ;; when bootstrapping.
-    true (values nil)
-    false (let [{: loader-for-module} (require :hotpot.index)
-              a (vim.loop.hrtime)
-              loader (loader-for-module runtime.index modname)
-              b (vim.loop.hrtime)
-              t (/ (- b a) 1_000_000)]
-          (tset _G :__hotpot_profile_ms (+ (. _G :__hotpot_profile_ms) t))
-          (values loader))))
+(fn M.set-index [i]
+  "Set the current runtime index"
+  (set M.index i)
+  (values M.index))
 
-(fn install []
-  (when (not runtime)
-    (set runtime (new-runtime))
-    (let [{: new-indexed-searcher-fn} (require :hotpot.index)]
-      (table.insert package.loaders 1 (new-indexed-searcher-fn runtime.index)))))
+(fn M.set-config [user-config]
+  (let [new-config (M.default-config)]
+    (each [_ k (ipairs [:modules :macros :traceback])]
+      (match (?. user-config :compiler k)
+        val (tset new-config :compiler k val)))
+    (match (?. user-config :provide_require_fennel)
+      val (tset new-config :provide_require_fennel val))
+    (match (?. user-config :enable_hotpot_diagnostics)
+      val (tset new-config :enable_hotpot_diagnostics val))
+    ;; better to hard fail this now, than fail it when something else fails
+    (match new-config.compiler.traceback
+        :hotpot true
+        :fennel true
+        _ (error "invalid config.compiler.traceback value, must be 'hotpot' or 'fennel'"))
+    (set M.config new-config)
+    (values M.config)))
 
-(fn provide-require-fennel []
-  (tset package.preload :fennel #(require :hotpot.fennel)))
-
-(fn setup [options]
-  (let [config (require :hotpot.config)]
-    (config.set-user-options (or options {}))
-    (if (config.get-option :provide_require_fennel)
-      (provide-require-fennel))
-    ; dont leak any return value
-    (values nil)))
-
-{: install ;; install searcher
- :inspect (fn []
-            (let [{: inspect} (require :hotpot.common)]
-              (each [modname entry (pairs runtime.index.modules)]
-                (inspect modname entry.path))
-              ; (inspect runtime)
-              ))
- :stat (fn []
-         (let [{: fmt} (require :hotpot.common)]
-           (print (fmt "hotpot index profile: %fms" _G.__hotpot_profile_ms))))
- : setup
- :current-runtime #(values runtime)}
+(set M.proxied-keys "traceback")
+(setmetatable M {:__index #(match $2 :traceback (lazy-traceback))})
