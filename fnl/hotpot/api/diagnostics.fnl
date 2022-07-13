@@ -47,11 +47,18 @@
                                    :severity vim.diagnostic.severity.ERROR
                                    :source :hotpot-diagnostic
                                    :user_data err}])))
-  (match (string.match err "([%w]+) error in (.+):([%d?]+)\n[%s]-(.-)\n")
+  ;; match <type> in error <file>:<line-col>
+  ;; line-col may be ?:?, dd:? or dd:dd
+  ;; we currently broadmatch the line-col for 1.1.0 (only lines) and 1.2.0
+  ;; (line:col) compatibility
+  ;; TODO 1.2.0
+  (match (string.match err "([%w]+) error in ([^:]-):([%d:?]+)\n[%s]-(.-)\n")
     (kind "unknown" "?" msg) (set-diagnostic kind "unknown" 0 (.. "(error had no line number)" msg) err)
-    (kind file line msg) (set-diagnostic kind file (- (tonumber line) 1) msg err)
-    ;; hard error for unmatched errors
-    _ (error err)))
+    (kind "unknown" "?:?" msg) (set-diagnostic kind "unknown" 0 (.. "(error had no line number)" msg) err)
+    (kind file line-col msg) (match (string.match line-col "([%d?]+)")
+                               "?" (set-diagnostic kind file 0 (.. "(error had no line number)" msg) err)
+                               line (set-diagnostic kind file (- (tonumber line) 1) msg err))
+    _ nil)) ;; TODO write this without "press enter" prompt
 
 (fn make-handler [buf ns]
   "Create the autocmd callback"
