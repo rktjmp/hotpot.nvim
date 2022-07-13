@@ -1,8 +1,8 @@
 # 🍲 Hotpot Changelog
 
-Breaking changes are in bold.
+Breaking changes are in **bold**.
 
-## x.x.x
+## 0.3.0
 
 - **Neovim 0.7 required**
 - **Improved `x-selection` API selection accuracy.**
@@ -10,8 +10,8 @@ Breaking changes are in bold.
     incorrectly report the current mode, so this is potentially breaking if you
     use a non-standard way to set keys. Keymaps set via `vim.keymap.set` behave
     correctly.
-- **`hotpot.api.eval` functions now return `true|false result|error`** for
-  symetry with `hotpot.api.compile`.
+- **`hotpot.api.eval` functions now return `true result` or `false error` for
+symmetry with `hotpot.api.compile`.**
 - **Moved `fnl`, `fnlfile`, `fnldo`, `eval-operator` and `eval-operator-bang`
   to `hotpot.api.command`.**
 - Added in-editor diagnostics via `hotpot.api.diagnostics`
