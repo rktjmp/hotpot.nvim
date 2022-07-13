@@ -12,9 +12,14 @@
       (nvim_buf_call id nvim_get_current_buf)
       (values id))))
 
-(fn record-attachment [buf ns au-group]
+(fn record-attachment [buf ns au-group handler]
   "Save attachment data"
-  (tset data buf {:ns ns :buf buf : au-group :err nil}))
+  (tset data buf {: ns
+                  : buf
+                  : au-group
+                  : handler
+                  :err nil
+                  :options nil}))
 
 (fn record-detatchment [buf]
   "Remove attachment data"
@@ -54,16 +59,18 @@
         allowed-globals (icollect [n _ (pairs _G)] n)
         fname (match (api.nvim_buf_get_name buf) "" nil any any)]
     (fn []
-      (match (compile-buffer buf {:filename fname
-                                  :allowedGlobals allowed-globals})
-        (true _) (do
-                   (set-buf-err buf nil)
-                   (reset-diagnostic ns))
-        (false err) (do
-                      (set-buf-err buf err)
-                      (render-error-diagnostic buf ns err)))
-      ;; ensure we don't delete the autocommand accidentally
-      (values nil))))
+      (let [buf-data (. data buf)
+            options (or buf-data.options
+                        {:filename fname :allowedGlobals allowed-globals})]
+        (match (compile-buffer buf options)
+          (true _) (do
+                     (set-buf-err buf nil)
+                     (reset-diagnostic ns))
+          (false err) (do
+                        (set-buf-err buf err)
+                        (render-error-diagnostic buf ns err)))
+        ;; ensure we don't delete the autocommand accidentally
+        (values nil)))))
 
 (fn do-attach [buf]
   (let [{: compile-buffer} (require :hotpot.api.compile)
@@ -84,7 +91,7 @@
                               :callback #(match $1
                                            {:match "fennel"} nil
                                            _ (M.detatch buf))})
-    (record-attachment buf ns au-group)
+    (record-attachment buf ns au-group handler)
     (handler)
     (values buf)))
 
@@ -100,6 +107,16 @@
     (match (data-for-buf buf)
       nil (do-attach buf))
     (values buf)))
+
+(fn M.set-options [user-buf opts]
+  "Set compiler options for a buffer, where the defaults are incompatible.
+
+  This API is EXPERIMENTAL and behaviour may change in the future if future
+  options are suported, which may dictate how missing options are handled."
+  (let [buf (resolve-buf-id user-buf)
+        buf-data (. data buf)]
+    (tset buf-data :options opts)
+    (buf-data.handler)))
 
 (fn M.detatch [user-buf ?opts]
   "Remove hotpot-diagnostic instance from buffer."
