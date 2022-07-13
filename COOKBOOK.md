@@ -130,7 +130,10 @@ require("my-config.ftplugins.some-type")
 
 **2. Use AOT Compilation**
 
-See [Ahead of Time Compilation](#ahead-of-time-compilation)
+See [Ahead of Time Compilation](#ahead-of-time-compilation). `hotpot.api.make`
+will wont compile files unless they've been modified, so it's reasonably
+performant to include a call in your `init.fnl`, especially if your
+`source-dir` argument is tightly focused.
 
 **3. Autocommands**
 
