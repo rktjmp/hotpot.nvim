@@ -28,7 +28,7 @@
           config (runtime.set-config options)]
       (if config.provide_require_fennel
         (tset package.preload :fennel #(require :hotpot.fennel)))
-      (if config.attach_hotpot_diagnostics
+      (if config.enable_hotpot_diagnostics
         (let [{: enable} (require :hotpot.api.diagnostics)]
           (enable)))))
   (set-lazy-proxy M {:api :hotpot.api :runtime :hotpot.runtime}))

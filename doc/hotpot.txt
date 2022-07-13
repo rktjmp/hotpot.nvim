@@ -98,6 +98,7 @@ You do not have to call setup unless you are altering a default option.
 >
   require("hotpot").setup({
     provide_require_fennel = false,
+    enable_hotpot_diagnostics = true,
     compiler = {
       -- options passed to fennel.compile for modules, defaults to {}
       modules = {
@@ -117,11 +118,15 @@ Hotpot's copy of fennel when you call `(require :fennel)`. This can be useful
 for ergonomics or for compatibility with libraries that expect Fennel to be in
 `package.path`.
 
+`enable_hotpot_diagnostics` enable or disable automatic attachment of
+diagnostics to fennel buffers.
+
 `compiler.modules` is passed to the Fennel compiler when compiling regular
 module files.
 
 `compiler.macros` is passed to the Fennel compiler when compiling macro files.
 Be sure to include `env = "_COMPILER"` unless you have a good reason not to.
+
 
 Note: the `filename` compilation option is always set to the appropriate value
       and can not be altered via the setup interface.
