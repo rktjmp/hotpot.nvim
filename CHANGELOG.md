@@ -2,6 +2,13 @@
 
 Breaking changes are in **bold**.
 
+## 0.3.1
+
+- Added 1.1.0 and 1.2.0 compatible diagnostic line detection.
+- Fixed diagnostics failing to attach to additional buffers.
+- Added `diagnostics.set-options` to allow overriding compiler options for some
+  buffers.
+
 ## 0.3.0
 
 - **Neovim 0.7 required**
