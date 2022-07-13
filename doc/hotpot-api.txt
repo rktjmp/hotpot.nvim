@@ -12,8 +12,8 @@ Diagnostics API........................................|hotpot.api.diagnostics|
 Reflect API................................................|hotpot.api.reflect|
   attach-input................................|hotpot.api.reflect.attach-input|
   attach-output..............................|hotpot.api.reflect.attach-output|
-  set-mode........................................|hotpot.api.reflect.set-mode|
   detatch-input..............................|hotpot.api.reflect.detatch-input|
+  set-mode........................................|hotpot.api.reflect.set-mode|
 Make API......................................................|hotpot.api.make|
   build.................................................|hotpot.api.make.build|
   check.................................................|hotpot.api.make.check|
@@ -21,22 +21,22 @@ Eval API......................................................|hotpot.api.eval|
   eval-buffer.....................................|hotpot.api.eval.eval-buffer|
   eval-file.........................................|hotpot.api.eval.eval-file|
   eval-module.....................................|hotpot.api.eval.eval-module|
-  eval-range.......................................|hotpot.api.eval.eval-range|
   eval-string.....................................|hotpot.api.eval.eval-string|
+  eval-range.......................................|hotpot.api.eval.eval-range|
   eval-selection...............................|hotpot.api.eval.eval-selection|
 Compile API................................................|hotpot.api.compile|
   compile-buffer............................|hotpot.api.compile.compile-buffer|
   compile-file................................|hotpot.api.compile.compile-file|
   compile-module............................|hotpot.api.compile.compile-module|
   compile-range..............................|hotpot.api.compile.compile-range|
-  compile-selection......................|hotpot.api.compile.compile-selection|
   compile-string............................|hotpot.api.compile.compile-string|
+  compile-selection......................|hotpot.api.compile.compile-selection|
 Cache API....................................................|hotpot.api.cache|
   cache-path-for-fnl-file............|hotpot.api.cache.cache-path-for-fnl-file|
   cache-path-for-module................|hotpot.api.cache.cache-path-for-module|
   cache-prefix..................................|hotpot.api.cache.cache-prefix|
-  clear-cache-for-module..............|hotpot.api.cache.clear-cache-for-module|
   clear-cache....................................|hotpot.api.cache.clear-cache|
+  clear-cache-for-module..............|hotpot.api.cache.clear-cache-for-module|
   clear-cache-for-fnl-file..........|hotpot.api.cache.clear-cache-for-fnl-file|
 
 ================================================================== *hotpot.api*
@@ -247,6 +247,17 @@ act as the module level `attach` and `detatch` with the session-id
 argument already filled.
 
 
+-------------------------------------------- *hotpot.api.reflect.detatch-input*
+
+detatch-input~
+
+`(detatch-input session-id)`
+
+Detatch buffer from session, which removes marks and autocmds.
+
+Returns session-id
+
+
 ------------------------------------------------- *hotpot.api.reflect.set-mode*
 
 set-mode~
@@ -254,17 +265,6 @@ set-mode~
 `(set-mode session-id mode)`
 
 Set session to eval or compile mode
-
-
--------------------------------------------- *hotpot.api.reflect.detatch-input*
-
-detatch-input~
-
-`(detatch-input session-id given-buf-id)`
-
-Detatch buffer from session, which removes marks and autocmds.
-
-Returns session-id
 
 ============================================================= *hotpot.api.make*
 
@@ -299,7 +299,7 @@ Note: Regular Hotpot operation will track staleness due to dependency
 changes, a file will be "stale" if a macro it uses was changed, even if the
 file itself was not updated. Because `make.build` operates outside of Hotpots
 regular infrastructure, it does not currently track stale-ness to this level
-and only compares the source file vs the target file. See the `force` option.
+and only compares the source file vs the target file. See the `force?` option.
 
 Returns `[result<ok> ...] [result<err> ...]`
 
@@ -333,7 +333,7 @@ raised. Paths may be relative to the current working directory with a leading
 `options-table` (may be omitted)
 
 >
-  {:atomic true
+  {:atomic? true
    :verbosity 1
    :compiler {:modules {...}
               :macros {...}}}
@@ -341,7 +341,7 @@ raised. Paths may be relative to the current working directory with a leading
 
 The options table may contain the following keys:
 
-`atomic`: When true, if there is any compilation error, no files are written
+`atomic?`: When true, if there is any compilation error, no files are written
           to disk. Defaults to true.
 
 `verbosity`: Adjusts information output. Errors are always output.
@@ -349,7 +349,7 @@ The options table may contain the following keys:
              - `1`: Outputs compilation messages and nothing-to-do message
              Defaults to 1.
 
-`force`: Force compilation, even if output is not stale.
+`force?`: Force compilation, even if output is not stale.
 
 `compiler`: The compiler table has the same form and function as would be
             given to `hotpot.setup`. If the table is not given, the
@@ -461,17 +461,6 @@ evaluate its contents then return the result or raises an error. Accepts an
 optional `options` table as described by Fennels API documentation.
 
 
--------------------------------------------------- *hotpot.api.eval.eval-range*
-
-eval-range~
-
-`(eval-range buf start-pos stop-pos ?options)`
-
-Evaluate `buf` from `start-pos` to `end-pos` and return the results, or
-raise on error. Positions can be `line` or `line col`. Accepts an optional
-`options` table as described by Fennels API documentation.
-
-
 ------------------------------------------------- *hotpot.api.eval.eval-string*
 
 eval-string~
@@ -481,6 +470,17 @@ eval-string~
 Evaluate given fennel `code` and return the results, or raise on error.
 Accepts an optional `options` table as described by Fennels API
 documentation.
+
+
+-------------------------------------------------- *hotpot.api.eval.eval-range*
+
+eval-range~
+
+`(eval-range buf start-pos stop-pos ?options)`
+
+Evaluate `buf` from `start-pos` to `end-pos` and return the results, or
+raise on error. Positions can be `line` or `line col`. Accepts an optional
+`options` table as described by Fennels API documentation.
 
 
 ---------------------------------------------- *hotpot.api.eval.eval-selection*
@@ -550,6 +550,16 @@ lua` or `false error`. Positions can be `line-nr` or `[line-nr col]`. Accepts
 an optional `options` table as described by Fennels API documentation.
 
 
+------------------------------------------- *hotpot.api.compile.compile-string*
+
+compile-string~
+
+`(compile-string str ?options)`
+
+Compile given `str` into lua, returns `true lua` or `false error`. Accepts
+an optional `options` table as described by Fennels API documentation.
+
+
 ---------------------------------------- *hotpot.api.compile.compile-selection*
 
 compile-selection~
@@ -559,16 +569,6 @@ compile-selection~
 Read the current selection and compile into lua, returns `true lua` or
 `false error`. Accepts an optional `options` table as described by Fennels
 API documentation.
-
-
-------------------------------------------- *hotpot.api.compile.compile-string*
-
-compile-string~
-
-`(compile-string str ?options)`
-
-Compile given `str` into lua, returns `true lua` or `false error`. Accepts
-an optional `options` table as described by Fennels API documentation.
 
 ============================================================ *hotpot.api.cache*
 
@@ -619,15 +619,6 @@ cache-prefix~
 undocumented
 
 
-------------------------------------- *hotpot.api.cache.clear-cache-for-module*
-
-clear-cache-for-module~
-
-`(clear-cache-for-module modname)`
-
-Clear compiled lua cache file for given module name, also clears index entry
-
-
 ------------------------------------------------ *hotpot.api.cache.clear-cache*
 
 clear-cache~
@@ -635,6 +626,15 @@ clear-cache~
 `(clear-cache)`
 
 Clear all lua cache files and bytecode index
+
+
+------------------------------------- *hotpot.api.cache.clear-cache-for-module*
+
+clear-cache-for-module~
+
+`(clear-cache-for-module modname)`
+
+Clear compiled lua cache file for given module name, also clears index entry
 
 
 ----------------------------------- *hotpot.api.cache.clear-cache-for-fnl-file*
