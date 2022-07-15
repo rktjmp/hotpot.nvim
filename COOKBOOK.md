@@ -5,6 +5,7 @@
 - [Using Hotpot Reflect](#using-hotpot-reflect)
 - [Compiling `ftplugins` and similar](#compiling-ftplugins-and-similar)
 - [Ahead of Time Compilation](#ahead-of-time-compilation)
+- [Writing `~/.config/nvim/init.lua` in Fennel] (#writing-confignviminitlua-in-fennel)
 - [Checking your config](#checking-your-config)
 - [Using the API](#using-the-api)
 - [Included Commands](#Commands)
@@ -13,10 +14,10 @@
 
 <div align="center">
 <p align="center">
-  <img style="width: 100%" src="images/reflect.svg">
+  <img style="width: 80%" src="images/reflect.svg">
 </p>
 </div>
-
+writing-confignviminitlua-in-fennel
 *!! The Reflect API is experimental and its shape may change, particularly around
 accepting ranges instead of requiring a visual selection and some API terms
 such as what a `session` is. !!*
@@ -133,7 +134,7 @@ require("my-config.ftplugins.some-type")
 See [Ahead of Time Compilation](#ahead-of-time-compilation). `hotpot.api.make`
 will wont compile files unless they've been modified, so it's reasonably
 performant to include a call in your `init.fnl`, especially if your
-`source-dir` argument is tightly focused.
+`source-dir` argument is tightly focused or a single path.
 
 **3. Autocommands**
 
@@ -181,6 +182,48 @@ For complete documentation, see [`:h hotpot.api.make`](doc/hotpot-api.txt).
 ```
 
 See also [`:h hotpot.api.make`](doc/hotpot-api.txt) for all options and examples.
+
+## Writing `~/.config/nvim/init.lua` in Fennel
+
+We can use a combination of the Make API and LibUV to write our main `init.lua`
+in Fennel and automatically compile it to loadable lua on save.
+
+```fennel
+;; ~/.config/nvim/init.fnl
+
+(fn build-init []
+  (let [{: build} (require :hotpot.api.make)
+        ;; by default, Fennel wont perform strict global checking when
+        ;; compiling but we can force it to check by providing a list
+        ;; of allowed global names, this can catch errors in this file.
+        allowed-globals (icollect [n _ (pairs _G)] n)
+        opts {:verbosity 0 ;; we dont want any messages on load
+              :compiler {:modules {:allowedGlobals allowed-globals}}}]
+    ;; just pass back the whole path as is
+    (build "~/.config/nvim/init.fnl" opts ".+" #(values $1))))
+
+(let [hotpot (require :hotpot)
+      setup hotpot.setup
+      build hotpot.api.make.build
+      uv vim.loop]
+  ;; do some configuration stuff
+  (setup {:provide_require_fennel true
+          :compiler {:modules {:correlate true}
+                     :macros {:env :_COMPILER
+                              :compilerEnv _G
+                              :allowedGlobals false}}})
+
+  ;; watch this file for changes and auto-rebuild on save
+  (let [handle (uv.new_fs_event)
+        ;; uv wont accept condensed paths
+        path (vim.fn.expand "~/.config/nvim/init.fnl")]
+    ;; note the vim.schedule call
+    (uv.fs_event_start handle path {} #(vim.schedule build-init))
+    ;; close the uv handle when we quit nvim
+    (vim.api.nvim_create_autocmd :VimLeavePre {:callback #(uv.close handle)})))
+
+(require :the-rest-of-my-config)
+```
 
 ## Checking your Config
 

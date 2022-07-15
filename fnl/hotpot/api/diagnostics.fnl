@@ -63,6 +63,7 @@
 (fn make-handler [buf ns]
   "Create the autocmd callback"
   (let [{: compile-buffer} (require :hotpot.api.compile)
+        ;; collect collect known globals as we want to enforce strict mode
         allowed-globals (icollect [n _ (pairs _G)] n)
         fname (match (api.nvim_buf_get_name buf) "" nil any any)]
     (fn []
@@ -81,8 +82,6 @@
 
 (fn do-attach [buf]
   (let [{: compile-buffer} (require :hotpot.api.compile)
-        ;; collect collect known globals as we want to enforce strict mode
-        allowed-globals (icollect [n _ (pairs _G)] n)
         ns (api.nvim_create_namespace (.. :hotpot-diagnostic-for-buf- buf))
         handler (make-handler buf ns)
         au-group (api.nvim_create_augroup (.. :hotpot-diagnostics-for-buf- buf)
