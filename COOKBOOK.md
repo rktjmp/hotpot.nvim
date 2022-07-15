@@ -17,7 +17,7 @@
   <img style="width: 80%" src="images/reflect.svg">
 </p>
 </div>
-writing-confignviminitlua-in-fennel
+
 *!! The Reflect API is experimental and its shape may change, particularly around
 accepting ranges instead of requiring a visual selection and some API terms
 such as what a `session` is. !!*
