@@ -1,5 +1,5 @@
 (macro arg-err-msg [str]
-  (.. "hotpot.api.build argument error: " (tostring str)))
+  `(.. "hotpot.api.build argument error: " ,str))
 
 (local M {})
 
