@@ -5,7 +5,7 @@
 - [Using Hotpot Reflect](#using-hotpot-reflect)
 - [Compiling `ftplugins` and similar](#compiling-ftplugins-and-similar)
 - [Ahead of Time Compilation](#ahead-of-time-compilation)
-- [Writing `~/.config/nvim/init.lua` in Fennel] (#writing-confignviminitlua-in-fennel)
+- [Writing `~/.config/nvim/init.lua` in Fennel](#writing-confignviminitlua-in-fennel)
 - [Checking your config](#checking-your-config)
 - [Using the API](#using-the-api)
 - [Included Commands](#Commands)
