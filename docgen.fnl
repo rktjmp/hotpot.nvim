@@ -58,7 +58,8 @@
         (_ mod) (eval-module modname {:useMetadata true})]
     (-> mod
         (#(icollect [fname f (pairs $1)] [fname f]))
-        (#(doto $1 (table.sort (fn [[a _] [b _]] (<= a b)))))
+        (#(doto $1 (table.sort (fn [[a _] [b _]]
+                                 (< a b)))))
         (#(icollect [_ [fname f] (ipairs $1)]
             {:modname modname :fname fname :doc (dump-fn modname fname f)})))))
 
