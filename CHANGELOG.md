@@ -2,6 +2,12 @@
 
 Breaking changes are in **bold**.
 
+## 0.3.X
+
+- Updated `hotpot.api.make.build` and `hotpot.api.make.check` to accept a
+  directory or single file as the source argument.
+- Fixed passing compiler options to Make API.
+
 ## 0.3.1
 
 - Added 1.1.0 and 1.2.0 compatible diagnostic line detection.
