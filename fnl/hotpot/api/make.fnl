@@ -163,7 +163,7 @@
         ;; the config is only the compiler subset
         _ (set-config {:compiler opts.compiler})
         ;; TODO set modname? We can only guess by fnl/ sub which isn't great
-        result (match (compile-file fnl-file)
+        result (match (compile-file fnl-file (?. opts :compiler :modules))
                  (true lua-code) (R.unit lua-code)
                  (false err) (R.unit nil err))
         _ (set-config previous-config)]
