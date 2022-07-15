@@ -42,8 +42,12 @@
 (fn path-separator [] (values path-sep))
 
 (lambda join-path [head ...]
-  (accumulate [t head _ part (ipairs [...])]
-              (.. t (path-separator) part)))
+  (let [path-sep (path-separator)
+        dup-pat (.. "[" path-sep "]+")
+        joined  (accumulate [t head _ part (ipairs [...])]
+                  (.. t (path-separator) part))
+        de-duped (string.gsub joined dup-pat path-sep)]
+    (values de-duped)))
 
 (fn dirname [path]
   (let [pattern (string.format "%s[^%s]+$" path-sep path-sep)]
