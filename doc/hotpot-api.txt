@@ -13,18 +13,18 @@ Diagnostics API........................................|hotpot.api.diagnostics|
 Reflect API................................................|hotpot.api.reflect|
   attach-input................................|hotpot.api.reflect.attach-input|
   attach-output..............................|hotpot.api.reflect.attach-output|
-  set-mode........................................|hotpot.api.reflect.set-mode|
   detatch-input..............................|hotpot.api.reflect.detatch-input|
+  set-mode........................................|hotpot.api.reflect.set-mode|
 Make API......................................................|hotpot.api.make|
   build.................................................|hotpot.api.make.build|
   check.................................................|hotpot.api.make.check|
 Eval API......................................................|hotpot.api.eval|
   eval-buffer.....................................|hotpot.api.eval.eval-buffer|
   eval-file.........................................|hotpot.api.eval.eval-file|
-  eval-string.....................................|hotpot.api.eval.eval-string|
   eval-module.....................................|hotpot.api.eval.eval-module|
   eval-range.......................................|hotpot.api.eval.eval-range|
   eval-selection...............................|hotpot.api.eval.eval-selection|
+  eval-string.....................................|hotpot.api.eval.eval-string|
 Compile API................................................|hotpot.api.compile|
   compile-buffer............................|hotpot.api.compile.compile-buffer|
   compile-file................................|hotpot.api.compile.compile-file|
@@ -36,9 +36,9 @@ Cache API....................................................|hotpot.api.cache|
   cache-path-for-fnl-file............|hotpot.api.cache.cache-path-for-fnl-file|
   cache-path-for-module................|hotpot.api.cache.cache-path-for-module|
   cache-prefix..................................|hotpot.api.cache.cache-prefix|
-  clear-cache-for-module..............|hotpot.api.cache.clear-cache-for-module|
   clear-cache....................................|hotpot.api.cache.clear-cache|
   clear-cache-for-fnl-file..........|hotpot.api.cache.clear-cache-for-fnl-file|
+  clear-cache-for-module..............|hotpot.api.cache.clear-cache-for-module|
 
 ================================================================== *hotpot.api*
 
@@ -260,15 +260,6 @@ act as the module level `attach` and `detatch` with the session-id
 argument already filled.
 
 
-------------------------------------------------- *hotpot.api.reflect.set-mode*
-
-set-mode~
-
-`(set-mode session-id mode)`
-
-Set session to eval or compile mode
-
-
 -------------------------------------------- *hotpot.api.reflect.detatch-input*
 
 detatch-input~
@@ -278,6 +269,15 @@ detatch-input~
 Detatch buffer from session, which removes marks and autocmds.
 
 Returns session-id
+
+
+------------------------------------------------- *hotpot.api.reflect.set-mode*
+
+set-mode~
+
+`(set-mode session-id mode)`
+
+Set session to eval or compile mode
 
 ============================================================= *hotpot.api.make*
 
@@ -291,16 +291,18 @@ build~
 
 `(build ...)`
 
-Build fennel code found inside a directory, according to user defined rules.
-Files are only built if the output file is missing or if the source file is
-newer.
+Build fennel code found inside a directory (or single file), according to
+user defined rules. Files are only built if the output file is missing or if
+the source file is newer.
 
-`build` accepts a `source-dir`, an optional `options` table and then a set of
-`pattern function` argument pairs. Each `*.fnl` file in `source-dir` is
-checked against each `pattern` given, and if any match the `function` is called
-with the pattern captures as arguments. The function should return a path to
-save the compiled file to, or `nil` (`.fnl` extensions are automatically
-converted to `.lua` for QOL).
+`build` accepts a `source-path`, an optional `options` table and then a set of
+`pattern function` argument pairs. If `source-path` is a directory, each
+`*.fnl` file in `source-path` is checked against each `pattern` given, and if
+any match the `function` is called with the pattern captures as arguments.
+The function should return a path to save the compiled file to, or `nil`
+(`.fnl` extensions are automatically converted to `.lua` for QOL). If
+`source-path` is a file, it acts similar as for a directory but only for the
+file-path given.
 
 You may want to use this to build plugins written in Fennel or to compile
 small sections of your configuration that are never loaded via lua's
@@ -335,13 +337,14 @@ Usage example:
 
 Arguments are as given,
 
-`source-dir`
+`source-path`
 
-Directory to recursively search inside for `*.fnl` files. Any file named
-`init-macros.fnl` is ignored, as macros do not compile to lua. Any leading
-`~` is expanded via `os.getenv :HOME`, if the expansion fails an error is
-raised. Paths may be relative to the current working directory with a leading
-`.`.
+Directory to recursively search inside for `*.fnl` files or a direct path to
+a `.fnl` file. Direct paths are accepted as given but when recursing a
+directory any file named `init-macros.fnl` is ignored, as macros do not
+compile to lua. Any leading `~` is expanded via `os.getenv :HOME`, if the
+expansion fails an error is raised. Paths may be relative to the current
+working directory with a leading `.`.
 
 `options-table` (may be omitted)
 
@@ -390,7 +393,7 @@ patterns, if all patterns return nil, the file is ignored and not compiled.
 The function is called with each capture group in its associated pattern and
 a final table containing helper functions.
 
-Ex: (fn [source-dir path-inside-health-dir {: join-path}
+Ex: (fn [source-path path-inside-health-dir {: join-path}
          (join-path some-dir :lua path-inside-health-dir))
 
 Helpers: `join-path` joins all arguments with platform-specific separator.
@@ -463,17 +466,6 @@ raises an error. Accepts an optional `options` table as described by Fennels
 API documentation.
 
 
-------------------------------------------------- *hotpot.api.eval.eval-string*
-
-eval-string~
-
-`(eval-string code ?options)`
-
-Evaluate given fennel `code` and return the results, or raise on error.
-Accepts an optional `options` table as described by Fennels API
-documentation.
-
-
 ------------------------------------------------- *hotpot.api.eval.eval-module*
 
 eval-module~
@@ -503,6 +495,17 @@ eval-selection~
 `(eval-selection ?options)`
 
 Evaluate the current selection and return the result, or raise an error.
+Accepts an optional `options` table as described by Fennels API
+documentation.
+
+
+------------------------------------------------- *hotpot.api.eval.eval-string*
+
+eval-string~
+
+`(eval-string code ?options)`
+
+Evaluate given fennel `code` and return the results, or raise on error.
 Accepts an optional `options` table as described by Fennels API
 documentation.
 
@@ -632,15 +635,6 @@ cache-prefix~
 undocumented
 
 
-------------------------------------- *hotpot.api.cache.clear-cache-for-module*
-
-clear-cache-for-module~
-
-`(clear-cache-for-module modname)`
-
-Clear compiled lua cache file for given module name, also clears index entry
-
-
 ------------------------------------------------ *hotpot.api.cache.clear-cache*
 
 clear-cache~
@@ -659,4 +653,13 @@ clear-cache-for-fnl-file~
 Clear compiled lua cache file that mirrors given fennel source file, does
 _not_ clear index entry, instead use clear-cache-for-module. File path should
 be absoulute, see |expand| or `fs_realpath` from |vim.loop|.
+
+
+------------------------------------- *hotpot.api.cache.clear-cache-for-module*
+
+clear-cache-for-module~
+
+`(clear-cache-for-module modname)`
+
+Clear compiled lua cache file for given module name, also clears index entry
 

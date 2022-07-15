@@ -71,8 +71,8 @@
       (R.bind into-pairs)
       (R.bind validate-pairs)))
 
-(fn prepare-source-dir [path]
-  "Process source dir path by expanding ~ and making sure the dir exists.
+(fn prepare-source-path [path]
+  "Process source path by expanding ~ and making sure the file or dir exists.
   Returns result<path>."
   (fn expand-tilde [path]
     (fn get-home []
@@ -82,15 +82,16 @@
       (-> (R.unit (get-home))
           (R.bind #(R.unit (pick-values 1 (string.gsub path "^~" $1)))))
       (R.unit path)))
-  (fn validate-dir [path]
+  (fn validate-resolve [path]
     (let [uv vim.loop
           stats (R.unit (uv.fs_stat path))]
-      (if (and (R.ok? stats) (= :directory (. (R.unwrap stats) :type)))
-        (values (R.unit path))
-        (R.unit nil (arg-err-msg (string.format "source-dir %q was not a directory" path))))))
+      (match stats
+        [:ok {:type :directory}] (values (R.unit path :directory))
+        [:ok {:type :file}] (values (R.unit path :file))
+        _ (R.unit nil (arg-err-msg (string.format "source-path %q was not a directory or file" path))))))
   (-> (R.unit path)
       (R.bind expand-tilde)
-      (R.bind validate-dir)))
+      (R.bind validate-resolve)))
 
 (fn match-target [path patterns-handlers]
   "Given a path, check it against all patterns. If a pattern matches, execute
@@ -125,10 +126,9 @@
                                target-file)]
         (R.unit nil msg)))))
 
-(fn find-source-target-pairs [source-dir options patterns-handlers]
-  ;; recursively iterate source-dir, for every *.fnl file we found that is not
-  ;; named init-macros.fnl, see if we have a target to put it in
-  ;; after collecting all fnl -> lua, pass through the compiler.
+(fn find-source-target-pairs [source-path source-type options patterns-handlers]
+  "Check source-path exists and iterate it for *.fnl files if its a dir, or just
+  return [source-path] if its a file."
   (let [uv vim.loop
         {: join-path} (require :hotpot.fs)]
     (fn collect-files [dir patterns-handlers so-far]
@@ -145,8 +145,11 @@
                       (doto acc (table.insert (match-target full-path patterns-handlers)))
                       _ (values acc))
               _ (values acc))))))
-    (-> (R.unit (collect-files source-dir patterns-handlers {}))
-        (R.bind validate-target-extensions))))
+    (match source-type
+      :directory (-> (R.unit (collect-files source-path patterns-handlers {}))
+                     (R.bind validate-target-extensions))
+      :file (-> (R.unit [(match-target source-path patterns-handlers)])
+                (R.bind validate-target-extensions)))))
 
 (fn compile [fnl-file opts]
   "Compile fnl-file with given options. Returns result<code>."
@@ -166,7 +169,7 @@
         _ (set-config previous-config)]
     (values result)))
 
-(fn do-make [source-dir ...]
+(fn do-make [source-path ...]
   ;; `...` may be `opts pat fn ...` or `pat fn pat fn`, so first we'll detect
   ;; what arguments we were given and validate those arguments before passing
   ;; off do do-build to ... do ... the building.
@@ -179,9 +182,9 @@
                     (R.unwrap!))
         patterns-handlers (-> (prepare-patterns-handlers raw-patterns-handlers)
                               (R.unwrap!))
-        source-dir (-> (prepare-source-dir source-dir)
-                       (R.unwrap!))
-        source-target-pairs (-> (find-source-target-pairs source-dir options patterns-handlers)
+        (source-path source-type) (-> (prepare-source-path source-path)
+                                      (R.unwrap!))
+        source-target-pairs (-> (find-source-target-pairs source-path source-type options patterns-handlers)
                                 (R.unwrap!))
         compiled (icollect [_ [fnl-file lua-file] (ipairs source-target-pairs)]
                    (let [{: file-mtime : file-missing?} (require :hotpot.fs)]
@@ -196,16 +199,18 @@
     (values options oks errs)))
 
 (fn M.build [...]
-  "Build fennel code found inside a directory, according to user defined rules.
-  Files are only built if the output file is missing or if the source file is
-  newer.
+  "Build fennel code found inside a directory (or single file), according to
+  user defined rules. Files are only built if the output file is missing or if
+  the source file is newer.
 
-  `build` accepts a `source-dir`, an optional `options` table and then a set of
-  `pattern function` argument pairs. Each `*.fnl` file in `source-dir` is
-  checked against each `pattern` given, and if any match the `function` is called
-  with the pattern captures as arguments. The function should return a path to
-  save the compiled file to, or `nil` (`.fnl` extensions are automatically
-  converted to `.lua` for QOL).
+  `build` accepts a `source-path`, an optional `options` table and then a set of
+  `pattern function` argument pairs. If `source-path` is a directory, each
+  `*.fnl` file in `source-path` is checked against each `pattern` given, and if
+  any match the `function` is called with the pattern captures as arguments.
+  The function should return a path to save the compiled file to, or `nil`
+  (`.fnl` extensions are automatically converted to `.lua` for QOL). If
+  `source-path` is a file, it acts similar as for a directory but only for the
+  file-path given.
 
   You may want to use this to build plugins written in Fennel or to compile
   small sections of your configuration that are never loaded via lua's
@@ -240,13 +245,14 @@
 
   Arguments are as given,
 
-  `source-dir`
+  `source-path`
 
-  Directory to recursively search inside for `*.fnl` files. Any file named
-  `init-macros.fnl` is ignored, as macros do not compile to lua. Any leading
-  `~` is expanded via `os.getenv :HOME`, if the expansion fails an error is
-  raised. Paths may be relative to the current working directory with a leading
-  `.`.
+  Directory to recursively search inside for `*.fnl` files or a direct path to
+  a `.fnl` file. Direct paths are accepted as given but when recursing a
+  directory any file named `init-macros.fnl` is ignored, as macros do not
+  compile to lua. Any leading `~` is expanded via `os.getenv :HOME`, if the
+  expansion fails an error is raised. Paths may be relative to the current
+  working directory with a leading `.`.
 
   `options-table` (may be omitted)
 
@@ -295,7 +301,7 @@
   The function is called with each capture group in its associated pattern and
   a final table containing helper functions.
 
-  Ex: (fn [source-dir path-inside-health-dir {: join-path}
+  Ex: (fn [source-path path-inside-health-dir {: join-path}
            (join-path some-dir :lua path-inside-health-dir))
 
   Helpers: `join-path` joins all arguments with platform-specific separator.
