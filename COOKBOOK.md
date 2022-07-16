@@ -247,65 +247,84 @@ compilation errors.
 
 See [`:h hotpot.api`](doc/hotpot-api.txt) a complete listing.
 
-**Whoops, this needs updating!**
+Note: The API modules can be lazy-accessed from `hotpot` and `hotpot.api`
 
-**Evaluate and Print Selection**
+```fennel
+(let [hotpot (require :hotpot)
+      eval hotpot.api.eval
+  (eval.eval-selection))
 
-```lua
-vim.api.nvim_set_keymap("v",
-                        "<leader>fe",
-                        "<cmd>lua print(require('hotpot.api.eval')['eval-selection']())<cr>",
-                        {noremap = true, silent = false})
+(let [api (require :hotpot.api)
+      compile api.compile]
+  (compile.compile-buffer 0))
 ```
 
-**Compile and Print Selection**
+**Eval & Compile**
 
-(Note: will print `true <luacode>` or `false <errors>`.
+Evaluate or compile the `v` selection, or the entire buffer.
 
-```lua
-vim.api.nvim_set_keymap("v",
-                        "<leader>fc",
-                        "<cmd>lua print(require('hotpot.api.compile')['compile-selection']())<cr>",
-                        {noremap = true, silent = false})
+```fennel
+(fn pecho [ok? ...]
+  "nvim_echo vargs, as DiagnosticHint or DiagnosticError depending on ok?"
+  (let [{: nvim_echo} vim.api
+        {: view} (require :fennel)
+        hl (if ok? :DiagnosticHint :DiagnosticError)
+        list [...]
+        output []]
+    ;; TODO: this can be fcollect in fennel 1.2.0)
+    (for [i 1 (select :# ...)]
+      (table.insert output (-> (. list i)
+                               (#(match (type $1)
+                                   :table (view $1)
+                                   _ (tostring $1)))
+                               (.. "\n"))))
+    (nvim_echo (icollect [_ l (ipairs output)] [l hl]) true {})))
+
+(vim.keymap.set :n :heb
+                #(let [{: eval-buffer} (require :hotpot.api.eval)]
+                  (pecho (eval-buffer 0)))
+               {:desc "Evaluate entire buffer"})
+
+(vim.keymap.set :v :hes
+                #(let [{: eval-selection} (require :hotpot.api.eval)]
+                  (pecho (eval-selection)))
+               {:desc "Evaluate selection"})
+
+(vim.keymap.set :n :hcb
+                #(let [{: compile-buffer} (require :hotpot.api.compile)]
+                  (pecho (compile-buffer 0)))
+               {:desc "Compile entire buffer"})
+
+(vim.keymap.set :v :hcs
+                #(let [{: compile-selection} (require :hotpot.api.compile)]
+                  (pecho (compile-selection)))
+               {:desc "Compile selection"})
 ```
 
-**Compile and Print Buffer**
+**Cache operations**
 
-(Note: will print `true <luacode>` or `false <errors>`.
+Open the matching lua file for the current file.
 
-```lua
-vim.api.nvim_set_keymap("n",
-                        "<leader>fc",
-                        "<cmd>lua print(require('hotpot.api.compile')['compile-buffer'](0))<cr>",
-                        {noremap = true, silent = false})
+```fennel
+(vim.keymap.set :n :hff
+                #(let [{: cache-path-for-fnl-file} (require :hotpot.api.cache)]
+                   (match (cache-path-for-fnl-file (vim.fn.expand :%:p))
+                     path (vim.cmd (.. ":new " path))
+                     nil (vim.api.nvim_echo [["No cache file for current file" :WarningMsg]] true {})))
+                {:desc "Open compiled lua file for current file"})
 ```
 
-**Open Cached Lua file**
+Open the matching lua file an arbitrary module.
 
-```lua
-function _G.open_cache()
-  local cache_path_fn = require("hotpot.api.cache")["cache-path-for-fnl-file"]
-  local fnl_file = vim.fn.expand("%:p")
-  local lua_file = cache_path_fn(fnl_file)
-  if lua_file then
-    vim.cmd(":new " .. lua_file)
-  else
-    print("No matching cache file for current file")
-  end
-end
-
-vim.api.nvim_set_kemap("n",
-                      "<leader>ff",
-                      "<cmd>lua open_cache()<cr>",
-                      {noremap = true, silent = false})
+```fennel
+(vim.keymap.set :n :hfm
+                #(let [{: cache-path-for-module} (require :hotpot.api.cache)
+                       modname (vim.fn.input "module name: ")]
+                   (match (cache-path-for-module modname)
+                     path (vim.cmd (.. ":new " path))
+                     nil (vim.api.nvim_echo [[(.. "No cache file for " modname) :WarningMsg]] true {})))
+                {:desc "Open compiled lua file for module"})
 ```
-
-You can extend this to show results in floating windows, new splits, send via a
-HTTP post, pipe to `/dev/null`, etc.
-
-To implement these keymaps in Fennel, the [`pug` and
-`vlua` helpers](https://github.com/rktjmp/hotpot.nvim/discussions/6) listed on
-the discussion boards may be useful.
 
 ## Commands
 
