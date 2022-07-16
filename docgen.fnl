@@ -198,17 +198,8 @@ could be condensed.
 (local mod-eval
   {:modname "hotpot.api.eval"
    :title "Eval API"
-   :desc "Tools to evaluate Fennel code in-editor.
-
-   Available in the `hotpot.api.eval` module.
-
-   Every `eval-*` function has the potential to raise an error, by:
-
-   - bad arguments
-   - compile errors
-   - evaluated code errors
-
-   Handling these errors is left to the user.
+   :desc "Tools to evaluate Fennel code in-editor. All functions return
+   `true result ...` or `false err`.
 
    Note: If your Fennel code does not output anything, running these functions by
    themselves will not show any output! You may wish to wrap them in a

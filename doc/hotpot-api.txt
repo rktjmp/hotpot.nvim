@@ -429,17 +429,8 @@ always verbose. Returns `[result<ok> ...] [result<err> ...]`
 
 Eval API~
 
-Tools to evaluate Fennel code in-editor.
-
-   Available in the `hotpot.api.eval` module.
-
-   Every `eval-*` function has the potential to raise an error, by:
-
-   - bad arguments
-   - compile errors
-   - evaluated code errors
-
-   Handling these errors is left to the user.
+Tools to evaluate Fennel code in-editor. All functions return
+   `true result ...` or `false err`.
 
    Note: If your Fennel code does not output anything, running these functions by
    themselves will not show any output! You may wish to wrap them in a
@@ -451,8 +442,9 @@ eval-buffer~
 
 `(eval-buffer buf ?options)`
 
-Evaluate the given `buf` and return the result, or raise an error. Accepts
-an optional `options` table as described by Fennels API documentation.
+Evaluate the given `buf`, returns `true result ...` or `false error`.
+Accepts an optional `options` table as described by Fennels API
+documentation.
 
 
 --------------------------------------------------- *hotpot.api.eval.eval-file*
@@ -461,9 +453,9 @@ eval-file~
 
 `(eval-file fnl-file ?options)`
 
-Read contents of `fnl-path` and evaluate the contents, returns the result or
-raises an error. Accepts an optional `options` table as described by Fennels
-API documentation.
+Read contents of `fnl-path` and evaluate the contents, returns `true
+result ...` or `false error`. Accepts an optional `options` table as
+described by Fennels API documentation.
 
 
 ------------------------------------------------- *hotpot.api.eval.eval-module*
@@ -473,8 +465,9 @@ eval-module~
 `(eval-module modname ?options)`
 
 Use hotpots module searcher to find the file for `modname`, load and
-evaluate its contents then return the result or raises an error. Accepts an
-optional `options` table as described by Fennels API documentation.
+evaluate its contents, returns `true result ...` or `false error`..
+Accepts an optional `options` table as described by Fennels API
+documentation.
 
 
 -------------------------------------------------- *hotpot.api.eval.eval-range*
@@ -483,9 +476,10 @@ eval-range~
 
 `(eval-range buf start-pos stop-pos ?options)`
 
-Evaluate `buf` from `start-pos` to `end-pos` and return the results, or
-raise on error. Positions can be `line` or `line col`. Accepts an optional
-`options` table as described by Fennels API documentation.
+Evaluate `buf` from `start-pos` to `end-pos`, returns `true result
+...` or `false error`. Positions can be `line` or `line col`. Accepts
+an optional `options` table as described by Fennels API
+documentation.
 
 
 ---------------------------------------------- *hotpot.api.eval.eval-selection*
@@ -494,9 +488,9 @@ eval-selection~
 
 `(eval-selection ?options)`
 
-Evaluate the current selection and return the result, or raise an error.
-Accepts an optional `options` table as described by Fennels API
-documentation.
+Evaluate the current selection, returns `true result ...` or `false
+error`. Accepts an optional `options` table as described by Fennels
+API documentation.
 
 
 ------------------------------------------------- *hotpot.api.eval.eval-string*
@@ -505,9 +499,9 @@ eval-string~
 
 `(eval-string code ?options)`
 
-Evaluate given fennel `code` and return the results, or raise on error.
-Accepts an optional `options` table as described by Fennels API
-documentation.
+Evaluate given fennel `code`, returns `true result ...` or `false
+error`. Accepts an optional `options` table as described by Fennels
+API documentation.
 
 ========================================================== *hotpot.api.compile*
 
