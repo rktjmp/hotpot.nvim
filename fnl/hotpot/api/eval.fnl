@@ -9,9 +9,9 @@
     (compile-string "(+ 1 1)")))
 
 (fn eval-string [code ?options]
-  "Evaluate given fennel `code` and return the results, or raise on error.
-  Accepts an optional `options` table as described by Fennels API
-  documentation."
+  "Evaluate given fennel `code`, returns `true result ...` or `false
+  error`. Accepts an optional `options` table as described by Fennels
+  API documentation."
   (inject-macro-searcher)
   (let [{: eval} (require :hotpot.fennel)
         {: traceback} (require :hotpot.runtime)
@@ -22,32 +22,34 @@
     (xpcall do-eval traceback)))
 
 (fn eval-range [buf start-pos stop-pos ?options]
-  "Evaluate `buf` from `start-pos` to `end-pos` and return the results, or
-  raise on error. Positions can be `line` or `line col`. Accepts an optional
-  `options` table as described by Fennels API documentation."
+  "Evaluate `buf` from `start-pos` to `end-pos`, returns `true result
+  ...` or `false error`. Positions can be `line` or `line col`. Accepts
+  an optional `options` table as described by Fennels API
+  documentation."
   (let [{: get-range} (require :hotpot.api.get_text)]
     (-> (get-range buf start-pos stop-pos)
         (eval-string ?options))))
 
 (fn eval-selection [?options]
-  "Evaluate the current selection and return the result, or raise an error.
-  Accepts an optional `options` table as described by Fennels API
-  documentation."
+  "Evaluate the current selection, returns `true result ...` or `false
+  error`. Accepts an optional `options` table as described by Fennels
+  API documentation."
   (let [{: get-selection} (require :hotpot.api.get_text)]
     (-> (get-selection)
         (eval-string ?options))))
 
 (fn eval-buffer [buf ?options]
-  "Evaluate the given `buf` and return the result, or raise an error. Accepts
-  an optional `options` table as described by Fennels API documentation."
+  "Evaluate the given `buf`, returns `true result ...` or `false error`.
+  Accepts an optional `options` table as described by Fennels API
+  documentation."
   (let [{: get-buf} (require :hotpot.api.get_text)]
     (-> (get-buf buf)
         (eval-string ?options))))
 
 (fn eval-file [fnl-file ?options]
-  "Read contents of `fnl-path` and evaluate the contents, returns the result or
-  raises an error. Accepts an optional `options` table as described by Fennels
-  API documentation."
+  "Read contents of `fnl-path` and evaluate the contents, returns `true
+  result ...` or `false error`. Accepts an optional `options` table as
+  described by Fennels API documentation."
   (inject-macro-searcher)
   (assert fnl-file "eval-file: must provide path to .fnl file")
   (let [{: dofile} (require :hotpot.fennel)
@@ -59,8 +61,9 @@
 
 (fn eval-module [modname ?options]
   "Use hotpots module searcher to find the file for `modname`, load and
-  evaluate its contents then return the result or raises an error. Accepts an
-  optional `options` table as described by Fennels API documentation."
+  evaluate its contents, returns `true result ...` or `false error`..
+  Accepts an optional `options` table as described by Fennels API
+  documentation."
   (assert modname "eval-module: must provide modname")
   (let [{: searcher} (require :hotpot.searcher.source)
         {: is-fnl-path?} (require :hotpot.fs)
