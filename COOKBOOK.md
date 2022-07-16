@@ -251,7 +251,7 @@ Note: The API modules can be lazy-accessed from `hotpot` and `hotpot.api`
 
 ```fennel
 (let [hotpot (require :hotpot)
-      eval hotpot.api.eval
+      eval hotpot.api.eval]
   (eval.eval-selection))
 
 (let [api (require :hotpot.api)
@@ -312,6 +312,15 @@ Open the matching lua file for the current file.
                      path (vim.cmd (.. ":new " path))
                      nil (vim.api.nvim_echo [["No cache file for current file" :WarningMsg]] true {})))
                 {:desc "Open compiled lua file for current file"})
+```
+
+or with a Telescope searcher:
+
+```fennel
+(let [{: find_files} (require :telescope.builtin)
+      {: cache-prefix} (require :hotpot.api.cache)]
+  (find_files {:cwd (cache-prefix)
+               :hidden true}))
 ```
 
 Open the matching lua file an arbitrary module.
