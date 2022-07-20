@@ -158,11 +158,11 @@ your config.
 The module currently provides two functions: `build` and `check` (functionally
 equivalent `build` but with no changes to disk).
 
-`build` accepts a `source-dir`, an optional `options` table and then a set of
-`pattern function` argument pairs. Each `*.fnl` file in `source-dir` is
-checked against each `pattern` given, and if any match the `function` is called
-with the pattern captures as arguments. The function should return a path to
-save the compiled file to, or `nil`.
+`build` accepts a `source-path` (directory or file), an optional `options`
+table and then a set of `pattern function` argument pairs. Each `*.fnl` file in
+`source-dir` is checked against each `pattern` given, and if any match the
+`function` is called with the pattern captures as arguments. The function
+should return a path to save the compiled file to, or `nil`.
 
 For complete documentation, see [`:h hotpot.api.make`](doc/hotpot-api.txt).
 
@@ -180,8 +180,6 @@ For complete documentation, see [`:h hotpot.api.make`](doc/hotpot-api.txt).
        "(~/.config/nvim/ftplugins/.+)"
        (fn [whole-path] (values whole-path)))
 ```
-
-See also [`:h hotpot.api.make`](doc/hotpot-api.txt) for all options and examples.
 
 ## Writing `~/.config/nvim/init.lua` in Fennel
 
