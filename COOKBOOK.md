@@ -224,23 +224,6 @@ in Fennel and automatically compile it to loadable lua on save.
 (require :the-rest-of-my-config)
 ```
 
-## Checking your Config
-
-You can use `hotpot.api.make` to check if your whole configuration compiles. As
-described above, it provides a `check` function which will report any
-compilation errors.
-
-```fennel
-(vim.keymap.set :n :<leader>ccc
-                #(let [{: check} (require :hotpot.api.make)]
-                   (check "~/.config/nvim/" {:force? true}
-                          "(.+)/fnl/(.+)"
-                          (fn [root part {: join-path}]
-                            (if (not (string.find part "macros"))
-                              (join-path root :lua part))))))
-
-```
-
 ## Using the API
 
 See [`:h hotpot.api`](doc/hotpot-api.txt) a complete listing.
