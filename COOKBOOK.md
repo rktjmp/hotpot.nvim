@@ -304,7 +304,7 @@ or with a Telescope searcher:
                :hidden true}))
 ```
 
-Open the matching lua file an arbitrary module.
+Open the matching lua file for an arbitrary module.
 
 ```fennel
 (vim.keymap.set :n :hfm
