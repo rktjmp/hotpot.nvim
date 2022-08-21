@@ -1,12 +1,18 @@
 # 🍲 Hotpot Changelog
 
-Breaking changes are in **bold**.
+Breaking changes are in **bold**. Note that the SEMVER MAJOR version is 0, so
+breaking changes may occur on minor point releases. Generally breaking changes
+to "core" code (things that effect loading and running your code/config) are
+avoided but breaking changes to the API (things that might effect your bindings
+and auto commands) are treated with less reverence.
 
-## 0.3.X
+## 0.3.2
 
+- **Fixed `detach` spelling in `hotpot.api.diagnostics` and `hotpot.api.reflect`**
 - Updated `hotpot.api.make.build` and `hotpot.api.make.check` to accept a
   directory or single file as the source argument.
 - Fixed passing compiler options to Make API.
+- Added experimental optional `how` argument to `hotpot.api.diagnostics.set-options`.
 
 ## 0.3.1
 
