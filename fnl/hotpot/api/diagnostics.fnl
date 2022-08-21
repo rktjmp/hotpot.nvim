@@ -22,7 +22,7 @@
                   :options nil
                   :how :compile}))
 
-(fn record-detatchment [buf]
+(fn record-detachment [buf]
   "Remove attachment data"
   (tset data buf nil))
 
@@ -100,10 +100,10 @@
     (api.nvim_create_autocmd :FileType
                              {:buffer buf
                               :group au-group
-                              :desc (.. "Hotpot diagnostics auto-detatch on filetype change for buf#" buf)
+                              :desc (.. "Hotpot diagnostics auto-detach on filetype change for buf#" buf)
                               :callback #(match $1
                                            {:match "fennel"} nil
-                                           _ (M.detatch buf))})
+                                           _ (M.detach buf))})
     (record-attachment buf ns au-group handler)
     (handler)
     (values buf)))
@@ -113,7 +113,7 @@
 
   Buf can be 0 for current buffer, or any valid buffer number.
 
-  Returns the buffer-id which can be used to `detatch` or get `error-for-buf`,
+  Returns the buffer-id which can be used to `detach` or get `error-for-buf`,
   when given 0, this id will be the 'real' buffer id, otherwise it will match
   the original `buf` argument."
   (let [buf (resolve-buf-id user-buf)]
@@ -149,7 +149,7 @@
     (tset buf-data :how how)
     (buf-data.handler)))
 
-(fn M.detatch [user-buf ?opts]
+(fn M.detach [user-buf ?opts]
   "Remove hotpot-diagnostic instance from buffer."
   (let [buf (resolve-buf-id user-buf)]
     (match (data-for-buf buf)
@@ -157,7 +157,7 @@
                           (api.nvim_clear_autocmds {:group au-group
                                                     :buffer buf})
                           (reset-diagnostic ns)
-                          (record-detatchment buf)
+                          (record-detachment buf)
                           (values nil)))))
 
 (fn M.error-for-buf [user-buf]
@@ -185,10 +185,10 @@
                                          :desc "Hotpot diagnostics auto-attach"
                                          :callback attach-hotpot-diagnostics})))
 (fn M.disable []
-  "Disables filetype autocommand and detatches any attached buffers"
+  "Disables filetype autocommand and detaches any attached buffers"
   (api.nvim_clear_autocmds {:group data.au-group})
   (each [_ {: buf} (pairs data)]
-    (M.detatch buf))
+    (M.detach buf))
   (set data.au-group nil))
 
 (values M)

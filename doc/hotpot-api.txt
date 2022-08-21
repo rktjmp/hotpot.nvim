@@ -5,7 +5,7 @@
 The Hotpot API.....................................................|hotpot.api|
 Diagnostics API........................................|hotpot.api.diagnostics|
   attach........................................|hotpot.api.diagnostics.attach|
-  detatch......................................|hotpot.api.diagnostics.detatch|
+  detach........................................|hotpot.api.diagnostics.detach|
   disable......................................|hotpot.api.diagnostics.disable|
   enable........................................|hotpot.api.diagnostics.enable|
   error-for-buf..........................|hotpot.api.diagnostics.error-for-buf|
@@ -13,7 +13,7 @@ Diagnostics API........................................|hotpot.api.diagnostics|
 Reflect API................................................|hotpot.api.reflect|
   attach-input................................|hotpot.api.reflect.attach-input|
   attach-output..............................|hotpot.api.reflect.attach-output|
-  detatch-input..............................|hotpot.api.reflect.detatch-input|
+  detach-input................................|hotpot.api.reflect.detach-input|
   set-mode........................................|hotpot.api.reflect.set-mode|
 Make API......................................................|hotpot.api.make|
   build.................................................|hotpot.api.make.build|
@@ -86,16 +86,16 @@ Attach handler to buffer which will render compilation errors as diagnostics.
 
 Buf can be 0 for current buffer, or any valid buffer number.
 
-Returns the buffer-id which can be used to `detatch` or get `error-for-buf`,
+Returns the buffer-id which can be used to `detach` or get `error-for-buf`,
 when given 0, this id will be the 'real' buffer id, otherwise it will match
 the original `buf` argument.
 
 
----------------------------------------------- *hotpot.api.diagnostics.detatch*
+----------------------------------------------- *hotpot.api.diagnostics.detach*
 
-detatch~
+detach~
 
-`(detatch user-buf ?opts)`
+`(detach user-buf ?opts)`
 
 Remove hotpot-diagnostic instance from buffer.
 
@@ -106,7 +106,7 @@ disable~
 
 `(disable)`
 
-Disables filetype autocommand and detatches any attached buffers
+Disables filetype autocommand and detaches any attached buffers
 
 
 ----------------------------------------------- *hotpot.api.diagnostics.enable*
@@ -133,9 +133,21 @@ diagnostic structure returned by Neovim.
 
 set-options~
 
-`(set-options user-buf opts)`
+`(set-options user-buf opts ?how)`
 
 Set compiler options for a buffer, where the defaults are incompatible.
+
+This is useful for allowing error checking in macro modules.
+
+user-buf must match an already attached buffer (0 is valid if attached).
+
+opts is a table of compiler options.
+
+?how can adjust how the buffer is checked, by default it is :compile but you
+may set this to :eval for macro-modules.
+
+BE CAREFUL when setting to :eval, THE CODE WILL BE RUN when checking for
+errors.
 
 This API is EXPERIMENTAL and behaviour may change in the future if future
 options are suported, which may dictate how missing options are handled.
@@ -239,7 +251,7 @@ attach-input~
 
 `(attach-input session-id given-buf-id)`
 
-Attach given buffer to session. This will detatch any existing attachment first.
+Attach given buffer to session. This will detach any existing attachment first.
 
 Returns session-id
 
@@ -255,18 +267,18 @@ the buffer is already in a window that was configured by the caller
 (float, split, etc). The contents of this buffer should be treated as
 ephemeral, do not pass an important buffer in!
 
-Returns `session-id {: attach : detatch}` where `attach` and `detatch`
-act as the module level `attach` and `detatch` with the session-id
+Returns `session-id {: attach : detach}` where `attach` and `detach`
+act as the module level `attach` and `detach` with the session-id
 argument already filled.
 
 
--------------------------------------------- *hotpot.api.reflect.detatch-input*
+--------------------------------------------- *hotpot.api.reflect.detach-input*
 
-detatch-input~
+detach-input~
 
-`(detatch-input session-id)`
+`(detach-input session-id)`
 
-Detatch buffer from session, which removes marks and autocmds.
+Detach buffer from session, which removes marks and autocmds.
 
 Returns session-id
 

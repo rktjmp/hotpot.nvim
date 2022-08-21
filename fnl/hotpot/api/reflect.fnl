@@ -219,10 +219,10 @@
     (values session)))
 
 (fn close-session [session]
-  "Close a session which should detatch any attached buffers. Not to be
+  "Close a session which should detach any attached buffers. Not to be
   called by the user, who should just remove the buffer."
   (if session.input-buf
-    (M.detatch-input session.id))
+    (M.detach-input session.id))
   (tset sessions session.id nil))
 
 (fn M.attach-output [given-buf-id]
@@ -231,8 +231,8 @@
   (float, split, etc). The contents of this buffer should be treated as
   ephemeral, do not pass an important buffer in!
 
-  Returns `session-id {: attach : detatch}` where `attach` and `detatch`
-  act as the module level `attach` and `detatch` with the session-id
+  Returns `session-id {: attach : detach}` where `attach` and `detach`
+  act as the module level `attach` and `detach` with the session-id
   argument already filled."
   (let [buf (resolve-buf-id given-buf-id)
         session (default-session buf)]
@@ -249,10 +249,10 @@
                               :once true
                               :callback #(close-session session)})
     (values session.id {:attach #(M.attach session.id $1)
-                        :detatch #(M.detatch session.id $1)})))
+                        :detach #(M.detach session.id $1)})))
 
-(fn M.detatch-input [session-id]
-  "Detatch buffer from session, which removes marks and autocmds.
+(fn M.detach-input [session-id]
+  "Detach buffer from session, which removes marks and autocmds.
 
   Returns session-id"
   (let [session (. sessions session-id)]
@@ -263,18 +263,18 @@
     (values session.id)))
 
 (fn M.attach-input [session-id given-buf-id]
-  "Attach given buffer to session. This will detatch any existing attachment first.
+  "Attach given buffer to session. This will detach any existing attachment first.
 
   Returns session-id"
   ;; ensure the session is ok
   (local session (. sessions session-id))
   (assert session (string.format "Could not find session with given id %s" (tostring session-id)))
-  ;; detatch existing attachment if present, we could leave these
+  ;; detach existing attachment if present, we could leave these
   ;; attached and just let the "last edit win" but our modification
   ;; tracking is not limited to just the range given, so any edits in an
   ;; attached buffer would re-eval and clobber the other attached
   ;; buffers results, which might be counter intuitive.
-  (if session.input-buf (M.detatch-input session.id session.input-buf))
+  (if session.input-buf (M.detach-input session.id session.input-buf))
   ;; now attach the new buf, which means grabbing the current highlight
   ;; range, setting up the content-changed autocmd, firing the handler first time
   (let [buf (resolve-buf-id given-buf-id)]
@@ -282,7 +282,7 @@
     ;; for now. architecturally I would prefer to push the buf value around but
     ;; we currently dont support attaching mutiple buffers to one session as
     ;; it's probably more of an UX displeasure as you'd have to bind the
-    ;; detatch keymap too.
+    ;; detach keymap too.
     (tset session :input-buf buf)
     (attach-extmarks session)
     (attach-autocmd session)
