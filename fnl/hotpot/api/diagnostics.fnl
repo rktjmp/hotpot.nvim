@@ -19,7 +19,8 @@
                   : au-group
                   : handler
                   :err nil
-                  :options nil}))
+                  :options nil
+                  :how :compile}))
 
 (fn record-detatchment [buf]
   "Remove attachment data"
@@ -63,14 +64,19 @@
 (fn make-handler [buf ns]
   "Create the autocmd callback"
   (let [{: compile-buffer} (require :hotpot.api.compile)
+        {: eval-buffer} (require :hotpot.api.eval)
         ;; collect collect known globals as we want to enforce strict mode
         allowed-globals (icollect [n _ (pairs _G)] n)
         fname (match (api.nvim_buf_get_name buf) "" nil any any)]
     (fn []
       (let [buf-data (. data buf)
+            compile-or-eval (match buf-data.how
+                              :compile compile-buffer
+                              :eval eval-buffer
+                              _ compile-buffer)
             options (or buf-data.options
                         {:filename fname :allowedGlobals allowed-globals})]
-        (match (compile-buffer buf options)
+        (match (compile-or-eval buf options)
           (true _) (do
                      (set-buf-err buf nil)
                      (reset-diagnostic ns))
@@ -115,14 +121,32 @@
       nil (do-attach buf))
     (values buf)))
 
-(fn M.set-options [user-buf opts]
+(fn M.set-options [user-buf opts ?how]
   "Set compiler options for a buffer, where the defaults are incompatible.
+
+  This is useful for allowing error checking in macro modules.
+
+  user-buf must match an already attached buffer (0 is valid if attached).
+
+  opts is a table of compiler options.
+
+  ?how can adjust how the buffer is checked, by default it is :compile but you
+  may set this to :eval for macro-modules.
+
+  BE CAREFUL when setting to :eval, THE CODE WILL BE RUN when checking for
+  errors.
 
   This API is EXPERIMENTAL and behaviour may change in the future if future
   options are suported, which may dictate how missing options are handled."
   (let [buf (resolve-buf-id user-buf)
-        buf-data (. data buf)]
+        buf-data (. data buf)
+        how (match ?how
+              nil :compile
+              :compile :compile
+              :eval :eval
+              _ (error "invalid `how`, must be :compile, :eval or nil"))]
     (tset buf-data :options opts)
+    (tset buf-data :how how)
     (buf-data.handler)))
 
 (fn M.detatch [user-buf ?opts]
