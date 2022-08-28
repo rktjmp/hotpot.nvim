@@ -6,6 +6,11 @@ to "core" code (things that effect loading and running your code/config) are
 avoided but breaking changes to the API (things that might effect your bindings
 and auto commands) are treated with less reverence.
 
+## 0.4.0
+
+- **Update to Fennel 1.2.0**, may contain breaking changes from upstream, see
+  Fennel changelog.
+
 ## 0.3.2
 
 - **Fixed `detach` spelling in `hotpot.api.diagnostics` and `hotpot.api.reflect`**
