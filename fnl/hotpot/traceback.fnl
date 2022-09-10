@@ -1,4 +1,19 @@
-(fn traceback [msg]
+(fn strip-escape-codes [line]
+  "Remove any escape codes that fennel compiler injects for error highlighting
+  from give line"
+  (string.gsub line "\027%[%d+m" ""))
+
+(fn simple-traceback [msg]
+  "Pass the given traceback through fennels traceback function then strip any escape codes that are inserted to highlight errors"
+  (let [fennel (require :hotpot.fennel)
+        {: join-path} (require :hotpot.fs)
+        msg (-> msg
+                (fennel.traceback)
+                (strip-escape-codes))]
+    ;; append a new line for visual clarity
+    (.. "\n" msg "\n")))
+
+(fn brain-traceback [msg]
   "Customised traceback formatter which strips Fennels internal stackframes
   from the stacktrace, as they are often more noise than signal."
   ;; we *do* want to use the fennel traceback handler, but we also want
@@ -73,4 +88,5 @@
           (string.gsub "\n\n\n+" "\n\n")
           (#(string.format "\n%s\n" $1)))))
 
-{: traceback}
+{:traceback simple-traceback
+ : brain-traceback}

@@ -14,7 +14,7 @@
   "Return a new default configuration table"
   {:compiler {:modules {}
               :macros {:env :_COMPILER}
-              :traceback :fennel}
+              :traceback :hotpot}
    :enable_hotpot_diagnostics true
    :provide_require_fennel false})
 
