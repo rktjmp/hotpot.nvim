@@ -171,13 +171,21 @@ For complete documentation, see [`:h hotpot.api.make`](doc/hotpot-api.txt).
 (build "~/.config/nvim"
        ;; ~/.config/nvim/fnl/*.fnl -> ~/.config/nvim/lua/*.lua
        "(.+)/fnl/(.+)"
-       (fn [root path {: join-path}] ;; root is the first match, path is the second
+       ;; `root` is the first match, `path` is the second.
+       ;; "(.+)/fnl/(.+)"
+       ;;  ^^^^ root
+       ;;           ^^^^ path
+       ;; Note that the argument names are not important, you decide
+       ;; what to call them, in the order they are captured.
+       (fn [root path {: join-path}]
          ;; ignore our own macro file (init-macros.fnl is ignored by default)
          (if (not (string.match path "my-macros%.fnl$"))
            ;; join-path automatically uses the os-appropriate path separator
            (join-path root :lua path)))
        ;; config/ftplugins/*.fnl -> config/ftplugins/*.lua
        "(~/.config/nvim/ftplugins/.+)"
+       ;; Note again, we have 1 capture, so only one arg, and since we're not
+       ;; manipulating the path we can ignore the helpers table too.
        (fn [whole-path] (values whole-path)))
 ```
 
