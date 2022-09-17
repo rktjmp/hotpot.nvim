@@ -180,12 +180,25 @@ It also allows the |:source| command to work with `.fnl` files.
 
 If evaluates {expression} if provided, othewise evaluates Fennel over [range]
 from the current buffer.
+
+If given form is preceeded by `=`, the result is passed through `fennel.view`
+and printed. Multiple return values are separated with `, `.
+
+You may also use `=` when providing a range.
+
+If a range and a form is provided, the range is ignored.
+
 >
-  :Fnl (print :hello) -> "hello"
+  :Fnl (vim.keymap.set ...) ;; evaluates code, no output
+  :Fnl (values 99 (+ 1 1)) ;; evaluates code, no output
+  :Fnl =(values 99 (+ 1 1)) ;; evaluates code, outputs "99, 2"
+  :Fnl=(+ 1 1) ;; You may omit the space
 
-  :'<,'> => evaluates selection in current buffer
+  :'<,'>Fnl ;; evaluates selection in current buffer
+  :1,10Fnl = ;; evaluate lines 1 to 10 in current buffer, prints output
+  :'<,'>Fnl= ;; again, the space may be omitted
 
-  :'<,'>Fnl (print :hello) -> "hello" (range is ignored)
+  :'<,'>Fnl (print :hello) ;; prints "hello" (range is ignored)
 
 ---------------------------------------------------- *:Fnldo* *hotpot-command-fnldo*
 

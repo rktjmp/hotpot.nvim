@@ -3,7 +3,7 @@ lua require("hotpot")
 
 " Execute Fennel expression or range from buffer
 command! -range=% -nargs=* Fnl
-      \ :lua require("hotpot.api.command").fnl(<line1>, <line2>, <q-args>)
+      \ :lua require("hotpot.api.command").fnl(<line1>, <line2>, <q-args>, <range>)
 
 " Execute file
 command! -nargs=1 -complete=file Fnlfile
