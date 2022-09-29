@@ -6,12 +6,16 @@
 (fn simple-traceback [msg]
   "Pass the given traceback through fennels traceback function then strip any escape codes that are inserted to highlight errors"
   (let [fennel (require :hotpot.fennel)
-        {: join-path} (require :hotpot.fs)
-        msg (-> msg
-                (fennel.traceback)
-                (strip-escape-codes))]
-    ;; append a new line for visual clarity
-    (.. "\n" msg "\n")))
+        {: join-path} (require :hotpot.fs)]
+    (match msg
+      ;; sometimes, we're called with nil... ?
+      ;; so I guess, we'll just return nil... ?
+      nil nil
+      ;; append a new line for visual clarity
+      msg (string.format "\n%s\n"
+                         (-> msg
+                             (fennel.traceback)
+                             (strip-escape-codes))))))
 
 (fn brain-traceback [msg]
   "Customised traceback formatter which strips Fennels internal stackframes
