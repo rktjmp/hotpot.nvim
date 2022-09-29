@@ -328,7 +328,7 @@ file itself was not updated. Because `make.build` operates outside of Hotpots
 regular infrastructure, it does not currently track stale-ness to this level
 and only compares the source file vs the target file. See the `force?` option.
 
-Returns `[result<ok> ...] [result<err> ...]`
+Returns `[[src, dest, result<ok>] ...] [[src, dest, result<err>] ...]`
 
 Usage example:
 
@@ -435,7 +435,7 @@ check~
 `(check ...)`
 
 Functionally identical to `build' but wont output any files. `check' is
-always verbose. Returns `[result<ok> ...] [result<err> ...]`
+always verbose. Returns `[[src, dest, result<ok>] ...] [[src, dest, result<err>] ...]`
 
 ============================================================= *hotpot.api.eval*
 
