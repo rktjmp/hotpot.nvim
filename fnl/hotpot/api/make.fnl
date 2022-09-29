@@ -366,7 +366,7 @@
 
 (fn M.check [...]
   "Functionally identical to `build' but wont output any files. `check' is
-  always verbose. Returns `[result<ok> ...] [result<err> ...]`"
+  always verbose. Returns `[[src, dest, result<ok>] ...] [[src, dest, result<err>] ...]`"
   (let [(options oks errs) (do-make ...)
         err-text (accumulate [text [] _ [fnl-file _ [_ msg]] (ipairs errs)]
                    (doto text
