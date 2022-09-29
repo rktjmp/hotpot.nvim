@@ -158,6 +158,7 @@
   ;; compile then restore the old config.
   ;; TODO: Ideally we can wrap an execution context in a coroutine or similar
   ;;       and just swap them out as needed.
+  ;; Hack-ish, tro to sniff module name if possible
   (let [{: compile-file} (require :hotpot.api.compile)
         {: set-config :config previous-config} (require :hotpot.runtime)
         ;; the config is only the compiler subset
@@ -224,7 +225,7 @@
   regular infrastructure, it does not currently track stale-ness to this level
   and only compares the source file vs the target file. See the `force?` option.
 
-  Returns `[result<ok> ...] [result<err> ...]`
+  Returns `[[src, dest, result<ok>] ...] [[src, dest, result<err>] ...]`
 
   Usage example:
 
@@ -362,7 +363,8 @@
                        (fout:write code))
             (table.insert text [(string.format "OK %s\n-> %s\n" fnl-file lua-file) :DiagnosticInfo])))
         (if (<= 1 options.verbosity)
-          (vim.api.nvim_echo text true {}))))))
+          (vim.api.nvim_echo text true {}))))
+    (values oks errs)))
 
 (fn M.check [...]
   "Functionally identical to `build' but wont output any files. `check' is
