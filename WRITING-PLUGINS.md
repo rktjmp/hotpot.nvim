@@ -51,11 +51,21 @@ my-plugin.nvim/
       ;; raise an error if any files don't compile
       (oks errs) (build "./fnl" {:force? true :atomic? true}
                         "./fnl/(.+)" (fn [p {: join-path}] (join-path :./lua p)))]
+  ;; You may have binds which print results from hotpot-eval-buffer, so we
+  ;; return nil here instead of the results from build to avoid printing
+  ;; all the oks and errs.
+  ;; You may not need to do this if you're always going to use :Fnlfile
   (values nil))
 ```
 
 Then you may run this by `:Fnlfile make.fnl`. You may prefer to bind this to a
 key or command, or setup a libuv fsevent watcher to run it automatically on save.
+
+Note that the example `make.fnl` *does not* remove `lua/`. Destructive
+operations are left to the developer. This means you can include a
+`lua/lib/lume.lua` and it wont be removed each time for example, but "old"
+`fnl->lua` from deleted sources will also hang around unless you clean them
+some how.
 
 See the documentation via `:h hotpot.api.make` and
 [rktjmp/paperplanes.nvim](https://github.com/rktjmp/paperplanes.nvim) or
