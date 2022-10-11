@@ -169,7 +169,12 @@ require("hotpot").setup({
     },
     -- options passed to fennel.compile for macros, defaults as shown
     macros = {
-      env = "_COMPILER" -- MUST be set along with any other options
+      env = "_COMPILER", -- MUST be set along with any other options
+      -- you may wish to disable fennels macro-compiler sandbox in some cases,
+      -- this allows access to tables like `vim` or `os` inside macro functions.
+      -- See fennels own documentation for details on these options.
+      -- compilerEnv = _G,
+      -- allowGlobals = false,
     }
   }
 })
