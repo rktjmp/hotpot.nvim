@@ -1,21 +1,7 @@
-(fn strip-escape-codes [line]
-  "Remove any escape codes that fennel compiler injects for error highlighting
-  from give line"
-  (string.gsub line "\027%[%d+m" ""))
-
-(fn simple-traceback [msg]
-  "Pass the given traceback through fennels traceback function then strip any escape codes that are inserted to highlight errors"
-  (let [fennel (require :hotpot.fennel)
-        {: join-path} (require :hotpot.fs)]
-    (match msg
-      ;; sometimes, we're called with nil... ?
-      ;; so I guess, we'll just return nil... ?
-      nil nil
-      ;; append a new line for visual clarity
-      msg (string.format "\n%s\n"
-                         (-> msg
-                             (fennel.traceback)
-                             (strip-escape-codes))))))
+(fn simple-traceback [...]
+  "Just pipe through to fennels traceback"
+  (let [fennel (require :hotpot.fennel)]
+    (fennel.traceback ...)))
 
 (fn brain-traceback [msg]
   "Customised traceback formatter which strips Fennels internal stackframes
