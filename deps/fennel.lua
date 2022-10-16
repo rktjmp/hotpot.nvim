@@ -1,1 +1,1 @@
-fennel-1.2.0.lua
+/home/soup/projects/hotpot/master/deps/fennel-1.2.1.lua
