@@ -21,7 +21,7 @@ jobs:
     outputs:
       stale: ${{ steps.compare.outputs.stale }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Get Fennel SHA from nightly branch
       run: |
         git fetch origin nightly
@@ -37,18 +37,17 @@ jobs:
     - name: Compare remote vs last SHA
       id: compare
       run: |
-        echo '::echo::on'
         if [ $CURRENT_SHA != $FENNEL_SHA ]; then
-          echo "::set-output name=stale::true"
+          echo "stale=true" >> $GITHUB_ENV
         else
-          echo "::set-output name=stale::false"
+          echo "stale=false" >> $GITHUB_ENV
         fi
   build_nightly:
     runs-on: ubuntu-latest
     needs: check_stale
     if: ${{ github.event_name == 'push' || github.event_name == 'workflow_dispatch' || needs.check_stale.outputs.stale == 'true' }}
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
       with:
         # we want full histories so we can actually merge
         fetch-depth: 0
