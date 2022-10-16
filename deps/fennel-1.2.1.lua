@@ -3490,7 +3490,7 @@ package.preload["fennel.friend"] = package.preload["fennel.friend"] or function(
     local ok, codeline = pcall(read_line, filename, line, source)
     local out = {msg, ""}
     if (ok and codeline) then
-      if col then
+      if false and col then
         table.insert(out, highlight_line(codeline, col, endcol))
       else
         table.insert(out, codeline)
