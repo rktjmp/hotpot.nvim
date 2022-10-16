@@ -1,6 +1,6 @@
 (fn new-macro-dep-tracking-plugin [fnl-path required-from-modname]
-  {:versions [:1.1.0 :1.1.1 :1.2.0]
-   :name (.. :hotpot-macro-dep-tracking-for required-from-modname)
+  {:versions [:1.1.0 :1.1.1 :1.2.0 :1.2.1]
+   :name (.. :hotpot-macro-dep-tracking-for- required-from-modname)
    :require-macros
    (fn plug-require-macros [ast scope]
      (let [fennel (require :hotpot.fennel)
