@@ -11,7 +11,7 @@
   an optional `options` table as described by Fennels API documentation."
   ;; (string string) :: (true luacode) | (false errors)
   (let [{: compile-string} (require :hotpot.compiler)
-        options (or ?options {})]
+        options (vim.deepcopy (or ?options {}))]
     (if (= nil options.filename)
       (tset options :filename :hotpot-live-compile))
     (compile-string str options)))
@@ -52,7 +52,7 @@
   `options` table as described by Fennels API documentation."
   ;; (string) :: (true luacode) | (false errors)
   (let [{: is-fnl-path? : file-exists? : read-file!} (require :hotpot.fs)
-        options (or ?options {})]
+        options (or (vim.deepcopy ?options) {})]
     (if (= nil options.filename)
       (tset options :filename fnl-path))
     (expect (is-fnl-path? fnl-path)
@@ -72,7 +72,7 @@
   (let [{: is-fnl-path?} (require :hotpot.fs)
         {: searcher} (require :hotpot.searcher.source)
         path (searcher modname {:fennel-only? true})
-        options (or ?options {})]
+        options (vim.deepcopy (or ?options {}))]
     (if (= nil options.module-name)
       (tset options :module-name modname))
     (if (= nil options.filename)
