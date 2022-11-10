@@ -158,15 +158,30 @@
   ;; compile then restore the old config.
   ;; TODO: Ideally we can wrap an execution context in a coroutine or similar
   ;;       and just swap them out as needed.
-  ;; Hack-ish, tro to sniff module name if possible
   (let [{: compile-file} (require :hotpot.api.compile)
+        {: path-separator} (require :hotpot.fs)
         {: set-config :config previous-config} (require :hotpot.runtime)
         ;; the config is only the compiler subset
         _ (set-config {:compiler opts.compiler})
-        ;; TODO set modname? We can only guess by fnl/ sub which isn't great
-        result (match (compile-file fnl-file (?. opts :compiler :modules))
+        ;; For relative requires, we need to have a known module name.
+        ;; since we can be pretty sure we're operating in nvim, where
+        ;; fnl/ will be our "root", we can sniff the module name if
+        ;; that is present.
+        ;; This *may* have false positives for strange setups but
+        ;; it would also depend on the compiled file trying to access ... at
+        ;; compilation time for it to be impactful.
+        options (match (string.match fnl-file (.. "fnl" (path-separator) "(.+)$"))
+                  nil (?. opts :compiler :modules)
+                  path (let [modname (-> path
+                                         (string.gsub (path-separator) ".")
+                                         (string.gsub "%.fnl$" "")
+                                         (string.gsub "%.init$" ""))]
+                         (doto (or (?. opts :compiler :modules) {})
+                           (tset :module-name modname))))
+        result (match (compile-file fnl-file options)
                  (true lua-code) (R.unit lua-code)
                  (false err) (R.unit nil err))
+        _ (set options.module-name nil)
         _ (set-config previous-config)]
     (values result)))
 
