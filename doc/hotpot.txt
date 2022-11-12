@@ -127,18 +127,28 @@ module files.
 `compiler.macros` is passed to the Fennel compiler when compiling macro files.
 Be sure to include `env = "_COMPILER"` unless you have a good reason not to.
 
+Fennel compiler plugins are supported in two forms, as a table (ie. as
+described by Fennels documentation) and as a string which should be a module
+name. If your plugin needs access to the "compiler environment" (ie. it uses
+special forms such as `(sym)` or `(macroexpand)` not avaliable to "normal"
+Fennel code), you should specify the module name and hotpot will load it when
+required in the special environment.
 
-Note: the `filename` compilation option is always set to the appropriate value
+Compiler plugins are currently only supported for modules
+(`compiler.modules.plugins`).
+
+Note: The `filename` compilation option is always set to the appropriate value
       and can not be altered via the setup interface.
 
-Note: the `modules` and `macros` tables _replace_ the defaults when given,
+Note: The `modules` and `macros` tables _replace_ the defaults when given,
       they are _not_ merged. Include all options you wish to pass to the
       compiler!
 
-Note: the `compiler` options are not currently passed to any `api.compile`
+Note: The `compiler` options are not currently passed to any `api.compile`
       functions and are only applied to Hotpots internal/automatic
       compilation. If you have use for passing options to `api.compile` please
       open an issue.
+
 
 For a complete list of compiler options, see http://fennel-lang.org,
 specifically the API usage section.
