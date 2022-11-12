@@ -6,6 +6,12 @@ to "core" code (things that effect loading and running your code/config) are
 avoided but breaking changes to the API (things that might effect your bindings
 and auto commands) are treated with less reverence.
 
+## 0.5.2 unreleased
+
+- Fix diagnostics inside "macro modules".
+- Add `compiler.modules.plugins` and `compiler.macros.plugins` config options
+  to support user specified fennel compiler plugins.
+
 ## 0.5.1
 
 - Fixed `filename` option persisting between some `api.compile` function calls.
