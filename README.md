@@ -30,9 +30,11 @@ neat("fennel") -- => "fennel is neat!"
 
 <div align="center">
 <p align="center">
-  <img style="width: 100%" src="images/reflect.svg">
+  <img style="width: 80%;" src="images/reflect.svg">
 </p>
 </div>
+
+### *New in 0.5.2! 🍩 Improved diagnostics! 🍾 [Compiler plugin support!](COOKBOOK.md#compiler-plugins)*
 
 ## TOC
 
