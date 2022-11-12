@@ -66,7 +66,7 @@
         ;; collect collect known globals as we want to enforce strict mode
         allowed-globals (icollect [n _ (pairs _G)] n)
         fname (match (api.nvim_buf_get_name buf) "" nil any any)
-        kind (match (string.find fname "macros?%.fnl$")
+        kind (match (string.find (or fname "") "macros?%.fnl$")
                any :macro
                nil :module)
         ;; grab (and maybe load) plugins but don't alter any root options
