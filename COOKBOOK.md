@@ -11,6 +11,7 @@
 - [Using the API](#using-the-api)
 - [Included Commands](#Commands)
 - [Using `vim` or `os` in macros](#compiler-sandbox)
+- [Compiler Plugins](#compiler-plugins)
 
 ## Using Hotpot Reflect
 
@@ -428,3 +429,63 @@ macros = {
 ```
 
 For more information on available options, see Fennels own documentation.
+
+## Compiler Plugins
+
+Fennel supports user provided compiler plugins and Hotpot does too. For more
+information on compiler plugins, see Fennels own documentation.
+
+Plugins are specified for both `modules` and `macros` and may be provided as a
+table (ie. as described by Fennels documentation) or a module name as a string.
+
+When your plugin requires access to the compiler environment or is
+uncomfortable to write in lua (which may be the language your using to define
+`setup`'s options), specifying the plugin as a string lets you do that.
+
+Compiler plugins are extremely powerful and can let you add new language
+constructs to Fennel or modify existing ones but be aware of the impact you
+might have on portability and clarity.
+
+Below are two identical plugins which add 1 to every `(+)` call (so `(+ 1 1)`
+becomes `(+ 1 1 1)`.
+
+```fennel
+;; .config/nvim/fnl/off_by_one.fnl
+(fn call [ast scope ...]
+  (match ast
+    [[:+]] (table.insert ast 1))
+  (values nil))
+
+{:name :add_one_module
+ :call call
+ :versions [:1.2.1]}
+```
+
+```lua
+off_by_one = {
+  name = "add_one_table",
+  call = function (ast, scope)
+    if ast[1][1] == "+" then
+      table.insert(ast, 1)
+    end
+    return nil
+  end,
+  versions = {"1.2.1"}
+}
+
+require("hotpot").setup({
+  compiler = {
+    modules = {
+      plugins = {
+        "off_by_one",
+        off_by_one,
+      }
+    },
+    -- you may also define for macros
+    -- macros = {
+    --   plugins = {...},
+    -- },
+  }
+})
+```
+
