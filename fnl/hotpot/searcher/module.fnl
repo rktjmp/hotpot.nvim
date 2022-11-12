@@ -84,6 +84,24 @@
         :timestamp (file-mtime mod-path)}))
 
 (fn create-fnl-loader [modname mod-path]
+  ;; we will need to compile some fennel, look if we have compiler plugins and
+  ;; load them up now as they require a special environment.
+  (let [{:searcher modname->path} (require :hotpot.searcher.source)
+        fennel (require :fennel)
+        {: config} (require :hotpot.runtime)
+        options (. config :compiler :modules)
+        ;; to allow for runtime adjustments of plugins, we'll always do
+        ;; this when creating a loader, and just peek for strings
+        ;; to replace with real values
+        plugins (icollect [_i plug (ipairs (or options.plugins []))]
+                  (match-try [:type (type plug)]
+                    [:type :string] (modname->path plug)
+                    path (fennel.dofile path {:env :_COMPILER})
+                    (catch
+                      [:type _] plug
+                      nil (error (string.format "Could not find fennel compiler plugin %q" plug)))))]
+    (set options.plugins plugins))
+
   (let [{: fnl-path->lua-cache-path} (require :hotpot.index)
         {: deps-for-fnl-path} (require :hotpot.dependency-map)
         {: file-mtime} (require :hotpot.fs)
