@@ -3,6 +3,7 @@
 ## TOC
 
 - [Using Hotpot Reflect](#using-hotpot-reflect)
+- [Diagnostics](#diagnostics)
 - [Compiling `ftplugins` and similar](#compiling-ftplugins-and-similar)
 - [Ahead of Time Compilation](#ahead-of-time-compilation)
 - [Writing `~/.config/nvim/init.lua` in Fennel](#writing-confignviminitlua-in-fennel)
@@ -104,6 +105,19 @@ could be condensed.
       (reflect.set-mode reflect-session.id reflect-session.mode))))
 (vim.keymap.set :n :hx swap-reflect-mode)
 ```
+
+## Diagnostics
+
+Hotpot ships with built in diagnostics feature to show fennel compilation
+errors via Neovim diagnostics.
+
+It automatically attaches to buffers with the filetype `fennel` and updates
+when ever you leave insert mode or otherwise change the buffer.
+
+"Macro modules" require a special fennel environment. To detect "macro modules",
+Hotpot checks if the buffer filename ends in `macro.fnl` or `macros.fnl` which is
+common practice. It's not currently possible to enable the macro environment in
+other contexts (please open an issue).
 
 ## Compiling `ftplugins` and similar
 
