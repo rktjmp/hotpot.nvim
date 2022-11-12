@@ -67,6 +67,9 @@
 
 (fn dehydrate-records [index]
   "Write index.modules to index.path"
+  ;; TODO if there is one file to compile, and it fails, but still returns a
+  ;; module (??) then we can potentially try to save to a non-existent dir
+  ;; because we are relying on the compiler to create the target dir.
   (let [{: modules : path} index
         bytes (vim.mpack.encode {:version 1 :data modules})]
     (with-open [fout (io.open path :wb)]
