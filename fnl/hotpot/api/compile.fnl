@@ -11,6 +11,7 @@
   an optional `options` table as described by Fennels API documentation."
   ;; (string string) :: (true luacode) | (false errors)
   (let [{: compile-string} (require :hotpot.compiler)
+        ;; TODO badidea? will die on userdata if user has attached _G somewhere
         options (vim.deepcopy (or ?options {}))]
     (if (= nil options.filename)
       (tset options :filename :hotpot-live-compile))
