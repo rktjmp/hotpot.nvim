@@ -15,8 +15,9 @@
 (fn set-macro-modname-path [mod path]
   (let [existing-path (. macro-mods-paths mod)
         fmt string.format]
-    (assert (= existing-path nil)
-            (fmt "already have mod-path for %s -> %s" mod path))
+    (assert (or (= existing-path path)
+                (= existing-path nil))
+            (fmt "already have mod-path for %s, current: %s, new: %s" mod existing-path path))
     (tset macro-mods-paths mod path)))
 
 (fn fnl-path-depends-on-macro-module [fnl-path macro-module]

@@ -76,6 +76,9 @@ The diagnostic is limited to one sentence (as provided by Fennel), but the
 entire error, including hints can be accessed via the `user_data` field of the
 diagnostic, or via `error-for-buf`.
 
+Macro forms require a special environment to correctly parse. Files ending in
+`macro.fnl` or `macros.fnl` are automatically evaluated in this context.
+
 ----------------------------------------------- *hotpot.api.diagnostics.attach*
 
 attach~

@@ -62,6 +62,7 @@ tests="require_hotpot \
        api \
        api-make \
        cache_invalidation \
+       plugins \
        user_53_kebab_filename \
        nix_compat"
 for name in $tests; do

@@ -3,6 +3,7 @@
 ## TOC
 
 - [Using Hotpot Reflect](#using-hotpot-reflect)
+- [Diagnostics](#diagnostics)
 - [Compiling `ftplugins` and similar](#compiling-ftplugins-and-similar)
 - [Ahead of Time Compilation](#ahead-of-time-compilation)
 - [Writing `~/.config/nvim/init.lua` in Fennel](#writing-confignviminitlua-in-fennel)
@@ -10,6 +11,7 @@
 - [Using the API](#using-the-api)
 - [Included Commands](#Commands)
 - [Using `vim` or `os` in macros](#compiler-sandbox)
+- [Compiler Plugins](#compiler-plugins)
 
 ## Using Hotpot Reflect
 
@@ -104,6 +106,19 @@ could be condensed.
       (reflect.set-mode reflect-session.id reflect-session.mode))))
 (vim.keymap.set :n :hx swap-reflect-mode)
 ```
+
+## Diagnostics
+
+Hotpot ships with built in diagnostics feature to show fennel compilation
+errors via Neovim diagnostics.
+
+It automatically attaches to buffers with the filetype `fennel` and updates
+when ever you leave insert mode or otherwise change the buffer.
+
+"Macro modules" require a special fennel environment. To detect "macro modules",
+Hotpot checks if the buffer filename ends in `macro.fnl` or `macros.fnl` which is
+common practice. It's not currently possible to enable the macro environment in
+other contexts (please open an issue).
 
 ## Compiling `ftplugins` and similar
 
@@ -414,3 +429,102 @@ macros = {
 ```
 
 For more information on available options, see Fennels own documentation.
+
+## Compiler Plugins
+
+Fennel supports user provided compiler plugins and Hotpot does too. For more
+information on compiler plugins, see Fennels own documentation.
+
+Plugins are specified for both `modules` and `macros` and may be provided as a
+table (ie. as described by Fennels documentation) or a module name as a string.
+
+When your plugin requires access to the compiler environment or is
+uncomfortable to write in lua (which may be the language your using to define
+`setup`'s options), specifying the plugin as a string lets you do that.
+
+Compiler plugins are extremely powerful and can let you add new language
+constructs to Fennel or modify existing ones but be aware of the impact you
+might have on portability and clarity.
+
+Below are two identical plugins which add 1 to every `(+)` call (so `(+ 1 1)`
+becomes `(+ 1 1 1)`.
+
+```fennel
+;; .config/nvim/fnl/off_by_one.fnl
+(fn call [ast scope ...]
+  (match ast
+    [[:+]] (table.insert ast 1))
+  (values nil))
+
+{:name :add_one_module
+ :call call
+ :versions [:1.2.1]}
+```
+
+```lua
+off_by_one = {
+  name = "add_one_table",
+  call = function (ast, scope)
+    if ast[1][1] == "+" then
+      table.insert(ast, 1)
+    end
+    return nil
+  end,
+  versions = {"1.2.1"}
+}
+
+require("hotpot").setup({
+  compiler = {
+    modules = {
+      plugins = {
+        "off_by_one",
+        off_by_one,
+      }
+    },
+    -- you may also define for macros
+    -- macros = {
+    --   plugins = {...},
+    -- },
+  }
+})
+```
+
+<details>
+<summary>F͙̖͍͇̤ͣ̅ͯ̕Ō̝̦͎̣̲͖̬̬̌́R̖̮͈ͭ͊̾̈́͘B̢̮̖̊ͧ̃Į̳̘͇̣͖̔͋D̈̑̅͏̟͓̮̰̼̪͈Ď̡̲̠͇͍͓̔E̥̠̱ͫ̋̈̽͢Ņ̹̠̱̮̖̖̝ͣͯ̌ ̠̰̲̗̝̂͞K̶̩̲̖̦̯͕̜̱̃͆ͯ̾Ṉ͔̠̩̗̅̓̈́͢Ǫ̻̳̜̅W̰̩̰̬ͣ͗̕L̽ͦ̂͑҉͇̠E̫͎̝͖͕̰ͣ͡D̖͎͇̔̂ͬ͡G͇͚̩̱̮̹̈́͠E̱̖̯̫̬̫̞͒ͧ͜</summary>
+
+```fennel
+;; plugin.fnl
+
+;; must define as function that returns a list
+(fn map-seq-fn [seq f]
+  `(icollect [_# v# (ipairs ,seq)] (,f v#)))
+
+(fn call [ast scope ...]
+  (match ast
+    ;; match against symbol and capture arguments
+    [[:map-seq] & other]
+    ;; written as do for comment clarity
+    (do
+      ;; expand our macro as compiler would do, passing in capture arguments
+      (local macro-ast (map-seq-fn (unpack other)))
+      ;; now expand that ast again (this expands icollect etc, *other* macros)
+      (local true-ast (macroexpand macro-ast))
+      ;; change ast to match macro ast, note that we must
+      ;; **modifiy** the ast, not return a new one, as we're
+      ;; actually modifying the ast back in the compiler call-site.
+      (each [i ex-ast (ipairs true-ast)]
+        (tset ast i ex-ast))))
+  ;; nil to continue other plugins
+  (values nil))
+
+{:name :magic-map-seq
+ :call call
+ :versions [:1.2.1]}
+```
+
+```fennel
+;; file.fnl
+(map-seq [1 2 3] #(print $)) ;; works by magic
+```
+
+</details>

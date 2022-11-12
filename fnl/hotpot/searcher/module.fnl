@@ -84,6 +84,13 @@
         :timestamp (file-mtime mod-path)}))
 
 (fn create-fnl-loader [modname mod-path]
+  ;; we will need to compile some fennel, look if we have compiler plugins and
+  ;; load them up now as they require a special environment.
+  (let [{: instantiate-plugins} (require :hotpot.searcher.plugin)
+        {: config} (require :hotpot.runtime)
+        options (. config :compiler :modules)
+        plugins (instantiate-plugins options.plugins)]
+    (set options.plugins plugins))
   (let [{: fnl-path->lua-cache-path} (require :hotpot.index)
         {: deps-for-fnl-path} (require :hotpot.dependency-map)
         {: file-mtime} (require :hotpot.fs)
