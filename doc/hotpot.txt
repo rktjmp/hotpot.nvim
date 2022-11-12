@@ -134,9 +134,6 @@ special forms such as `(sym)` or `(macroexpand)` not avaliable to "normal"
 Fennel code), you should specify the module name and hotpot will load it when
 required in the special environment.
 
-Compiler plugins are currently only supported for modules
-(`compiler.modules.plugins`).
-
 Note: The `filename` compilation option is always set to the appropriate value
       and can not be altered via the setup interface.
 
