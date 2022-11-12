@@ -18,9 +18,7 @@
                   : buf
                   : au-group
                   : handler
-                  :err nil
-                  :options nil
-                  :how :compile}))
+                  :err nil}))
 
 (fn record-detachment [buf]
   "Remove attachment data"
@@ -50,9 +48,9 @@
                                    :user_data err}])))
   ;; match <type> in error <file>:<line-col>
   ;; line-col may be ?:?, dd:? or dd:dd
-  ;; we currently broadmatch the line-col for 1.1.0 (only lines) and 1.2.0
-  ;; (line:col) compatibility
-  ;; TODO 1.2.0
+  ;; we currently broadly match the line-col for
+  ;;  - 1.1.0 (only lines) and
+  ;;  - 1.2.0 (line:col)
   (match (string.match err "([%w]+) error in ([^:]-):([%d:?]+)\n[%s]-(.-)\n")
     (kind "unknown" "?" msg) (set-diagnostic kind "unknown" 0 (.. "(error had no line number)" msg) err)
     (kind "unknown" "?:?" msg) (set-diagnostic kind "unknown" 0 (.. "(error had no line number)" msg) err)
@@ -63,32 +61,49 @@
 
 (fn make-handler [buf ns]
   "Create the autocmd callback"
-  (let [{: compile-buffer} (require :hotpot.api.compile)
-        {: eval-buffer} (require :hotpot.api.eval)
+  (let [{:get-buf get-buf-text} (require :hotpot.api.get_text)
+        {: compile-string} (require :hotpot.api.compile)
         ;; collect collect known globals as we want to enforce strict mode
         allowed-globals (icollect [n _ (pairs _G)] n)
-        fname (match (api.nvim_buf_get_name buf) "" nil any any)]
+        fname (match (api.nvim_buf_get_name buf) "" nil any any)
+        kind (match (string.find fname "macros?%.fnl$")
+               any :macro
+               nil :module)
+        ;; grab (and maybe load) plugins but don't alter any root options
+        plugins (let [{: instantiate-plugins} (require :hotpot.searcher.plugin)
+                      {: config} (require :hotpot.runtime)
+                      options (. config :compiler (.. kind :s))]
+                  (instantiate-plugins options.plugins))]
     (fn []
       (let [buf-data (. data buf)
-            compile-or-eval (match buf-data.how
-                              :compile compile-buffer
-                              :eval eval-buffer
-                              _ compile-buffer)
-            options (or buf-data.options
-                        {:filename fname :allowedGlobals allowed-globals})]
-        (match (compile-or-eval buf options)
-          (true _) (do
-                     (set-buf-err buf nil)
-                     (reset-diagnostic ns))
-          (false err) (do
-                        (set-buf-err buf err)
-                        (render-error-diagnostic buf ns err)))
+            buf-text (match kind
+                       :module (get-buf-text buf)
+                       ;; There isn't a clean way to compile-check macros, env
+                       ;; = _COMPILER only seems to work with eval/dofile even
+                       ;; though the API reference says it alters eval/compile
+                       ;; environment.
+                       ;; To get around this we can wrap the would-be macro-context
+                       ;; code inside a (macro) call which correctly tricks
+                       ;; fennel into compiling the code in the correct
+                       ;; environment.
+                       :macro (string.format "(macro ___hotpot-dignostics-wrap [] %s )" (get-buf-text buf)))
+            options {:filename fname
+                     :allowedGlobals allowed-globals
+                     :plugins plugins}]
+        (match (compile-string buf-text options)
+          (true _)
+          (do
+            (set-buf-err buf nil)
+            (reset-diagnostic ns))
+          (false err)
+          (do
+            (set-buf-err buf err)
+            (render-error-diagnostic buf ns err)))
         ;; ensure we don't delete the autocommand accidentally
         (values nil)))))
 
 (fn do-attach [buf]
-  (let [{: compile-buffer} (require :hotpot.api.compile)
-        ns (api.nvim_create_namespace (.. :hotpot-diagnostic-for-buf- buf))
+  (let [ns (api.nvim_create_namespace (.. :hotpot-diagnostic-for-buf- buf))
         handler (make-handler buf ns)
         au-group (api.nvim_create_augroup (.. :hotpot-diagnostics-for-buf- buf)
                                           {:clear true})]
@@ -97,6 +112,7 @@
                               :group au-group
                               :desc (.. "Hotpot diagnostics update autocmd for buf#" buf)
                               :callback handler})
+    ;; detatch diagnostics if attached buffer changes filetype
     (api.nvim_create_autocmd :FileType
                              {:buffer buf
                               :group au-group
@@ -120,34 +136,6 @@
     (match (data-for-buf buf)
       nil (do-attach buf))
     (values buf)))
-
-(fn M.set-options [user-buf opts ?how]
-  "Set compiler options for a buffer, where the defaults are incompatible.
-
-  This is useful for allowing error checking in macro modules.
-
-  user-buf must match an already attached buffer (0 is valid if attached).
-
-  opts is a table of compiler options.
-
-  ?how can adjust how the buffer is checked, by default it is :compile but you
-  may set this to :eval for macro-modules.
-
-  BE CAREFUL when setting to :eval, THE CODE WILL BE RUN when checking for
-  errors.
-
-  This API is EXPERIMENTAL and behaviour may change in the future if future
-  options are suported, which may dictate how missing options are handled."
-  (let [buf (resolve-buf-id user-buf)
-        buf-data (. data buf)
-        how (match ?how
-              nil :compile
-              :compile :compile
-              :eval :eval
-              _ (error "invalid `how`, must be :compile, :eval or nil"))]
-    (tset buf-data :options opts)
-    (tset buf-data :how how)
-    (buf-data.handler)))
 
 (fn M.detach [user-buf ?opts]
   "Remove hotpot-diagnostic instance from buffer."
