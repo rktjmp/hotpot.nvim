@@ -28,12 +28,6 @@ local neat = require('is_neat') -- compiled & cached on demand
 neat("fennel") -- => "fennel is neat!"
 ```
 
-
-### New in 0.3.0
-
-Inline diagnostics, [REPL like tooling](COOKBOOK.md#using-hotpot-reflect),
-breaking changes. See [the changelog](CHANGELOG.md).
-
 <div align="center">
 <p align="center">
   <img style="width: 100%" src="images/reflect.svg">
@@ -45,7 +39,7 @@ breaking changes. See [the changelog](CHANGELOG.md).
 - [Requirements](#requirements)
 - [Install](#install)
 - [Setup](#setup)
-- [Cookbook](COOKBOOK.md)
+- [Cookbook - common questions and usage guides](COOKBOOK.md)
 - [API](#api)
 - [How does Hotpot work?](#how-does-hotpot-work)
 - [Windows](#windows)
