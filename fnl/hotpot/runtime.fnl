@@ -37,6 +37,11 @@
         :hotpot true
         :fennel true
         _ (error "invalid config.compiler.traceback value, must be 'hotpot' or 'fennel'"))
+    ;; These functions run viml which may not be run outside of the main event
+    ;; loop. We can be *pretty* confident that this will be run in the main loop
+    ;; so we'll run the functions now and cache the results
+    (tset new-config :cache-dir (vim.fn.stdpath :cache))
+    (tset new-config :windows? (= 1 (vim.fn.has "win32")))
     (set M.config new-config)
     (values M.config)))
 

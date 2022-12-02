@@ -55,6 +55,25 @@
       nil (error (.. "Could not extract dirname from path: " path))
       n (string.sub path 1 n))))
 
+(fn what-is-at [path]
+  "file, directory, link, nothing or (nil err)"
+  (match (uv.fs_stat path)
+    ({: type}) (values type)
+    (nil _ :ENOENT) (values :nothing)
+    (nil err _) (values nil (string.format "uv.fs_stat error %s" err))))
+
+(fn make-path [path]
+  ;; this is a bit more x-compat as we don't have to worry about / vs C:\ at
+  ;; the root. Instead we assume the root exists and run backwards until we hit
+  ;; a real dir, then run forwards making our directories.
+  (let [(backwards _here) (string.match path (string.format "(.+)%s(.+)$" path-sep))]
+    (match (what-is-at path)
+      :directory true ;; done
+      :nothing (do
+                 (assert (make-path backwards))
+                 (assert (uv.fs_mkdir path 493)))
+      other (error (string.format "could not create path because %s exists at %s" other path)))))
+
 {: read-file!
  : write-file!
  : file-exists?
@@ -63,5 +82,6 @@
  : is-lua-path?
  : is-fnl-path?
  : join-path
+ : make-path
  : dirname
  : path-separator}

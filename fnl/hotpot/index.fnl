@@ -8,16 +8,17 @@
 (import-macros {: expect} :hotpot.macros)
 
 (fn fnl-path->lua-cache-path [fnl-path]
+  (local {: config} (require :hotpot.runtime))
   ;; (string) :: string
   ;; Converts given fnl file path to lua path inside cache (file may or may not exist)
   (fn cache-prefix []
     ;; cache path isn't configurable anyway so this is unparameterised for now
     ;; TODO shift this into config and get from that (or maybe runtime)
     (let [{: join-path} (require :hotpot.fs)]
-      (join-path (vim.fn.stdpath :cache) :hotpot)))
+      (join-path config.cache-dir :hotpot)))
 
   (fn sanitise-joinable-path [path]
-    (if (= 1 (vim.fn.has "win32"))
+    (if config.windows?
       ;; cant have C:\cache\C:\path, make it C:\cache\C\path
       (string.gsub path "^(.-):" "%1")
       (values path)))

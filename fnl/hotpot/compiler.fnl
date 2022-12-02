@@ -40,6 +40,7 @@
            : path-separator
            : is-lua-path?
            : is-fnl-path?
+           : make-path
            : dirname} (require :hotpot.fs)
           _ (expect (is-fnl-path? fnl-path) "compile-file fnl-path not fnl file: %q" fnl-path)
           _ (expect (is-lua-path? lua-path) "compile-file lua-path not lua file: %q" lua-path)
@@ -51,7 +52,7 @@
       (match (compile-string fnl-code options)
         (true lua-code) (let []
                           (check-existing lua-path)
-                          (vim.fn.mkdir (dirname lua-path) :p)
+                          (make-path (dirname lua-path))
                           (write-file! lua-path lua-code))
         (false errors) (error errors))))
   (pcall do-compile))
