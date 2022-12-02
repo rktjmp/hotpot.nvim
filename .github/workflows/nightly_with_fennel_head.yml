@@ -106,4 +106,4 @@ jobs:
         git add -A fnl/ lua/ deps/ canary
         git status
         git commit -m "Automated build with Fennel-$FENNEL_VERSION-dev-$FENNEL_SHA"
-        git push
+        git push --force
