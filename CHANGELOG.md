@@ -6,6 +6,11 @@ to "core" code (things that effect loading and running your code/config) are
 avoided but breaking changes to the API (things that might effect your bindings
 and auto commands) are treated with less reverence.
 
+## 0.5.3
+
+- Removed viml code from compiler code path so Hotpot has a better chance of
+  running outside of neovims main thread. (Doing this requires nvim 0.8+).
+
 ## 0.5.2
 
 - Fix diagnostics inside "macro modules".
