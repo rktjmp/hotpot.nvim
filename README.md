@@ -201,7 +201,7 @@ module loader.
 The lua cache contains our compiled fennel code. When requiring a fennel
 module, we must first compile that fennel code into lua, then save the result
 to disk. This allows the user to easily view the result of the compilation for
-debugging. See `:h hotpot-cache`.
+debugging. See `:h hotpot.api.cache`.
 
 The bytecode cache is a special file (normally called the `index`), loaded
 into memory when Neovim starts. It contains the machine readable code for
