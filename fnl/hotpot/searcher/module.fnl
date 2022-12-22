@@ -78,10 +78,8 @@
     (values ok errors)))
 
 (fn create-lua-loader [modname mod-path]
-  (let [{: file-mtime} (require :hotpot.fs)]
-       {:loader (loadfile mod-path)
-        :deps []
-        :timestamp (file-mtime mod-path)}))
+  {:loader (loadfile mod-path)
+   :deps []})
 
 (fn create-fnl-loader [modname mod-path]
   ;; we will need to compile some fennel, look if we have compiler plugins and
@@ -93,29 +91,29 @@
     (set options.plugins plugins))
   (let [{: fnl-path->lua-cache-path} (require :hotpot.index)
         {: deps-for-fnl-path} (require :hotpot.dependency-map)
-        {: file-mtime} (require :hotpot.fs)
         lua-path (fnl-path->lua-cache-path mod-path)]
     (match (compile-fnl mod-path lua-path modname)
       true {:loader (loadfile lua-path)
-            :deps (or (deps-for-fnl-path mod-path) [])
-            :timestamp (file-mtime lua-path)}
+            :deps (or (deps-for-fnl-path mod-path) [])}
       (false err) (values nil err))))
 
 (fn create-loader [modname mod-path]
-  (let [{: is-lua-path? : is-fnl-path?} (require :hotpot.fs)
+  (let [{: is-lua-path? : is-fnl-path? : file-stat} (require :hotpot.fs)
         create-loader-fn (or (and (is-lua-path? mod-path) create-lua-loader)
                              (and (is-fnl-path? mod-path) create-fnl-loader)
                              #(values nil (.. "hotpot could not create loader for " mod-path)))]
     (match (create-loader-fn modname mod-path)
-      {: loader : timestamp : deps}
-      (let [path mod-path
-            ;; From the index's perspective, source files can also become stale
-            ;; when they're modified, so add the source file to the dependencies list
+      {: loader : deps}
+      (let [;; From the index's perspective, source files can also become stale
+            ;; when they're modified, so add the source file to the files list
             ;; so the index can track it too.
-            files (doto deps (table.insert 1 mod-path))]
+            all-files (doto deps (table.insert 1 mod-path))
+            file-stats (icollect [_ path (ipairs all-files)]
+                         (let [{: mtime : size} (file-stat path)]
+                           {: path : mtime : size}))]
         ;; We return our extra index data as a second value so the searcher is
         ;; still technically lua compatible.
-        (values loader {: path : files : timestamp}))
+        (values loader {:path mod-path :files file-stats}))
       (nil err) (values err))))
 
 (fn searcher [modname]
