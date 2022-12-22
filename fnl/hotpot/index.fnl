@@ -7,6 +7,8 @@
 
 (import-macros {: expect} :hotpot.macros)
 
+(local index-version 2)
+
 (fn fnl-path->lua-cache-path [fnl-path]
   (local {: config} (require :hotpot.runtime))
   ;; (string) :: string
@@ -58,7 +60,9 @@
                               (let [bytes (fin:read :*a)
                                     mpack vim.mpack
                                     {: version : data} (mpack.decode bytes)]
-                                (values data)))))
+                                (match version
+                                  index-version data
+                                  _ {}))))
     ;; load was fine, return records
     (true records) (values records)
     ;; load failed, this could be due to a missing index or corrupted index,
@@ -72,7 +76,7 @@
   ;; module (??) then we can potentially try to save to a non-existent dir
   ;; because we are relying on the compiler to create the target dir.
   (let [{: modules : path} index
-        bytes (vim.mpack.encode {:version 1 :data modules})]
+        bytes (vim.mpack.encode {:version index-version :data modules})]
     (with-open [fout (io.open path :wb)]
                (fout:write bytes))))
 
