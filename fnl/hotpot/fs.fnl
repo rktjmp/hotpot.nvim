@@ -37,6 +37,12 @@
   (let [{: mtime} (uv.fs_stat path)]
     (values mtime.sec)))
 
+(fn file-stat [path]
+  (expect (file-exists? path)
+          "cant check hash of %s, does not exist" path)
+  (let [{: mtime : size} (uv.fs_stat path)]
+    {:mtime mtime.sec : size}))
+
 ;; dont recompute all the time
 (local path-sep (string.match package.config "(.-)\n"))
 (fn path-separator [] (values path-sep))
@@ -79,6 +85,7 @@
  : file-exists?
  : file-missing?
  : file-mtime
+ : file-stat
  : is-lua-path?
  : is-fnl-path?
  : join-path
