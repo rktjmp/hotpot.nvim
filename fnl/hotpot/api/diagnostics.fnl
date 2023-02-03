@@ -46,15 +46,9 @@
                                    :severity vim.diagnostic.severity.ERROR
                                    :source :hotpot-diagnostic
                                    :user_data err}])))
-  ;; match <type> in error <file>:<line-col>
-  ;; line-col may be ?:?, dd:? or dd:dd
-  ;; we currently broadly match the line-col for
-  ;;  - 1.1.0 (only lines) and
-  ;;  - 1.2.0 (line:col)
-  (match (string.match err "([%w]+) error in ([^:]-):([%d:?]+)\n[%s]-(.-)\n")
-    (kind "unknown" "?" msg) (set-diagnostic kind "unknown" 0 (.. "(error had no line number)" msg) err)
-    (kind "unknown" "?:?" msg) (set-diagnostic kind "unknown" 0 (.. "(error had no line number)" msg) err)
-    (kind file line-col msg) (match (string.match line-col "([%d?]+)")
+  (match (string.match err "([^:]-):([%d:?]+) ([%w]+) error: (.-)\n")
+    ("unknown" "?:?" kind msg) (set-diagnostic kind "unknown" 0 (.. "(error had no line number)" msg) err)
+    (file line-col kind msg) (match (string.match line-col "([%d?]+)")
                                "?" (set-diagnostic kind file 0 (.. "(error had no line number)" msg) err)
                                line (set-diagnostic kind file (- (tonumber line) 1) msg err))
     _ nil)) ;; TODO write this without "press enter" prompt
@@ -89,6 +83,7 @@
                        :macro (string.format "(macro ___hotpot-dignostics-wrap [] %s )" (get-buf-text buf)))
             options {:filename fname
                      :allowedGlobals allowed-globals
+                     :error-pinpoint false
                      :plugins plugins}]
         (match (compile-string buf-text options)
           (true _)
