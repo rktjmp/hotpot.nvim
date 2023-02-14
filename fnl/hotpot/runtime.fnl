@@ -11,7 +11,7 @@
     (values traceback)))
 
 (fn M.default-config []
-  "Return a new default configuration table"
+  "Return a new hotpot configuration table with default options."
   {:compiler {:modules {}
               :macros {:env :_COMPILER}
               :traceback :hotpot}
