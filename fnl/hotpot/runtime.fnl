@@ -14,6 +14,7 @@
   "Return a new hotpot configuration table with default options."
   {:compiler {:modules {}
               :macros {:env :_COMPILER}
+              :preprocessor (fn [src] src)
               :traceback :hotpot}
    :enable_hotpot_diagnostics true
    :provide_require_fennel false})
@@ -25,7 +26,7 @@
 
 (fn M.set-config [user-config]
   (let [new-config (M.default-config)]
-    (each [_ k (ipairs [:modules :macros :traceback])]
+    (each [_ k (ipairs [:preprocessor :modules :macros :traceback])]
       (match (?. user-config :compiler k)
         val (tset new-config :compiler k val)))
     (match (?. user-config :provide_require_fennel)

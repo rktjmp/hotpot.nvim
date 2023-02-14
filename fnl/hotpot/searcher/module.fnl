@@ -62,6 +62,11 @@
   (let [{: compile-file} (require :hotpot.compiler)
         {: config} (require :hotpot.runtime)
         options (. config :compiler :modules)
+        user-preprocessor (. config :compiler :preprocessor)
+        preprocessor (fn [src]
+                       (user-preprocessor src {:macro? false
+                                               :path fnl-path
+                                               :modname modname}))
         plugin (new-macro-dep-tracking-plugin fnl-path modname)]
     ;; inject our plugin, must only exist for this compile-file call because it
     ;; depends on the specific fnl-path closure value, so we will table.remove
@@ -73,7 +78,7 @@
     (tset options :plugins (or options.plugins []))
     (tset options :module-name modname)
     (table.insert options.plugins 1 plugin)
-    (local (ok errors) (compile-file fnl-path lua-path options))
+    (local (ok errors) (compile-file fnl-path lua-path options preprocessor))
     (table.remove options.plugins 1)
     (values ok errors)))
 

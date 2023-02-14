@@ -26,7 +26,7 @@
     (pick-values 1 (fennel.compile-string string options)))
   (xpcall compile traceback))
 
-(fn compile-file [fnl-path lua-path options]
+(fn compile-file [fnl-path lua-path options ?preprocessor]
   "Compile fennel code from `fnl-path` and save to `lua-path`"
   ;; (string, string) :: (true, nil) | (false, errors)
   (fn check-existing [path]
@@ -42,9 +42,12 @@
            : is-fnl-path?
            : make-path
            : dirname} (require :hotpot.fs)
+          preprocessor (or ?preprocessor (fn [src] src))
           _ (expect (is-fnl-path? fnl-path) "compile-file fnl-path not fnl file: %q" fnl-path)
           _ (expect (is-lua-path? lua-path) "compile-file lua-path not lua file: %q" lua-path)
-          fnl-code (read-file! fnl-path)
+          fnl-code (case (-> (read-file! fnl-path) (preprocessor))
+                     (nil err) (error err)
+                     src src)
           ;; pass on any options to the compiler, but enforce the filename
           ;; we use the whole fennel file path as that can be a bit clearer.
           options (doto (or options {})

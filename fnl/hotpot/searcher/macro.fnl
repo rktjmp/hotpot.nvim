@@ -15,7 +15,15 @@
   ;; assumes path exists!
   (let [fennel (require :hotpot.fennel)
         {: read-file!} (require :hotpot.fs)
-        code (read-file! path)]
+        {: config} (require :hotpot.runtime)
+        user-preprocessor (. config :compiler :preprocessor)
+        preprocessor (fn [src]
+                       (user-preprocessor src {:macro? true
+                                               :path path
+                                               :modname modname}))
+        code (case (-> (read-file! path) (preprocessor))
+               (nil err) (error err)
+               src src)]
     (fn [modname]
       ;; require the depencency map module *inside* the load function
       ;; to avoid circular dependencies.
