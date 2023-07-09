@@ -6,6 +6,11 @@ to "core" code (things that effect loading and running your code/config) are
 avoided but breaking changes to the API (things that might effect your bindings
 and auto commands) are treated with less reverence.
 
+## 0.7.0
+
+- **Updated to Fennel 1.3.1**, may contain un-intended breaking changes from
+  upstream, see Fennels own changelog.
+
 ## 0.6.0
 
 - **Updated to Fennel 1.3.0**, may contain un-intended breaking changes from
