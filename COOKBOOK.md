@@ -248,6 +248,19 @@ in Fennel and automatically compile it to loadable lua on save.
 (require :the-rest-of-my-config)
 ```
 
+Finally, we have to manually run this code *once* to generate the new `init.lua`:
+
+- Open `init.fnl`
+- Run `:Fnlfile %` to execute the current file and *enable* the
+autocommand.
+  - Note, this will also run any code that is executed by `(require
+    :the-rest-of-my-config)`.
+- Save the file with `:w` to *run* the autocommand. *This will overwrite your
+  existing `init.lua`!*
+- Open `init.lua` to confirm it contains your fennel, compiled into lua.
+- Start neovim in a new terminal to confirm the config loading is functioning
+  without any errors.
+
 ## Using the API
 
 See [`:h hotpot.api`](doc/hotpot-api.txt) a complete listing.
