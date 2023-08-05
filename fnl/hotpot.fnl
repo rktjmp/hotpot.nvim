@@ -26,9 +26,9 @@
     ;; the options make more sense to be run "during setup".
     (let [runtime (require :hotpot.runtime)
           config (runtime.set-config options)]
-      (if config.provide_require_fennel
+      (when config.provide_require_fennel
         (tset package.preload :fennel #(require :hotpot.fennel)))
-      (if config.enable_hotpot_diagnostics
+      (when config.enable_hotpot_diagnostics
         (let [{: enable} (require :hotpot.api.diagnostics)]
           (enable)))))
   (set-lazy-proxy M {:api :hotpot.api :runtime :hotpot.runtime}))
