@@ -8,7 +8,7 @@ cat <<EOF | assert "can import a fennel file without crashing"
 EOF
 
 cat <<EOF | assert "imported file is in cache"
-  if [[ ! -f ~/.cache/nvim/hotpot/home/user/config/fnl/my-file.lua ]]; then
+  if [[ ! -f ~/.cache/nvim/hotpot/compiled/config/lua/my-file.lua ]]; then
     exa --tree -a ~/.cache/nvim/hotpot >> ~/run.log
     fail "no cache file created"
   fi
