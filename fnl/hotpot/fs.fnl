@@ -40,8 +40,7 @@
 (fn file-stat [path]
   (expect (file-exists? path)
           "cant check hash of %s, does not exist" path)
-  (let [{: mtime : size} (uv.fs_stat path)]
-    {:mtime mtime.sec : size}))
+  (uv.fs_stat path))
 
 ;; dont recompute all the time
 (local path-sep (string.match package.config "(.-)\n"))
