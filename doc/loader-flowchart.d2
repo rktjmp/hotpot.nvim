@@ -1,0 +1,135 @@
+direction: down
+
+compiler: {
+  compare -> compile: different
+  compile -> update-database
+}
+compiler.compare -> loader: Same
+compiler.update-database -> loader
+loader: {shape: oval}
+
+"vim.loader.find": {shape: step}
+"vim.loader.find" -> found-lua-path?
+found-lua-path?: {shape: diamond}
+found-lua-path? -> no-find-result.search-for-fennel: None
+found-lua-path? -> find-path-type: Some
+find-path-type: {shape: diamond}
+find-path-type -> cache-path.lua-path-in-db?: cache
+find-path-type -> colo-path.lua-path-in-db?: colocated
+find-path-type -> todo.check.for.modname.renames
+
+no-find-result: {
+  search-for-fennel: {shape: diamond}
+  search-for-fennel -> nil: No results
+  nil: {shape: oval}
+}
+no-find-result.search-for-fennel -> compiler: Found fennel file
+
+colo-path: {
+  lua-path-in-db?: {shape: diamond}
+  lua-path-in-db? -> known-colo-path.db-fnl-path-exists?
+  lua-path-in-db? -> unknown-colo-path.sigil-wants-colocation?
+
+  known-colo-path: {
+    db-fnl-path-exists?: {shape: diamond}
+    db-fnl-path-exists? -> sigil-wants-colocation?: Yes
+    db-fnl-path-exists? -> remove-lua-file.size-time-matches-db?: |md
+      No, we made this lua file
+      but its fnl disappeared, so
+      remove the lua too.
+    |
+
+    sigil-wants-colocation?: {shape: diamond}
+    sigil-wants-colocation? -> remove-lua-file.size-time-matches-db?: |md
+      sigil forbids colocation,
+      so we must remove this file.
+    |
+
+    sigil-wants-colocation? -> size-time-matches-db?: Yes
+    size-time-matches-db?: {shape: diamond}
+    size-time-matches-db? -> may-lose-changes?: No, file has changed
+    nil {shape: oval}
+    may-lose-changes? {shape: diamond} 
+    may-lose-changes? -> nil:  Keep lua file
+
+    remove-lua-file: {
+      size-time-matches-db?: {shape: diamond}
+      size-time-matches-db? -> remove-file: |md
+        Yes, We found lua file 
+        but actually its an old
+        artefact and we are sure
+        we made it
+      |
+      remove-file -> update-database
+
+      size-time-matches-db? -> notify-warning: |md
+        No, probably an artefact 
+        of ours but something has
+        changed, so we wont just
+        nuke users files.
+      |
+      update-database -> nil
+      notify-warning -> nil
+      nil: {shape: oval}
+    }
+  }
+  unknown-colo-path: {
+    sigil-wants-colocation?: {shape: diamond}
+    sigil-wants-colocation? -> loader: |md
+      Sigil forbids colocation,
+      preferenc the colo lua
+    |
+    sigil-wants-colocation? -> has-fnl-twin?: Yes
+
+    has-fnl-twin?: {shape: diamond}
+    has-fnl-twin? -> loader: |md
+      Sigil allows colocation, 
+      but this file has no fnl twin,
+      so just load the lua file
+    |
+    loader: {shape: oval}
+  }
+}
+colo-path.known-colo-path.size-time-matches-db? -> compiler.compare: Yes
+colo-path.known-colo-path.may-lose-changes? -> compiler.compare: Ok to overwrite
+colo-path.unknown-colo-path.has-fnl-twin? -> compiler.compare: Yes
+
+cache-path: {
+  lua-path-in-db?: {shape: diamond}
+  lua-path-in-db? -> known-cache-path.db-fnl-path-exists?
+  lua-path-in-db? -> unknown-cache-path.remove-lua-file
+
+  unknown-cache-path: {
+    remove-lua-file
+  }
+
+  known-cache-path: {
+    db-fnl-path-exists?: {shape: diamond}
+    db-fnl-path-exists? -> sigil-wants-colocation?: Yes
+    db-fnl-path-exists? -> remove-lua-file_x: |md
+      No, source file disappeared
+    |
+    sigil-wants-colocation?: {shape: diamond}
+    sigil-wants-colocation? -> remove-lua-file: |md
+      Yes, Sigil now wants colocation
+      so remove and recompile into
+      colo path.
+    |
+
+    remove-lua-file_x: remove-lua-file
+    remove-lua-file_x -> update-database
+    update-database -> nil: |md
+      pretend we never found anything
+    |
+    nil: {shape: oval}
+  }
+}
+cache-path.known-cache-path.sigil-wants-colocation? -> compiler.compare: No
+cache-path.known-cache-path.remove-lua-file -> compiler.compare
+cache-path.unknown-cache-path.remove-lua-file -> "vim.loader.find": |md
+  A file in the cache
+  with no maching db info
+  should just be discarded
+  as some mistake, then repeat
+  search.
+|
