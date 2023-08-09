@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 
 podman_command=${1:-podman}
+podman_flags=${2}
 
 start_at=$(date +%s)
 
 # build container, set parent dir as context so we can copy all of hotpot
 echo "Building test image"
-test_image_id=$($podman_command build --quiet -f ./Containerfile ../)
+test_image_id=$($podman_command build $podman_flags --quiet -f ./Containerfile ../)
 echo "Image id: $test_image_id"
 # TODO check test_image_id not "" or whatever
 
