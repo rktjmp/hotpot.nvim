@@ -41,5 +41,7 @@
     (set M.config new-config)
     (values M.config)))
 
+
+(M.set-config (M.default-config))
 (set M.proxied-keys "traceback")
 (setmetatable M {:__index #(match $2 :traceback (lazy-traceback))})
