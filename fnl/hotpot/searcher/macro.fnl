@@ -59,20 +59,38 @@
     (values (create-loader-fn modname path) path)))
 
 (fn searcher [modname]
-  ;; By fennel.specials lua-macro-searcher, fennel-macro-searcher, it's legal
-  ;; to require fennel or lua modules inside a macro file and they should
-  ;; just be loaded into memory (i.e. do not save fennel->lua to cache) So this
-  ;; searcher is similar to the module loader without the stale checks and
-  ;; file-write stuff (macros are never "compiled to lua").
-  ;;
-  ;; This behaves similar to the module seacher, it will prefer .lua files in
-  ;; the RTP if it exists, otherwise it looks for .fnl files in the package path.
   (let [{:searcher modname->path} (require :hotpot.searcher.source)]
-    ;; logically, we should not search preloaded modules for macros as given
-    ;; `mod/init.fnl` (preloaded into `mod`), `mod/init-macros.fnl` would not
-    ;; be found.
-    ;; (or (. package :preload modname) (match ...))
-    (match (modname->path modname {:macro? true})
+    ;; Dont search preloaded modules for macros as given `mod/init.fnl`
+    ;; (preloaded into `mod`), `mod/init-macros.fnl` would not be found.
+
+    ;; By fennel.specials lua-macro-searcher, fennel-macro-searcher, it *is*
+    ;; legal to require fennel or lua modules inside a macro file and they
+    ;; should just be loaded into memory (i.e. do not save fennel->lua to cache)
+    ;; but...
+    ;;
+    ;; When using vim.loader, we must put our cache in the rtp for the lua
+    ;; files to be found.
+    ;;
+    ;; This means we can fall into an infinite loop in the case of:
+    ;;
+    ;;   We generate a regular module from mod/init.fnl to  rtp/mod/init.lua.
+    ;;   This module will match for (require mod).
+    ;;
+    ;;   We also have a macro in mod/init-macros.fnl, which will also match
+    ;;   for (require mod). If mod/init.fnl imports macros from mod/init-macros.fnl
+    ;;   (pretty common) and if we also allow lua modules from (import-macros)
+    ;;   we will instead find rtp/mod/init.lua and import that, but if it's
+    ;;   still being compiled we will match mod/init.fnl, try to import mod/init-macros.fnl
+    ;;   ... etc etc.
+    ;;
+    ;; You may still *require* lua files from macros, but not import lua files
+    ;; *as* macros. Which should be pretty (extremely) uncommon. IIRC
+    ;; phagelberg was surprised to read this was possibly on IRC.
+    ;;
+    ;; If this were really needed, it should be possible to juggle a searcher
+    ;; that wont recurse by either generating a new searcher or setting some
+    ;; global state.
+    (match (modname->path modname {:macro? true :fennel-only? true})
       path (create-loader modname path))))
 
 {: searcher}
