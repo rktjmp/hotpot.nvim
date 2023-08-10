@@ -1,308 +1,424 @@
-*hotpot* seamless fennel in neovim
+*hotpot.txt*                                        Seamless fennenl in Neovim
+
+==============================================================================
+Table of Contents                                   *hotpot-table-of-contents*
+
+1. Hotpot                                                      |hotpot-hotpot|
+  - TOC                                                    |hotpot-hotpot-toc|
+2. Requirements                                          |hotpot-requirements|
+3. Getting Started                                    |hotpot-getting-started|
+  - Install                                   |hotpot-getting-started-install|
+  - Usage                                       |hotpot-getting-started-usage|
+4. Setup                                                        |hotpot-setup|
+5. Diagnostics                                            |hotpot-diagnostics|
+6. The API                                                    |hotpot-the-api|
+7. Commands                                                  |hotpot-commands|
+8. Keymaps                                                    |hotpot-keymaps|
+9. Module preference                                |hotpot-module-preference|
+10. Quirks                                                     |hotpot-quirks|
+11. Windows                                                   |hotpot-windows|
+12. Licenses                                                 |hotpot-licenses|
+
+
+==============================================================================
+1. Hotpot                                                      *hotpot-hotpot*
+
 >
-           dP     dP             dP                       dP
-           88     88             88                       88
-           88aaaaa88a .d8888b. d8888P 88d888b. .d8888b. d8888P
-           88     88  88'  `88   88   88'  `88 88'  `88   88
-           88     88  88.  .88   88   88.  .88 88.  .88   88
-           dP     dP  `88888P'   dP   88Y888P' `88888P'   dP
-                                      88
-                                      dP
-
-           You take this home, throw it in a pot, add some
-           broth, some neovim...  baby, you got a stew going!
-
-                              ~ Fennel Programmers (probably)
-
-===================================================================== *hotpot-toc*
-
-Purpose...........................................................|hotpot-purpose|
-Install...........................................................|hotpot-install|
-Setup...............................................................|hotpot-setup|
-Usage...............................................................|hotpot-usage|
-Hotpot API............................................................|hotpot-api|
-Commands.........................................................|hotpot-commands|
-  :Fnl........................................................|hotpot-command-fnl|
-  :Fnldo....................................................|hotpot-command-fnldo|
-  :Fnlfile................................................|hotpot-command-fnlfile|
-  :source..................................................|hotpot-command-source|
-Maps.................................................................|hotpot-maps|
-  Operator Pending..........................................|hotpot-operator-eval|
-Other Functions...........................................|hotpot-other-functions|
-How Hotpot Works......................................................|hotpot-how|
-
-================================================================= *hotpot-purpose*
-
-Purpose ~
-
-Hotpot intends to provide a minimal-setup, unobtrusive fennel compiler, as
-well as a set of low level tools for interacting with Fennel code in Neovim
-(see |hotpot-api|). It has functions to compile and evaluate Fennel code, but
-provides no keymaps to run those functions, or methods of displaying the
-output.
-
-Hotpot provides all the tools to build a Fennel REPL but does not provide one.
-
-================================================================= *hotpot-install*
-
-Install ~
-
-Hotpot only needs you to call `require("hotpot")` before you attempt to
-require any Fennel files. Afterwards you can require any `fnl/*.fnl` file just
-as you would normally require any `lua/*.lua`.
-
-Hotpot will automatically call `require("hotpot")` when
-`hotpot/plugin/hotpot.vim` is loaded, but this may occur later than desired,
-depending on how you are using Hotpot.
-
-Because of this, it may be preferable to manually require Hotpot as soon as
-possible in your `init.lua`. An example `init.lua` is provided below:
->
-  -- ~/.config/nvim/init.lua
-
-  -- Pick appropriate path for your package manager
-
-  -- packer
-  -- local hotpot_path = vim.fn.stdpath('data') ..
-                          '/site/pack/packer/start/hotpot.nvim'
-  -- paq
-  -- local hotpot_path = vim.fn.stdpath('data') ..
-                          '/site/pack/paqs/start/hotpot.nvim'
-
-  -- You can automatically install hotpot if it is missing (i.e for fresh
-  -- nvim setups). Don't forget to add hotpot to your package manager or
-  -- it may uninstall hotpot!
-
-  if vim.fn.empty(vim.fn.glob(hotpot_path)) > 0 then
-    print("Could not find hotpot.nvim, cloning new copy to", hotpot_path)
-    vim.fn.system({'git', 'clone',
-                   'https://github.com/rktjmp/hotpot.nvim', hotpot_path})
-    vim.cmd("helptags " .. hotpot_path .. "/doc")
-  end
-
-  -- Bootstrap .fnl support
-  require("hotpot")
-
-  -- Now you can load fennel code, so you could put the rest of your
-  -- config in a separate `~/.config/nvim/fnl/fenneled_init.fnl` or
-  -- `~/.config/nvim/fnl/plugins.fnl`, etc.
-  require("fenneled_init")
+    dP     dP             dP                       dP
+    88     88             88                       88
+    88aaaaa88a .d8888b. d8888P 88d888b. .d8888b. d8888P
+    88     88  88'  `88   88   88'  `88 88'  `88   88
+    88     88  88.  .88   88   88.  .88 88.  .88   88
+    dP     dP  `88888P'   dP   88Y888P' `88888P'   dP
+                               88
+                               dP
+    
+    You take this home, throw it in a pot, add some
+    broth, some neovim...  baby, you got a stew going!
+    
+                       ~ Fennel Programmers (probably)
 <
-=================================================================== *hotpot-setup*
 
-Setup ~
+Hotpot is a Fennel <https://fennel-lang.org/> compiler plugin for Neovim. Just
+`(require :my-fennel)` and Hotpot does the rest, recompiling your fennel code
+as needed.
 
-Hotpot accepts the following configuration options, with defaults as shown.
+>fennel
+    ;; ~/.config/nvim/fnl/is_neat.fnl
+    ;; put your fennel code in fnl/
+    (fn [what] (print what "is neat!"))
+<
 
-You do not have to call setup unless you are altering a default option.
->
-  require("hotpot").setup({
-    provide_require_fennel = false,
-    enable_hotpot_diagnostics = true,
-    compiler = {
-      -- options passed to fennel.compile for modules, defaults to {}
-      modules = {
-        -- not default but recommended, align lua lines with fnl source
-        -- for more debuggable errors, but less readable lua.
-        -- correlate = true
-      },
-      -- options passed to fennel.compile for macros, defaults as shown
-      macros = {
-        env = "_COMPILER" -- MUST be set along with any other options
+>lua
+    -- and require it like normal in your lua file
+    local neat = require('is_neat') -- compiled & cached on demand
+    neat("fennel") -- => "fennel is neat!"
+<
+
+
+TOC                                                        *hotpot-hotpot-toc*
+
+- |hotpot-requirements|
+- |hotpot-install|
+- |hotpot-usage|
+- Cookbook - common questions and usage guides <COOKBOOK.md>
+- |hotpot-setup|
+- Change Log <CHANGELOG.md>
+
+
+==============================================================================
+2. Requirements                                          *hotpot-requirements*
+
+- Neovim 0.9.1+
+- ~Fanatical devotion to parentheses.~
+
+
+==============================================================================
+3. Getting Started                                    *hotpot-getting-started*
+
+
+INSTALL                                       *hotpot-getting-started-install*
+
+All you need to do is install Hotpot and call `require("hotpot")` in your
+`init.lua` Neovim configuration file.
+
+First lets setup our `init.lua` file. In this example we use the lazy.nvim
+plugin manager, but other plugin manager will follow the same pattern –
+likely without the runtimepath alterations.
+
+>lua
+    -- ~/.config/nvim/init.lua
+    
+    -- As per lazy's install instructions
+    local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
+    if not vim.loop.fs_stat(lazypath) then
+      vim.fn.system({
+        "git",
+        "clone",
+        "--filter=blob:none",
+        "https://github.com/folke/lazy.nvim.git",
+        "--branch=stable", -- latest stable release
+        lazypath,
+      })
+    end
+    
+    -- Bootstap hotpot into lazy plugin dir if it does not exist yet.
+    local hotpotpath = vim.fn.stdpath("data") .. "/lazy/hotpot.nvim"
+    if not vim.loop.fs_stat(hotpotpath) then
+      vim.notify("Bootstrapping hotpot.nvim...", vim.log.levels.INFO)
+      vim.fn.system({
+        "git",
+        "clone",
+        "--filter=blob:none",
+        "--single-branch",
+        -- You may with to pin a known version tag with `--branch vX.Y.Z`
+        "https://github.com/rktjmp/hotpot.nvim.git",
+        hotpotpath,
+      })
+    end
+    
+    -- As per lazy's install instructions, but insert hotpots path at the front
+    vim.opt.runtimepath:prepend({hotpotpath, lazypath})
+    
+    require("hotpot") -- optionally you may call require("hotpot").setup(...) here
+    
+    -- include hotpot as a plugin so lazy will update it
+    local plugins = {"rktjmp/hotpot.nvim"}
+    require("lazy").setup(plugins)
+    
+    -- inclue the rest of your config
+    require("say-hello")
+<
+
+The `say-hello` module would be put in `~/.config/nvim/fnl/say-hello.fnl`
+
+>fennel
+    ;; ~/.config/nvim/fnl/say-hello.fnl
+    (print :hello!)
+<
+
+
+USAGE                                           *hotpot-getting-started-usage*
+
+Placeall your fennel files under a `fnl` dir, as you would place lua files
+under `lua`. This practice extends to other folders outside of your config
+directory, such as plugins you may write or install.
+
+With your file in the correct location, you only need to require it like you
+would any normal lua module.
+
+>fennel
+    ;; ~/.config/nvim/fnl/is_neat.fnl
+    ;; some kind of fennel code
+    (fn [what]
+      (print what "is neat!"))
+<
+
+>lua
+    -- and in ~/.config/nvim/init.lua
+    local neat = require('is_neat')
+    neat("fennel") -- => "fennel is neat!"
+<
+
+Hotpot will keep an internal cache of lua code, so you wont see files
+cluttering the `lua/` directory.
+
+You can may want to read the |hotpot-cookbook| or see more options in
+|hotpot-setup|.
+
+
+==============================================================================
+4. Setup                                                        *hotpot-setup*
+
+The `setup()` function may _optionally_ be called. `setup()` provides access to
+Fennels configuration options as described on fennel-lang.org
+<https://fennel-lang.org> as well as some configuration of hotpot itself.
+
+**You do not have to call setup unless you are altering a default option.**
+
+>lua
+    require("hotpot").setup({
+      -- provide_require_fennel defaults to disabled to be polite with other
+      -- plugins but enabling it is recommended.
+      provide_require_fennel = false,
+      enable_hotpot_diagnostics = true,
+      compiler = {
+        -- options passed to fennel.compile for modules, defaults to {}
+        modules = {
+          -- not default but recommended, align lua lines with fnl source
+          -- for more debuggable errors, but less readable lua.
+          -- correlate = true
+        },
+        -- options passed to fennel.compile for macros, defaults as shown
+        macros = {
+          env = "_COMPILER" -- MUST be set along with any other options
+        }
       }
-    }
-  })
+      -- A function that accepts a string of fennel source and a table of
+      -- of some information. Can be used to alter fennel code before it is
+      -- compiled.
+      preprocessor = nil
+    })
+<
 
-`provide_require_fennel` inserts a `package.preload` function that will load
-Hotpot's copy of fennel when you call `(require :fennel)`. This can be useful
-for ergonomics or for compatibility with libraries that expect Fennel to be in
-`package.path`.
+- `provide_require_fennel` inserts a `package.preload` function that will load
+    Hotpot’s copy of fennel when you call `(require :fennel)`. This can be useful
+    for ergonomics or for compatibility with libraries that expect Fennel to be in
+    `package.path` without having to pay the cost of loading the Fennel compiler
+    when its not used.
+- `enable_hotpot_diagnostics` enable or disable automatic attachment of
+    diagnostics to fennel buffers. See |hotpot-diagnostics|.
+- `compiler.modules` is passed to the Fennel compiler when compiling regular
+    module files.
+- `compiler.macros` is passed to the Fennel compiler when compiling macro files.
+    **Be sure to include env = "_COMPILER"** unless you have a good reason not to.
 
-`enable_hotpot_diagnostics` enable or disable automatic attachment of
-diagnostics to fennel buffers.
-
-`compiler.modules` is passed to the Fennel compiler when compiling regular
-module files.
-
-`compiler.macros` is passed to the Fennel compiler when compiling macro files.
-Be sure to include `env = "_COMPILER"` unless you have a good reason not to.
+- `preprocessor` is a function that accepts the fennel source code as a string,
+    and an table, `{: path : modname : macro?}`.
+    See colocation in the |hotpot-cookbook-colocation|.
 
 Fennel compiler plugins are supported in two forms, as a table (ie. as
 described by Fennels documentation) and as a string which should be a module
 name. If your plugin needs access to the "compiler environment" (ie. it uses
-special forms such as `(sym)` or `(macroexpand)` not avaliable to "normal"
+special forms such as `(sym)` or `(macroexpand)` not available to "normal"
 Fennel code), you should specify the module name and hotpot will load it when
-required in the special environment.
+required in the compiler environment.
 
-Note: The `filename` compilation option is always set to the appropriate value
-      and can not be altered via the setup interface.
+Note:
 
-Note: The `modules` and `macros` tables _replace_ the defaults when given,
-      they are _not_ merged. Include all options you wish to pass to the
-      compiler!
+- The `filename` compilation option is always set to the appropriate value and
+    can not be altered via the setup interface.
+- The `modules` and `macros` tables _replace_ the defaults when given, they are
+    _not_ merged. Include all options you wish to pass to the compiler!
+- The `compiler` options are not currently passed to any `api.compile` functions
+    and are only applied to Hotpots internal/automatic compilation. If you have use
+    for passing options to `api.compile` please open an issue.
 
-Note: The `compiler` options are not currently passed to any `api.compile`
-      functions and are only applied to Hotpots internal/automatic
-      compilation. If you have use for passing options to `api.compile` please
-      open an issue.
+For a complete list of compiler options, see Fennels documentation
+<http://fennel-lang.org>, specifically the API usage section.
 
 
-For a complete list of compiler options, see http://fennel-lang.org,
-specifically the API usage section.
+==============================================================================
+5. Diagnostics                                            *hotpot-diagnostics*
 
-=================================================================== *hotpot-usage*
+Hotpot ships with built in diagnostics feature to show fennel compilation
+errors via Neovim diagnostics.
 
-Usage ~
+It automatically attaches to buffers with the filetype `fennel` and updates
+when ever you leave insert mode or otherwise change the buffer.
 
-Once Hotpot is installed, you may require any `fnl/.fnl` file as you would a
-`lua/.lua` file.
->
-  ;; ~/.config/nvim/fnl/is_neat.fnl
-  ;; some kind of fennel code
-  (fn [what]
-    (print what "is neat!"))
+"Macro modules" require a special fennel environment. To detect "macro
+modules", Hotpot checks if the buffer filename ends in `macro.fnl` or
+`macros.fnl` which is common practice. It’s not currently possible to enable
+the macro environment in other contexts (please open an issue).
 
-  -- and in ~/.config/nvim/init.lua
-  local neat = require('is_neat')
-  neat("fennel") -- => "fennel is neat!"
 
-===============================================================================
+==============================================================================
+6. The API                                                    *hotpot-the-api*
 
-Hotpot API ~
+Hotpot provides a number of functions for evaluating and compiling Fennel code,
+including helpers to easily operate on strings, selections and buffers for
+example.
 
-See `:h hotpot-api`
+See |hotpot.api|.
 
-================================================================ *hotpot-commands*
 
-Commands ~
+==============================================================================
+7. Commands                                                  *hotpot-commands*
 
-Hotpot provides 3 commands which behave similarly but not exactly like
-Neovims Lua commands. See also |lua-commands|.
+Hotpot provides 3 commands which behave similarly but not exactly like Neovims
+Lua commands (see |lua-commands|).
 
-It also allows the |:source| command to work with `.fnl` files.
+It also allows the `:source` command to work with `.fnl` files.
 
--------------------------------------------------------- *:Fnl* *hotpot-command-fnl*
 
-:[range]Fnl {expression}
+                                                               *hotpot-:Fnl*
 
-If evaluates {expression} if provided, othewise evaluates Fennel over [range]
-from the current buffer.
 
-If given form is preceeded by `=`, the result is passed through `fennel.view`
-and printed. Multiple return values are separated with `, `.
+:[range]Fnl {expression}               Evaluates {expression} or range
+
+
+
+If given form is preceded by `=`, the result is passed through `fennel.view`
+and printed. Multiple return values are separated with `,`.
 
 You may also use `=` when providing a range.
 
 If a range and a form is provided, the range is ignored.
 
 >
-  :Fnl (vim.keymap.set ...) ;; evaluates code, no output
-  :Fnl (values 99 (+ 1 1)) ;; evaluates code, no output
-  :Fnl =(values 99 (+ 1 1)) ;; evaluates code, outputs "99, 2"
-  :Fnl=(+ 1 1) ;; You may omit the space
+    :Fnl (vim.keymap.set ...) ;; evaluates code, no output
+    :Fnl (values 99 (+ 1 1)) ;; evaluates code, no output
+    :Fnl =(values 99 (+ 1 1)) ;; evaluates code, outputs "99, 2"
+    :Fnl=(+ 1 1) ;; You may omit the space
+    
+    :'<,'>Fnl ;; evaluates selection in current buffer
+    :1,10Fnl = ;; evaluate lines 1 to 10 in current buffer, prints output
+    :'<,'>Fnl= ;; again, the space may be omitted
+    
+    :'<,'>Fnl (print :hello) ;; prints "hello" (range is ignored)
+<
 
-  :'<,'>Fnl ;; evaluates selection in current buffer
-  :1,10Fnl = ;; evaluate lines 1 to 10 in current buffer, prints output
-  :'<,'>Fnl= ;; again, the space may be omitted
 
-  :'<,'>Fnl (print :hello) ;; prints "hello" (range is ignored)
+                                                             *hotpot-:Fnldo*
 
----------------------------------------------------- *:Fnldo* *hotpot-command-fnldo*
 
-:[range]Fnldo {expression}
+:[range]Fnldo {expression}             Evaluates {expression} for each line in [range]
 
-Evaluates {expression} for each line in [range] and replaces each line in
-turn. Two variables are availiable inside {expression}, `line` and `linenr`.
+
+
+The result of the expression replaces each line in turn. Two variables are
+available inside {expression}, `line` and `linenr`.
+
 >
-  :'<,'>Fnldo (string.format "%d: %s" linenr (line:reverse))
-  => Prepends line number and reverses the contents of line
+    :'<,'>Fnldo (string.format "%d: %s" linenr (line:reverse))
+    => Prepends line number and reverses the contents of line
+<
 
------------------------------------------------- *:Fnlfile* *hotpot-command-fnlfile*
 
-:Fnlfile {file}
+                                                           *hotpot-:Fnlfile*
 
-Evaluates {file}.
+
+:Fnlfile {file}                        Evaluates {file}, see also |:source|.
+
+
+
 >
-  :Fnlfile %
+    :Fnlfile %
+    
+    :Fnlfile my-file.fnl
+<
 
-  :Fnlfile my-file.fnl
 
----------------------------------------------------------- *hotpot-command-source*
+                                                            *hotpot-:source*
 
-:source {file}
 
-See |:source|
+:source {file}                         See |:source|
 
-==================================================================== *hotpot-maps*
+
+
+
+==============================================================================
+8. Keymaps                                                    *hotpot-keymaps*
 
 Hotpot expects the user to specify most maps themselves via the API functions
-listed above. It does provide one `<Plug>` mapping for operator-pending eval.
+(see |hotpot.api|). It does provide one `<Plug>` mapping for operator-pending
+eval.
 
------------------------------------------------------------ *hotpot-operator-eval*
+`<Plug>(hotpot-operator-eval)`
 
-<Plug>(hotpot-operator-eval)
-
-Enters operator-pending mode and evaluates the Fennel code specifed by the
+Enters operator-pending mode and evaluates the Fennel code specified by the
 proceeding motion.
+
 >
-  map <Plug> ghe <Plug>(hotpot-operator-eval)
+    map <Plug> ghe <Plug>(hotpot-operator-eval)
+    
+    gheip -> evauate fennel code in paragraph
+<
 
-  gheip -> evauate fennel code in paragraph
 
-========================================================= *hotpot-other-functions*
+==============================================================================
+9. Module preference                                *hotpot-module-preference*
 
-Other Functions ~
+Given the directory structure,
 
-_Provisionally spec'd API, consider unstable_
+>
+    mod/fnl/code.fnl
+    mod/lua/code.lua
+<
 
-Access to Fennel, available under the `hotpot.api.fennel` module:
+and a call `(require :code)`, Hotpot will opt to load the lua file instead of
+compiling the fennel source and overwriting `mod/lua/code.lua`.
 
-- `latest()` returns bundled Fennel, currently always (hopefully) tracks
-  latest Fennel release.
+This behaviour exists in case a plugin ships with both code in both the `lua`
+and `fnl` directories, but the plugin author has post-processed the compiled
+lua code, or is using an incompatible fennel version, etc.
 
-Note: Instead, you can enable `provide_require_fennel = true` when calling
-      setup, after which you can just call `(require :fennel)` .
+In most cases, such as your config, Hotpot wont create `mod/lua/code.lua` and
+you wont run into any issues but it may encounter friction when writing a
+plugin in fennel.
 
-===================================================================== *hotpot-how*
+The colocation setting as described in |hotpot-cookbook| will effect this
+behaviour
 
-How Hotpot Works ~
+When colocation is enabled and if hotpot is confident it can modify the lua
+file it will update it to match the fennel source. Otherwise it may prompt you
+before taking action.
 
-Hotpot has three main systems, the lua cache, the bytecode cache and the
-module loader.
 
-The lua cache contains our compiled fennel code. When requiring a fennel
-module, we must first compile that fennel code into lua, then save the result
-to disk. This allows the user to easily view the result of the compilation for
-debugging. See |hotpot.api.cache|.
+==============================================================================
+10. Quirks                                                     *hotpot-quirks*
 
-The bytecode cache is a special file (normally called the `index`), loaded
-into memory when Neovim starts. It contains the machine readable code for
-every module that Neovim has previously loaded. By caching modules in-memory
-and in a machine readable format, we can find and resolve modules very quickly
-as most of the "heavy lifting" is already done. By maintaining a bytecode
-cache we can achieve up to 15x speed improvements.
+- Hotpot will only _compile_ fennel files that are found in Neovims RTP. It
+    will _evaluate_ files that are found in luas `package.path`. This is for safety
+    purposes because it can be unclear where and when its safe to compile or
+    overwrite `.lua` files. In most usage this wont occur – files will be found in
+    the RTP first but it can occur when executing in scratch buffers with the
+    |hotpot-api| or via |hotpot-commands|.
 
-The bytecode cache contains information about when the cache was created for
-each module, so any modifications made to the original source files can be
-detected and reloaded into the cache.
 
-The module loader will find and load lua (or fennel) modules. First it will
-search the `index` and then Neovims runtime path for source files that match
-the requested module name.
+==============================================================================
+11. Windows                                                   *hotpot-windows*
 
-If a source file is found, it is compiled to lua (if needed), then the
-bytecode is saved to the `index`, then the module is returned to the user.
+Hotpot must be able to create symlinks for some core functionality which
+Windows may disallow by default, depending on your account type and Windows
+version.
 
-Given `require("my.module")` Hotpot will check the following locations, in
-order, and return the first match.
+To enable symlink creation without elevated privileges, you may have to enable
+"Developer Mode" in your account settings.
 
-- `index`
-- `$RUNTIMEPATH/lua/my/module.lua`
-- `$RUNTIMEPATH/lua/my/module/init.lua`
-- `$RUNTIMEPATH/fnl/my/module.fnl`
-- `$RUNTIMEPATH/fnl/my/module/init.fnl`
-- `<package.path>/my/module.lua`
-- `<package.path>/my/module.fnl`
+See "Enable your device for development"
+<https://docs.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development>
+and "Symlinks in Windows 10"
+<https://blogs.windows.com/windowsdeveloper/2016/12/02/symlinks-windows-10/>.
 
-You can see that it will preference a bytecode cache, then `.lua` files over
-`.fnl`, if they exist.
+
+==============================================================================
+12. Licenses                                                 *hotpot-licenses*
+
+Hotpot embeds `fennel.lua`, see `lua/hotpot/fennel.lua` for licensing
+information.
+
+Generated by panvimdoc <https://github.com/kdheepak/panvimdoc>
+
+vim:tw=78:ts=8:noet:ft=help:norl:
