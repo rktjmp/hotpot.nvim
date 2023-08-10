@@ -1,7 +1,5 @@
-;; Preflight checks
-(assert (= 1 (vim.fn.has "nvim-0.9")) "Hotpot requires neovim 0.9.0")
+(assert (= 1 (vim.fn.has "nvim-0.9.1")) "Hotpot requires neovim 0.9.1+")
 
-;; compile hotpot source if we need to
 ((include :hotpot.bootstrap))
 
 (let [{: make-searcher : compiled-cache-path} (require :hotpot.loader)
@@ -13,9 +11,8 @@
   (tset package.loaders 1 (make-searcher)))
 
 (let [{: set-lazy-proxy} (require :hotpot.common)]
-  (local M {})
 
-  (fn M.setup [options]
+  (fn setup [options]
     ;; runtime will parse the given options as needed, but effects from
     ;; the options make more sense to be run "during setup".
     (let [runtime (require :hotpot.runtime)
@@ -26,4 +23,4 @@
         (let [{: enable} (require :hotpot.api.diagnostics)]
           (enable)))))
 
-  (set-lazy-proxy M {:api :hotpot.api :runtime :hotpot.runtime}))
+  (set-lazy-proxy {: setup} {:api :hotpot.api :runtime :hotpot.runtime}))
