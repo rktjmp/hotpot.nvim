@@ -57,6 +57,8 @@ jobs:
         git config --global user.email 'rktjmp@users.noreply.github.com'
         git checkout nightly
         git status
+        # undo last build
+        git reset --hard HEAD~1
         # force merge master over us
         git merge -Xtheirs master
         git status
@@ -90,7 +92,7 @@ jobs:
         # add plugin hook
         sed -i 's/if ("import-macros" == tostring(ast\[1\])) then/utils.hook("require-macros", ast, scope)\n\0/' deps/$FENNEL_LUA
         # mark our plugin to support new version
-        sed -i "s/:versions \[.\+\]/:versions [:$FENNEL_VERSION]/"  fnl/hotpot/searcher/module.fnl
+        sed -i "s/:versions \[.\+\]/:versions [:$FENNEL_VERSION]/" fnl/hotpot/searcher/macro-dependency-plugin.fnl
         # build package
         ./build selfhost
         ./build canary
