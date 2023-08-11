@@ -131,6 +131,7 @@
                  _ (ferror "Could not create record, unknown type: %s at %s" type fnl-path))
         {:new new-type} (require module)
         fnl-path (normalise-path fnl-path)
+        modname (string.gsub modname "%.%.+" ".")
         record (new-type modname fnl-path ?opts)]
     (vim.tbl_extend :force record
                     {:type type
