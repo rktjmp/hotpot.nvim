@@ -47,7 +47,8 @@
 (local path-sep (string.match package.config "(.-)\n"))
 (fn path-separator [] (values path-sep))
 
-(lambda join-path [head ...]
+;; TODO use table.concat path-sep + normalise-path
+(λ join-path [head ...]
   (let [path-sep (path-separator)
         dup-pat (.. "[" path-sep "]+")
         joined  (accumulate [t head _ part (ipairs [...])]
@@ -83,8 +84,8 @@
 (fn rm-file [path]
   (case (uv.fs_unlink path)
     true true
-    (nil e) (values false e)
-    _ (error :x )))
+    (nil e) (values false e)))
+
 (fn normalise-path [path]
   (vim.fs.normalize path {:expand_env false}))
 
