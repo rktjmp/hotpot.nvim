@@ -14,5 +14,10 @@
            err# (string.format "%s [failed: %s]" ,message failed-what#)]
        (error (string.format err# ,...) 0))))
 
+(fn ferror [str ...]
+  `(error (string.format ,str ,...)))
+
+
 {: expect
+ : ferror
  : profile-as}
