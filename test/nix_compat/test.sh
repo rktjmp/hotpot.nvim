@@ -25,7 +25,7 @@ cat <<EOF | assert "does not create canary in shipped dir"
 EOF
 
 cat <<EOF | assert "does create canary in cache dir"
-  if [[ ! -f ~/.cache/nvim/hotpot/hotpot.nvim/lua/canary ]]; then
+  if [[ ! -f ~/.cache/nvim/hotpot/compiled/hotpot.nvim/lua/canary ]]; then
     exa --tree -l ~/.cache/nvim/hotpot >> ~/run.log
     fail "no link created in cache lua folder"
   fi
@@ -39,7 +39,7 @@ cat <<EOF | assert "does not create lua in shipped dir"
 EOF
 
 cat <<EOF | assert "does create lua in cache dir"
-  if [[ ! -f ~/.cache/nvim/hotpot/hotpot.nvim/lua/hotpot/runtime.lua ]]; then
+  if [[ ! -f ~/.cache/nvim/hotpot/compiled/hotpot.nvim/lua/hotpot/runtime.lua ]]; then
     exa --tree -l ~/.cache/nvim/hotpot >> ~/run.log
     fail "no lua created in cache lua folder"
   fi
