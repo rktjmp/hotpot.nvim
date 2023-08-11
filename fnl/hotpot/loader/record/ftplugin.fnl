@@ -38,8 +38,4 @@
                 (fmt "could not generate required key: %s from fnl-path: %s" key fnl-path))))
     (values record)))
 
-; (new :hotpot-ftplugin.wow :/home/soup/.config/nvim/ftplugin/wow.fnl)
-
-
 {: new}
-
