@@ -1,5 +1,5 @@
 ;;;
-;;; Index
+;;; Record
 ;;;
 ;;; A record stores metadata about files hotpot has compiled into lua. These
 ;;; records are consulted when trying to backtrack from found lua modules to
@@ -14,6 +14,7 @@
 ;;; One for ftplugin modules that live in ftplugin dirs. These do not support
 ;;; colocation.
 ;;;
+
 (import-macros {: ferror} :hotpot.macros)
 
 (local {:format fmt} string)
@@ -38,10 +39,6 @@
 (local INDEX_VERSION 1)
 (local RECORD_TYPE_MODULE 1)
 (local RECORD_TYPE_FTPLUGIN 2)
-
-; (fn cache-path-for-index-artefact [...]
-;  (-> (join-path INDEX_ROOT_PATH ...)
-;      (normalise-path)))
 
 (fn module? [r]
   (= RECORD_TYPE_MODULE (?. r :type)))
