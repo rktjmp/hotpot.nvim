@@ -8,6 +8,9 @@
 (local REPEAT_SEARCH :REPEAT_SEARCH)
 (local CACHE_ROOT (join-path (vim.fn.stdpath :cache) :hotpot))
 
+;; Warning: if you change this :compiled
+;; dir, you must also change the read-only
+;; nix fix in boostrap.fnl
 (fn cache-path-for-compiled-artefact [...]
   (-> (join-path CACHE_ROOT :compiled ...)
       (normalise-path)))

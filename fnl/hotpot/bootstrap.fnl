@@ -115,8 +115,13 @@
                   (if (uv.fs_access ideal-path "W")
                     (values ideal-path)
                     (let [cache-dir (vim.fn.stdpath :cache)
-                          build-to-cache-dir (join-path cache-dir :hotpot :hotpot.nvim :lua)
-                          search-path (join-path build-to-cache-dir "?.lua;")]
+                          build-to-cache-dir (join-path cache-dir
+                                                        :hotpot
+                                                        :compiled
+                                                        :hotpot.nvim
+                                                        :lua)
+                          search-path (.. (join-path build-to-cache-dir "?/init.lua;")
+                                          (join-path build-to-cache-dir "?.lua;"))]
                       (vim.fn.mkdir build-to-cache-dir :p)
                       (tset package :path (.. search-path package.path))
                       (values build-to-cache-dir))))
