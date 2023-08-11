@@ -85,6 +85,8 @@
     true true
     (nil e) (values false e)
     _ (error :x )))
+(fn normalise-path [path]
+  (vim.fs.normalize path {:expand_env false}))
 
 {: read-file!
  : write-file!
@@ -98,4 +100,5 @@
  : make-path
  : dirname
  : path-separator
- : rm-file}
+ : rm-file
+ : normalise-path}
