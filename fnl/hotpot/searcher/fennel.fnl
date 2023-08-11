@@ -7,8 +7,8 @@
   (let [{: join-path} (require :hotpot.fs)
         opts (or opts {})
         slashed-modname (slash-modname modname)
-        paths [(join-path :fnl (.. slashed-modname :.fnl))
-               (join-path :fnl slashed-modname :init.fnl)]]
+        paths [(join-path (or opts.prefix :fnl) (.. slashed-modname :.fnl))
+               (join-path (or opts.prefix :fnl) slashed-modname :init.fnl)]]
     (if opts.macro?
       ;; search preference is init-macros.fnl, init.fnl
       (table.insert paths (length paths) (join-path :fnl slashed-modname :init-macros.fnl)))
