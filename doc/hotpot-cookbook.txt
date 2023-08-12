@@ -1,4 +1,4 @@
-*hotpot-cookbook.txt*           For 0.9.1          Last change: 2023 August 12
+*hotpot-cookbook.txt*           For 0.9.1          Last change: 2023 August 13
 
 ==============================================================================
 Table of Contents                          *hotpot-cookbook-table-of-contents*
@@ -224,19 +224,6 @@ Ex.
 
   ftplugins are put in the cache, irrespective of any colocation setting. This is
   to avoid any module precedence issues.
-Doc todo
-
-- |hotpot-cookbook-using-hotpot-reflect|
-- |hotpot-cookbook-diagnostics|
-- |hotpot-cookbook-compiling-`ftplugins`-and-similar|
-- |hotpot-cookbook-ahead-of-time-compilation|
-- |hotpot-cookbook-writing-`~/.config/nvim/init.lua`-in-fennel|
-- |hotpot-cookbook-checking-your-config|
-- |hotpot-cookbook-using-the-api|
-- |hotpot-cookbook-included-commands|
-- |hotpot-cookbook-using-`vim`-or-`os`-in-macros|
-- |hotpot-cookbook-compiler-plugins|
-
 
 ==============================================================================
 6. Using Hotpot Reflect                 *hotpot-cookbook-using-hotpot-reflect*

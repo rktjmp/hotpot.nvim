@@ -7,14 +7,18 @@
 - [Include some common functions, macros or prelude in all files](#preprocessing).
 - Compile into the `lua/` directory
   - on demand by [colocation](#colocation) or,
-  - everything [ahead of time](#ahead-of-time-compilation) or,
-  - [on save].
+  - everything [ahead of time](#ahead-of-time-compilation).
+- Write `init.lua` as `init.fnl`
 - [Write an config `ftplugin`](#write-an-ftplugin).
+
+<!--
+
 - See the output of
   - a fennel file or,
   - some arbitary fennel code.
 - Write a Neovim plugin in fennel
-- Write `init.lua` as `init.fnl`
+
+-->
 
 <!-- panvimdoc-ignore-end -->
 
@@ -218,19 +222,6 @@ Ex.
 
 > ftplugins are put in the cache, irrespective of any colocation setting. This is
 > to avoid any module precedence issues.
-
-Doc todo
-
-- [Using Hotpot Reflect](#using-hotpot-reflect)
-- [Diagnostics](#diagnostics)
-- [Compiling `ftplugins` and similar](#compiling-ftplugins-and-similar)
-- [Ahead of Time Compilation](#ahead-of-time-compilation)
-- [Writing `~/.config/nvim/init.lua` in Fennel](#writing-confignviminitlua-in-fennel)
-- [Checking your config](#checking-your-config)
-- [Using the API](#using-the-api)
-- [Included Commands](#Commands)
-- [Using `vim` or `os` in macros](#compiler-sandbox)
-- [Compiler Plugins](#compiler-plugins)
 
 ## Using Hotpot Reflect
 
