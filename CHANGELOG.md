@@ -6,6 +6,10 @@ to "core" code (things that effect loading and running your code/config) are
 avoided but breaking changes to the API (things that might effect your bindings
 and auto commands) are treated with less reverence.
 
+## 0.8.1
+
+- Remove compile accidental logging
+
 ## 0.8.0
 
 - **Writing macros in *lua* is no longer supported**.
