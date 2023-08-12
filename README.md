@@ -64,7 +64,8 @@ neat("fennel") -- => "fennel is neat!"
   cache.
   - Mostly targeted at writing plugins.
 - `preprocessor` setup option
-  - Alter fennel source code before it is compiled, prefix with common imports or functions, implement alternative module namespaces, etc..
+  - Alter fennel source code before it is compiled, prefix with common imports
+  or functions, implement alternative module namespaces wrappers, etc..
   - (Actually existed previously but now is documented).
 
 <!-- panvimdoc-ignore-end -->
