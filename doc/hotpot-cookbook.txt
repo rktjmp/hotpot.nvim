@@ -213,6 +213,9 @@ Finally, we have to manually run this code _once_ to generate the new
 
 Put your code in `~/.config/nvim/ftplugin` as you would any lua ftplugin.
 
+
+  Currently only one plugin per type is supported. Generally this wont be an
+  issue.
 Ex.
 
 >fennel

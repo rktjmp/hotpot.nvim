@@ -212,6 +212,8 @@ Finally, we have to manually run this code *once* to generate the new `init.lua`
 
 Put your code in `~/.config/nvim/ftplugin` as you would any lua ftplugin.
 
+> Currently only one plugin per type is supported. Generally this wont be an issue.
+
 Ex.
 
 ```fennel
