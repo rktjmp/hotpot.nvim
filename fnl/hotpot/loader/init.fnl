@@ -91,10 +91,12 @@
     (fn lua-missing? []
       (file-missing? record.lua-path))
     (fn files-stale? []
-      (accumulate [stale? false _ {: path :mtime {:sec hsec :nsec hnsec} :size hsize} (ipairs files) &until stale?]
-        (case (file-stat path)
-          (where {:mtime {:sec (= hsec) :nsec (= hnsec)} :size (= hsize)}) false
-          _ true)))
+      (accumulate [stale? false _ {: path :size historic_size :mtime {:sec hsec :nsec hnsec} } (ipairs files) &until stale?]
+        (let [{:size current_size :mtime {:sec csec :nsec cnsec}} (file-stat path)]
+          (or (not= historic_size current_size) ;; size differs
+              (< hsec csec)  ;; *fennel* modified since we compiled
+              (and (= hsec csec) (< hnsec cnsec)) ;; also modified since we compiled
+              false)))) ;; otherwise not stale
     (or (lua-missing?) (files-stale?) false)))
 
 (fn record-loadfile [record]
@@ -104,6 +106,7 @@
         {: lua-path : fnl-path : modname} record]
     (if (needs-compilation? record)
       (case-try
+        (print :compile record.fnl-path) _
         (spooky-prepare-plugins!) true
         (compile-fnl fnl-path lua-path modname) true
         (or (deps-for-fnl-path fnl-path) []) deps
