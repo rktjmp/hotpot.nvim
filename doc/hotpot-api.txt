@@ -9,7 +9,6 @@ Diagnostics API........................................|hotpot.api.diagnostics|
   disable......................................|hotpot.api.diagnostics.disable|
   enable........................................|hotpot.api.diagnostics.enable|
   error-for-buf..........................|hotpot.api.diagnostics.error-for-buf|
-  set-options..............................|hotpot.api.diagnostics.set-options|
 Reflect API................................................|hotpot.api.reflect|
   attach-input................................|hotpot.api.reflect.attach-input|
   attach-output..............................|hotpot.api.reflect.attach-output|
@@ -33,12 +32,9 @@ Compile API................................................|hotpot.api.compile|
   compile-selection......................|hotpot.api.compile.compile-selection|
   compile-string............................|hotpot.api.compile.compile-string|
 Cache API....................................................|hotpot.api.cache|
-  cache-path-for-fnl-file............|hotpot.api.cache.cache-path-for-fnl-file|
-  cache-path-for-module................|hotpot.api.cache.cache-path-for-module|
   cache-prefix..................................|hotpot.api.cache.cache-prefix|
   clear-cache....................................|hotpot.api.cache.clear-cache|
-  clear-cache-for-fnl-file..........|hotpot.api.cache.clear-cache-for-fnl-file|
-  clear-cache-for-module..............|hotpot.api.cache.clear-cache-for-module|
+  open-cache......................................|hotpot.api.cache.open-cache|
 
 ================================================================== *hotpot.api*
 
@@ -75,9 +71,6 @@ manually attach to buffers by calling `attach`.
 The diagnostic is limited to one sentence (as provided by Fennel), but the
 entire error, including hints can be accessed via the `user_data` field of the
 diagnostic, or via `error-for-buf`.
-
-Macro forms require a special environment to correctly parse. Files ending in
-`macro.fnl` or `macros.fnl` are automatically evaluated in this context.
 
 ----------------------------------------------- *hotpot.api.diagnostics.attach*
 
@@ -130,30 +123,6 @@ error-for-buf~
 Get current error for buffer (includes all Fennel hints) or nil if no error.
 The raw fennel error is also attached to the `user_data` field of the
 diagnostic structure returned by Neovim.
-
-
------------------------------------------- *hotpot.api.diagnostics.set-options*
-
-set-options~
-
-`(set-options user-buf opts ?how)`
-
-Set compiler options for a buffer, where the defaults are incompatible.
-
-This is useful for allowing error checking in macro modules.
-
-user-buf must match an already attached buffer (0 is valid if attached).
-
-opts is a table of compiler options.
-
-?how can adjust how the buffer is checked, by default it is :compile but you
-may set this to :eval for macro-modules.
-
-BE CAREFUL when setting to :eval, THE CODE WILL BE RUN when checking for
-errors.
-
-This API is EXPERIMENTAL and behaviour may change in the future if future
-options are suported, which may dictate how missing options are handled.
 
 ========================================================== *hotpot.api.reflect*
 
@@ -616,25 +585,6 @@ Tools to interact with Hotpots cache and index, such as
    Note: Some of these functions are destructive, Hotpot bears no responsibility for
    any unfortunate events.
 
------------------------------------- *hotpot.api.cache.cache-path-for-fnl-file*
-
-cache-path-for-fnl-file~
-
-`(cache-path-for-fnl-file fnl-path)`
-
-Get on-disk path to compiled lua that mirrors given fennel source file. File
-path should be absoulute, see |expand| or `fs_realpath` from |vim.loop|.
-
-
--------------------------------------- *hotpot.api.cache.cache-path-for-module*
-
-cache-path-for-module~
-
-`(cache-path-for-module modname)`
-
-Get on-disk path to compiled lua for given module name
-
-
 ----------------------------------------------- *hotpot.api.cache.cache-prefix*
 
 cache-prefix~
@@ -650,25 +600,17 @@ clear-cache~
 
 `(clear-cache)`
 
-Clear all lua cache files and bytecode index
+Clear all lua cache files
 
 
------------------------------------ *hotpot.api.cache.clear-cache-for-fnl-file*
+------------------------------------------------- *hotpot.api.cache.open-cache*
 
-clear-cache-for-fnl-file~
+open-cache~
 
-`(clear-cache-for-fnl-file fnl-path)`
+`(open-cache ?how ?opts)`
 
-Clear compiled lua cache file that mirrors given fennel source file, does
-_not_ clear index entry, instead use clear-cache-for-module. File path should
-be absoulute, see |expand| or `fs_realpath` from |vim.loop|.
+Open the cache directory in a split
 
-
-------------------------------------- *hotpot.api.cache.clear-cache-for-module*
-
-clear-cache-for-module~
-
-`(clear-cache-for-module modname)`
-
-Clear compiled lua cache file for given module name, also clears index entry
+Accepts an optional `how` and `opts` arguments which
+are translated to `(vim.cmd.<how> (cache-path) <opts>)
 
