@@ -382,18 +382,7 @@ Evaluate or compile the `v` selection, or the entire buffer.
 
 **Cache operations**
 
-Open the matching lua file for the current file.
-
->fennel
-    (vim.keymap.set :n :hff
-                    (let [{: cache-path-for-fnl-file} (require :hotpot.api.cache)]
-                       (match (cache-path-for-fnl-file (vim.fn.expand :%:p))
-                         path (vim.cmd (.. ":new " path))
-                         nil (vim.api.nvim_echo [["No cache file for current file" :WarningMsg]] true {})))
-                    {:desc "Open compiled lua file for current file"})
-<
-
-or with a Telescope searcher:
+Open the cache directory with Telescope searcher:
 
 >fennel
     (let [{: find_files} (require :telescope.builtin)
