@@ -6,17 +6,15 @@ to "core" code (things that effect loading and running your code/config) are
 avoided but breaking changes to the API (things that might effect your bindings
 and auto commands) are treated with less reverence.
 
-## 0.8.0 (unreleased)
+## 0.8.0
 
 - **Writing macros in *lua* is no longer supported**.
 - **Required Neovim version bumped to 0.9.**
 - Replaced internal bytecode-index loader with `vim.loader` backed loader.
   - Lua files will only be cached by `vim.loader` if you enable caching via
   `vim.loader.enable`!
-  - Cache dir structure flattened slightly.
 - Added support for lua colocation, compiling `dir/mod/fnl` into `dir/mod/lua`.
-- ~~Native support for `ftplugin/`~~
-  - *Soon*
+- Native support for `ftplugin/`.
 
 ## 0.7.0
 
