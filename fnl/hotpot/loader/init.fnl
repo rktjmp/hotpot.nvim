@@ -106,7 +106,6 @@
         {: lua-path : fnl-path : modname} record]
     (if (needs-compilation? record)
       (case-try
-        (print :compile record.fnl-path) _
         (spooky-prepare-plugins!) true
         (compile-fnl fnl-path lua-path modname) true
         (or (deps-for-fnl-path fnl-path) []) deps
