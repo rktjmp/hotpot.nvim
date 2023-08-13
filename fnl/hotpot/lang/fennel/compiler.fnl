@@ -14,8 +14,9 @@
   (local {: traceback} (require :hotpot.runtime))
   (when (not injected-macro-searcher?)
     (let [{: searcher} (require :hotpot.lang.fennel.searcher.macro)]
-      ;; we inject the macro searcher here, instead of in runtime.install because
-      ;; it requires access to fennel directly.
+      ;; We need the fennel module in memory to insert our searcher,
+      ;; so we wait until we actually get a compile request to do it for
+      ;; performance reasons.
       (table.insert fennel.macro-searchers 1 searcher)
       (set injected-macro-searcher? true)))
 
