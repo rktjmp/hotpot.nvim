@@ -215,7 +215,6 @@ Fennels configuration options as described on fennel-lang.org
 
 - `preprocessor` is a function that accepts the fennel source code as a string,
     and an table, `{: path : modname : macro?}`.
-    See colocation in the |hotpot-cookbook-colocation|.
 
 Fennel compiler plugins are supported in two forms, as a table (ie. as
 described by Fennels documentation) and as a string which should be a module
