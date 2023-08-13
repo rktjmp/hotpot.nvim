@@ -65,7 +65,7 @@
 ;   ;; (string) :: string
 ;   (expect (= :string (type modname))
 ;           modname "cache-path-for-module: modname must be string, got %q")
-;   (let [{: searcher} (require :hotpot.searcher.fennel)
+;   (let [{: searcher} (require :hotpot.lang.fennel.searcher.fennel)
 ;         {: is-fnl-path?} (require :hotpot.fs)
 ;         path (searcher modname)
 ;         _ (expect path "cache-path-for-module: could not find file for %q" modname)

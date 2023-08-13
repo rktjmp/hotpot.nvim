@@ -1,4 +1,4 @@
-(fn new-macro-dep-tracking-plugin [fnl-path required-from-modname]
+(fn new [fnl-path required-from-modname]
   {:versions [:1.1.0 :1.1.1 :1.2.0 :1.2.1 :1.3.0 :1.3.1]
    :name (.. :hotpot-macro-dep-tracking-for- required-from-modname)
    :require-macros
@@ -57,4 +57,4 @@
      ;; dont halt other plugins
      (values nil))})
 
-{:new new-macro-dep-tracking-plugin}
+{: new}

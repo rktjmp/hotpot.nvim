@@ -10,7 +10,7 @@
   "Compile given `str` into lua, returns `true lua` or `false error`. Accepts
   an optional `options` table as described by Fennels API documentation."
   ;; (string string) :: (true luacode) | (false errors)
-  (let [{: compile-string} (require :hotpot.compiler)
+  (let [{: compile-string} (require :hotpot.lang.fennel.compiler)
         ;; TODO badidea? will die on userdata if user has attached _G somewhere
         options (vim.deepcopy (or ?options {}))]
     (if (= nil options.filename)

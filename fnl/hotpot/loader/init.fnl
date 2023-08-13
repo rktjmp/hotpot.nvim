@@ -26,9 +26,9 @@
 
 (λ compile-fnl [fnl-path lua-path modname]
   "Compile fnl-path to lua-path, returns true or false compilation-errors"
-  (let [{: compile-file} (require :hotpot.compiler)
+  (let [{: compile-file} (require :hotpot.lang.fennel.compiler)
         {: config} (require :hotpot.runtime)
-        {:new new-macro-dep-tracking-plugin} (require :hotpot.searcher.macro-dependency-plugin)
+        {:new new-macro-dep-tracking-plugin} (require :hotpot.lang.fennel.searcher.macro-dependency-tracking-plugin)
         options (. config :compiler :modules)
         user-preprocessor (. config :compiler :preprocessor)
         preprocessor (fn [src]
@@ -60,7 +60,7 @@
 (fn spooky-prepare-plugins! []
   ;; we will need to compile some fennel, look if we have compiler plugins and
   ;; load them up now as they require a special environment.
-  (let [{: instantiate-plugins} (require :hotpot.searcher.plugin)
+  (let [{: instantiate-plugins} (require :hotpot.lang.fennel.user-compiler-plugins)
         {: config} (require :hotpot.runtime)
         options (. config :compiler :modules)
         plugins (instantiate-plugins options.plugins)]
@@ -339,7 +339,7 @@
       [nil] false))
 
   (fn search-by-rtp-fnl [modname]
-    (let [{: search-runtime-path} (require :hotpot.searcher.fennel)]
+    (let [{: search-runtime-path} (require :hotpot.lang.fennel.searcher.fennel)]
       (case (search-runtime-path modname)
         modpath (let [fnl-path (normalise-path modpath)]
                   (case-try
@@ -360,7 +360,7 @@
   ;;
   ;; As of 0.9.1-0.10.0-dev, neovims vim.loader does not look at package.path at all.
   (fn search-by-package-path [modname]
-    (let [{: search-package-path} (require :hotpot.searcher.fennel)]
+    (let [{: search-package-path} (require :hotpot.lang.fennel.searcher.fennel)]
       (case (search-package-path modname)
         modpath (let [{: dofile} (require :hotpot.fennel)]
                   (vim.notify (fmt (.. "Found `%s` outside of Neovims RTP (at %s) by the package.path searcher.\n"

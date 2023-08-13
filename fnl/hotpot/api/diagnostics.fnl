@@ -64,7 +64,7 @@
                any :macro
                nil :module)
         ;; grab (and maybe load) plugins but don't alter any root options
-        plugins (let [{: instantiate-plugins} (require :hotpot.searcher.plugin)
+        plugins (let [{: instantiate-plugins} (require :hotpot.lang.fennel.user-compiler-plugins)
                       {: config} (require :hotpot.runtime)
                       options (. config :compiler (.. kind :s))]
                   (instantiate-plugins options.plugins))

@@ -43,7 +43,7 @@
 
 (fn create-loader [modname path]
   "Returns a loader function for either a lua or fnl source file"
-  (let [{: instantiate-plugins} (require :hotpot.searcher.plugin)
+  (let [{: instantiate-plugins} (require :hotpot.lang.fennel.user-compiler-plugins)
         {: config} (require :hotpot.runtime)
         options (. config :compiler :macros)
         plugins (instantiate-plugins options.plugins)]

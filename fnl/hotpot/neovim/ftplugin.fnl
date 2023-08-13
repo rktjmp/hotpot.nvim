@@ -4,7 +4,7 @@
   ;; hotpot-ftplugin/lua/type.lua then load it.
   (let [{: make-searcher : make-ftplugin-record-loader} (require :hotpot.loader)
         {: new-ftplugin} (require :hotpot.loader.record)
-        {: search-runtime-path} (require :hotpot.searcher.fennel)
+        {: search-runtime-path} (require :hotpot.lang.fennel.searcher.fennel)
         searcher (make-searcher)
         modname (.. :hotpot-ftplugin. filetype)]
     (case (searcher modname)
