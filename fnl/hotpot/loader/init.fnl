@@ -339,19 +339,24 @@
       [nil] false))
 
   (fn search-by-rtp-fnl [modname]
-    (let [{: search-runtime-path} (require :hotpot.lang.fennel.searcher.fennel)]
+    (let [search-runtime-path (let [{: search} (require :hotpot.searcher.source2)]
+                                (fn [modname]
+                                  (search {:prefix :fnl
+                                           :extension :fnl
+                                           :modnames [(.. modname ".init") modname]
+                                           :package-path? false})))]
       (case (search-runtime-path modname)
-        modpath (let [fnl-path (normalise-path modpath)]
-                  (case-try
-                    (make-module-record modname fnl-path) index
-                    (if (wants-colocation? index.sigil-path)
-                      (set-index-target-colocation index)
-                      (set-index-target-cache index)) index
-                    (record-loadfile index) loader
-                    (values loader)
-                    ;; catch compiler errors
-                    (false e) (values e)))
-        nil false)))
+        [modpath] (let [fnl-path (normalise-path modpath)]
+                    (case-try
+                      (make-module-record modname fnl-path) index
+                      (if (wants-colocation? index.sigil-path)
+                        (set-index-target-colocation index)
+                        (set-index-target-cache index)) index
+                      (record-loadfile index) loader
+                      (values loader)
+                      ;; catch compiler errors
+                      (false e) (values e)))
+        [nil] false)))
 
   ;; Mostly to handle relative requires that are messy in the other branches.
   ;; These files are never compiled (!!!) and only intepreted because its too
@@ -360,14 +365,20 @@
   ;;
   ;; As of 0.9.1-0.10.0-dev, neovims vim.loader does not look at package.path at all.
   (fn search-by-package-path [modname]
-    (let [{: search-package-path} (require :hotpot.lang.fennel.searcher.fennel)]
+    (let [search-package-path (let [{: search} (require :hotpot.searcher.source2)]
+                                (fn [modname]
+                                  (search {:prefix :fnl
+                                           :extension :fnl
+                                           :modnames [(.. modname ".init") modname]
+                                           :runtime-path? false})))]
       (case (search-package-path modname)
-        modpath (let [{: dofile} (require :hotpot.fennel)]
-                  (vim.notify (fmt (.. "Found `%s` outside of Neovims RTP (at %s) by the package.path searcher.\n"
-                                       "Hotpot will evaluate this file instead of compling it.")
-                                   modname modpath)
-                              vim.log.levels.NOTICE)
-                  #(dofile modpath)))))
+        [modpath] (let [{: dofile} (require :hotpot.fennel)]
+                    (vim.notify (fmt (.. "Found `%s` outside of Neovims RTP (at %s) by the package.path searcher.\n"
+                                         "Hotpot will evaluate this file instead of compling it.")
+                                     modname modpath)
+                                vim.log.levels.NOTICE)
+                    #(dofile modpath))
+        [nil] false)))
 
   (case-try
     ;; Searchers can return nil in exceptional but not unusual cases, such when

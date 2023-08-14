@@ -1,3 +1,5 @@
+(import-macros {: dprint} :hotpot.macros)
+
 (fn slash-modname [modname]
   (let [{: path-separator} (require :hotpot.fs)]
     (string.gsub modname "%." (path-separator))))

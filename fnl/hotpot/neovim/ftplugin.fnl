@@ -4,17 +4,25 @@
   ;; hotpot-ftplugin/lua/type.lua then load it.
   (let [{: make-searcher : make-ftplugin-record-loader} (require :hotpot.loader)
         {: new-ftplugin} (require :hotpot.loader.record)
-        {: search-runtime-path} (require :hotpot.lang.fennel.searcher.fennel)
+        search-runtime-path (let [{: search} (require :hotpot.searcher.source2)]
+                              (fn [modname]
+                                (search {:prefix :ftplugin
+                                         :extension :fnl
+                                         :modnames [(.. filetype)]
+                                         ;; TODO :all? true after loader supports returning multiple or extend loader to support paths too and search + loader locally
+                                         :package-path? false})))
         searcher (make-searcher)
         modname (.. :hotpot-ftplugin. filetype)]
     (case (searcher modname)
-      loader (loader)
-      nil (case-try
-            (search-runtime-path filetype {:prefix :ftplugin}) path
-            ;; this will move ftplugin/x.fnl in to <namespace>/lua/hotpot-ftplugin/x.lua
-            ;; which means the regular loader can find it next time.
-            (make-ftplugin-record-loader modname path) (where loader (= :function (type loader)))
-            (loader)))))
+      loader (do
+               (loader))
+      nil (do
+            (case-try
+              (search-runtime-path filetype {:prefix :ftplugin}) [path]
+              ;; this will move ftplugin/x.fnl in to <namespace>/lua/hotpot-ftplugin/x.lua
+              ;; which means the regular loader can find it next time.
+              (make-ftplugin-record-loader modname path) (where loader (= :function (type loader)))
+              (loader))))))
 
 (var enabled? false)
 (fn enable []
