@@ -65,7 +65,9 @@
     (fn lua-missing? []
       (file-missing? record.lua-path))
     (fn files-changed? []
-      (accumulate [stale? false _ {: path :size historic_size :mtime {:sec hsec :nsec hnsec} } (ipairs files) &until stale?]
+      (accumulate [stale? false
+                   _ {: path :size historic_size :mtime {:sec hsec :nsec hnsec}} (ipairs files)
+                   &until stale?]
         (let [{:size current_size :mtime {:sec csec :nsec cnsec}} (file-stat path)]
           (or (not= historic_size current_size) ;; size differs
               (< hsec csec)  ;; *fennel* modified since we compiled
