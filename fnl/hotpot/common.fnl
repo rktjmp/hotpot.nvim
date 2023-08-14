@@ -20,6 +20,13 @@
         (values mod))))
   (setmetatable t {:__index __index}))
 
+(fn put-new [t k v]
+  (if (= nil (. t k))
+    (doto t (tset k v))
+    (values t)))
+
+
 {:fmt string.format
  : inspect
- : set-lazy-proxy}
+ : set-lazy-proxy
+ : put-new}
