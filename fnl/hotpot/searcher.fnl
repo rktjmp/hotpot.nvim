@@ -5,7 +5,6 @@
     (string.gsub modname "%." (path-separator))))
 
 (fn search-runtime-path [spec]
-  (print :search-runtime-path)
   "Search Neovim RTP for given spec, returns a list of results which may
   contain at most one or many results depending on all? option."
   (let [{: join-path} (require :hotpot.fs)
@@ -18,7 +17,6 @@
         paths (icollect [_ path (ipairs paths) &into matches] path)))))
 
 (fn search-package-path [spec]
-  (print :search-package-path)
   "Search lua package.path for fnl files, returns a list but will only ever find at most one match."
   (let [{: file-exists?} (require :hotpot.fs)
         {: modnames : extension} spec
