@@ -1,28 +1,38 @@
+(import-macros {: dprint} :hotpot.macros)
+
 (fn find-ft-plugins [filetype]
-  ;; search for hotpot-ftplugin.type via loader then search for
-  ;; ftplugin/<filetype>.fnl and compile to cache under
-  ;; hotpot-ftplugin/lua/type.lua then load it.
-  (let [{: make-searcher : make-ftplugin-record-loader} (require :hotpot.loader)
+  (let [{: make-ftplugin-record-loader} (require :hotpot.loader)
         {: make-ftplugin-record} (require :hotpot.lang.fennel)
-        search-runtime-path (let [{: search} (require :hotpot.searcher)]
-                              (fn [modname]
-                                (search {:prefix :ftplugin
-                                         :extension :fnl
-                                         :modnames [(.. filetype)]
-                                         ;; TODO :all? true after loader supports returning multiple or extend loader to support paths too and search + loader locally
-                                         :package-path? false})))
-        searcher (make-searcher)
+        {: search} (require :hotpot.searcher)
         modname (.. :hotpot-ftplugin. filetype)
         make-loader #(make-ftplugin-record-loader
-                       make-ftplugin-record $1 $2)]
-    (case (searcher modname)
-      loader (loader)
-      nil (case-try
-            (search-runtime-path filetype {:prefix :ftplugin}) [path]
-            ;; this will move ftplugin/x.fnl in to <namespace>/lua/hotpot-ftplugin/x.lua
-            ;; which means the regular loader can find it next time.
-            (make-loader modname path) (where loader (= :function (type loader)))
-            (loader)))))
+                       make-ftplugin-record $1 $2)
+        find-all #(search {:prefix :ftplugin
+                          :extension :fnl
+                          :modnames [(.. filetype)]
+                          :all? true
+                          :package-path? false})]
+    ;; TODO: these are always cached for now, so we dont protect lua edits but
+    ;; probably we should eventually.
+
+    ;; TODO: needs to run through existing loader that deletes mods when source
+    ;; is deleted.
+
+    ;; We always check and build (if needed) all ftplugin files
+    (each [_ path (ipairs (or (find-all) []))]
+      (case (make-loader modname path)
+        (where loader (= :function (type loader))) :ok
+        (where msg (= :string (type msg))) (vim.notify msg vim.log.levels.ERROR)))
+
+    ;; now find every mod we built and run them all, try to guard against bad ones
+    ;; wrecking others.
+    (each [_ {: modpath} (ipairs (vim.loader.find modname {:all true}))]
+      (case-try
+        (pcall loadfile modpath) (true loader)
+        (pcall loader modname modpath) (true _)
+        (values nil)
+        (catch
+          (false e) (vim.notify e vim.log.levels.ERROR))))))
 
 (var enabled? false)
 (fn enable []
@@ -40,5 +50,3 @@
     (vim.api.nvim_del_autocmd_by_name :hotpot-ftplugin)))
 
 {: enable : disable}
-
-
