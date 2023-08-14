@@ -117,10 +117,10 @@
     (action)))
 
 (fn handle-cache-lua-path [modname lua-path-in-cache]
-  (fn has-overwrite-permission? [lua-path fnl-path]
+  (fn has-overwrite-permission? [lua-path src-path]
     (query-user (fmt (.. "Should Hotpot overwrite the file %s with the contents of %s?\n"
                          "Hotpot did not recently create this file, but if you have been toggling colocation on and off you may be seeing this warning.\n")
-                     lua-path fnl-path)
+                     lua-path src-path)
                 ["Yes, replace the lua file." #(do true)]
                 ;; TODO: could have "dont ask me again" and "use lua this time"
                 ["No, keep the lua file and dont ask again." #(do false)]))
@@ -130,7 +130,7 @@
       (rm-file lua-path-in-cache) true
       ;; swap to new location index
       (drop-index record) true
-      (make-module-record modname record.fnl-path) record
+      (make-module-record modname record.src-path) record
       (set-index-target-colocation record) record
       (record-loadfile record)))
 
@@ -138,12 +138,12 @@
     ;; We recognise the lua-path, and can backtrack from our records to the
     ;; original fnl code. Since this is in the cache we can also safely treat
     ;; the lua file as our own artefact and remove it at will.
-    record (if (file-exists? record.fnl-path)
+    record (if (file-exists? record.src-path)
              (if (wants-colocation? record.sigil-path)
                (if (file-exists? record.lua-colocation-path)
                  ;; TODO: can checksum the files in this case to see if the
                  ;; collision warrants asking or not
-                 (if (has-overwrite-permission? record.lua-colocation-path record.fnl-path)
+                 (if (has-overwrite-permission? record.lua-colocation-path record.src-path)
                    (clean-cache-and-compile lua-path-in-cache record)
                    (do
                      ;; forget cache, we have a real colocated file that we want to use
@@ -174,7 +174,7 @@
     (fn handler-for-missing-fnl [modname lua-path record]
       ;; Missing fnl files is an indication that we should remove the lua too,
       ;; but we take care not to remove user changes.
-      (if (file-missing? record.fnl-path)
+      (if (file-missing? record.src-path)
         (if (lua-file-modified? record)
           ;; missing, changed
           (query-user (fmt (.. "The file %s was built by Hotpot, but the original fennel source file has been removed.\n"
@@ -243,10 +243,10 @@
 
 (local {: handler-for-unknown-colocation}
   (do
-    (fn has-overwrite-permission? [lua-path fnl-path]
+    (fn has-overwrite-permission? [lua-path src-path]
       (query-user (fmt (.. "Should Hotpot overwrite the file %s with the contents of %s?\n"
                            "Hotpot did not recently create this file, but if you have been toggling colocation on and off you may be seeing this warning.\n")
-                       lua-path fnl-path)
+                       lua-path src-path)
                   ["Yes, replace the lua file." #(do true)]
                   ["No, keep the lua file for now." #(do false)]))
 
@@ -254,16 +254,16 @@
       ;; In this case, the path was unknown, so we must guess the related
       ;; associated files paths and do some spot checks in case we're supposed to
       ;; replace this lua from an updated fnl source, or just load the lua.
-      (let [{: sigil-path : fnl-path} (make-module-record modname lua-path {:unsafely true})]
-        (if (and (file-exists? fnl-path)
+      (let [{: sigil-path : src-path} (make-module-record modname lua-path {:unsafely true})]
+        (if (and (file-exists? src-path)
                  (wants-colocation? sigil-path)
-                 (has-overwrite-permission? lua-path fnl-path))
+                 (has-overwrite-permission? lua-path src-path))
           ;; If the lua file was found colocated, but we did not know about it,
           ;; we should ask the user they're sure they want us to overwrite it.
           ;; If we do overwrite it, we'll then know about it in future compiles
           ;; and wont have to ask.
           (case-try
-            (make-module-record modname fnl-path) record
+            (make-module-record modname src-path) record
             (set-index-target-colocation record) record
             (record-loadfile record) loader
             (values loader)
@@ -317,9 +317,9 @@
                                            :modnames [(.. modname ".init") modname]
                                            :package-path? false})))]
       (case (search-runtime-path modname)
-        [modpath] (let [fnl-path (normalise-path modpath)]
+        [modpath] (let [src-path (normalise-path modpath)]
                     (case-try
-                      (make-module-record modname fnl-path) index
+                      (make-module-record modname src-path) index
                       (if (wants-colocation? index.sigil-path)
                         (set-index-target-colocation index)
                         (set-index-target-cache index)) index
@@ -372,13 +372,13 @@
       false (or (. package :preload modname)
                 (find-module modname)))))
 
-(fn make-module-record-loader [modname fnl-path]
-  (let [index (make-module-record modname fnl-path)
+(fn make-module-record-loader [modname src-path]
+  (let [index (make-module-record modname src-path)
         loader (record-loadfile index)]
     loader))
 
-(fn make-ftplugin-record-loader [modname fnl-path]
-  (let [index (make-ftplugin-record modname fnl-path)
+(fn make-ftplugin-record-loader [modname src-path]
+  (let [index (make-ftplugin-record modname src-path)
         loader (record-loadfile index)]
     loader))
 

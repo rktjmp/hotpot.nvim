@@ -36,7 +36,7 @@
 (local CACHE_ROOT (-> (join-path (vim.fn.stdpath :cache) :hotpot) (normalise-path)))
 (local INDEX_ROOT_PATH (-> (join-path CACHE_ROOT :index) (normalise-path)))
 
-(local INDEX_VERSION 1)
+(local INDEX_VERSION 2)
 (local RECORD_TYPE_MODULE 1)
 (local RECORD_TYPE_FTPLUGIN 2)
 
