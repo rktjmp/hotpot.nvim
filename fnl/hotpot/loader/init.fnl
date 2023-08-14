@@ -70,8 +70,8 @@
                    &until stale?]
         (let [{:size current_size :mtime {:sec csec :nsec cnsec}} (file-stat path)]
           (or (not= historic_size current_size) ;; size differs
-              (< hsec csec)  ;; *fennel* modified since we compiled
-              (and (= hsec csec) (< hnsec cnsec)))))) ;; also modified since we compiled
+              (not= hsec csec)  ;; *fennel* modified since we compiled
+              (not= hnsec cnsec)))))
     (or (lua-missing?) (files-changed?) false)))
 
 (fn record-loadfile [record]
