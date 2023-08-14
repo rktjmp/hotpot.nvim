@@ -9,7 +9,7 @@
         :string (case (search {:prefix :fnl :extension :fnl :modnames [plug]})
                   ;; TODO inherit all options args?
                   [path] (fennel.dofile path {:env :_COMPILER})
-                  [nil] (error (string.format "Could not find fennel compiler plugin %q" plug)))
+                  nil (error (string.format "Could not find fennel compiler plugin %q" plug)))
         _ plug))))
 
 {: instantiate-plugins}
