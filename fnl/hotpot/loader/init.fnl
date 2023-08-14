@@ -372,13 +372,13 @@
       false (or (. package :preload modname)
                 (find-module modname)))))
 
-(fn make-module-record-loader [modname src-path]
-  (let [index (make-module-record modname src-path)
+(λ make-module-record-loader [module-record-maker modname src-path]
+  (let [index (module-record-maker modname src-path)
         loader (record-loadfile index)]
     loader))
 
-(fn make-ftplugin-record-loader [modname src-path]
-  (let [index (make-ftplugin-record modname src-path)
+(λ make-ftplugin-record-loader [ftplugin-record-maker modname src-path]
+  (let [index (ftplugin-record-maker modname src-path)
         loader (record-loadfile index)]
     loader))
 
