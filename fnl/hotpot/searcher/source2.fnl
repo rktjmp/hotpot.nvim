@@ -34,8 +34,8 @@
 
 (λ search [spec]
   "Searches RTP and then package.path for file(s) that satisfiy the given
-  search specifications. Returns a list with 0, 1 or many absolute paths to
-  files that match the given mod names.
+  search specifications. Returns a list with 1 or many absolute paths to
+  files that match the given mod names or nil.
 
   The spec must contain the following keys:
 
@@ -63,6 +63,6 @@
     (case-try
       (if spec.runtime-path? (search-runtime-path spec) []) [nil]
       (if spec.package-path? (search-package-path spec) []) [nil]
-      (values []))))
+      (values nil))))
 
 {: search}

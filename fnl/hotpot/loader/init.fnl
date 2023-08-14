@@ -328,7 +328,7 @@
                       (values loader)
                       ;; catch compiler errors
                       (false e) (values e)))
-        [nil] false)))
+        nil false)))
 
   ;; Mostly to handle relative requires that are messy in the other branches.
   ;; These files are never compiled (!!!) and only intepreted because its too
@@ -350,7 +350,7 @@
                                      modname modpath)
                                 vim.log.levels.NOTICE)
                     #(dofile modpath))
-        [nil] false)))
+        nil false)))
 
   (case-try
     ;; Searchers can return nil in exceptional but not unusual cases, such when

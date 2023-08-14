@@ -14,15 +14,13 @@
         searcher (make-searcher)
         modname (.. :hotpot-ftplugin. filetype)]
     (case (searcher modname)
-      loader (do
-               (loader))
-      nil (do
-            (case-try
-              (search-runtime-path filetype {:prefix :ftplugin}) [path]
-              ;; this will move ftplugin/x.fnl in to <namespace>/lua/hotpot-ftplugin/x.lua
-              ;; which means the regular loader can find it next time.
-              (make-ftplugin-record-loader modname path) (where loader (= :function (type loader)))
-              (loader))))))
+      loader (loader)
+      nil (case-try
+            (search-runtime-path filetype {:prefix :ftplugin}) [path]
+            ;; this will move ftplugin/x.fnl in to <namespace>/lua/hotpot-ftplugin/x.lua
+            ;; which means the regular loader can find it next time.
+            (make-ftplugin-record-loader modname path) (where loader (= :function (type loader)))
+            (loader)))))
 
 (var enabled? false)
 (fn enable []

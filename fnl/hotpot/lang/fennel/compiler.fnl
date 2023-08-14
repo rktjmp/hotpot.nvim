@@ -41,9 +41,9 @@
                :modnames [(.. modname :.init-macros)
                           (.. modname :.init)
                           modname]}]
-    (case (search spec)
-      [path] (make-macro-loader modname path)
-      [nil] nil)))
+    (case-try
+      (search spec) [path]
+      (make-macro-loader modname path))))
 
 (fn compile-string [string options]
   "Compile given string of fennel into lua, returns `true lua` or `false error`"
