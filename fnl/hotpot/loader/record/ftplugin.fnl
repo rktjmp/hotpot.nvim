@@ -1,7 +1,7 @@
 (local {:format fmt} string)
 (local REQUIRED_KEYS  [:namespace :modname :lua-path :src-path])
 
-(λ new [modname src-path ?opts]
+(λ new [modname src-path opts]
   "Examine modname and fnl path, generate lua paths, colocations, etc"
   (assert (string.match src-path "fnl$") "ftplugin records path must end in fnl")
   (let [{: cache-path-for-compiled-artefact} (require :hotpot.loader)
@@ -31,8 +31,8 @@
                 :cache-root-path (cache-path-for-compiled-artefact namespace)
                 : namespace
                 : modname}
-        validate? (not (= true (. (or ?opts {} :unsafely))))]
-    (when validate?
+        unsafely? (or opts.unsafely? false)]
+    (when (= true (not unsafely?))
       (each [_ key (ipairs REQUIRED_KEYS)]
         (assert (. record key)
                 (fmt "could not generate required key: %s from src-path: %s" key src-path))))

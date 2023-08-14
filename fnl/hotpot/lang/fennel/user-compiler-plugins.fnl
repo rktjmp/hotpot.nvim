@@ -1,5 +1,5 @@
 (fn instantiate-plugins [plugins]
-  (let [{: search} (require :hotpot.searcher.source)
+  (let [{: search} (require :hotpot.searcher)
         fennel (require :hotpot.fennel)]
     ;; to allow for runtime adjustments of plugins, we'll always do
     ;; this when creating a loader, and just peek for strings

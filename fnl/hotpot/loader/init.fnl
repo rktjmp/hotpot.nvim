@@ -16,10 +16,10 @@
       (normalise-path)))
 
 (local {:fetch fetch-index :save save-index :drop drop-index
-        :new-module make-module-record
         :new-ftplugin make-ftplugin-record
         : lua-file-modified?
         :set-record-files replace-index-files} (require :hotpot.loader.record))
+(local {: make-module-record} (require :hotpot.lang.fennel))
 (local {:retarget-cache set-index-target-cache
         :retarget-colocation set-index-target-colocation} (require :hotpot.loader.record.module))
 (local {: wants-colocation?} (require :hotpot.loader.sigil))
@@ -254,7 +254,7 @@
       ;; In this case, the path was unknown, so we must guess the related
       ;; associated files paths and do some spot checks in case we're supposed to
       ;; replace this lua from an updated fnl source, or just load the lua.
-      (let [{: sigil-path : src-path} (make-module-record modname lua-path {:unsafely true})]
+      (let [{: sigil-path : src-path} (make-module-record modname lua-path {:unsafely? true})]
         (if (and (file-exists? src-path)
                  (wants-colocation? sigil-path)
                  (has-overwrite-permission? lua-path src-path))

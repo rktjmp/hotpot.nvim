@@ -104,15 +104,15 @@
   "Compile fnl-path to lua-path, returns true or false compilation-errors"
   (let [{: deps-for-fnl-path} (require :hotpot.dependency-map)
         {: config} (require :hotpot.runtime)
-        {: lua-path : fnl-path : modname} record
+        {: lua-path : src-path : modname} record
         {:new new-macro-dep-tracking-plugin} (require :hotpot.lang.fennel.dependency-tracker)
         options (. config :compiler :modules)
         user-preprocessor (. config :compiler :preprocessor)
         preprocessor (fn [src]
                        (user-preprocessor src {:macro? false
-                                               :path fnl-path
+                                               :path src-path
                                                :modname modname}))
-        plugin (new-macro-dep-tracking-plugin fnl-path modname)]
+        plugin (new-macro-dep-tracking-plugin src-path modname)]
     ;; inject our plugin, must only exist for this compile-file call because it
     ;; depends on the specific fnl-path closure value, so we will table.remove
     ;; it after calling compile. It *is* possible to have multiple plugins
@@ -124,8 +124,8 @@
     (tset options :module-name modname)
     (table.insert options.plugins 1 plugin)
     (local (ok? extra) (case-try
-                         (compile-file fnl-path lua-path options preprocessor) true
-                         (or (deps-for-fnl-path fnl-path) []) deps
+                         (compile-file src-path lua-path options preprocessor) true
+                         (or (deps-for-fnl-path src-path) []) deps
                          (values true deps)))
     (table.remove options.plugins 1)
     (values ok? extra)))
