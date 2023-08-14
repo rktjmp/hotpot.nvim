@@ -1,5 +1,7 @@
 # Writing Neovim Plugins in Fennel with Hotpot
 
+! This is out of date at the moment, see colocation in the cookbook.
+
 Writing a Neovim plugin with Hotpot is not much different to writing a regular
 lua plugin.
 

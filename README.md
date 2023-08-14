@@ -13,7 +13,7 @@
 
 <!-- panvimdoc-ignore-end -->
 
-<!-- panvimdoc-include-comment-content
+<!-- panvimdoc-include-comment
 
 ```
 dP     dP             dP                       dP
@@ -192,7 +192,7 @@ You can may want to read the [cookbook](COOKBOOK.md) or see more options in
 
 <!-- panvimdoc-ignore-end -->
 
-<!-- panvimdoc-include-comment-content
+<!-- panvimdoc-include-comment
 
 You can may want to read the `:h hotpot-cookbook` or see more options in
 [setup](#setup).
@@ -248,7 +248,7 @@ require("hotpot").setup({
 - `compiler.macros` is passed to the Fennel compiler when compiling macro files.
   **Be sure to include `env = "_COMPILER"`** unless you have a good reason not to.
 
-<!-- panvimdoc-include-comment-content
+<!-- panvimdoc-include-comment
 
 - `preprocessor` is a function that accepts the fennel source code as a string,
 and an table, `{: path : modname : macro?}`.
@@ -410,7 +410,7 @@ effect this behaviour.
 
 <!-- panvimdoc-ignore-end -->
 
-<!-- panvimdoc-include-comment-content
+<!-- panvimdoc-include-comment
 
 The colocation setting as described in `:h hotpot-cookbook` will effect this behaviour
 
