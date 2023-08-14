@@ -50,14 +50,6 @@
   (let [path (normalise-path path)]
     (join-path INDEX_ROOT_PATH (.. (uri-encode path :rfc2396) :-metadata.mpack))))
 
-(macro where-record-type= [type name]
-  `(where {:type (= ,type) &as ,name}))
-
-(fn validate-record [record]
-  (case record
-    {: lua-path : fnl-path} true
-    _ (values false "missing lua-path or fnl-path")))
-
 (fn load [lua-path]
   (case-try
     (path->index-key lua-path) index-path
@@ -119,27 +111,27 @@
     (catch
       (false e) (error (fmt "Could not drop index at %s\n%s" record.lua-path e)))))
 
-(λ new [type modname fnl-path ?opts]
+(λ new [type modname src-path ?opts]
   "Create a new in-memory record of given type.
   Returns the record or raises if unable to validate the created record."
   (let [module (case type
                  (where (= RECORD_TYPE_MODULE)) :hotpot.loader.record.module
                  (where (= RECORD_TYPE_FTPLUGIN)) :hotpot.loader.record.ftplugin
-                 _ (ferror "Could not create record, unknown type: %s at %s" type fnl-path))
+                 _ (ferror "Could not create record, unknown type: %s at %s" type src-path))
         {:new new-type} (require module)
-        fnl-path (normalise-path fnl-path)
+        src-path (normalise-path src-path)
         modname (string.gsub modname "%.%.+" ".")
-        record (new-type modname fnl-path ?opts)]
+        record (new-type modname src-path ?opts)]
     (vim.tbl_extend :force record
                     {:type type
                      :lua-path-mtime-at-save 0
                      :lua-path-size-at-save 0
                      ;; Include the source file with invalid data so the compiler runs.
-                     :files  [{:path fnl-path :mtime {:sec 0 :nsec 0} :size 0}]})))
+                     :files  [{:path src-path :mtime {:sec 0 :nsec 0} :size 0}]})))
 
 (λ set-record-files [record files]
   "Replace records file list with new list, automatically adds records own source file"
-  (let [files (doto files (table.insert 1 record.fnl-path))
+  (let [files (doto files (table.insert 1 record.src-path))
         file-stats (icollect [_ path (ipairs files)]
                      (let [{: mtime : size} (file-stat path)]
                        {: path : mtime : size}))]
