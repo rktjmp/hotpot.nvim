@@ -35,7 +35,7 @@
         (fennel.eval code options modname)))))
 
 (fn macro-searcher [modname]
-  (let [{: search} (require :hotpot.searcher.source2)
+  (let [{: search} (require :hotpot.searcher)
         spec  {:prefix :fnl
                :extension :fnl
                :modnames [(.. modname :.init-macros)

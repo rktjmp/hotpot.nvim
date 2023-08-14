@@ -311,7 +311,7 @@
       [nil] false))
 
   (fn search-by-rtp-fnl [modname]
-    (let [search-runtime-path (let [{: search} (require :hotpot.searcher.source2)]
+    (let [search-runtime-path (let [{: search} (require :hotpot.searcher)]
                                 (fn [modname]
                                   (search {:prefix :fnl
                                            :extension :fnl
@@ -337,7 +337,7 @@
   ;;
   ;; As of 0.9.1-0.10.0-dev, neovims vim.loader does not look at package.path at all.
   (fn search-by-package-path [modname]
-    (let [search-package-path (let [{: search} (require :hotpot.searcher.source2)]
+    (let [search-package-path (let [{: search} (require :hotpot.searcher)]
                                 (fn [modname]
                                   (search {:prefix :fnl
                                            :extension :fnl

@@ -67,7 +67,7 @@
   Accepts an optional `options` table as described by Fennels API
   documentation."
   (assert modname "eval-module: must provide modname")
-  (let [{: search} (require :hotpot.searcher.source2)
+  (let [{: search} (require :hotpot.searcher)
         {: put-new} (require :hotpot.common)]
     (case (search {:prefix :fnl :extension :fnl :modnames [(.. modname :.init) modname]})
       [path] (let [options (doto (vim.deepcopy (or ?options {}))
