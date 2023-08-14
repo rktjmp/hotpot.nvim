@@ -1,3 +1,5 @@
+(import-macros {: expect : ferror} :hotpot.macros)
+
 (fn inject-macro-searcher []
   ;; The macro-searcher is not inserted until we compile something because it
   ;; needs to load fennel firsts which has a performance impact. This has the
@@ -65,20 +67,14 @@
   Accepts an optional `options` table as described by Fennels API
   documentation."
   (assert modname "eval-module: must provide modname")
-  (let [{: searcher} (require :hotpot.searcher.source)
-        {: is-fnl-path?} (require :hotpot.fs)
-        path (searcher modname {:fennel-only? true})
-        options (or ?options {})]
-    (assert path (string.format "eval-modname: could not find file for module %s"
-                                modname))
-    (assert (is-fnl-path? path)
-            (string.format "eval-modname: did not resolve to .fnl file: %s %s"
-                           modname path))
-    (if (= nil options.filename)
-      (tset options :filename path))
-    (if (= nil options.module-name)
-      (tset options :module-name modname))
-    (eval-file path options)))
+  (let [{: search} (require :hotpot.searcher.source2)
+        {: put-new} (require :hotpot.common)]
+    (case (searcher {:prefix :fnl :extension :fnl :modnames [(.. modname :.init) modname]})
+      [path] (let [options (doto (vim.deepcopy (or ?options {}))
+                                 (put-new :module-name modname)
+                                 (put-new :filename path))]
+               (eval-file path options))
+      [nil] (ferror "compile-modname: could not find file for %s" modname))))
 
 {: eval-string
  : eval-range
