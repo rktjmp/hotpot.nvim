@@ -5,6 +5,46 @@
 ;; is always loaded but not always used.
 (var injected-macro-searcher? false)
 
+(fn make-macro-loader [modname fnl-path]
+  (let [fennel (require :hotpot.fennel)
+        {: read-file!} (require :hotpot.fs)
+        {: config} (require :hotpot.runtime)
+        user-preprocessor (. config :compiler :preprocessor)
+        preprocessor (fn [src]
+                       (user-preprocessor src {:macro? true
+                                               :path fnl-path
+                                               :modname modname}))
+        code (case (-> (read-file! fnl-path) (preprocessor))
+               (nil err) (error err)
+               src src)]
+    (fn [modname]
+      ;; require the depencency map module *inside* the load function
+      ;; to avoid circular dependencies.
+      ;; By putting it here we can be sure that the dep map module is already
+      ;; in memory before hotpot took over macro module searching.
+      (let [dep-map (require :hotpot.dependency-map)
+            {: config} (require :hotpot.runtime)
+            options (doto (. config :compiler :macros)
+                          (tset :filename fnl-path)
+                          (tset :module-name modname))]
+        ;; later, when a module needs a macro, we will know what file the
+        ;; macro came from and can then track the macro file for changes
+        ;; when refreshing the cache.
+        (dep-map.set-macro-modname-path modname fnl-path)
+        ;; eval macro as per fennel's implementation.
+        (fennel.eval code options modname)))))
+
+(fn macro-searcher [modname]
+  (let [{: search} (require :hotpot.searcher.source2)
+        spec  {:prefix :fnl
+               :extension :fnl
+               :modnames [(.. modname :.init-macros)
+                          (.. modname :.init)
+                          modname]}]
+    (case (search spec)
+      [path] (make-macro-loader modname path)
+      [nil] nil)))
+
 (fn compile-string [string options]
   "Compile given string of fennel into lua, returns `true lua` or `false error`"
   ;; (string table) :: (true string) | (false string)
@@ -13,12 +53,11 @@
   (local fennel (require :hotpot.fennel))
   (local {: traceback} (require :hotpot.runtime))
   (when (not injected-macro-searcher?)
-    (let [{: searcher} (require :hotpot.lang.fennel.searcher.macro)]
-      ;; We need the fennel module in memory to insert our searcher,
-      ;; so we wait until we actually get a compile request to do it for
-      ;; performance reasons.
-      (table.insert fennel.macro-searchers 1 searcher)
-      (set injected-macro-searcher? true)))
+    ;; We need the fennel module in memory to insert our searcher,
+    ;; so we wait until we actually get a compile request to do it for
+    ;; performance reasons.
+    (table.insert fennel.macro-searchers 1 macro-searcher)
+    (set injected-macro-searcher? true))
 
   (local options (doto (or options {})
                        (tset :filename (or options.filename :hotpot-compile-string))))
@@ -66,7 +105,7 @@
   (let [{: deps-for-fnl-path} (require :hotpot.dependency-map)
         {: config} (require :hotpot.runtime)
         {: lua-path : fnl-path : modname} record
-        {:new new-macro-dep-tracking-plugin} (require :hotpot.lang.fennel.searcher.macro-dependency-tracking-plugin)
+        {:new new-macro-dep-tracking-plugin} (require :hotpot.lang.fennel.dependency-tracker)
         options (. config :compiler :modules)
         user-preprocessor (. config :compiler :preprocessor)
         preprocessor (fn [src]
