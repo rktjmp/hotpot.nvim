@@ -24,32 +24,6 @@
         :retarget-colocation set-index-target-colocation} (require :hotpot.loader.record.module))
 (local {: wants-colocation?} (require :hotpot.loader.sigil))
 
-(λ compile-fnl [fnl-path lua-path modname]
-  "Compile fnl-path to lua-path, returns true or false compilation-errors"
-  (let [{: compile-file} (require :hotpot.lang.fennel.compiler)
-        {: config} (require :hotpot.runtime)
-        {:new new-macro-dep-tracking-plugin} (require :hotpot.lang.fennel.searcher.macro-dependency-tracking-plugin)
-        options (. config :compiler :modules)
-        user-preprocessor (. config :compiler :preprocessor)
-        preprocessor (fn [src]
-                       (user-preprocessor src {:macro? false
-                                               :path fnl-path
-                                               :modname modname}))
-        plugin (new-macro-dep-tracking-plugin fnl-path modname)]
-    ;; inject our plugin, must only exist for this compile-file call because it
-    ;; depends on the specific fnl-path closure value, so we will table.remove
-    ;; it after calling compile. It *is* possible to have multiple plugins
-    ;; attached for nested requires but this is ok.
-    ;; TODO: this should *probably* be a copy, but would have to be, half
-    ;; shallow, half not (as the options may be heavy for things using _G etc).
-    ;; It could be a shallow-copy + plugins copy since we directly modify that?
-    (tset options :plugins (or options.plugins []))
-    (tset options :module-name modname)
-    (table.insert options.plugins 1 plugin)
-    (local (ok errors) (compile-file fnl-path lua-path options preprocessor))
-    (table.remove options.plugins 1)
-    (values ok errors)))
-
 (fn needs-cleanup []
   ;; We need to handle cases where a module has been renamed
   ;; from x.fnl to x/init.fnl or vice versa. We can check easily by
@@ -102,13 +76,11 @@
 (fn record-loadfile [record]
   ;; This function assumes data has been pre-checked, files exist, flags are
   ;; set, etc!
-  (let [{: deps-for-fnl-path} (require :hotpot.dependency-map)
-        {: lua-path : fnl-path : modname} record]
+  (let [{: compile-record} (require :hotpot.lang.fennel.compiler)]
     (if (needs-compilation? record)
       (case-try
         (spooky-prepare-plugins!) true
-        (compile-fnl fnl-path lua-path modname) true
-        (or (deps-for-fnl-path fnl-path) []) deps
+        (compile-record record) (true deps)
         (replace-index-files record deps) record
         (save-index record) record
         (bust-vim-loader-index record) _
