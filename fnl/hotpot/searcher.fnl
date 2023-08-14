@@ -23,7 +23,7 @@
         modnames (icollect [_ modname (ipairs modnames)] (slash-modname modname))
         ;; append ; so regex is simpler
         templates (string.gmatch (.. package.path ";") "(.-);")
-        build-path-with  (fn [modname] #(.. $1 modname $2 extension))
+        build-path-with  (fn [modname] #(.. $1 modname $2 :. extension))
         result (accumulate [template-match nil template templates &until template-match]
                  (accumulate [mod-match nil _ modname (ipairs modnames) &until mod-match]
                    (case (string.gsub template "(.*)%?(.*)%.lua$" (build-path-with modname))
