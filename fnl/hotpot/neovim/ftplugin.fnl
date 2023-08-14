@@ -3,6 +3,8 @@
 (fn find-ft-plugins [filetype]
   (let [{: make-ftplugin-record-loader} (require :hotpot.loader)
         {: make-ftplugin-record} (require :hotpot.lang.fennel)
+        {: file-exists? : rm-file} (require :hotpot.fs)
+        {: fetch : drop} (require :hotpot.loader.record)
         {: search} (require :hotpot.searcher)
         modname (.. :hotpot-ftplugin. filetype)
         make-loader #(make-ftplugin-record-loader
@@ -15,9 +17,6 @@
     ;; TODO: these are always cached for now, so we dont protect lua edits but
     ;; probably we should eventually.
 
-    ;; TODO: needs to run through existing loader that deletes mods when source
-    ;; is deleted.
-
     ;; We always check and build (if needed) all ftplugin files
     (each [_ path (ipairs (or (find-all) []))]
       (case (make-loader modname path)
@@ -27,12 +26,20 @@
     ;; now find every mod we built and run them all, try to guard against bad ones
     ;; wrecking others.
     (each [_ {: modpath} (ipairs (vim.loader.find modname {:all true}))]
-      (case-try
-        (pcall loadfile modpath) (true loader)
-        (pcall loader modname modpath) (true _)
-        (values nil)
-        (catch
-          (false e) (vim.notify e vim.log.levels.ERROR))))))
+      (let [record (fetch modname)
+            loadit #(case-try
+                      (pcall loadfile modpath) (true loader)
+                      (pcall loader modname modpath) (true _)
+                      (values nil)
+                      (catch
+                        (false e) (vim.notify e vim.log.levels.ERROR)))]
+        (case (fetch modpath)
+          record (if (file-exists? record.src-path)
+                   (loadit)
+                   (do
+                     (rm-file modpath)
+                     (drop record)))
+          nil (loadit))))))
 
 (var enabled? false)
 (fn enable []
