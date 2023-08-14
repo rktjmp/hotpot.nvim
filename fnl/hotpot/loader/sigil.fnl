@@ -46,7 +46,7 @@
                     ;; for now we'll hard exit on a poorly constructed file but
                     ;; might relax this in the future, esp 
                     (vim.notify_once (fmt "hotpot sigil was empty, %s" path)
-                                     vim.log.levels.error)
+                                     vim.log.levels.ERROR)
                     (error "hotpot refusing to continue to avoid unintentional side effects." 0))))))
 
 (fn wants-colocation? [sigil-path]
