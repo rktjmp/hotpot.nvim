@@ -21,8 +21,8 @@
   (local body (fcollect [i 1 (select :# ...)] 
                 (let [s (. [...] i)]
                   (if (string.match (tostring s) "^&")
-                    `(vim.inspect ,(sym (string.sub (tostring s) 2)))
-                    `(tostring ,s)))))
+                    `(.. ,(tostring s) " = " (vim.inspect ,(sym (string.sub (tostring s) 2))))
+                    `(.. ,(tostring s) (tostring ,s))))))
   `(let [x# true]
      (macro ex [s#]
        (let [{:filename f# :line l#} s#]
