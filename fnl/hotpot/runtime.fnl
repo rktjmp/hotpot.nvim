@@ -1,14 +1,35 @@
+(import-macros {: expect : dprint} :hotpot.macros)
+
 (local M {})
+(local fmt string.format)
+(local LOCAL_CONFIG_FILE ".hotpot.lua")
 
 (fn lazy-traceback []
   ;; loading the traceback is potentially heavy if it has to require fennel, so
   ;; we don't get it until we need it.
-  (let [mod-name (match M.config.compiler.traceback
-                   :hotpot :hotpot.traceback
-                   :fennel :hotpot.fennel
-                   _ (error "invalid traceback value, must be :hotpot or :fennel"))
-        {: traceback} (require mod-name)]
+  ;; TODO: deprecated
+  (let [{: traceback} (require :hotpot.traceback)]
     (values traceback)))
+
+(fn lookup-local-config [file]
+  ;; When requiring modules, we can often know where we expect the .hotpot.lua to be
+  ;; and so we can skip the recursive upsearch by checking the path directly.
+  (let [{: file-exists?} (require :hotpot.fs)]
+    (if (string.match file "%.hotpot%.lua$")
+      (if (file-exists? file) file)
+      (case (vim.fs.find LOCAL_CONFIG_FILE {:path file :upward true :kind :file})
+        [path] path
+        [nil] nil))))
+
+(fn loadfile-local-config [path]
+  ;; Unify error return shape for loadfile and running the config
+  (case-try
+    (loadfile path) loader ;; loader | nil err
+    (pcall loader) (true config) ;; true config | false err
+    (values config)
+    (catch
+      (false e) (values nil e)
+      (nil e) (values nil e))))
 
 (fn M.default-config []
   "Return a new hotpot configuration table with default options."
@@ -19,29 +40,52 @@
    :enable_hotpot_diagnostics true
    :provide_require_fennel false})
 
-(fn M.set-config [user-config]
+(var user-config (M.default-config))
+(fn M.user-config [] user-config)
+
+(fn M.set-user-config [given-config]
   (let [new-config (M.default-config)]
     (each [_ k (ipairs [:preprocessor :modules :macros :traceback])]
-      (match (?. user-config :compiler k)
+      (match (?. given-config :compiler k)
         val (tset new-config :compiler k val)))
-    (match (?. user-config :provide_require_fennel)
+    (match (?. given-config :provide_require_fennel)
       val (tset new-config :provide_require_fennel val))
-    (match (?. user-config :enable_hotpot_diagnostics)
+    (match (?. given-config :enable_hotpot_diagnostics)
       val (tset new-config :enable_hotpot_diagnostics val))
     ;; better to hard fail this now, than fail it when something else fails
     (match new-config.compiler.traceback
         :hotpot true
         :fennel true
         _ (error "invalid config.compiler.traceback value, must be 'hotpot' or 'fennel'"))
-    ;; These functions run viml which may not be run outside of the main event
-    ;; loop. We can be *pretty* confident that this will be run in the main loop
-    ;; so we'll run the functions now and cache the results
-    (tset new-config :cache-dir (vim.fn.stdpath :cache))
-    (tset new-config :windows? (= 1 (vim.fn.has "win32")))
-    (set M.config new-config)
-    (values M.config)))
+    (set user-config new-config)
+    (values user-config)))
+
+(fn M.config-for-context [file]
+  "Lookup the config for given file.
+
+  If file is nil, or there is no .hotpot.lua for the give file the user-config
+  is returned.
+
+  If the file does have a .hotpot.lua config, but it fails to load, the
+  default-config is returned and an warning is issued.
+
+  Otherwise the .hotpot.lua config is returned."
+  (if (= nil file)
+    (M.user-config)
+    (case (lookup-local-config file)
+      nil (M.user-config)
+      config-path (case (loadfile-local-config config-path)
+                    config (vim.tbl_deep_extend :keep config (M.default-config))
+                    (nil err) (do
+                              (vim.notify (fmt (.. "Hotpot could not load local config due to lua error, using safe defaults.\n"
+                                                   "Path: %s\n"
+                                                   "Error: %s") config-path err)
+                                          vim.log.levels.WARN)
+                              (values (M.default-config)))))))
 
 
-(M.set-config (M.default-config))
+(M.set-user-config (M.default-config))
+
+;; TODO: smell
 (set M.proxied-keys "traceback")
 (setmetatable M {:__index #(match $2 :traceback (lazy-traceback))})

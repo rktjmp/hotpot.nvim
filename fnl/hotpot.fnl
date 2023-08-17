@@ -16,7 +16,7 @@
     ;; runtime will parse the given options as needed, but effects from
     ;; the options make more sense to be run "during setup".
     (let [runtime (require :hotpot.runtime)
-          config (runtime.set-config options)
+          config (runtime.set-user-config options)
           ftplugin (require :hotpot.neovim.ftplugin)]
       (when true
         (ftplugin.enable))
