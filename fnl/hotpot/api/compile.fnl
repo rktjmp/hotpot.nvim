@@ -16,7 +16,7 @@
   (let [{: compile-string} (require :hotpot.lang.fennel.compiler)
         {: default-config} (require :hotpot.runtime)
         {:compiler compiler-options} (default-config)
-        {:modules modules-options :macros macros-options : preprocessor}  compiler-options] 
+        {:modules modules-options :macros macros-options : preprocessor}  compiler-options]
     (compile-string "(+ 1 1)" modules-options macros-options preprocessor)))
 
 (fn compile-string [str compiler-options]
