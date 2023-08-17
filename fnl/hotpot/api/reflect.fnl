@@ -1,3 +1,5 @@
+(import-macros {: dprint} :hotpot.macros)
+
 (fn split-string [s by]
   (local result [])
   (var from 1)
@@ -18,31 +20,36 @@
   "Turn buf = 0 into buf = num."
   (api.nvim_buf_call buf api.nvim_get_current_buf))
 
-(fn do-eval [str]
+(fn do-eval [str compiler-options]
   "Evaluate str and return fennel-view of result. Returns `true view` or `false err`."
-  (let [{: eval-string} (require :hotpot.api.eval)
+  (let [{: eval} (require :hotpot.fennel)
+        {: traceback} (require :hotpot.runtime)
         {: view} (require :hotpot.fennel)
-        code (string.format "(do %s)" str)
+        code (string.format "(do %s)" (compiler-options.preprocessor str))
         printed []
         ;; TODO: vim.pretty_print too?
         ;; TODO: better "multi-value" render style
         env (setmetatable {:print #(-> (accumulate [s "" _ v (ipairs [$...])]
                                          (.. s (view v) "\t"))
                                        (#(table.insert printed $1)))}
-                          {:__index _G})
+                          {:__index (or compiler-options.modules.env _G)})
+        module-options (vim.tbl_extend :keep {: env} compiler-options.modules)
         ;; TODO use R.x and get multiple return values nicely
         ; pack #(doto [$...] (tset :n (select :# $...)))
-        (ok? viewed) (match (eval-string code {: env})
+        (ok? viewed) (match (xpcall #(eval code module-options) traceback)
                        (true val-1) (values true (view val-1))
                        (true nil) (values true (view nil))
                        (false err) (values false err)
                        (false nil) (values false "::reflect caught an error but the error had no text::"))]
     (values ok? viewed printed)))
 
-(fn do-compile [str]
+(fn do-compile [str compiler-options]
   "Compile string as given. Returns `true lua` or `false err`."
-  (let [{: compile-string} (require :hotpot.api.compile)]
-    (compile-string str)))
+  (let [{: compile-string} (require :hotpot.lang.fennel.compiler)]
+    (compile-string str
+                    compiler-options.modules
+                    compiler-options.macros
+                    compiler-options.preprocessor)))
 
 (fn default-session [buf]
   "Create a session table, using `buf` to generate namespaces."
@@ -130,7 +137,8 @@
 (fn autocmd-handler [session]
   ;; only try to run if we have marks, which implies a connected session
   (fn process-eval [source]
-    (let [(ok? viewed printed) (do-eval source)
+    (let [{: compiler-options} session
+          (ok? viewed printed) (do-eval source compiler-options)
           ;; TODO or printed can be better
           output (-> (icollect [i p (ipairs (or printed []))]
                        (.. ";;=> " p))
@@ -141,7 +149,8 @@
       (values ok? output)))
 
   (fn process-compile [source]
-    (do-compile source))
+    (let [{: compiler-options} session]
+      (do-compile source compiler-options)))
 
   (if (and session.mark-start session.mark-stop)
     (let [(positions? positions) (_get-extmarks session)
@@ -226,10 +235,10 @@
   (tset sessions session.id nil))
 
 (fn M.attach-output [given-buf-id]
-  "Configures a new Hotpot reflect session. Accepts a buffer id. Assumes
-  the buffer is already in a window that was configured by the caller
-  (float, split, etc). The contents of this buffer should be treated as
-  ephemeral, do not pass an important buffer in!
+  "Configures a new Hotpot reflect session. Accepts a buffer id. Assumes the
+  buffer is already in a window that was configured by the caller (float,
+  split, etc). The contents of this buffer should be treated as ephemeral,
+  do not pass an important buffer in!
 
   Returns `session-id {: attach : detach}` where `attach` and `detach`
   act as the module level `attach` and `detach` with the session-id
@@ -262,8 +271,14 @@
     (tset session :input-buf nil)
     (values session.id)))
 
-(fn M.attach-input [session-id given-buf-id]
+(fn M.attach-input [session-id given-buf-id ?compiler-options]
   "Attach given buffer to session. This will detach any existing attachment first.
+
+  Accepts session-id buffer-id and optional compiler options as you would
+  define in hotpot.setup If no compiler-options are given, the appropriate
+  compiler-options are resolved from any local .hotpot.lua file, or those given
+  to setup(). Whe providing custom options you must provide a modules and
+  macros table and a preprocessor function.
 
   Returns session-id"
   ;; ensure the session is ok
@@ -284,6 +299,15 @@
     ;; it's probably more of an UX displeasure as you'd have to bind the
     ;; detach keymap too.
     (tset session :input-buf buf)
+    (tset session :compiler-options (if ?compiler-options
+                                      (vim.tbl_extend :keep ?compiler-options {:modules {}
+                                                                               :macros {:env :_COMPILER}
+                                                                               :preprocessor #$1})
+                                      (let [{: config-for-context} (require :hotpot.runtime)
+                                            context-loc (case (api.nvim_buf_get_name buf)
+                                                          "" (vim.fn.getcwd)
+                                                          name name)]
+                                        (. (config-for-context context-loc) :compiler))))
     (attach-extmarks session)
     (attach-autocmd session)
     ;; manually fire first time instead of waiting for au event
