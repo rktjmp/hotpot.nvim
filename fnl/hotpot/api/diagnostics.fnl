@@ -94,7 +94,7 @@
                                    ;; fennel into compiling the code in the correct
                                    ;; environment.
                                    :macro #(string.format "(macro ___hotpot-dignostics-wrap [] %s )" $1))]
-                       (wrap (preprocessor (get-buf-text buf))))]
+                       (wrap (preprocessor (get-buf-text buf) {})))]
         (case (compile-string buf-text local-compiler-options compiler-options.macros)
           (true _)
           (do
