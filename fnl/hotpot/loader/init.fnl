@@ -1,4 +1,4 @@
-(import-macros {: expect} :hotpot.macros)
+(import-macros {: expect : dprint} :hotpot.macros)
 (local {:format fmt} string)
 (local {: file-exists? : file-missing?
         : file-stat
@@ -66,10 +66,13 @@
 (fn record-loadfile [record]
   ;; This function assumes data has been pre-checked, files exist, flags are
   ;; set, etc!
-  (let [{: compile-record} (require :hotpot.lang.fennel.compiler)]
+  (let [{: compile-record} (require :hotpot.lang.fennel.compiler)
+        {: config-for-context} (require :hotpot.runtime)
+        {: compiler} (config-for-context (or record.sigil-path record.src-path))
+        {:modules modules-options :macros macros-options : preprocessor} compiler]
     (if (needs-compilation? record)
       (case-try
-        (compile-record record) (true deps)
+        (compile-record record modules-options macros-options preprocessor) (true deps)
         (replace-index-files record deps) record
         (save-index record) record
         (bust-vim-loader-index record) _
