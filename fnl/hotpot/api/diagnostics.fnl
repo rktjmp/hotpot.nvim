@@ -56,43 +56,46 @@
 (fn make-handler [buf ns]
   "Create the autocmd callback"
   (let [{:get-buf get-buf-text} (require :hotpot.api.get_text)
-        {: compile-string} (require :hotpot.api.compile)
+        {: compile-string} (require :hotpot.lang.fennel.compiler)
         ;; collect collect known globals as we want to enforce strict mode
         allowed-globals (icollect [n _ (pairs _G)] n)
-        fname (match (api.nvim_buf_get_name buf) "" nil any any)
-        kind (match (string.find (or fname "") "macros?%.fnl$")
+        fname (case (api.nvim_buf_get_name buf)
+                "" nil
+                any any)
+        compiler-options (let [{: config-for-context} (require :hotpot.runtime)]
+                           (. (config-for-context (or fname (vim.fn.getcwd))) :compiler))
+        kind (case (string.find (or fname "") "macros?%.fnl$")
                any :macro
                nil :module)
-        ;; grab (and maybe load) plugins but don't alter any root options
-        plugins (let [{: instantiate-plugins} (require :hotpot.lang.fennel.user-compiler-plugins)
-                      {: config} (require :hotpot.runtime)
-                      options (. config :compiler (.. kind :s))]
-                  (instantiate-plugins options.plugins))
-        preprocessor (let [{: config} (require :hotpot.runtime)
-                           user-preprocessor (. config :compiler :preprocessor)]
-                       (fn [src]
-                         (user-preprocessor src {:macro? (= kind :macro)
-                                                 :path fname
-                                                 :modname nil})))]
+        ;; we want to manually apply the preprocessor here instead of relying
+        ;; on compile-string  because we need to wrap macro file text in a
+        ;; macro context for correct errors.
+        preprocessor #(compiler-options.preprocessor $1 {:macro? (= kind :macro)
+                                                         :path fname
+                                                         :modname nil})
+        plugins (case kind
+                  :module compiler-options.modules.plugins
+                  :macro compiler-options.macros.plugins)
+        local-compiler-options (vim.tbl_extend :keep
+                                               {:filename fname
+                                                :allowedGlobals allowed-globals
+                                                :error-pinpoint false
+                                                :plugins plugins}
+                                               compiler-options.modules)]
     (fn []
-      (let [buf-data (. data buf)
-            buf-text (match kind
-                       :module (preprocessor (get-buf-text buf))
-                       ;; There isn't a clean way to compile-check macros, env
-                       ;; = _COMPILER only seems to work with eval/dofile even
-                       ;; though the API reference says it alters eval/compile
-                       ;; environment.
-                       ;; To get around this we can wrap the would-be macro-context
-                       ;; code inside a (macro) call which correctly tricks
-                       ;; fennel into compiling the code in the correct
-                       ;; environment.
-                       :macro (string.format "(macro ___hotpot-dignostics-wrap [] %s )"
-                                             (preprocessor (get-buf-text buf))))
-            options {:filename fname
-                     :allowedGlobals allowed-globals
-                     :error-pinpoint false
-                     :plugins plugins}]
-        (match (compile-string buf-text options)
+      (let [buf-text (let [wrap (case kind
+                                   :module #$1
+                                   ;; There isn't a clean way to compile-check macros, env
+                                   ;; = _COMPILER only seems to work with eval/dofile even
+                                   ;; though the API reference says it alters eval/compile
+                                   ;; environment.
+                                   ;; To get around this we can wrap the would-be macro-context
+                                   ;; code inside a (macro) call which correctly tricks
+                                   ;; fennel into compiling the code in the correct
+                                   ;; environment.
+                                   :macro #(string.format "(macro ___hotpot-dignostics-wrap [] %s )" $1))]
+                       (wrap (preprocessor (get-buf-text buf))))]
+        (case (compile-string buf-text local-compiler-options compiler-options.macros)
           (true _)
           (do
             (set-buf-err buf nil)
