@@ -7,8 +7,11 @@
   ;; ever compiling anything, so to fix that we'll compile some code before we
   ;; try to eval anything.
   ;; This isn't run in every function, only the delegates.
-  (let [{: compile-string} (require :hotpot.api.compile)]
-    (compile-string "(+ 1 1)")))
+  (let [{: compile-string} (require :hotpot.lang.fennel.compiler)
+        {: default-config} (require :hotpot.runtime)
+        {:compiler compiler-options} (default-config)
+        {:modules modules-options :macros macros-options : preprocessor}  compiler-options] 
+    (compile-string "(+ 1 1)" modules-options macros-options preprocessor)))
 
 (fn eval-string [code ?options]
   "Evaluate given fennel `code`, returns `true result ...` or `false
