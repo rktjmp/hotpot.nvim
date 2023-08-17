@@ -25,7 +25,7 @@
   (let [{: eval} (require :hotpot.fennel)
         {: traceback} (require :hotpot.runtime)
         {: view} (require :hotpot.fennel)
-        code (string.format "(do %s)" (compiler-options.preprocessor str))
+        code (string.format "(do %s)" (compiler-options.preprocessor str {}))
         printed []
         ;; TODO: vim.pretty_print too?
         ;; TODO: better "multi-value" render style
