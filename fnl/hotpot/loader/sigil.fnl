@@ -6,7 +6,9 @@
 ;; flags. In this case they alter how or where we compile to.
 (fn load [path]
   (let [defaults {:schema "hotpot/1"
-                  :colocate false}
+                  :colocate false
+                  :build false
+                  :compiler {}}
         valid? (fn [sigil]
                  (case (icollect [key _val (pairs sigil)]
                          (case (. defaults key)
@@ -45,7 +47,7 @@
         (false e) (do
                     ;; for now we'll hard exit on a poorly constructed file but
                     ;; might relax this in the future, esp 
-                    (vim.notify_once (fmt "hotpot sigil was empty, %s" path)
+                    (vim.notify_once (fmt "hotpot sigil was invalid, %s\n%s" path e)
                                      vim.log.levels.ERROR)
                     (error "hotpot refusing to continue to avoid unintentional side effects." 0))))))
 
