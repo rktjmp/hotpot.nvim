@@ -86,6 +86,12 @@
     (local (ok? val) (xpcall #(pick-values 1 (fennel.compile-string source options))
                                    traceback))
     (table.remove compiler-options-stack 1)
+    ;; We have to manually nil these out so they dont hang around.
+    ;; We currently dont deep_extend these option tables because they may contain _G,
+    ;; which would be very expensive to copy. But TODO we tbl_extend might be
+    ;; smart enough to not do that, or we can just be more selective on what we clone.
+    (tset modules-options :filename nil)
+    (tset modules-options :module-name nil)
     (values ok? val)))
 
 (λ compile-file [fnl-path lua-path modules-options macros-options ?preprocessor]
