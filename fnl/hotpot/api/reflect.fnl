@@ -293,20 +293,24 @@
   ;; now attach the new buf, which means grabbing the current highlight
   ;; range, setting up the content-changed autocmd, firing the handler first time
   (let [buf (resolve-buf-id given-buf-id)
+        fname (case (api.nvim_buf_get_name buf) "" nil name name)
         real-compiler-options (if ?compiler-options
                                 (vim.tbl_extend :keep ?compiler-options {:modules {}
                                                                          :macros {:env :_COMPILER}
                                                                          :preprocessor #$1})
                                 (let [{: config-for-context} (require :hotpot.runtime)
-                                      context-loc (case (api.nvim_buf_get_name buf)
-                                                    "" (vim.fn.getcwd)
+                                      context-loc (case fname
+                                                    nil (vim.fn.getcwd)
                                                     name name)]
                                   (. (config-for-context context-loc) :compiler)))
         compiler-options {:macros real-compiler-options.macros
                           :preprocessor real-compiler-options.preprocessor
                           ;; We never want to correlate reflex output.
                           ;; Mutablitly sucks.
-                          :modules (vim.tbl_extend :keep {:correlate false} real-compiler-options.modules)}]
+                          :modules (vim.tbl_extend :keep
+                                                   {:filename fname
+                                                    :correlate false}
+                                                   real-compiler-options.modules)}]
     ;; TODO: functions have been altered to use session.input-buf internally
     ;; for now. architecturally I would prefer to push the buf value around but
     ;; we currently dont support attaching mutiple buffers to one session as
