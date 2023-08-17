@@ -31,17 +31,6 @@
   ;; and possibly ask vim.loader to dump the old one (it may itself).
   :TODO)
 
-(fn spooky-prepare-plugins! []
-  ;; we will need to compile some fennel, look if we have compiler plugins and
-  ;; load them up now as they require a special environment.
-  (let [{: instantiate-plugins} (require :hotpot.lang.fennel.user-compiler-plugins)
-        {: config} (require :hotpot.runtime)
-        options (. config :compiler :modules)
-        plugins (instantiate-plugins options.plugins)]
-    ;; note this is a global side effect!
-    (set options.plugins plugins)
-    true))
-
 ; (var buster-count 0)
 ; (fn bust-vim-loader-rtp-cache []
 ;   (vim.opt.rtp:remove (cache-path-for-compiled-artefact (.. :vim-loader-cache-buster-
@@ -80,7 +69,6 @@
   (let [{: compile-record} (require :hotpot.lang.fennel.compiler)]
     (if (needs-compilation? record)
       (case-try
-        (spooky-prepare-plugins!) true
         (compile-record record) (true deps)
         (replace-index-files record deps) record
         (save-index record) record
