@@ -25,8 +25,34 @@
     (doto t (tset k v))
     (values t)))
 
+(fn any? [f seq]
+  (accumulate [x false _ v (ipairs seq) &until x]
+    (f v)))
+
+(fn none? [f seq]
+  (not (any? f seq)))
+
+(fn map [f seq]
+  (icollect [_ v (ipairs seq)]
+    (f v)))
+
+(fn filter [f seq]
+  (map #(if (f $1) $1) seq))
+
+(fn string? [x] (= :string (type x)))
+(fn boolean? [x] (= :boolean (type x)))
+(fn table? [x] (= :table (type x)))
+(fn nil? [x] (= nil x))
 
 {:fmt string.format
  : inspect
  : set-lazy-proxy
- : put-new}
+ : put-new
+ : map
+ : filter
+ : any?
+ : none?
+ : string?
+ : boolean?
+ : table?
+ : nil?}
