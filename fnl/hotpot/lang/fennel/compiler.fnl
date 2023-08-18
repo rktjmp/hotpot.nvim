@@ -32,6 +32,7 @@
                                                 :path fnl-path
                                                 :modname modname})
         options (doto options.macros
+                      (tset :error-pinpoint false)
                       (tset :filename fnl-path)
                       (tset :module-name modname))
         _ (spooky-prepare-plugins! options)
@@ -68,6 +69,7 @@
   (let [fennel (require :hotpot.fennel)
         {: traceback} (require :hotpot.runtime)
         options (doto modules-options
+                      (tset :error-pinpoint false)
                       (tset :filename (or modules-options.filename :hotpot-compile-string)))
         _ (spooky-prepare-plugins! options)
         preprocessor (or ?preprocessor (fn [src] src))
