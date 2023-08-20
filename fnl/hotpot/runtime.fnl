@@ -18,7 +18,7 @@
     (if (string.match file "%.hotpot%.lua$")
       (if (file-exists? file) file)
       (case (vim.fs.find LOCAL_CONFIG_FILE {:path file :upward true :kind :file})
-        [path] path
+        [path] (vim.loop.fs_realpath path)
         [nil] nil))))
 
 (fn loadfile-local-config [path]
@@ -26,7 +26,7 @@
   (case-try
     (loadfile path) loader ;; loader | nil err
     (pcall loader) (true config) ;; true config | false err
-    (values config)
+    (vim.tbl_deep_extend :keep config {:context path} (M.default-config))
     (catch
       (false e) (values nil e)
       (nil e) (values nil e))))
@@ -60,6 +60,30 @@
     (set user-config new-config)
     (values user-config)))
 
+;; TODO rename this and config-for-context
+(fn M.lookup-local-config [file]
+  (lookup-local-config file))
+
+(fn M.loadfile-local-config [config-path]
+  (case (loadfile-local-config config-path)
+    config config
+    (nil err) (do
+                (vim.notify (fmt (.. "Hotpot could not load local config due to lua error.\n"
+                                     "Path: %s\n"
+                                     "Error: %s") config-path err)
+                            vim.log.levels.WARN)
+                (values nil))
+    nil (do
+          ;; An empty config file will return nil and could be intentional,
+          ;; but an error omitting the return keyword will also return nil
+          ;; and could be pretty frustrating.
+          ;; So we'll opt to error on nil and users can use `return {}` if
+          ;; they *really* want a blank config file.
+          (vim.notify (fmt (.. "Hotpot found local config but it return nil, update it to return a table insead.\n"
+                               "Path: %s\n") config-path)
+                      vim.log.levels.WARN)
+          (values nil))))
+
 (fn M.config-for-context [file]
   "Lookup the config for given file.
 
@@ -72,16 +96,13 @@
   Otherwise the .hotpot.lua config is returned."
   (if (= nil file)
     (M.user-config)
-    (case (lookup-local-config file)
+    (case (M.lookup-local-config file)
       nil (M.user-config)
-      config-path (case (loadfile-local-config config-path)
-                    config (vim.tbl_deep_extend :keep config (M.default-config))
-                    (nil err) (do
-                              (vim.notify (fmt (.. "Hotpot could not load local config due to lua error, using safe defaults.\n"
-                                                   "Path: %s\n"
-                                                   "Error: %s") config-path err)
-                                          vim.log.levels.WARN)
-                              (values (M.default-config)))))))
+      config-path (case (M.loadfile-local-config config-path)
+                    config config
+                    nil (do
+                          (vim.notify "Using safe defaults" vim.log.levels.WARN)
+                          (M.default-config))))))
 
 
 (M.set-user-config (M.default-config))
