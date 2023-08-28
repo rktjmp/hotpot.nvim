@@ -405,7 +405,7 @@ plugin in fennel.
 
 <!-- panvimdoc-ignore-start -->
 
-The colocation settings as described in the [cookbook](COOKBOO.md) settings will
+The colocation settings as described in the [cookbook](COOKBOOK.md) settings will
 effect this behaviour.
 
 <!-- panvimdoc-ignore-end -->
