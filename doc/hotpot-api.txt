@@ -27,7 +27,6 @@ Eval API......................................................|hotpot.api.eval|
 Compile API................................................|hotpot.api.compile|
   compile-buffer............................|hotpot.api.compile.compile-buffer|
   compile-file................................|hotpot.api.compile.compile-file|
-  compile-module............................|hotpot.api.compile.compile-module|
   compile-range..............................|hotpot.api.compile.compile-range|
   compile-selection......................|hotpot.api.compile.compile-selection|
   compile-string............................|hotpot.api.compile.compile-string|
@@ -221,9 +220,15 @@ could be condensed.
 
 attach-input~
 
-`(attach-input session-id given-buf-id)`
+`(attach-input session-id given-buf-id ?compiler-options)`
 
 Attach given buffer to session. This will detach any existing attachment first.
+
+Accepts session-id buffer-id and optional compiler options as you would
+define in hotpot.setup If no compiler-options are given, the appropriate
+compiler-options are resolved from any local .hotpot.lua file, or those given
+to setup(). Whe providing custom options you must provide a modules and
+macros table and a preprocessor function.
 
 Returns session-id
 
@@ -234,10 +239,10 @@ attach-output~
 
 `(attach-output given-buf-id)`
 
-Configures a new Hotpot reflect session. Accepts a buffer id. Assumes
-the buffer is already in a window that was configured by the caller
-(float, split, etc). The contents of this buffer should be treated as
-ephemeral, do not pass an important buffer in!
+Configures a new Hotpot reflect session. Accepts a buffer id. Assumes the
+buffer is already in a window that was configured by the caller (float,
+split, etc). The contents of this buffer should be treated as ephemeral,
+do not pass an important buffer in!
 
 Returns `session-id {: attach : detach}` where `attach` and `detach`
 act as the module level `attach` and `detach` with the session-id
@@ -275,129 +280,37 @@ build~
 
 `(build ...)`
 
-Build fennel code found inside a directory (or single file), according to
-user defined rules. Files are only built if the output file is missing or if
-the source file is newer.
-
-`build` accepts a `source-path`, an optional `options` table and then a set of
-`pattern function` argument pairs. If `source-path` is a directory, each
-`*.fnl` file in `source-path` is checked against each `pattern` given, and if
-any match the `function` is called with the pattern captures as arguments.
-The function should return a path to save the compiled file to, or `nil`
-(`.fnl` extensions are automatically converted to `.lua` for QOL). If
-`source-path` is a file, it acts similar as for a directory but only for the
-file-path given.
-
-You may want to use this to build plugins written in Fennel or to compile
-small sections of your configuration that are never loaded via lua's
-`require` function. An example of these are `ftplugins/*.lua` or
-`colors/*.lua` files which are directly interpreted via Neovim and never
-loaded "as modules".
-
-Note: Regular Hotpot operation will track staleness due to dependency
-changes, a file will be "stale" if a macro it uses was changed, even if the
-file itself was not updated. Because `make.build` operates outside of Hotpots
-regular infrastructure, it does not currently track stale-ness to this level
-and only compares the source file vs the target file. See the `force?` option.
-
-Returns `[[src, dest, result<ok>] ...] [[src, dest, result<err>] ...]`
-
-Usage example:
+Build fennel files found inside a directory that match a given set of glob
+patterns.
 
 >
-  ;; build all fnl files inside config dir
-  (build "~/.config/nvim"
-         ;; ~/.config/nvim/fnl/*.fnl -> ~/.config/nvim/lua/*.lua
-         "(.+)/fnl/(.+)" 
-         (fn [root path {: join-path}] ;; root is the first match, path is the second
-           ;; ignore our own macro file (init-macros.fnl is ignored by default)
-           (if (not (string.match path "my-macros%.fnl$"))
-             ;; join-path automatically uses the os-appropriate path separator
-             (join-path root :lua path)))
-         ;; config/ftplugins/*.fnl -> config/ftplugins/*.lua
-         "(~/.config/nvim/ftplugins/.+)"
-         (fn [whole-path] (values whole-path)))
+  (build :some/dir {:verbose true} [[:fnl/**/*macro*.fnl false] [:fnl/**/*.fnl true]])
 <
 
-Arguments are as given,
-
-`source-path`
-
-Directory to recursively search inside for `*.fnl` files or a direct path to
-a `.fnl` file. Direct paths are accepted as given but when recursing a
-directory any file named `init-macros.fnl` is ignored, as macros do not
-compile to lua. Any leading `~` is expanded via `os.getenv :HOME`, if the
-expansion fails an error is raised. Paths may be relative to the current
-working directory with a leading `.`.
-
-`options-table` (may be omitted)
-
->
-  {:atomic? true
-   :verbosity 1
-   :compiler {:modules {...}
-              :macros {...}}}
-<
+Build accepts a `root-directory` to work in, an optional `options` table and
+a list of pairs, where each pair is a glob string and boolean value, where
+true indicates a matching file should be compiled, and false indicates the
+file should be ignored.
 
 The options table may contain the following keys:
 
-`atomic?`: When true, if there is any compilation error, no files are written
-          to disk. Defaults to true.
+- `atomic`, boolean, default false. When true, if there are any errors during
+   compilation, no files are written to disk. Defaults to false.
 
-`verbosity`: Adjusts information output. Errors are always output.
-             - `0`: No output
-             - `1`: Outputs compilation messages and nothing-to-do message
-             Defaults to 1.
+- force: boolean, default false. When true, all matched files are built, when
+  false, only changed files are build.
 
-`force?`: Force compilation, even if output is not stale.
+- dryrun: boolean, default false. When true, no biles are written to disk.
 
-`compiler`: The compiler table has the same form and function as would be
-            given to `hotpot.setup`. If the table is not given, the
-            `compiler` options given to `hotpot.setup` are used.
+- verbose: boolean, default false. When true, all compile events are logged,
+  when false, only errors are logged.
 
-`pattern`
+- compiler: table, default nil. A table containing modules, macros and preprocessor
+  options to pass to the compiler. See :h hotpot-setup.
 
-A string that each found file path will be tested against.
-
-Ex: `"(.+)/fnl/health/(.+)"`
-
-`function`
-
-A function that's called if a file path matched the pattern. The function
-should return the output path, ending in .fnl or .lua.
-
-The extension must be `.lua` or `.fnl`. A `.lua` file is always output, but
-the extension must be present in the return value.
-
-`~` expansion is *not* applied to this path.
-
-If the function returns nil, the file will be checked against the remaining
-patterns, if all patterns return nil, the file is ignored and not compiled.
-
-The function is called with each capture group in its associated pattern and
-a final table containing helper functions.
-
-Ex: (fn [source-path path-inside-health-dir {: join-path}
-         (join-path some-dir :lua path-inside-health-dir))
-
-Helpers: `join-path` joins all arguments with platform-specific separator.
-
-You can provide any number of patterns function pairs. Patterns are checked
-in the order given and match will stop future checks.
-
-Notes:
-
-Each time you run your build function, the directory must be recursively
-iterated for matching files. Configurations with thousands of files and
-hundreds of match-function pairs may suffer negative performance impacts.
-
-Even with no changes to the source files, the directory must be iterated and
-*checked* for changes each time the build function is run. This check is
-reasonably fast as we only have to check a few bytes of filesystem metadata
-but it *is* a non-zero cost.
-
-When in doubt, benchmark your build time and potentially limit its source
-directory scope if searching is unreasonably long.
+Glob patterns are checked in the order they are given, so generally 'ignore' patterns
+should be given first so things like 'macro modules' are not compiled to
+their own files.
 
 
 ------------------------------------------------------- *hotpot.api.make.check*
@@ -406,8 +319,7 @@ check~
 
 `(check ...)`
 
-Functionally identical to `build' but wont output any files. `check' is
-always verbose. Returns `[[src, dest, result<ok>] ...] [[src, dest, result<err>] ...]`
+Deprecated, see dryrun option for build
 
 ============================================================= *hotpot.api.eval*
 
@@ -504,65 +416,59 @@ Compile API~
 
 compile-buffer~
 
-`(compile-buffer buf ?options)`
+`(compile-buffer buf compiler-options)`
 
 Read the contents of `buf` and compile into lua, returns `true lua` or
-`false error`. Accepts an optional `options` table as described by Fennels
-API documentation.
+`false error`.
+
+Accepts an options table as described by Fennels API documentation.
 
 
 --------------------------------------------- *hotpot.api.compile.compile-file*
 
 compile-file~
 
-`(compile-file fnl-path ?options)`
+`(compile-file fnl-path compiler-options)`
 
 Read contents of `fnl-path` and compile into lua, returns `true lua` or
-`false error`. Will raise if file does not exist. Accepts an optional
-`options` table as described by Fennels API documentation.
+`false error`. Will raise if file does not exist.
 
-
-------------------------------------------- *hotpot.api.compile.compile-module*
-
-compile-module~
-
-`(compile-module modname ?options)`
-
-Use hotpots module searcher to find `modname` and compile it into lua code,
-returns `true fnl-code` or `false error`. Accepts an optional `options` table
-as described by Fennels API documentation.
+Accepts an options table as described by Fennels API documentation.
 
 
 -------------------------------------------- *hotpot.api.compile.compile-range*
 
 compile-range~
 
-`(compile-range buf start-pos stop-pos ?options)`
+`(compile-range buf start-pos stop-pos compiler-options)`
 
 Read `buf` from `start-pos` to `end-pos` and compile into lua, returns `true
-lua` or `false error`. Positions can be `line-nr` or `[line-nr col]`. Accepts
-an optional `options` table as described by Fennels API documentation.
+lua` or `false error`. Positions can be `line-nr` or `[line-nr col]`.
+
+Accepts an options table as described by Fennels API documentation.
 
 
 ---------------------------------------- *hotpot.api.compile.compile-selection*
 
 compile-selection~
 
-`(compile-selection ?options)`
+`(compile-selection compiler-options)`
 
 Read the current selection and compile into lua, returns `true lua` or
-`false error`. Accepts an optional `options` table as described by Fennels
-API documentation.
+`false error`.
+
+Accepts an options table as described by Fennels API documentation.
 
 
 ------------------------------------------- *hotpot.api.compile.compile-string*
 
 compile-string~
 
-`(compile-string str ?options)`
+`(compile-string str compiler-options)`
 
-Compile given `str` into lua, returns `true lua` or `false error`. Accepts
-an optional `options` table as described by Fennels API documentation.
+Compile given `str` into lua, returns `true lua` or `false error`.
+
+Accepts an options table as described by Fennels API documentation.
 
 ============================================================ *hotpot.api.cache*
 
