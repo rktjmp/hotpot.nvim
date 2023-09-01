@@ -86,6 +86,15 @@
     true true
     (nil e) (values false e)))
 
+(fn copy-file [from to]
+  (case-try
+    (dirname to) dir
+    (make-path dir) true
+    (uv.fs_copyfile from to) true
+    (values true)
+    (catch
+      (nil e) (values false e))))
+
 (fn normalise-path [path]
   (vim.fs.normalize path {:expand_env false}))
 
@@ -102,4 +111,5 @@
  : dirname
  : path-separator
  : rm-file
+ : copy-file
  : normalise-path}
