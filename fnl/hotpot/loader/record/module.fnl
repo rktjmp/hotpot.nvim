@@ -5,6 +5,7 @@
                        :lua-cache-path :lua-colocation-path
                        :namespace :modname
                        :lua-path :src-path])
+(local path-sep ((. (require :hotpot.fs) :path-separator)))
 
 (λ new [modname src-path {: prefix : extension &as opts}]
   "Examine modname and fnl path, generate lua paths, colocations, etc"
@@ -24,9 +25,17 @@
         context-dir (string.sub src-path 1 context-dir-end-position)
         code-path (string.sub src-path (+ context-dir-end-position 1))
         ;; small edgecase for relative paths such as in `VIMRUNTIME=runtime nvim`
-        namespace (case (string.match context-dir ".+/(.-)/$")
+        namespace (case (string.match context-dir (.. ".+"
+                                                      path-sep
+                                                      "(.-)"
+                                                      path-sep
+                                                      "$"))
                     namespace namespace
-                    nil (string.match context-dir "([^/]-)/$"))
+                    nil (string.match context-dir (.. "([^"
+                                                      path-sep
+                                                      "]-)"
+                                                      path-sep
+                                                      "$")))
         ;; Replace containing dir and extension
         fnl-code-path (.. prefix
                           (string.sub code-path (+ prefix-length 1) (* -1 (+ 1 extension-length)))

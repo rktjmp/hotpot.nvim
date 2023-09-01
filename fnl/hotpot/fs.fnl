@@ -86,8 +86,12 @@
     true true
     (nil e) (values false e)))
 
-(fn normalise-path [path]
-  (vim.fs.normalize path {:expand_env false}))
+(local normalise-path (if (not= 0 (vim.fn.has :win32))
+                          (fn [path]
+                            (-?> (vim.fs.normalize path {:expand_env false})
+                                 (: :gsub "/" "\\")))
+                          (fn [path]
+                            (vim.fs.normalize path {:expand_env false}))))
 
 {: read-file!
  : write-file!

@@ -19,11 +19,8 @@
 
 (local {:format fmt} string)
 (local {: file-exists? : file-missing? : read-file!
-        : file-stat : rm-file
+        : file-stat : rm-file : normalise-path
         : make-path : join-path : path-separator} (require :hotpot.fs))
-
-(local normalise-path (let [{: normalize} vim.fs]
-                        #(normalize $1 {:expand_env false})))
 
 (local uri-encode (or (and vim.uri_encode #(vim.uri_encode $1 :rfc2396))
                       ;; backported from nvim-0.10
