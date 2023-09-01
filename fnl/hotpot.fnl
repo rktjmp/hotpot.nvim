@@ -17,13 +17,14 @@
     ;; the options make more sense to be run "during setup".
     (let [runtime (require :hotpot.runtime)
           config (runtime.set-user-config options)
-          ftplugin (require :hotpot.neovim.ftplugin)]
-      (when true
-        (ftplugin.enable))
+          ftplugin (require :hotpot.neovim.ftplugin)
+          {: automake} (require :hotpot.api.make)]
+      (ftplugin.enable)
+      (automake.enable)
       (when config.provide_require_fennel
         (tset package.preload :fennel #(require :hotpot.fennel)))
       (when config.enable_hotpot_diagnostics
-        (let [{: enable} (require :hotpot.api.diagnostics)]
-          (enable)))))
+        (let [diagnostics (require :hotpot.api.diagnostics)]
+          (diagnostics.enable)))))
 
   (set-lazy-proxy {: setup} {:api :hotpot.api :runtime :hotpot.runtime}))
