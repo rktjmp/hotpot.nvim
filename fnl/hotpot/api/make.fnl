@@ -134,18 +134,37 @@
         (false e) (vim.notify (string.format "Could not clean file %s, %s" file e) vim.log.levels.ERROR)))))
 
 (fn M.build [...]
-  "
+  "Build fennel files found inside a directory that match a given set of glob
+  patterns.
 
-  The options table may contain:
+  ```
+  (build :some/dir {:verbose true} [[:fnl/**/*macro*.fnl false] [:fnl/**/*.fnl true]])
+  ```
 
-  - atomic
-  - dryrun
-  - force: boolean, false, force building all files or only files modified
-           since last build.
-  - verbose: boolean, false, report all compile results, not just errors.
-  - compiler: table, nil, a table containing modules, macros and preprocessor
-              options to pass to the compiler. See :h hotpot-setup.
-  "
+  Build accepts a `root-directory` to work in, an optional `options` table and
+  a list of pairs, where each pair is a glob string and boolean value, where
+  true indicates a matching file should be compiled, and false indicates the
+  file should be ignored.
+
+  The options table may contain the following keys:
+
+  - `atomic`, boolean, default false. When true, if there are any errors during
+     compilation, no files are written to disk. Defaults to false.
+
+  - force: boolean, default false. When true, all matched files are built, when
+    false, only changed files are build.
+
+  - dryrun: boolean, default false. When true, no biles are written to disk.
+
+  - verbose: boolean, default false. When true, all compile events are logged,
+    when false, only errors are logged.
+
+  - compiler: table, default nil. A table containing modules, macros and preprocessor
+    options to pass to the compiler. See :h hotpot-setup.
+
+  Glob patterns are checked in the order they are given, so generally 'ignore' patterns
+  should be given first so things like 'macro modules' are not compiled to
+  their own files."
   (case [...]
     ;; use default options
     (where [root build-specs nil] (string? root) (table? build-specs))
