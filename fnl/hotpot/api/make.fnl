@@ -65,7 +65,7 @@
   (let [files {}
         split {:build [] :ignore []}]
     (each [_ [glob action] (ipairs spec)]
-      (assert (string.match glob "%.fnl$") (string.format "glob patterns must end in .fnl, got %s" glob))
+      (assert (string.match glob "%.fnl$") (string.format "build glob patterns must end in .fnl, got %s" glob))
       (each [_ path (ipairs (vim.fn.globpath root-dir glob true true))]
         (if (= nil (. files path))
           (case [(string.find glob "fnl/") action]
@@ -80,13 +80,17 @@
         (table.insert split.ignore {:src (vim.fs.normalize path)})))
     split))
 
-(fn find-clean-targets [root-dir clean-spec compile-targets]
-  ;; TODO: it should be viable to just run collect files once
-  ;; for both build and clean patterns and combine the results.
-  ;; Will be meaninful in very large dirs.
-  (->> (collect-files root-dir clean-spec)
-       (map (fn [{: path}] path))
-       (filter (fn [existing] (none? #(= (. $1 :dest) existing) compile-targets)))))
+(fn find-clean-targets [root-dir spec compile-targets]
+  (let [files {}]
+    (each [_ [glob action] (ipairs spec)]
+      (assert (string.match glob "%.lua$") (string.format "clean glob patterns must end in .lua, got %s" glob))
+      (each [_ path (ipairs (vim.fn.globpath root-dir glob true true))]
+        (if (= nil (. files path))
+          (tset files path action))))
+    (each [_ {: dest} (ipairs compile-targets)]
+      (tset files dest false))
+    (icollect [path action (pairs files)]
+      (if action path))))
 
 (fn do-compile [compile-targets compiler-options]
   (let [{: compile-file} (require :hotpot.lang.fennel.compiler)]
@@ -121,8 +125,6 @@
   (values nil))
 
 (fn do-build [opts root-dir build-spec]
-  ;; TODO: support clean here, or separate function? current impl uses compile
-  ;; results to find decide on files.
   (assert (validate-spec :build build-spec))
   (let [{:force force? :verbose verbose? :dryrun dry-run? :atomic atomic?} opts
         {: rm-file : copy-file} (require :hotpot.fs)
@@ -143,7 +145,18 @@
              (rm-file tmp-path)))
          compile-results)
     (report-compile-results compile-results {: any-errors? : dry-run? : verbose? : atomic?})
-    (map #(doto $1 (tset :tmp-path nil)) compile-results)))
+    (let [return (collect [_ {: src : dest} (ipairs all-compile-targets)]
+                   (values src {: src : dest}))
+          return (collect [_ {: src : compiled? : err} (ipairs compile-results) &into return]
+                   (values src (doto (. return src) (tset :compiled? compiled?) (tset :err err))))]
+      (icollect [_ v (pairs return)] v))))
+
+(fn do-clean [clean-targets opts]
+  (let [{: rm-file} (require :hotpot.fs)]
+    (each [_ file (ipairs clean-targets)]
+      (case (rm-file file)
+        true (vim.notify (string.format "rm %s" file) vim.log.levels.WARN)
+        (false e) (vim.notify (string.format "Could not clean file %s, %s" file e) vim.log.levels.ERROR)))))
 
 (fn M.build [...]
   "
@@ -173,22 +186,14 @@
                     vim.log.levels.WARN)
         (build ...))))
 
-
-; (fn M.check [...]
-;   "Functionally identical to `build' but wont output any files. `check' is
-;   always verbose. Returns `[[src, dest, result<ok>] ...] [[src, dest, result<err>] ...]`"
-;   (let [(options oks errs) (do-make ...)
-;         err-text (accumulate [text [] _ [fnl-file _ [_ msg]] (ipairs errs)]
-;                    (doto text
-;                      (table.insert [(string.format "XX %s\n" fnl-file) :DiagnosticWarn])
-;                      (table.insert [(string.format "%s\n" msg) :DiagnosticError])))
-;         ok-text (accumulate [text [] _ [fnl-file _ [_ msg]] (ipairs oks)]
-;                   (doto text
-;                     (table.insert [(string.format "OK %s\n" fnl-file) :DiagnosticInfo])))]
-;     (vim.api.nvim_echo err-text true {})
-;     (vim.api.nvim_echo ok-text true {})
-;     (values oks errs)))
-
+(fn M.check [...]
+  "Deprecated, see dryrun option for build"
+  _ (let [{: check} (require :hotpot.api.classic-make)]
+      (vim.notify "The hotpot.api.make usage has changed, please see :h hotpot-dothotpot"
+                  vim.log.levels.WARN)
+      (vim.notify "The interface you are using has been deprecated."
+                  vim.log.levels.WARN)
+      (check ...)))
 
 (set M.automake
      (do
@@ -207,21 +212,24 @@
            (where t (table? t)) t))
 
        (fn handle-config [config current-file root-dir]
-         (case config
-           {: build} (case-try
-                       (build-spec-or-default config.build) {: build-spec : build-options}
-                       (validate-spec :build build-spec) true
-                       (set build-options.infer-force-for-file current-file) _
-                       (set build-options.compiler config.compiler) _
-                       (M.build root-dir build-options build-spec) compile-results
-                       (if config.clean
-                         (case-try
-                           (clean-spec-or-default config.clean) clean-spec
-                           (validate-spec :clean clean-spec) true
-                           (find-clean-targets root-dir clean-spec compile-results) clean-targets
-                           (print (vim.inspect clean-targets))))
-                       (catch
-                         (nil e) (vim.notify e vim.log.levels.ERROR)))))
+         (if config.build
+           (case-try
+             (build-spec-or-default config.build) {: build-spec : build-options}
+             (validate-spec :build build-spec) true
+             (set build-options.infer-force-for-file current-file) _
+             (set build-options.compiler config.compiler) _
+             (M.build root-dir build-options build-spec) compile-results
+             config.clean true
+             (if config.clean
+               (case-try
+                 (clean-spec-or-default config.clean) clean-spec
+                 (validate-spec :clean clean-spec) true
+                 (find-clean-targets root-dir clean-spec compile-results) clean-targets
+                 (do-clean clean-targets build-options)
+                 (catch
+                   (nil e) (vim.notify e vim.log.levels.ERROR))))
+             (catch
+               (nil e) (vim.notify e vim.log.levels.ERROR)))))
 
        (fn attach [buf]
          (when (not (. automake-memo.attached-buffers buf))
