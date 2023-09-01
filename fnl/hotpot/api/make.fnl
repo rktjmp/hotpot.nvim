@@ -29,31 +29,6 @@
       (where [pat act] (and (string? pat) (or (string? act) (boolean? act)))) true
       _ (values nil (string.format "Invalid pattern for %s: %s" kind (vim.inspect s))))))
 
-(fn pattern-action-for-path [path root-prefix patterns]
-  (accumulate [v nil _ [pat act] (ipairs patterns) &until (not= nil v)]
-    (case (string.match path (.. (vim.pesc root-prefix) :/ pat)) ;; TODO: windows
-      any {:pattern pat :action act})))
-
-(fn collect-files [root-dir patterns]
-  (fn ignore? [path]
-    (any? #(string.find path $1) [:.git :.jj :.hg]))
-
-  (let [{: join-path} (require :hotpot.fs)]
-    (fn recurse-down [dir files]
-      (let [scanner (uv.fs_scandir dir)]
-        (accumulate [files files name kind #(uv.fs_scandir_next scanner)]
-          (let [full-path (join-path dir name)]
-            (case kind
-              :directory (if (not (ignore? full-path))
-                           (recurse-down full-path files)
-                           files)
-              _ (case-try
-                  kind (where (or :file :link))
-                  (pattern-action-for-path full-path root-dir patterns) {: pattern : action}
-                  (doto files (table.insert {:path full-path : pattern : action}))
-                  (catch _ files)))))))
-    (recurse-down root-dir [])))
-
 (fn needs-compile? [src dest]
   (let [{: file-missing? : file-stat} (require :hotpot.fs)]
     (or (file-missing? dest)
