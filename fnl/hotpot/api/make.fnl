@@ -26,7 +26,7 @@
 (fn validate-spec [kind spec]
   (accumulate [ok true _ s (ipairs spec) &until (not ok)]
     (case s
-      (where [pat act] (and (string? pat) (or (string? act) (boolean? act)))) true
+      (where [pat act] (and (string? pat) (boolean? act))) true
       _ (values nil (string.format "Invalid pattern for %s: %s" kind (vim.inspect s))))))
 
 (fn needs-compile? [src dest]
