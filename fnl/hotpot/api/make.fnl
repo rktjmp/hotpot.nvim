@@ -10,14 +10,18 @@
 
 (λ merge-with-default-options [opts]
   (let [{: default-config} (require :hotpot.runtime)
-        ;; compiler options are merged separately
-        ;; to ensure they have all components.
+        ;; compiler options are merged separately to ensure they have all
+        ;; module, macro, preprocessor components.
         compiler-options (vim.tbl_extend :keep
                                          (or opts.compiler {})
-                                         (. (default-config) :compiler))]
+                                         (. (default-config) :compiler))
+        opts (vim.tbl_extend :keep opts {:force false
+                                         :atomic false
+                                         :dryrun false
+                                         :verbose false})]
     (tset opts :compiler compiler-options)
-    (vim.tbl_extend :keep opts {:force false
-                                :verbose false})))
+    (when opts.dryrun (set opts.verbose true))
+    (values opts)))
 
 (fn validate-spec [kind spec]
   (accumulate [ok true _ s (ipairs spec) &until (not ok)]
@@ -77,22 +81,28 @@
 
 (fn do-compile [compile-targets compiler-options]
   (let [{: compile-file} (require :hotpot.lang.fennel.compiler)]
-    (map (fn dc [{: src : dest}]
-           (case (compile-file src dest
-                               compiler-options.modules
-                               compiler-options.macros
-                               compiler-options.preprocessor)
-             true {: src : dest :compiled? true}
-             (false e) {: src : dest :compiled? false :err e}))
+    (map (fn [{: src : dest}]
+           (let [tmp-path (.. (vim.fn.tempname) :.lua)]
+             (case (compile-file src tmp-path
+                                 compiler-options.modules
+                                 compiler-options.macros
+                                 compiler-options.preprocessor)
+               true {: src : dest : tmp-path :compiled? true}
+               (false e) {: src : dest :compiled? false :err e})))
          compile-targets)))
 
-(fn report-compile-errors [compile-results verbose?]
+(fn report-compile-results [compile-results {: any-errors? : verbose? : atomic? : dry-run?}]
+  (when dry-run?
+    (vim.notify "No changes were written to disk! Compiled with dryrun = true!" vim.log.levels.WARN))
+  (when (and any-errors? atomic?)
+    (vim.notify "No changes were written to disk! Compiled with atomic = true and some files had compilation errors!"
+                vim.log.levels.WARN))
   (when verbose?
-    (map #(let [{: compiled? : src} $1
+    (map #(let [{: compiled? : src : dest} $1
                 [char level] (if (. $1 :compiled?)
-                               ["☑ " vim.log.levels.TRACE]
-                               ["☒ " vim.log.levels.WARN])]
-            (vim.notify "%s%s" char src level))
+                               ["☑  " vim.log.levels.TRACE]
+                               ["☒  " vim.log.levels.WARN])]
+            (vim.notify (string.format "%s%s\n-> %s" char src dest) level))
          compile-results))
   (map #(case $1
           ;; WARN instead of ERROR so we dont get nvim prepending
@@ -102,26 +112,34 @@
   (values nil))
 
 (fn build [opts root-dir build-spec]
-  ;; TODO call validate-spec
   ;; TODO: support clean here, or separate function? current impl uses compile
   ;; results to find decide on files.
-  (let [force? opts.force
-        verbose? opts.verbose
+  (assert (validate-spec :build build-spec))
+  (let [{:force force? :verbose verbose? :dryrun dry-run? :atomic atomic?} opts
+        {: rm-file : copy-file} (require :hotpot.fs)
         compiler-options opts.compiler
         all-compile-targets (find-compile-targets root-dir build-spec)
         focused-compile-target (filter (fn [{: src : dest}]
                                          (or (needs-compile? src dest) force?))
                                        all-compile-targets)
-        compile-results (do-compile focused-compile-target compiler-options)]
-    (report-compile-errors compile-results verbose?)
-    compile-results))
-
+        compile-results (do-compile focused-compile-target compiler-options)
+        any-errors? (any? #(not $1.compiled?) compile-results)]
+    (map (fn [{: tmp-path : dest}]
+           (when tmp-path
+             (when (and (not dry-run?) (or (not atomic?) (not any-errors?)))
+               (copy-file tmp-path dest))
+             (rm-file tmp-path)))
+         compile-results)
+    (report-compile-results compile-results {: any-errors? : dry-run? : verbose? : atomic?})
+    (map #(doto $1 (tset :tmp-path nil)) compile-results)))
 
 (fn M.build [...]
   "
 
   The options table may contain:
 
+  - atomic
+  - dryrun
   - force: boolean, false, force building all files or only files modified
            since last build.
   - verbose: boolean, false, report all compile results, not just errors.
@@ -161,13 +179,16 @@
 
 (set M.automake
      (do
-       (fn build-spec-or-default [build-spec]
-         (case build-spec
-           true [["fnl/.*macros?%.fnl$" false]
-                 ;; TODO: document must start with dir/
-                 ;; TODO use prefixes for search space
-                 ["fnl/(.+)%.fnl$" "lua/%1.lua"]]
-           (where t (table? t)) t))
+       (fn build-spec-or-default [given-spec]
+         (let [default-spec [["fnl/.*macros?%.fnl$" false]
+                             ;; TODO: document must start with dir/
+                             ;; TODO use prefixes for search space
+                             ["fnl/(.+)%.fnl$" "lua/%1.lua"]]
+               [spec opts] (case given-spec
+                             true [default-spec {}]
+                             [{:1 nil &as opts} nil] [default-spec opts]
+                             [{:1 nil &as opts} & spec] [spec opts])]
+           {:build-spec spec :build-options opts}))
 
        (fn clean-spec-or-default [clean-spec]
          (case clean-spec
@@ -188,21 +209,22 @@
            _ false))
 
        (fn handle-config [config current-file root-dir]
-         (if config.build
-           (case-try
-             (build-spec-or-default config.build) build-spec
-             (validate-spec :build build-spec) true
-             (force-build-all? current-file root-dir build-spec) force?
-             {:force force? :compiler config.compiler} opts
-             (M.build root-dir opts build-spec) compile-results
-             (if config.clean
-               (case-try
-                 (clean-spec-or-default config.clean) clean-spec
-                 (validate-spec :clean clean-spec) true
-                 (find-clean-targets root-dir clean-spec compile-results) clean-targets
-                 (print (vim.inspect clean-targets))))
-             (catch
-               (nil e) (vim.notify e vim.log.levels.ERROR)))))
+         (case config
+           {: build} (case-try
+                       (build-spec-or-default config.build) {: build-spec : build-options}
+                       (validate-spec :build build-spec) true
+                       (force-build-all? current-file root-dir build-spec) force?
+                       (set build-options.force force?) _
+                       (set build-options.compiler config.compiler) _
+                       (M.build root-dir build-options build-spec) compile-results
+                       (if config.clean
+                         (case-try
+                           (clean-spec-or-default config.clean) clean-spec
+                           (validate-spec :clean clean-spec) true
+                           (find-clean-targets root-dir clean-spec compile-results) clean-targets
+                           (print (vim.inspect clean-targets))))
+                       (catch
+                         (nil e) (vim.notify e vim.log.levels.ERROR)))))
 
        (fn attach [buf]
          (when (not (. automake-memo.attached-buffers buf))
