@@ -108,11 +108,11 @@
         {: rm-file : copy-file} (require :hotpot.fs)
         compiler-options opts.compiler
         {:build all-compile-targets :ignore all-ignore-targets} (find-compile-targets root-dir build-spec)
-        force? (case opts.infer-force-for-file
-                 file (any? #(= $1.src file) all-ignore-targets)
-                 _ force?)
+        force? (or force? (case opts.infer-force-for-file
+                            file (any? #(= $1.src file) all-ignore-targets)
+                            _ false))
         focused-compile-target (filter (fn [{: src : dest}]
-                                         (or (needs-compile? src dest) force?))
+                                         (or force? (needs-compile? src dest)))
                                        all-compile-targets)
         compile-results (do-compile focused-compile-target compiler-options)
         any-errors? (any? #(not $1.compiled?) compile-results)]
