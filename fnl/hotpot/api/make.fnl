@@ -62,14 +62,23 @@
           (< dmtime.sec smtime.sec)))))
 
 (fn find-compile-targets [root-dir spec]
-  (->> (collect-files root-dir spec)
-       (map (fn [{: path : pattern : action}]
-              (case action
-                false nil
-                ;; TODO should maybe check result is actually done, not 0 but
-                ;; we cant really check all subs worked since we dont know the
-                ;; internals
-                sub {:src path :dest (pick-values 1 (string.gsub path pattern sub))})))))
+  (let [files {}
+        split {:build [] :ignore []}]
+    (each [_ [glob action] (ipairs spec)]
+      (assert (string.match glob "%.fnl$") (string.format "glob patterns must end in .fnl, got %s" glob))
+      (each [_ path (ipairs (vim.fn.globpath root-dir glob true true))]
+        (if (= nil (. files path))
+          (case [(string.find glob "fnl/") action]
+            [_ false] (tset files path false)
+            [1 true] (tset files path
+                           (.. root-dir :/lua/ (string.sub path (+ (length root-dir) 6) -4) :lua))
+            [_ true] (tset files path (.. (string.sub path 1 -4) :lua))))))
+    (each [path action (pairs files)]
+      (if action
+        (table.insert split.build {:src (vim.fs.normalize path)
+                                   :dest (vim.fs.normalize action)})
+        (table.insert split.ignore {:src (vim.fs.normalize path)})))
+    split))
 
 (fn find-clean-targets [root-dir clean-spec compile-targets]
   ;; TODO: it should be viable to just run collect files once
@@ -111,14 +120,17 @@
        compile-results)
   (values nil))
 
-(fn build [opts root-dir build-spec]
+(fn do-build [opts root-dir build-spec]
   ;; TODO: support clean here, or separate function? current impl uses compile
   ;; results to find decide on files.
   (assert (validate-spec :build build-spec))
   (let [{:force force? :verbose verbose? :dryrun dry-run? :atomic atomic?} opts
         {: rm-file : copy-file} (require :hotpot.fs)
         compiler-options opts.compiler
-        all-compile-targets (find-compile-targets root-dir build-spec)
+        {:build all-compile-targets :ignore all-ignore-targets} (find-compile-targets root-dir build-spec)
+        force? (case opts.infer-force-for-file
+                 file (any? #(= $1.src file) all-ignore-targets)
+                 _ force?)
         focused-compile-target (filter (fn [{: src : dest}]
                                          (or (needs-compile? src dest) force?))
                                        all-compile-targets)
@@ -149,10 +161,10 @@
   (case [...]
     ;; use default options
     (where [root build-specs nil] (string? root) (table? build-specs))
-    (build (merge-with-default-options {}) root build-specs)
+    (do-build (merge-with-default-options {}) root build-specs)
     ;; use specified optoins
     (where [root opts build-specs nil] (string? root) (table? opts) (table? build-specs))
-    (build (merge-with-default-options opts) root build-specs)
+    (do-build (merge-with-default-options opts) root build-specs)
     ;; warn deprecated
     _ (let [{: build} (require :hotpot.api.classic-make)]
         (vim.notify "The hotpot.api.make usage has changed, please see :h hotpot-dothotpot"
@@ -177,13 +189,12 @@
 ;     (vim.api.nvim_echo ok-text true {})
 ;     (values oks errs)))
 
+
 (set M.automake
      (do
        (fn build-spec-or-default [given-spec]
-         (let [default-spec [["fnl/.*macros?%.fnl$" false]
-                             ;; TODO: document must start with dir/
-                             ;; TODO use prefixes for search space
-                             ["fnl/(.+)%.fnl$" "lua/%1.lua"]]
+         (let [default-spec [[:fnl/**/*macro*.fnl false]
+                             [:fnl/**/*.fnl true]]
                [spec opts] (case given-spec
                              true [default-spec {}]
                              [{:1 nil &as opts} nil] [default-spec opts]
@@ -192,29 +203,15 @@
 
        (fn clean-spec-or-default [clean-spec]
          (case clean-spec
-           true [["lua/.+" true]]
+           true [["lua/**/*.lua" true]]
            (where t (table? t)) t))
-
-       (fn force-build-all? [current-file root-dir build-spec]
-         ;; Sort of ugly hack, if we match the pattern, its probably a "known file"
-         ;; that the user edits, but does not want to output. These are *normally*
-         ;; macro files, which should trigger a full rebuild.
-         (case (pattern-action-for-path current-file root-dir build-spec)
-           ;; questionable? editing an unmatched fnl file causes a rebuild which
-           ;; would mean editing "scratch files" in a dir would rebuild a project.
-           ;; false true
-           ;; no output, but matched pattern, so rebuild all
-           {:action false} true
-           {:action _act} true
-           _ false))
 
        (fn handle-config [config current-file root-dir]
          (case config
            {: build} (case-try
                        (build-spec-or-default config.build) {: build-spec : build-options}
                        (validate-spec :build build-spec) true
-                       (force-build-all? current-file root-dir build-spec) force?
-                       (set build-options.force force?) _
+                       (set build-options.infer-force-for-file current-file) _
                        (set build-options.compiler config.compiler) _
                        (M.build root-dir build-options build-spec) compile-results
                        (if config.clean
