@@ -43,6 +43,7 @@
 (fn boolean? [x] (= :boolean (type x)))
 (fn table? [x] (= :table (type x)))
 (fn nil? [x] (= nil x))
+(fn function? [x] (= :function (type x)))
 
 {:fmt string.format
  : inspect
@@ -54,5 +55,6 @@
  : none?
  : string?
  : boolean?
+ : function?
  : table?
  : nil?}

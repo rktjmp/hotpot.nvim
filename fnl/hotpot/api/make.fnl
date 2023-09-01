@@ -1,6 +1,6 @@
 (import-macros {: dprint} :hotpot.macros)
 
-(local {: table? : boolean? : string? : nil?
+(local {: table? : function? : boolean? : string? : nil?
         : map : filter : any? : none?} (require :hotpot.common))
 (local uv vim.loop)
 
@@ -24,10 +24,12 @@
     (values opts)))
 
 (fn validate-spec [kind spec]
-  (accumulate [ok true _ s (ipairs spec) &until (not ok)]
-    (case s
-      (where [pat act] (and (string? pat) (boolean? act))) true
-      _ (values nil (string.format "Invalid pattern for %s: %s" kind (vim.inspect s))))))
+  (case (accumulate [ok true _ s (ipairs spec) &until (not (= true ok))]
+          (case s
+            (where [pat act] (and (string? pat) (or (boolean? act) (function? act)))) true
+            _ [false (string.format "Invalid pattern for %s: %s" kind (vim.inspect s))]))
+    true true
+    [false e] (values nil e)))
 
 (fn needs-compile? [src dest]
   (let [{: file-missing? : file-stat} (require :hotpot.fs)]
@@ -44,6 +46,7 @@
       (each [_ path (ipairs (vim.fn.globpath root-dir glob true true))]
         (if (= nil (. files path))
           (case [(string.find glob "fnl/") action]
+            (where [_ f] (function? f)) (tset files path (f path))
             [_ false] (tset files path false)
             [1 true] (tset files path
                            (.. root-dir :/lua/ (string.sub path (+ (length root-dir) 6) -4) :lua))
@@ -138,29 +141,36 @@
   patterns.
 
   ```
-  (build :some/dir {:verbose true} [[:fnl/**/*macro*.fnl false] [:fnl/**/*.fnl true]])
+  (build :some/dir
+         {:verbose true}
+         [[:fnl/**/*macro*.fnl false]
+          [:fnl/**/*.fnl true]
+          [:colors/*.fnl (fn [path] (string.gsub path :fnl$ :lua))]])
   ```
 
   Build accepts a `root-directory` to work in, an optional `options` table and
-  a list of pairs, where each pair is a glob string and boolean value, where
-  true indicates a matching file should be compiled, and false indicates the
-  file should be ignored.
+  a list of pairs, where each pair is a glob string and boolean value or a
+  function. A true value indicates a matching file should be compiled, and false
+  indicates the file should be ignored. Functions are passed the absolute file path
+  and should return false or a string for the lua destination path.
 
   The options table may contain the following keys:
 
   - `atomic`, boolean, default false. When true, if there are any errors during
      compilation, no files are written to disk. Defaults to false.
 
-  - force: boolean, default false. When true, all matched files are built, when
+  - `force`, boolean, default false. When true, all matched files are built, when
     false, only changed files are build.
 
-  - dryrun: boolean, default false. When true, no biles are written to disk.
+  - `dryrun`, boolean, default false. When true, no biles are written to disk.
 
-  - verbose: boolean, default false. When true, all compile events are logged,
+  - `verbose`, boolean, default false. When true, all compile events are logged,
     when false, only errors are logged.
 
-  - compiler: table, default nil. A table containing modules, macros and preprocessor
+  - `compiler`, table, default nil. A table containing modules, macros and preprocessor
     options to pass to the compiler. See :h hotpot-setup.
+
+  (Note the keys are in 'lua style', without dashes or question marks.)
 
   Glob patterns are checked in the order they are given, so generally 'ignore' patterns
   should be given first so things like 'macro modules' are not compiled to
@@ -213,7 +223,6 @@
              (set build-options.infer-force-for-file current-file) _
              (set build-options.compiler config.compiler) _
              (M.build root-dir build-options build-spec) compile-results
-             config.clean true
              (if config.clean
                (case-try
                  (clean-spec-or-default config.clean) clean-spec
