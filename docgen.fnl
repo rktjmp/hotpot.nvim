@@ -61,7 +61,8 @@
         (#(doto $1 (table.sort (fn [[a _] [b _]]
                                  (< a b)))))
         (#(icollect [_ [fname f] (ipairs $1)]
-            {:modname modname :fname fname :doc (dump-fn modname fname f)})))))
+            (case (type f)
+              :function {:modname modname :fname fname :doc (dump-fn modname fname f)}))))))
 
 (local preamble-text "The Hotpot API~
 
