@@ -182,12 +182,12 @@
 
 (fn M.check [...]
   "Deprecated, see dryrun option for build"
-  _ (let [{: check} (require :hotpot.api.classic-make)]
-      (vim.notify "The hotpot.api.make usage has changed, please see :h hotpot-dothotpot"
-                  vim.log.levels.WARN)
-      (vim.notify "The interface you are using has been deprecated."
-                  vim.log.levels.WARN)
-      (check ...)))
+  (let [{: check} (require :hotpot.api.classic-make)]
+    (vim.notify "The hotpot.api.make usage has changed, please see :h hotpot-dothotpot"
+                vim.log.levels.WARN)
+    (vim.notify "The interface you are using has been deprecated."
+                vim.log.levels.WARN)
+    (check ...)))
 
 (set M.automake
      (do
