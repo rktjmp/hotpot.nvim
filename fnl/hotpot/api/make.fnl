@@ -93,13 +93,12 @@
   (when (and any-errors? atomic?)
     (vim.notify "No changes were written to disk! Compiled with atomic = true and some files had compilation errors!"
                 vim.log.levels.WARN))
-  (when verbose?
-    (map #(let [{: compiled? : src : dest} $1
-                [char level] (if (. $1 :compiled?)
-                               ["☑  " vim.log.levels.TRACE]
-                               ["☒  " vim.log.levels.WARN])]
-            (vim.notify (string.format "%s%s\n-> %s" char src dest) level))
-         compile-results))
+  (->> (filter (fn [{: compiled?}] (or verbose? (not compiled?))) compile-results)
+       (map #(let [{: compiled? : src : dest} $1
+                   [char level] (if (. $1 :compiled?)
+                                  ["☑  " vim.log.levels.TRACE]
+                                  ["☒  " vim.log.levels.WARN])]
+               (vim.notify (string.format "%s%s\n-> %s" char src dest) level))))
   (map #(case $1
           ;; WARN instead of ERROR so we dont get nvim prepending
           ;; autocommand failure message
