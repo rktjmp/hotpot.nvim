@@ -206,8 +206,9 @@
                              [:fnl/**/*.fnl true]]
                [spec opts] (case given-spec
                              true [default-spec {}]
-                             [{:1 nil &as opts} nil] [default-spec opts]
-                             [{:1 nil &as opts} & spec] [spec opts])]
+                             [{1 nil &as opts} nil] [default-spec opts]
+                             [{1 nil &as opts} & spec] [spec opts]
+                             spec [spec {}])]
            {:build-spec spec :build-options opts}))
 
        (fn clean-spec-or-default [clean-spec]
