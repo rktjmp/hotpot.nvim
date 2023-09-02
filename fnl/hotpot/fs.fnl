@@ -56,12 +56,6 @@
         de-duped (string.gsub joined dup-pat path-sep)]
     (values de-duped)))
 
-(fn dirname [path]
-  (let [pattern (string.format "%s[^%s]+$" path-sep path-sep)]
-    (match (string.find path pattern)
-      nil (error (.. "Could not extract dirname from path: " path))
-      n (string.sub path 1 n))))
-
 (fn what-is-at [path]
   "file, directory, link, nothing or (nil err)"
   (match (uv.fs_stat path)
@@ -88,7 +82,7 @@
 
 (fn copy-file [from to]
   (case-try
-    (dirname to) dir
+    (vim.fs.dirname to) dir
     (make-path dir) true
     (uv.fs_copyfile from to) true
     (values true)
@@ -108,7 +102,6 @@
  : is-fnl-path?
  : join-path
  : make-path
- : dirname
  : path-separator
  : rm-file
  : copy-file

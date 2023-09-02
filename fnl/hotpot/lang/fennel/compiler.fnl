@@ -107,11 +107,9 @@
   (fn do-compile []
     (let [{: read-file!
            : write-file!
-           : path-separator
            : is-lua-path?
            : is-fnl-path?
-           : make-path
-           : dirname} (require :hotpot.fs)
+           : make-path} (require :hotpot.fs)
           _ (expect (is-fnl-path? fnl-path) "compile-file fnl-path not fnl file: %q" fnl-path)
           _ (expect (is-lua-path? lua-path) "compile-file lua-path not lua file: %q" lua-path)
           fnl-code (case (read-file! fnl-path)
@@ -123,7 +121,7 @@
         (true lua-code) (do
                           ;; These all throw on error
                           (check-existing lua-path)
-                          (make-path (dirname lua-path))
+                          (make-path (vim.fs.dirname lua-path))
                           (write-file! lua-path lua-code))
         (false errors) (error errors))))
   (xpcall do-compile #(let [lines (vim.split $1 "\n")
