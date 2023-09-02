@@ -5,7 +5,6 @@ local file_exists_3f = _local_2_["file-exists?"]
 local file_missing_3f = _local_2_["file-missing?"]
 local file_stat = _local_2_["file-stat"]
 local rm_file = _local_2_["rm-file"]
-local normalise_path = _local_2_["normalise-path"]
 local join_path = _local_2_["join-path"]
 local REPEAT_SEARCH = "REPEAT_SEARCH"
 local CACHE_ROOT = join_path(vim.fn.stdpath("cache"), "hotpot")
@@ -506,8 +505,7 @@ local function find_module(modname)
   local function search_by_existing_lua(modname0)
     local _119_ = vim.loader.find(modname0)
     if ((_G.type(_119_) == "table") and ((_G.type((_119_)[1]) == "table") and (nil ~= ((_119_)[1]).modpath))) then
-      local modpath = ((_119_)[1]).modpath
-      local found_lua_path = normalise_path(modpath)
+      local found_lua_path = ((_119_)[1]).modpath
       local f
       do
         local _120_ = infer_lua_path_type(found_lua_path)
@@ -546,8 +544,7 @@ local function find_module(modname)
     end
     local _128_ = search_runtime_path(modname0)
     if ((_G.type(_128_) == "table") and (nil ~= (_128_)[1])) then
-      local modpath = (_128_)[1]
-      local src_path = normalise_path(modpath)
+      local src_path = (_128_)[1]
       local function _129_(...)
         local _130_ = ...
         if (nil ~= _130_) then
@@ -685,17 +682,17 @@ local function make_searcher()
   return searcher
 end
 local function make_module_record_loader(module_record_maker, modname, src_path)
-  _G.assert((nil ~= src_path), "Missing argument src-path on fnl/hotpot/loader/init.fnl:367")
-  _G.assert((nil ~= modname), "Missing argument modname on fnl/hotpot/loader/init.fnl:367")
-  _G.assert((nil ~= module_record_maker), "Missing argument module-record-maker on fnl/hotpot/loader/init.fnl:367")
+  _G.assert((nil ~= src_path), "Missing argument src-path on fnl/hotpot/loader/init.fnl:364")
+  _G.assert((nil ~= modname), "Missing argument modname on fnl/hotpot/loader/init.fnl:364")
+  _G.assert((nil ~= module_record_maker), "Missing argument module-record-maker on fnl/hotpot/loader/init.fnl:364")
   local index = module_record_maker(modname, src_path)
   local loader = record_loadfile(index)
   return loader
 end
 local function make_ftplugin_record_loader(ftplugin_record_maker, modname, src_path)
-  _G.assert((nil ~= src_path), "Missing argument src-path on fnl/hotpot/loader/init.fnl:372")
-  _G.assert((nil ~= modname), "Missing argument modname on fnl/hotpot/loader/init.fnl:372")
-  _G.assert((nil ~= ftplugin_record_maker), "Missing argument ftplugin-record-maker on fnl/hotpot/loader/init.fnl:372")
+  _G.assert((nil ~= src_path), "Missing argument src-path on fnl/hotpot/loader/init.fnl:369")
+  _G.assert((nil ~= modname), "Missing argument modname on fnl/hotpot/loader/init.fnl:369")
+  _G.assert((nil ~= ftplugin_record_maker), "Missing argument ftplugin-record-maker on fnl/hotpot/loader/init.fnl:369")
   local index = ftplugin_record_maker(modname, src_path)
   local loader = record_loadfile(index)
   return loader

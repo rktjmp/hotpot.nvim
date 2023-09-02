@@ -157,7 +157,4 @@ local function copy_file(from, to)
   end
   return _18_(vim.fs.dirname(to))
 end
-local function normalise_path(path)
-  return vim.fs.normalize(path, {expand_env = false})
-end
-return {["read-file!"] = read_file_21, ["write-file!"] = write_file_21, ["file-exists?"] = file_exists_3f, ["file-missing?"] = file_missing_3f, ["file-mtime"] = file_mtime, ["file-stat"] = file_stat, ["is-lua-path?"] = is_lua_path_3f, ["is-fnl-path?"] = is_fnl_path_3f, ["join-path"] = join_path, ["make-path"] = make_path, ["path-separator"] = path_separator, ["rm-file"] = rm_file, ["copy-file"] = copy_file, ["normalise-path"] = normalise_path}
+return {["read-file!"] = read_file_21, ["write-file!"] = write_file_21, ["file-exists?"] = file_exists_3f, ["file-missing?"] = file_missing_3f, ["file-mtime"] = file_mtime, ["file-stat"] = file_stat, ["is-lua-path?"] = is_lua_path_3f, ["is-fnl-path?"] = is_fnl_path_3f, ["join-path"] = join_path, ["make-path"] = make_path, ["path-separator"] = path_separator, ["rm-file"] = rm_file, ["copy-file"] = copy_file}
