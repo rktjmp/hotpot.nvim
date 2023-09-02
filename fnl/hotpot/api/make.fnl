@@ -230,7 +230,11 @@
              (set build-options.infer-force-for-file current-file) _
              (set build-options.compiler config.compiler) _
              (M.build root-dir build-options build-spec) compile-results
-             (if config.clean
+             (any? #(not $1.compiled?) compile-results) any-errors?
+             (when (and config.clean
+                        (not build-options.dryrun)
+                        (or (not build-options.atomic)
+                            (and build-options.atomic (not any-errors?))))
                (case-try
                  (clean-spec-or-default config.clean) clean-spec
                  (validate-spec :clean clean-spec) true
