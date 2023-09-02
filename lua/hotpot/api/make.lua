@@ -376,16 +376,14 @@ M.build = function(...)
       return do_build(merge_with_default_options(opts), root, build_specs)
     elseif true then
       local _ = _77_
-      vim.notify("The hotpot.api.make usage has changed, please see :h hotpot-dot-hotpot", vim.log.levels.WARN)
-      return vim.notify("Unfortunately it was not possible to support both options simultaneously :( sorry.", vim.log.levels.WARN)
+      return vim.notify(("The hotpot.api.make usage has changed, please see :h hotpot-dot-hotpot\n" .. "Unfortunately it was not possible to support both options simultaneously :( sorry."), vim.log.levels.WARN)
     else
       return nil
     end
   end
 end
 M.check = function(...)
-  vim.notify("The hotpot.api.make usage has changed, please see :h hotpot-dot-hotpot", vim.log.levels.WARN)
-  return vim.notify("Unfortunately it was not possible to support both options simultaneously :( sorry.", vim.log.levels.WARN)
+  return vim.notify(("The hotpot.api.make usage has changed, please see :h hotpot-dot-hotpot\n" .. "Unfortunately it was not possible to support both options simultaneously :( sorry."), vim.log.levels.WARN)
 end
 do
   local function build_spec_or_default(given_spec)
