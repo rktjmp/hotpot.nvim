@@ -154,8 +154,9 @@
 
   Build accepts a `root-directory` to work in, an optional `options` table and
   a list of pairs, where each pair is a glob string and boolean value or a
-  function. A true value indicates a matching file should be compiled, and false
-  indicates the file should be ignored. Functions are passed the absolute file path
+  function. A true value indicates a matching file should be compiled, and
+  false indicates the file should be ignored. Functions are passed the globbed
+  file path (which may or may not be absolute depending on the root directory).
   and should return false or a string for the lua destination path.
 
   The options table may contain the following keys:
@@ -175,6 +176,10 @@
     options to pass to the compiler. See :h hotpot-setup.
 
   (Note the keys are in 'lua style', without dashes or question marks.)
+
+  Glob patterns that begin with `fnl/` are automatically compiled to to `lua/`,
+  other patterns are compiled in place or should be constructing explicitly by a
+  function.
 
   Glob patterns are checked in the order they are given, so generally 'ignore' patterns
   should be given first so things like 'macro modules' are not compiled to
