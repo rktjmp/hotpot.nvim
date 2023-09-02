@@ -30,10 +30,6 @@
   (expect (file-exists? path) "cant check hash of %s, does not exist" path)
   (uv.fs_stat path))
 
-;; dont recompute all the time
-(local path-sep (string.match package.config "(.-)\n"))
-(fn path-separator [] (values path-sep))
-
 (λ join-path [head ...]
   (-> (accumulate [t head _ part (ipairs [...])]
         (.. t :/ part))
@@ -82,6 +78,5 @@
  : is-fnl-path?
  : join-path
  : make-path
- : path-separator
  : rm-file
  : copy-file}

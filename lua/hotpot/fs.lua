@@ -62,12 +62,8 @@ local function file_stat(path)
   end
   return uv.fs_stat(path)
 end
-local path_sep = string.match(package.config, "(.-)\n")
-local function path_separator()
-  return path_sep
-end
 local function join_path(head, ...)
-  _G.assert((nil ~= head), "Missing argument head on fnl/hotpot/fs.fnl:37")
+  _G.assert((nil ~= head), "Missing argument head on fnl/hotpot/fs.fnl:33")
   local function _8_(...)
     local t = head
     for _, part in ipairs({...}) do
@@ -157,4 +153,4 @@ local function copy_file(from, to)
   end
   return _18_(vim.fs.dirname(to))
 end
-return {["read-file!"] = read_file_21, ["write-file!"] = write_file_21, ["file-exists?"] = file_exists_3f, ["file-missing?"] = file_missing_3f, ["file-mtime"] = file_mtime, ["file-stat"] = file_stat, ["is-lua-path?"] = is_lua_path_3f, ["is-fnl-path?"] = is_fnl_path_3f, ["join-path"] = join_path, ["make-path"] = make_path, ["path-separator"] = path_separator, ["rm-file"] = rm_file, ["copy-file"] = copy_file}
+return {["read-file!"] = read_file_21, ["write-file!"] = write_file_21, ["file-exists?"] = file_exists_3f, ["file-missing?"] = file_missing_3f, ["file-mtime"] = file_mtime, ["file-stat"] = file_stat, ["is-lua-path?"] = is_lua_path_3f, ["is-fnl-path?"] = is_fnl_path_3f, ["join-path"] = join_path, ["make-path"] = make_path, ["rm-file"] = rm_file, ["copy-file"] = copy_file}
