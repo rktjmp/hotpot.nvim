@@ -122,7 +122,8 @@
           {: err} (table.insert report [err :DiagnosticError]))
        compile-results)
 
-  (vim.api.nvim_echo report true {})
+  (if (< 0 (length report))
+    (vim.api.nvim_echo report true {}))
   (values nil))
 
 (fn do-build [opts root-dir build-spec]
