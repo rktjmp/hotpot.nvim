@@ -12,7 +12,7 @@ local uv = vim.loop
 local M = {}
 local automake_memo = {augroup = nil, ["attached-buffers"] = {}}
 local function merge_with_default_options(opts)
-  _G.assert((nil ~= opts), "Missing argument opts on /home/soup/projects/personal/hotpot/master/fnl/hotpot/api/make.fnl:11")
+  _G.assert((nil ~= opts), "Missing argument opts on fnl/hotpot/api/make.fnl:11")
   local _let_2_ = require("hotpot.runtime")
   local default_config = _let_2_["default-config"]
   local compiler_options = vim.tbl_extend("keep", (opts.compiler or {}), default_config().compiler)
@@ -183,12 +183,13 @@ local function report_compile_results(compile_results, _35_)
   local verbose_3f = _arg_36_["verbose?"]
   local atomic_3f = _arg_36_["atomic?"]
   local dry_run_3f = _arg_36_["dry-run?"]
+  local report = {}
   if dry_run_3f then
-    vim.notify("No changes were written to disk! Compiled with dryrun = true!", vim.log.levels.WARN)
+    table.insert(report, {"No changes were written to disk! Compiled with dryrun = true!\n", "DiagnosticWarn"})
   else
   end
   if (any_errors_3f and atomic_3f) then
-    vim.notify("No changes were written to disk! Compiled with atomic = true and some files had compilation errors!", vim.log.levels.WARN)
+    table.insert(report, {"No changes were written to disk! Compiled with atomic = true and some files had compilation errors!\n", "DiagnosticWarn"})
   else
   end
   local function _39_(_241)
@@ -198,15 +199,15 @@ local function report_compile_results(compile_results, _35_)
     local dest = _let_40_["dest"]
     local function _42_()
       if (_241)["compiled?"] then
-        return {"\226\152\145  ", vim.log.levels.TRACE}
+        return {"\226\152\145  ", "DiagnosticOK"}
       else
-        return {"\226\152\146  ", vim.log.levels.WARN}
+        return {"\226\152\146  ", "DiagnosticWarn"}
       end
     end
     local _let_41_ = _42_()
     local char = _let_41_[1]
     local level = _let_41_[2]
-    return vim.notify(string.format("%s%s\n-> %s", char, src, dest), level)
+    return table.insert(report, {string.format("%s%s\n-> %s\n", char, src, dest), level})
   end
   local function _45_(_43_)
     local _arg_44_ = _43_
@@ -217,16 +218,18 @@ local function report_compile_results(compile_results, _35_)
   local function _46_(_241)
     if ((_G.type(_241) == "table") and (nil ~= (_241).err)) then
       local err = (_241).err
-      return vim.notify(err, vim.log.levels.WARN)
+      return table.insert(report, {err, "DiagnosticError"})
     else
       return nil
     end
   end
   map(_46_, compile_results)
+  vim.api.nvim_echo(report, true, {})
   return nil
 end
 local function do_build(opts, root_dir, build_spec)
   assert(validate_spec("build", build_spec))
+  local root_dir0 = vim.fs.normalize(root_dir)
   local _let_48_ = opts
   local force_3f = _let_48_["force"]
   local verbose_3f = _let_48_["verbose"]
@@ -236,7 +239,7 @@ local function do_build(opts, root_dir, build_spec)
   local rm_file = _let_49_["rm-file"]
   local copy_file = _let_49_["copy-file"]
   local compiler_options = opts.compiler
-  local _let_50_ = find_compile_targets(root_dir, build_spec)
+  local _let_50_ = find_compile_targets(root_dir0, build_spec)
   local all_compile_targets = _let_50_["build"]
   local all_ignore_targets = _let_50_["ignore"]
   local force_3f0
@@ -264,7 +267,7 @@ local function do_build(opts, root_dir, build_spec)
     return (force_3f0 or needs_compile_3f(src, dest))
   end
   focused_compile_target = filter(_57_, all_compile_targets)
-  local compile_results = do_compile(focused_compile_target, compiler_options, root_dir)
+  local compile_results = do_compile(focused_compile_target, compiler_options, root_dir0)
   local any_errors_3f
   local function _58_(_241)
     return not _241["compiled?"]

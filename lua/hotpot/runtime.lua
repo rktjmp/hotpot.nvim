@@ -11,7 +11,7 @@ local function lookup_local_config(file)
   local file_exists_3f = _let_2_["file-exists?"]
   if string.match(file, "%.hotpot%.lua$") then
     if file_exists_3f(file) then
-      return file
+      return vim.fs.normalize(file)
     else
       return nil
     end
@@ -19,7 +19,7 @@ local function lookup_local_config(file)
     local _4_ = vim.fs.find(LOCAL_CONFIG_FILE, {path = file, upward = true, kind = "file"})
     if ((_G.type(_4_) == "table") and (nil ~= (_4_)[1])) then
       local path = (_4_)[1]
-      return vim.loop.fs_realpath(path)
+      return vim.fs.normalize(vim.loop.fs_realpath(path))
     elseif ((_G.type(_4_) == "table") and ((_4_)[1] == nil)) then
       return nil
     else
