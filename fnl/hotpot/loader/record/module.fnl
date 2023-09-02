@@ -15,8 +15,11 @@
         src-path (vim.fs.normalize src-path)
         prefix-length (length prefix)
         extension-length (length extension)
-        init? (not= nil (string.find src-path "init%....$"))
-        true-modname (.. modname (if init? ".init" ""))
+        true-modname (let [src-init? (not= nil (string.find src-path "init%....$")) ;; TODO: tl will fail here
+                           mod-init? (not= nil (string.find modname "%.init$"))]
+                       (if (and src-init? (not mod-init?))
+                         (.. modname ".init")
+                         modname))
         ;; Note must retain the final path separator
         ;; #"fnl/" + #"my.mod.init" + #".fnl"
         context-dir-end-position (- (length src-path) (+ prefix-length 1
