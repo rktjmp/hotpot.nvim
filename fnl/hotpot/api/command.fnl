@@ -51,7 +51,7 @@
   "Code to support `:Fnldo`"
   ;; code = "", means the expression will be "", meaning fnldo will
   ;; replace all the lines with nothing! Let's not do that.
-  (assert (and code (~= code "")) "fnldo: code must not be blank")
+  (assert (and code (~= code "")) "Fnldo: missing expression to execute!")
   (let [{: eval} (require :hotpot.fennel)
         {: traceback} (require :hotpot.runtime)
         codestr (.. "(fn [line linenr] " code ")")
@@ -60,7 +60,7 @@
                (false err) (error err))]
     (for [i start stop]
       (let [line (. (vim.api.nvim_buf_get_lines 0 (- i 1) i false) 1)]
-        ;; luado replaces line 
+        ;; luado replaces line
         ;; this can also raise but again, mirrors luado
         (vim.api.nvim_buf_set_lines 0 (- i 1) i false [(func (or line "") i)])))))
 

@@ -113,7 +113,7 @@ local function fnlfile(file)
   end
 end
 local function fnldo(start, stop, code)
-  assert((code and (code ~= "")), "fnldo: code must not be blank")
+  assert((code and (code ~= "")), "Fnldo: missing expression to execute!")
   local _let_28_ = require("hotpot.fennel")
   local eval = _let_28_["eval"]
   local _let_29_ = require("hotpot.runtime")
