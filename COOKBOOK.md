@@ -331,7 +331,7 @@ We can use a combination of the Make API and autocommands to write our main
   (fn rebuild-on-save [{: buf}]
     (let [{: build} (require :hotpot.api.make)
           au-config {:buffer buf
-                     :callback #(build "~/.config/nvim"
+                     :callback #(build (vim.fn.stdpath :config)
                                        {:verbose true :atomic true
                                         ;; Enforce hard errors when unknown symbols are encountered.
                                         :compiler {:modules {:allowedGlobals (icollect [n _ (pairs _G)] n)}}}
@@ -340,10 +340,10 @@ We can use a combination of the Make API and autocommands to write our main
 
   ;; watch file opens, attach builder if we open the config
   (vim.api.nvim_create_autocmd :BufRead
-                               {:pattern (-> "~/.config/nvim/init.fnl"
-                                             (vim.fs.normalize)
+                               {:pattern (-> (.. (vim.fn.stdpath :config) :/init.fnl)
                                              ;; call realpath if you have some symlink setup
-                                             (vim.loop.fs_realpath))
+                                             ;; (vim.loop.fs_realpath)
+                                             (vim.fs.normalize))
                                 :callback rebuild-on-save}))
 
 (require :the-rest-of-my-config)
