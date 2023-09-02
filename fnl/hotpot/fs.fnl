@@ -72,9 +72,6 @@
     (catch
       (nil e) (values false e))))
 
-(fn normalise-path [path]
-  (vim.fs.normalize path {:expand_env false}))
-
 {: read-file!
  : write-file!
  : file-exists?
@@ -87,5 +84,4 @@
  : make-path
  : path-separator
  : rm-file
- : copy-file
- : normalise-path}
+ : copy-file}
