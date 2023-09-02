@@ -284,29 +284,41 @@ Build fennel files found inside a directory that match a given set of glob
 patterns.
 
 >
-  (build :some/dir {:verbose true} [[:fnl/**/*macro*.fnl false] [:fnl/**/*.fnl true]])
+  (build :some/dir
+         {:verbose true}
+         [[:fnl/**/*macro*.fnl false]
+          [:fnl/**/*.fnl true]
+          [:colors/*.fnl (fn [path] (string.gsub path :fnl$ :lua))]])
 <
 
 Build accepts a `root-directory` to work in, an optional `options` table and
-a list of pairs, where each pair is a glob string and boolean value, where
-true indicates a matching file should be compiled, and false indicates the
-file should be ignored.
+a list of pairs, where each pair is a glob string and boolean value or a
+function. A true value indicates a matching file should be compiled, and
+false indicates the file should be ignored. Functions are passed the globbed
+file path (which may or may not be absolute depending on the root directory).
+and should return false or a string for the lua destination path.
 
 The options table may contain the following keys:
 
 - `atomic`, boolean, default false. When true, if there are any errors during
    compilation, no files are written to disk. Defaults to false.
 
-- force: boolean, default false. When true, all matched files are built, when
+- `force`, boolean, default false. When true, all matched files are built, when
   false, only changed files are build.
 
-- dryrun: boolean, default false. When true, no biles are written to disk.
+- `dryrun`, boolean, default false. When true, no biles are written to disk.
 
-- verbose: boolean, default false. When true, all compile events are logged,
+- `verbose`, boolean, default false. When true, all compile events are logged,
   when false, only errors are logged.
 
-- compiler: table, default nil. A table containing modules, macros and preprocessor
+- `compiler`, table, default nil. A table containing modules, macros and preprocessor
   options to pass to the compiler. See :h hotpot-setup.
+
+(Note the keys are in 'lua style', without dashes or question marks.)
+
+Glob patterns that begin with `fnl/` are automatically compiled to to `lua/`,
+other patterns are compiled in place or should be constructing explicitly by a
+function.
 
 Glob patterns are checked in the order they are given, so generally 'ignore' patterns
 should be given first so things like 'macro modules' are not compiled to
