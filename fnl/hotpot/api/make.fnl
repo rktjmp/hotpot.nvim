@@ -205,13 +205,17 @@
     (where [root opts build-specs nil] (string? root) (table? opts) (table? build-specs))
     (do-build (merge-with-default-options opts) root build-specs)
     ;; warn deprecated
-    _ (vim.notify (.. "The hotpot.api.make usage has changed, please see :h hotpot-dot-hotpot\n"
+    _ (vim.notify (.. "The hotpot.api.make usage has changed, please see\n"
+                      ":h hotpot-cookbook-using-dot-hotpot\n"
+                      ":h hotpot.api.make\n"
                       "Unfortunately it was not possible to support both options simultaneously :( sorry.")
                   vim.log.levels.WARN)))
 
 (fn M.check [...]
   "Deprecated, see dryrun option for build"
-  (vim.notify (.. "The hotpot.api.make usage has changed, please see :h hotpot-dot-hotpot\n"
+  (vim.notify (.. "The hotpot.api.make usage has changed, please see\n"
+                  ":h hotpot-cookbook-using-dot-hotpot\n"
+                  ":h hotpot.api.make\n"
                   "Unfortunately it was not possible to support both options simultaneously :( sorry.")
               vim.log.levels.WARN))
 
