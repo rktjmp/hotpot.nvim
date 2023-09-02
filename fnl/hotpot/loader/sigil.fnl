@@ -57,7 +57,7 @@
   (if (and sigil-path (file-exists? sigil-path))
     (case (load sigil-path)
       {: colocate} colocate
-      _ (error "sigil loaded but did not enforce colocate key"))
+      _ false)
     ;; We implicity deny colocation to "prefer lua" when present
     (values false)))
 
