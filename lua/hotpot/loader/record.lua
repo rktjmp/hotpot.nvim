@@ -8,7 +8,6 @@ local file_stat = _local_2_["file-stat"]
 local rm_file = _local_2_["rm-file"]
 local make_path = _local_2_["make-path"]
 local join_path = _local_2_["join-path"]
-local path_separator = _local_2_["path-separator"]
 local normalise_path
 do
   local _let_3_ = vim.fs
@@ -65,7 +64,7 @@ local function ftplugin_3f(r)
   return (RECORD_TYPE_FTPLUGIN == _14_)
 end
 local function path__3eindex_key(path)
-  _G.assert((nil ~= path), "Missing argument path on /home/soup/projects/personal/hotpot/master/fnl/hotpot/loader/record.fnl:49")
+  _G.assert((nil ~= path), "Missing argument path on fnl/hotpot/loader/record.fnl:49")
   local path0 = normalise_path(path)
   return join_path(INDEX_ROOT_PATH, (uri_encode(path0, "rfc2396") .. "-metadata.mpack"))
 end
@@ -568,7 +567,7 @@ local function save(record)
   return _95_((module_3f(record) or ftplugin_3f(record)))
 end
 local function drop(record)
-  _G.assert((nil ~= record), "Missing argument record on /home/soup/projects/personal/hotpot/master/fnl/hotpot/loader/record.fnl:105")
+  _G.assert((nil ~= record), "Missing argument record on fnl/hotpot/loader/record.fnl:105")
   local function _136_(...)
     local _137_, _138_ = ...
     if (nil ~= _137_) then
@@ -595,9 +594,9 @@ local function drop(record)
   return _136_(path__3eindex_key(record["lua-path"]))
 end
 local function new(type, modname, src_path, _3fopts)
-  _G.assert((nil ~= src_path), "Missing argument src-path on /home/soup/projects/personal/hotpot/master/fnl/hotpot/loader/record.fnl:114")
-  _G.assert((nil ~= modname), "Missing argument modname on /home/soup/projects/personal/hotpot/master/fnl/hotpot/loader/record.fnl:114")
-  _G.assert((nil ~= type), "Missing argument type on /home/soup/projects/personal/hotpot/master/fnl/hotpot/loader/record.fnl:114")
+  _G.assert((nil ~= src_path), "Missing argument src-path on fnl/hotpot/loader/record.fnl:114")
+  _G.assert((nil ~= modname), "Missing argument modname on fnl/hotpot/loader/record.fnl:114")
+  _G.assert((nil ~= type), "Missing argument type on fnl/hotpot/loader/record.fnl:114")
   local module
   do
     local _144_, _145_ = type
@@ -620,8 +619,8 @@ local function new(type, modname, src_path, _3fopts)
   return vim.tbl_extend("force", record, {type = type, ["lua-path-mtime-at-save"] = 0, ["lua-path-size-at-save"] = 0, files = {{path = src_path0, mtime = {sec = 0, nsec = 0}, size = 0}}})
 end
 local function set_record_files(record, files)
-  _G.assert((nil ~= files), "Missing argument files on /home/soup/projects/personal/hotpot/master/fnl/hotpot/loader/record.fnl:132")
-  _G.assert((nil ~= record), "Missing argument record on /home/soup/projects/personal/hotpot/master/fnl/hotpot/loader/record.fnl:132")
+  _G.assert((nil ~= files), "Missing argument files on fnl/hotpot/loader/record.fnl:132")
+  _G.assert((nil ~= record), "Missing argument record on fnl/hotpot/loader/record.fnl:132")
   local files0
   do
     table.insert(files, 1, record["src-path"])

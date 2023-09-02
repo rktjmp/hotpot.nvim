@@ -67,7 +67,7 @@ local function path_separator()
   return path_sep
 end
 local function join_path(head, ...)
-  _G.assert((nil ~= head), "Missing argument head on /home/soup/projects/personal/hotpot/master/fnl/hotpot/fs.fnl:51")
+  _G.assert((nil ~= head), "Missing argument head on fnl/hotpot/fs.fnl:51")
   local path_sep0 = path_separator()
   local dup_pat = ("[" .. path_sep0 .. "]+")
   local joined
