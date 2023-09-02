@@ -20,7 +20,7 @@
 (local {:format fmt} string)
 (local {: file-exists? : file-missing? : read-file!
         : file-stat : rm-file
-        : make-path : join-path : path-separator} (require :hotpot.fs))
+        : make-path : join-path} (require :hotpot.fs))
 
 (local normalise-path (let [{: normalize} vim.fs]
                         #(normalize $1 {:expand_env false})))
