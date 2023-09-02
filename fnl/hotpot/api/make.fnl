@@ -46,7 +46,13 @@
       (each [_ path (ipairs (vim.fn.globpath root-dir glob true true))]
         (if (= nil (. files path))
           (case [(string.find glob "fnl/") action]
-            (where [_ f] (function? f)) (tset files path (f path))
+            (where [_ f] (function? f)) (case (f path)
+                                          false (tset files path false)
+                                          (where path (string? path))
+                                          (tset files path (string.gsub path "%.fnl$" ".lua"))
+                                          ?some (error (string.format
+                                                         "Invalid return value from build function: %s => %s"
+                                                         path (type ?some))))
             [_ false] (tset files path false)
             [1 true] (tset files path
                            (.. root-dir :/lua/ (string.sub path (+ (length root-dir) 6) -4) :lua))
