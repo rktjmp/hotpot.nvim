@@ -6,13 +6,21 @@ to "core" code (things that effect loading and running your code/config) are
 avoided but breaking changes to the API (things that might effect your bindings
 and auto commands) are treated with less reverence.
 
+## 0.9.0 (unreleased)
+
+- Add support for `.hotpot.lua` file.
+  - Specify per-project compiler options, automate build-on-save, see `:h hotpot-dot-hotpot`.
+- **Previous `api.make.build` interface has been deprecated, see `:h hotpot.api.make` for details.**
+- **`api.make.check` has been deprecated, see `dryrun` option for `api.make.build`.**
+- **Most `api.*` function signatures have changed to accept `compile-options` as would be given to `setup()`.**
+
 ## 0.8.2
 
 - Better support for ftplugins.
 
 ## 0.8.1
 
-- Remove compile accidental logging
+- Remove compile accidental logging.
 
 ## 0.8.0
 
