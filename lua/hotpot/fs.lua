@@ -67,112 +67,97 @@ local function path_separator()
   return path_sep
 end
 local function join_path(head, ...)
-  _G.assert((nil ~= head), "Missing argument head on fnl/hotpot/fs.fnl:51")
-  local path_sep0 = path_separator()
-  local dup_pat = ("[" .. path_sep0 .. "]+")
-  local joined
-  do
+  _G.assert((nil ~= head), "Missing argument head on fnl/hotpot/fs.fnl:37")
+  local function _8_(...)
     local t = head
     for _, part in ipairs({...}) do
-      t = (t .. path_separator() .. part)
+      t = (t .. "/" .. part)
     end
-    joined = t
+    return t
   end
-  local de_duped = string.gsub(joined, dup_pat, path_sep0)
-  return de_duped
-end
-local function dirname(path)
-  local pattern = string.format("%s[^%s]+$", path_sep, path_sep)
-  local _8_ = string.find(path, pattern)
-  if (_8_ == nil) then
-    return error(("Could not extract dirname from path: " .. path))
-  elseif (nil ~= _8_) then
-    local n = _8_
-    return string.sub(path, 1, n)
-  else
-    return nil
-  end
+  return vim.fs.normalize(_8_(...))
 end
 local function what_is_at(path)
-  local _10_, _11_, _12_ = uv.fs_stat(path)
-  if ((_G.type(_10_) == "table") and (nil ~= (_10_).type)) then
-    local type = (_10_).type
+  local _9_, _10_, _11_ = uv.fs_stat(path)
+  if ((_G.type(_9_) == "table") and (nil ~= (_9_).type)) then
+    local type = (_9_).type
     return type
-  elseif ((_10_ == nil) and true and (_12_ == "ENOENT")) then
-    local _ = _11_
+  elseif ((_9_ == nil) and true and (_11_ == "ENOENT")) then
+    local _ = _10_
     return "nothing"
-  elseif ((_10_ == nil) and (nil ~= _11_) and true) then
-    local err = _11_
-    local _ = _12_
+  elseif ((_9_ == nil) and (nil ~= _10_) and true) then
+    local err = _10_
+    local _ = _11_
     return nil, string.format("uv.fs_stat error %s", err)
   else
     return nil
   end
 end
 local function make_path(path)
-  local backwards, _here = string.match(path, string.format("(.+)%s(.+)$", path_sep))
-  local _14_ = what_is_at(path)
-  if (_14_ == "directory") then
+  local path0 = vim.fs.normalize(path)
+  local backwards, _here = string.match(path0, string.format("(.+)%s(.+)$", "/"))
+  local _13_ = what_is_at(path0)
+  if (_13_ == "directory") then
     return true
-  elseif (_14_ == "nothing") then
+  elseif (_13_ == "nothing") then
     assert(make_path(backwards))
-    return assert(uv.fs_mkdir(path, 493))
-  elseif (nil ~= _14_) then
-    local other = _14_
-    return error(string.format("could not create path because %s exists at %s", other, path))
+    return assert(uv.fs_mkdir(path0, 493))
+  elseif (nil ~= _13_) then
+    local other = _13_
+    return error(string.format("could not create path because %s exists at %s", other, path0))
   else
     return nil
   end
 end
 local function rm_file(path)
-  local _16_, _17_ = uv.fs_unlink(path)
-  if (_16_ == true) then
+  local _15_, _16_ = uv.fs_unlink(path)
+  if (_15_ == true) then
     return true
-  elseif ((_16_ == nil) and (nil ~= _17_)) then
-    local e = _17_
+  elseif ((_15_ == nil) and (nil ~= _16_)) then
+    local e = _16_
     return false, e
   else
     return nil
   end
 end
 local function copy_file(from, to)
-  local function _19_(...)
-    local _20_, _21_ = ...
-    if (nil ~= _20_) then
-      local dir = _20_
-      local function _22_(...)
-        local _23_, _24_ = ...
-        if (_23_ == true) then
-          local function _25_(...)
-            local _26_, _27_ = ...
-            if (_26_ == true) then
+  local function _18_(...)
+    local _19_, _20_ = ...
+    if (nil ~= _19_) then
+      local dir = _19_
+      local function _21_(...)
+        local _22_, _23_ = ...
+        if (_22_ == true) then
+          local function _24_(...)
+            local _25_, _26_ = ...
+            if (_25_ == true) then
               return true
-            elseif ((_26_ == nil) and (nil ~= _27_)) then
-              local e = _27_
+            elseif ((_25_ == nil) and (nil ~= _26_)) then
+              local e = _26_
               return false, e
             else
               return nil
             end
           end
-          return _25_(uv.fs_copyfile(from, to))
-        elseif ((_23_ == nil) and (nil ~= _24_)) then
-          local e = _24_
+          return _24_(uv.fs_copyfile(from, to))
+        elseif ((_22_ == nil) and (nil ~= _23_)) then
+          local e = _23_
           return false, e
         else
           return nil
         end
       end
-      return _22_(make_path(dir))
-    elseif ((_20_ == nil) and (nil ~= _21_)) then
-      local e = _21_
+      return _21_(make_path(dir))
+    elseif ((_19_ == nil) and (nil ~= _20_)) then
+      local e = _20_
       return false, e
     else
       return nil
     end
   end
-  return _19_(dirname(to))
+  return _18_(vim.fs.dirname(to))
 end
 local function normalise_path(path)
   return vim.fs.normalize(path, {expand_env = false})
 end
-return {["read-file!"] = read_file_21, ["write-file!"] = write_file_21, ["file-exists?"] = file_exists_3f, ["file-missing?"] = file_missing_3f, ["file-mtime"] = file_mtime, ["file-stat"] = file_stat, ["is-lua-path?"] = is_lua_path_3f, ["is-fnl-path?"] = is_fnl_path_3f, ["join-path"] = join_path, ["make-path"] = make_path, dirname = dirname, ["path-separator"] = path_separator, ["rm-file"] = rm_file, ["copy-file"] = copy_file, ["normalise-path"] = normalise_path}
+return {["read-file!"] = read_file_21, ["write-file!"] = write_file_21, ["file-exists?"] = file_exists_3f, ["file-missing?"] = file_missing_3f, ["file-mtime"] = file_mtime, ["file-stat"] = file_stat, ["is-lua-path?"] = is_lua_path_3f, ["is-fnl-path?"] = is_fnl_path_3f, ["join-path"] = join_path, ["make-path"] = make_path, ["path-separator"] = path_separator, ["rm-file"] = rm_file, ["copy-file"] = copy_file, ["normalise-path"] = normalise_path}

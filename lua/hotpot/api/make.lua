@@ -122,7 +122,7 @@ local function find_clean_targets(root_dir, spec, compile_targets)
     assert(string.match(glob, "%.lua$"), string.format("clean glob patterns must end in .lua, got %s", glob))
     for _0, path in ipairs(vim.fn.globpath(root_dir, glob, true, true)) do
       if (nil == files[path]) then
-        files[path] = action
+        files[vim.fs.normalize(path)] = action
       else
       end
     end
@@ -207,7 +207,8 @@ local function report_compile_results(compile_results, _35_)
     local _let_41_ = _42_()
     local char = _let_41_[1]
     local level = _let_41_[2]
-    return table.insert(report, {string.format("%s%s\n-> %s\n", char, src, dest), level})
+    table.insert(report, {string.format("%s%s\n", char, src), level})
+    return table.insert(report, {string.format("-> %s\n", dest), level})
   end
   local function _45_(_43_)
     local _arg_44_ = _43_
