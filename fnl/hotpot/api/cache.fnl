@@ -6,8 +6,7 @@
 ;;
 
 (fn cache-prefix []
-  ;; cache path isn't configurable anyway so this is unparameterised for now
-  ;; TODO shift this into config and get from that (or maybe runtime)
+  "Returns the path to Hotpots lua cache"
   (let [{: compiled-cache-path} (require :hotpot.loader)]
     compiled-cache-path))
 
@@ -44,36 +43,6 @@
           false)
       2 (clear-dir prefix))))
 
-; (fn cache-path-for-fnl-file [fnl-path]
-;   "Get on-disk path to compiled lua that mirrors given fennel source file. File
-;   path should be absoulute, see |expand| or `fs_realpath` from |vim.loop|."
-;   ;; (string) :: string
-;   ;; path must be absolute
-;   (let [{: is-fnl-path? : file-exists?} (require :hotpot.fs)
-;         {: fnl-path->lua-cache-path} (require :hotpot.index)
-;         _ (expect (= :string (type fnl-path))
-;                   "cache-path-for-fnl-file: must be given string, got %q" fnl-path)
-;         _ (expect (is-fnl-path? fnl-path)
-;                   "cache-path-for-fnl-file: must be given path to .fnl file: %q" fnl-path)
-;         lua-path (fnl-path->lua-cache-path fnl-path)]
-;     (match (file-exists? lua-path)
-;       true (values lua-path)
-;       false (values nil))))
-
-; (fn cache-path-for-module [modname]
-;   "Get on-disk path to compiled lua for given module name"
-;   ;; (string) :: string
-;   (expect (= :string (type modname))
-;           modname "cache-path-for-module: modname must be string, got %q")
-;   (let [{: searcher} (require :hotpot.lang.fennel.searcher.fennel)
-;         {: is-fnl-path?} (require :hotpot.fs)
-;         path (searcher modname)
-;         _ (expect path "cache-path-for-module: could not find file for %q" modname)
-;         _ (expect (is-fnl-path? path)
-;                   "cache-path-for-module: did not resolve to .fnl file: %q %q"
-;                   modname path)]
-;     (cache-path-for-fnl-file path)))
-
 (fn open-cache [?how ?opts]
   "Open the cache directory in a split
 
@@ -81,10 +50,6 @@
   are translated to `(vim.cmd.<how> (cache-path) <opts>)"
   (vim.cmd.vsplit (cache-prefix)))
 
-{;: cache-path-for-fnl-file
- ; : cache-path-for-module
- ; : clear-cache-for-fnl-file
- ; : clear-cache-for-module
- : open-cache
+{: open-cache
  : clear-cache
  : cache-prefix}
