@@ -15,7 +15,8 @@ and auto commands) are treated with less reverence.
   instructions in the [COOKBOOK](COOKBOOK.md).
 - **`api.make.check` has been deprecated, see `dryrun` option for `api.make.build`.**
 - **Most `api.*` function signatures have changed to accept `compile-options` as would be given to `setup()`.**
-
+- **Removed some API cache lookup functions.**
+  - Added `open-cache(how, opts)` which opens the cache path in neovims directory explorer.
 
 ## 0.8.2
 

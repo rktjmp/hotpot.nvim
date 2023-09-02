@@ -7,18 +7,16 @@
 - [Include some common functions, macros or prelude in all files.](#preprocessing)
 - [Write a plugin in fennel.](#writing-a-plugin)
 - [Compile into the `lua/` directory.](#compiling-to-lua)
-- [Ahead of time compilation](#using-dot-hotpot)
 - [Use a `.hotpot.lua` file.](#using-dot-hotpot)
-- Write `init.lua` as `init.fnl`.
+- [Write `init.lua` as `init.fnl`.](#writing-.confignviminit.lua-in-fennel)
 - [Write an config `ftplugin`.](#write-an-ftplugin)
+- [View compiled lua output.](#cache-operations)
 
 <!--
 
 - See the output of
   - a fennel file or,
   - some arbitary fennel code.
-- Write a Neovim plugin in fennel
-
 -->
 
 <!-- panvimdoc-ignore-end -->
@@ -92,6 +90,11 @@ configuration allows for different compiler settings to be used than those
 passed to `setup()`, as well as enabling auto-build/clean functionality by
 wrapping `hotpot.api.make`.
 
+> `.hotpot.lua` is intended for plugin developers, but you can apply the same
+> practices to your main Neovim config if you want to generate `lua/` files
+> or others such as `colors/` etc. See also [how to write an
+> init.fnl](#writing-.confignviminit.lua-in-fennel).
+
 The user:
 
 - Must name the file `.hotpot.lua`.
@@ -104,7 +107,9 @@ hotpot settings passed to `setup()` back to their default values.
 ```lua
 -- ~/projects/my-plugin.nvim/.hotpot.lua
 return {
-  -- configuration
+  -- build = ...
+  -- clean = ...
+  -- compiler = { ... }
 }
 ```
 
@@ -149,9 +154,11 @@ They should look like "fnl/**/*macro*.fnl", "fnl/**/*.fnl".
 **`build = {{glob_pattern, boolean_or_function}, ...}`** or **`build = {{options}, {glob_pattern, boolean_or_function}, ...}`**
 
 Each glob pattern is expanded in order and if the boolean value is true, the
-file will be compiled, if false, the file will be ignored. If given a function,
-the absolute path is passed to the function, the function should return the
-desired lua path as a string, or false.
+file will be compiled, if false, the file will be ignored.
+
+If given a function, the absolute path is passed to the function, the function
+should return the desired lua path as a string (the extension will be
+automatically converted from `.fnl` to `.lua`), or false.
 
 If a file matches multiple glob patterns, only the first value will be used.
 This allows earlier, more specific matches to ignore files before broader
@@ -257,59 +264,9 @@ compiler = {
 }
 ```
 
-## Ahead of time compilation
-
-You can compile code ahead of time with the `hotpot.api.make` module. This can
-be used to build fennel plugins for distribution, or if you want to compile
-your config.
-
-The module currently provides two functions: `build` and `check` (functionally
-equivalent `build` but with no changes to disk).
-
-`build` accepts a `source-path` (directory or single file), an optional
-`options` table and then a set of `pattern function` argument pairs.
-
-Each `*.fnl` file in `source-dir` is checked against each `pattern` given, and
-if any match the `function` is called with the pattern captures as arguments.
-
-The function should return a path to save the compiled file to, or `nil`.
-
-Ex.
-
-```fennel
-;; build all fnl files inside config dir
-;; Note you could also pass "." or some expanded vim variable
-(local {: build} (require :hotpot.api.make))
-(build "~/.config/nvim"
-       ;; ~/.config/nvim/fnl/*.fnl -> ~/.config/nvim/lua/*.lua
-       "(.+)/fnl/(.+)"
-       ;; `root` is the first match, `path` is the second.
-       ;; "(.+)/fnl/(.+)"
-       ;;  ^^^^ root
-       ;;           ^^^^ path
-       ;; Note that the argument names are not important, you decide
-       ;; what to call them, in the order they are captured.
-       (fn [root path {: join-path}]
-         ;; ignore our own macro file (init-macros.fnl is ignored by default)
-         (if (not (string.match path "my-macros%.fnl$"))
-           ;; join-path automatically uses the os-appropriate path separator
-           (join-path root :lua path)))
-       ;; config/ftplugins/*.fnl -> config/ftplugins/*.lua
-       "(~/.config/nvim/ftplugins/.+)"
-       ;; Note again, we have 1 capture, so only one arg, and since we're not
-       ;; manipulating the path we can ignore the helpers table too.
-       (fn [whole-path] (values whole-path)))
-```
-
-You may put the above code in a file such as `build.fnl` then run it with
-`:Fnlfile build.fnl` (or `:Fnlfile %` if its your current buffer).
-
-You may also attach a autocommand via an `ftplugin` and the `BufWritePost`
-event to build on save.
-
-For complete documentation, see [`:h hotpot.api.make`](doc/hotpot-api.txt).
-
 ## Writing `~/.config/nvim/init.lua` in Fennel
+
+**Using autocommands and `hotpot.api.make`**
 
 We can use a combination of the Make API and autocommands to write our main
 `init.lua` in Fennel and automatically compile it to loadable lua on save.
@@ -362,6 +319,32 @@ Finally, we have to manually run this code *once* to generate the new `init.lua`
 - Open `init.lua` to confirm it contains your fennel, compiled into lua.
 - Start neovim in a new terminal to confirm the config loading is functioning
   without any errors.
+
+**Using `.hotpot.lua`**
+
+You can also configure a `.hotpot.lua` file to build `init.fnl`, see [using
+`.hotpot.lua`](#using-dot-hotpot) for more information.
+
+You should be aware that the presence of a `.hotpot.lua` file will disable any
+`compiler` options you pass to setup, so you should instead move them into the
+`.hotpot.lua` file.
+
+Your build instructions can be as broad or slim as you want:
+
+```lua
+-- ~/.config/nvim/.hotpot.lua
+
+return {
+  build = {
+    {verbose = true},
+    -- This will only compile init.fnl, all other fnl/ files will behave as normal.
+    {"init.fnl", true},
+    -- Or you could enable other patterns too,
+    -- {"colors/*.fnl", true},
+    -- {"fnl/**/*.fnl", true},
+  }
+}
+```
 
 ## Write an ftplugin
 
@@ -536,7 +519,7 @@ Evaluate or compile the `v` selection, or the entire buffer.
 
 **Cache operations**
 
-Open the cache directory with  Telescope searcher:
+Open the cache directory with Telescope searcher:
 
 ```fennel
 (let [{: find_files} (require :telescope.builtin)
@@ -545,17 +528,7 @@ Open the cache directory with  Telescope searcher:
                :hidden true}))
 ```
 
-Open the matching lua file for an arbitrary module.
-
-```fennel
-(vim.keymap.set :n :hfm
-                #(let [{: cache-path-for-module} (require :hotpot.api.cache)
-                       modname (vim.fn.input "module name: ")]
-                   (match (cache-path-for-module modname)
-                     path (vim.cmd (.. ":new " path))
-                     nil (vim.api.nvim_echo [[(.. "No cache file for " modname) :WarningMsg]] true {})))
-                {:desc "Open compiled lua file for module"})
-```
+See also `:h hotpot.api.cache`.
 
 ## Commands
 

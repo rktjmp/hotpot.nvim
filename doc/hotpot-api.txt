@@ -509,7 +509,7 @@ cache-prefix~
 
 `(cache-prefix)`
 
-undocumented
+Returns the path to Hotpots lua cache
 
 
 ------------------------------------------------ *hotpot.api.cache.clear-cache*
