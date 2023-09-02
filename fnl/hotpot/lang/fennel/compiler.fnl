@@ -126,7 +126,12 @@
                           (make-path (dirname lua-path))
                           (write-file! lua-path lua-code))
         (false errors) (error errors))))
-  (pcall do-compile))
+  (xpcall do-compile #(let [lines (vim.split $1 "\n")
+                            [s _] (accumulate [[s c] ["" true] _ line (ipairs lines) &until (not c)]
+                                    (case (string.find line "stack traceback:" 1 true)
+                                      1 [s false]
+                                      _ [(.. s line "\n") true]))]
+                        s)))
 
 (λ compile-record [record modules-options macros-options preprocessor]
   "Compile fnl-path to lua-path, returns true or false compilation-errors"
