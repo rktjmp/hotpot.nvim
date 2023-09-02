@@ -16,9 +16,9 @@
   ;; and so we can skip the recursive upsearch by checking the path directly.
   (let [{: file-exists?} (require :hotpot.fs)]
     (if (string.match file "%.hotpot%.lua$")
-      (if (file-exists? file) file)
+      (if (file-exists? file) (vim.fs.normalize file))
       (case (vim.fs.find LOCAL_CONFIG_FILE {:path file :upward true :kind :file})
-        [path] (vim.loop.fs_realpath path)
+        [path] (vim.fs.normalize (vim.loop.fs_realpath path))
         [nil] nil))))
 
 (fn loadfile-local-config [path]
