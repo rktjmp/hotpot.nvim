@@ -1,4 +1,4 @@
-*hotpot-cookbook.txt*         For 0.9.1         Last change: 2023 September 02
+*hotpot-cookbook.txt*         For 0.9.1         Last change: 2023 September 03
 
 ==============================================================================
 Table of Contents                          *hotpot-cookbook-table-of-contents*
@@ -73,7 +73,27 @@ project directory and must respecified in the `.hotpot.lua` file.
     }
 <
 
-For more details, see |hotpot-cookbook-using-`.hotpot.lua`|.
+By default, Fennels compiler will allow you to compile files that reference
+unknown symbols. You may prefer to enforce a known list so your builds get
+"hard errors"
+
+>lua
+    local allowed_globals = {}
+    for key, _ in pairs(_G) do
+      table.insert(allowed_globals, key)
+    end
+    
+    return {
+      compiler = {
+        modules = {
+          allowedGlobals = allowed_globals
+        }
+      },
+      -- ...
+    }
+<
+
+Formore details, see |hotpot-cookbook-using-`.hotpot.lua`|.
 
 
 ==============================================================================

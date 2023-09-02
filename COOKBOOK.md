@@ -75,6 +75,26 @@ return {
 }
 ```
 
+By default, Fennels compiler will allow you to compile files that reference
+unknown symbols. You may prefer to enforce a known list so your builds get
+"hard errors":
+
+```lua
+local allowed_globals = {}
+for key, _ in pairs(_G) do
+  table.insert(allowed_globals, key)
+end
+
+return {
+  compiler = {
+    modules = {
+      allowedGlobals = allowed_globals
+    }
+  },
+  -- ...
+}
+```
+
 For more details, see [Using `.hotpot.lua`](#using-dot-hotpot).
 
 ## Compiling to `lua/`
