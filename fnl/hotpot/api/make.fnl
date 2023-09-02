@@ -108,7 +108,8 @@
 
 (fn do-build [opts root-dir build-spec]
   (assert (validate-spec :build build-spec))
-  (let [{:force force? :verbose verbose? :dryrun dry-run? :atomic atomic?} opts
+  (let [root-dir (vim.fs.normalize root-dir)
+        {:force force? :verbose verbose? :dryrun dry-run? :atomic atomic?} opts
         {: rm-file : copy-file} (require :hotpot.fs)
         compiler-options opts.compiler
         {:build all-compile-targets :ignore all-ignore-targets} (find-compile-targets root-dir build-spec)
