@@ -192,21 +192,18 @@
     (where [root opts build-specs nil] (string? root) (table? opts) (table? build-specs))
     (do-build (merge-with-default-options opts) root build-specs)
     ;; warn deprecated
-    _ (let [{: build} (require :hotpot.api.classic-make)]
-        (vim.notify "The hotpot.api.make usage has changed, please see :h hotpot-dothotpot"
+    _ (do
+        (vim.notify "The hotpot.api.make usage has changed, please see :h hotpot-dot-hotpot"
                     vim.log.levels.WARN)
-        (vim.notify "The interface you are using has been deprecated."
-                    vim.log.levels.WARN)
-        (build ...))))
+        (vim.notify "Unfortunately it was not possible to support both options simultaneously :( sorry."
+                    vim.log.levels.WARN))))
 
 (fn M.check [...]
   "Deprecated, see dryrun option for build"
-  (let [{: check} (require :hotpot.api.classic-make)]
-    (vim.notify "The hotpot.api.make usage has changed, please see :h hotpot-dothotpot"
-                vim.log.levels.WARN)
-    (vim.notify "The interface you are using has been deprecated."
-                vim.log.levels.WARN)
-    (check ...)))
+  (vim.notify "The hotpot.api.make usage has changed, please see :h hotpot-dot-hotpot"
+              vim.log.levels.WARN)
+  (vim.notify "Unfortunately it was not possible to support both options simultaneously :( sorry."
+              vim.log.levels.WARN))
 
 (set M.automake
      (do
