@@ -108,7 +108,8 @@
                    [char level] (if (. $1 :compiled?)
                                   ["☑  " :DiagnosticOK]
                                   ["☒  " :DiagnosticWarn])]
-               (table.insert report [(string.format "%s%s\n-> %s\n" char src dest) level]))))
+               (table.insert report [(string.format "%s%s\n" char src) level])
+               (table.insert report [(string.format "-> %s\n" dest) level]))))
   (map #(case $1
           ;; WARN instead of ERROR so we dont get nvim prepending
           ;; autocommand failure message
