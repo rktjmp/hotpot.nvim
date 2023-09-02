@@ -116,10 +116,9 @@
           _ (expect (is-lua-path? lua-path) "compile-file lua-path not lua file: %q" lua-path)
           fnl-code (case (read-file! fnl-path)
                      (nil err) (error err)
-                     src src)
-          ;; pass on any options to the compiler, but enforce the filename
-          modules-options (doto modules-options
-                                (tset :filename fnl-path))]
+                     src src)]
+      (if (not modules-options.filename)
+        (tset modules-options :filename fnl-path))
       (case (compile-string fnl-code modules-options macros-options ?preprocessor)
         (true lua-code) (do
                           ;; These all throw on error
