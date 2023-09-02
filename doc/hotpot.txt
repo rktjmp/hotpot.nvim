@@ -116,7 +116,7 @@ likely without the runtimepath alterations.
     local plugins = {"rktjmp/hotpot.nvim"}
     require("lazy").setup(plugins)
     
-    -- inclue the rest of your config
+    -- include the rest of your config
     require("say-hello")
 <
 

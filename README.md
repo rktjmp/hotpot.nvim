@@ -139,7 +139,7 @@ require("hotpot") -- optionally you may call require("hotpot").setup(...) here
 local plugins = {"rktjmp/hotpot.nvim"}
 require("lazy").setup(plugins)
 
--- inclue the rest of your config
+-- include the rest of your config
 require("say-hello")
 ````
 
