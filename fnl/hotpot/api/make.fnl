@@ -88,22 +88,34 @@
          compile-targets)))
 
 (fn report-compile-results [compile-results {: any-errors? : verbose? : atomic? : dry-run?}]
+  ;; Seems, in some cases, sometimes, we must "enter" through messages to view
+  ;; them. You may impulsively "escape" the prompt and not see anything, so we'll
+  ;; push all messages out in one go.
+  ;; Unsure why this seems to occur only sometimes, it does not seem related to window
+  ;; width or message length, might be dependent on the size of the next message?
+  ;;
+  ;; Note we also use nvim_echo to support different message levels
+  ;;
+  ;; Also note: this seems just as unreliable?
+  (local report [])
+
   (when dry-run?
-    (vim.notify "No changes were written to disk! Compiled with dryrun = true!" vim.log.levels.WARN))
+    (table.insert report ["No changes were written to disk! Compiled with dryrun = true!\n" :DiagnosticWarn]))
   (when (and any-errors? atomic?)
-    (vim.notify "No changes were written to disk! Compiled with atomic = true and some files had compilation errors!"
-                vim.log.levels.WARN))
+    (table.insert report ["No changes were written to disk! Compiled with atomic = true and some files had compilation errors!\n" :DiagnosticWarn]))
   (->> (filter (fn [{: compiled?}] (or verbose? (not compiled?))) compile-results)
        (map #(let [{: compiled? : src : dest} $1
                    [char level] (if (. $1 :compiled?)
-                                  ["☑  " vim.log.levels.TRACE]
-                                  ["☒  " vim.log.levels.WARN])]
-               (vim.notify (string.format "%s%s\n-> %s" char src dest) level))))
+                                  ["☑  " :DiagnosticOK]
+                                  ["☒  " :DiagnosticWarn])]
+               (table.insert report [(string.format "%s%s\n-> %s\n" char src dest) level]))))
   (map #(case $1
           ;; WARN instead of ERROR so we dont get nvim prepending
           ;; autocommand failure message
-          {: err} (vim.notify err vim.log.levels.WARN))
+          {: err} (table.insert report [err :DiagnosticError]))
        compile-results)
+
+  (vim.api.nvim_echo report true {})
   (values nil))
 
 (fn do-build [opts root-dir build-spec]
