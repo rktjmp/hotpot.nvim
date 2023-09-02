@@ -2,8 +2,7 @@
 (local {:format fmt} string)
 (local {: file-exists? : file-missing?
         : file-stat
-        : rm-file
-        : normalise-path : join-path} (require :hotpot.fs))
+        : rm-file : join-path} (require :hotpot.fs))
 
 (local REPEAT_SEARCH :REPEAT_SEARCH)
 (local CACHE_ROOT (join-path (vim.fn.stdpath :cache) :hotpot))
@@ -286,10 +285,9 @@
   ;; map those back to fennel files for recompilation.
   (fn search-by-existing-lua [modname]
     (case (vim.loader.find modname)
-      [{:modpath modpath}] (let [found-lua-path (normalise-path modpath)
-                                 f (case (infer-lua-path-type found-lua-path)
-                                     :cache handle-cache-lua-path
-                                     :colocate handle-colo-lua-path)]
+      [{:modpath found-lua-path}] (let [f (case (infer-lua-path-type found-lua-path)
+                                            :cache handle-cache-lua-path
+                                            :colocate handle-colo-lua-path)]
                              (case (f modname found-lua-path)
                                ;; We explicitly allow for a "try again" case where
                                ;; colocation has changed or the cache needed repairs
@@ -309,16 +307,15 @@
                                            :modnames [(.. modname ".init") modname]
                                            :package-path? false})))]
       (case (search-runtime-path modname)
-        [modpath] (let [src-path (normalise-path modpath)]
-                    (case-try
-                      (make-module-record modname src-path) index
-                      (if (wants-colocation? index.sigil-path)
-                        (set-index-target-colocation index)
-                        (set-index-target-cache index)) index
-                      (record-loadfile index) loader
-                      (values loader)
-                      ;; catch compiler errors
-                      (false e) (values e)))
+        [src-path] (case-try
+                     (make-module-record modname src-path) index
+                     (if (wants-colocation? index.sigil-path)
+                       (set-index-target-colocation index)
+                       (set-index-target-cache index)) index
+                     (record-loadfile index) loader
+                     (values loader)
+                     ;; catch compiler errors
+                     (false e) (values e))
         nil false)))
 
   ;; Mostly to handle relative requires that are messy in the other branches.
