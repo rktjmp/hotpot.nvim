@@ -46,6 +46,9 @@ local function search_runtime_path(spec)
         end
       end
       matches = tbl_17_auto
+    elseif true then
+      local _0 = _5_
+      matches = matches
     else
       matches = nil
     end
@@ -108,7 +111,7 @@ local function search_package_path(spec)
   return {result}
 end
 local function search(spec)
-  _G.assert((nil ~= spec), "Missing argument spec on fnl/hotpot/searcher.fnl:32")
+  _G.assert((nil ~= spec), "Missing argument spec on fnl/hotpot/searcher.fnl:34")
   local defaults = {["runtime-path?"] = true, ["package-path?"] = true, ["all?"] = false}
   local spec0 = vim.tbl_extend("keep", spec, defaults)
   for _, key in ipairs({"modnames", "extension", "prefix"}) do

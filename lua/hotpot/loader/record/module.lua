@@ -18,16 +18,16 @@ local function new(modname, src_path, _2_)
   local src_path0 = vim.fs.normalize(src_path)
   local prefix_length = #prefix
   local extension_length = #extension
-  local init_3f = (nil ~= string.find(src_path0, "init%....$"))
   local true_modname
-  local function _6_()
-    if init_3f then
-      return ".init"
+  do
+    local src_init_3f = (nil ~= string.find(src_path0, "init%....$"))
+    local mod_init_3f = (nil ~= string.find(modname, "%.init$"))
+    if (src_init_3f and not mod_init_3f) then
+      true_modname = (modname .. ".init")
     else
-      return ""
+      true_modname = modname
     end
   end
-  true_modname = (modname .. _6_())
   local context_dir_end_position = (#src_path0 - (prefix_length + 1 + #true_modname + 1 + extension_length))
   local context_dir = string.sub(src_path0, 1, context_dir_end_position)
   local code_path = string.sub(src_path0, (context_dir_end_position + 1))
