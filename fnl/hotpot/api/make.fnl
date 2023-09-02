@@ -64,7 +64,7 @@
       (assert (string.match glob "%.lua$") (string.format "clean glob patterns must end in .lua, got %s" glob))
       (each [_ path (ipairs (vim.fn.globpath root-dir glob true true))]
         (if (= nil (. files path))
-          (tset files path action))))
+          (tset files (vim.fs.normalize path) action))))
     (each [_ {: dest} (ipairs compile-targets)]
       (tset files dest false))
     (icollect [path action (pairs files)]

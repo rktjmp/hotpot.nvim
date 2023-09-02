@@ -22,9 +22,6 @@
         : file-stat : rm-file
         : make-path : join-path} (require :hotpot.fs))
 
-(local normalise-path (let [{: normalize} vim.fs]
-                        #(normalize $1 {:expand_env false})))
-
 (local uri-encode (or (and vim.uri_encode #(vim.uri_encode $1 :rfc2396))
                       ;; backported from nvim-0.10
                       (fn [str]
@@ -33,8 +30,8 @@
                               rfc2396-pattern "([^A-Za-z0-9%-_.!~*'()])"]
                           (pick-values 1 (string.gsub str rfc2396-pattern percent-encode-char))))))
 
-(local CACHE_ROOT (-> (join-path (vim.fn.stdpath :cache) :hotpot) (normalise-path)))
-(local INDEX_ROOT_PATH (-> (join-path CACHE_ROOT :index) (normalise-path)))
+(local CACHE_ROOT (join-path (vim.fn.stdpath :cache) :hotpot))
+(local INDEX_ROOT_PATH (join-path CACHE_ROOT :index))
 
 (local INDEX_VERSION 2)
 (local RECORD_TYPE_MODULE 1)
@@ -47,7 +44,7 @@
   (= RECORD_TYPE_FTPLUGIN (?. r :type)))
 
 (λ path->index-key [path]
-  (let [path (normalise-path path)]
+  (let [path (vim.fs.normalize path)]
     (join-path INDEX_ROOT_PATH (.. (uri-encode path :rfc2396) :-metadata.mpack))))
 
 (fn load [lua-path]
@@ -119,7 +116,7 @@
                  (where (= RECORD_TYPE_FTPLUGIN)) :hotpot.loader.record.ftplugin
                  _ (ferror "Could not create record, unknown type: %s at %s" type src-path))
         {:new new-type} (require module)
-        src-path (normalise-path src-path)
+        src-path (vim.fs.normalize src-path)
         modname (string.gsub modname "%.%.+" ".")
         record (new-type modname src-path ?opts)]
     (vim.tbl_extend :force record

@@ -1,8 +1,7 @@
 (import-macros {: dprint} :hotpot.macros)
 
 (fn slash-modname [modname]
-  (let [{: path-separator} (require :hotpot.fs)]
-    (string.gsub modname "%." (path-separator))))
+  (string.gsub modname "%." :/))
 
 (fn search-runtime-path [spec]
   "Search Neovim RTP for given spec, returns a list of results which may

@@ -12,6 +12,7 @@
   ;; multiple operations.
   (let [{: SIGIL_FILE} (require :hotpot.loader.sigil)
         {: cache-path-for-compiled-artefact} (require :hotpot.loader)
+        src-path (vim.fs.normalize src-path)
         prefix-length (length prefix)
         extension-length (length extension)
         init? (not= nil (string.find src-path "init%....$"))

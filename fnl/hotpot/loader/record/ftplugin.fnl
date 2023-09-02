@@ -6,6 +6,7 @@
   (assert (string.match src-path "fnl$") "ftplugin records path must end in fnl")
   (let [{: cache-path-for-compiled-artefact} (require :hotpot.loader)
         {: join-path} (require :hotpot.fs)
+        src-path (vim.fs.normalize src-path)
         ;; TODO currently search will find ftplugins/fennel/init.fnl
         init? (not= nil (string.find src-path "init%....$"))
         true-modname (.. modname (if init? ".init" ""))

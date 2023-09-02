@@ -12,8 +12,7 @@
 ;; dir, you must also change the read-only
 ;; nix fix in boostrap.fnl
 (fn cache-path-for-compiled-artefact [...]
-  (-> (join-path CACHE_ROOT :compiled ...)
-      (normalise-path)))
+  (join-path CACHE_ROOT :compiled ...))
 
 (local {:fetch fetch-index :save save-index :drop drop-index
         :new-ftplugin make-ftplugin-record

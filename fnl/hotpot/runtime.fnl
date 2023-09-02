@@ -18,7 +18,11 @@
     (if (string.match file "%.hotpot%.lua$")
       (if (file-exists? file) (vim.fs.normalize file))
       (case (vim.fs.find LOCAL_CONFIG_FILE {:path file :upward true :kind :file})
-        [path] (vim.fs.normalize (vim.loop.fs_realpath path))
+        [path] (-> path
+                   ;; Note that fs_realpath will convert a normalised path
+                   ;; *back* to "windows style", so it must be called first.
+                   (vim.loop.fs_realpath)
+                   (vim.fs.normalize))
         [nil] nil))))
 
 (fn loadfile-local-config [path]

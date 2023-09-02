@@ -47,14 +47,10 @@
 (local path-sep (string.match package.config "(.-)\n"))
 (fn path-separator [] (values path-sep))
 
-;; TODO use table.concat path-sep + normalise-path
 (λ join-path [head ...]
-  (let [path-sep (path-separator)
-        dup-pat (.. "[" path-sep "]+")
-        joined  (accumulate [t head _ part (ipairs [...])]
-                  (.. t (path-separator) part))
-        de-duped (string.gsub joined dup-pat path-sep)]
-    (values de-duped)))
+  (-> (accumulate [t head _ part (ipairs [...])]
+        (.. t :/ part))
+      (vim.fs.normalize)))
 
 (fn what-is-at [path]
   "file, directory, link, nothing or (nil err)"
@@ -64,11 +60,11 @@
     (nil err _) (values nil (string.format "uv.fs_stat error %s" err))))
 
 (fn make-path [path]
-  ;; this is a bit more x-compat as we don't have to worry about / vs C:\ at
-  ;; the root. Instead we assume the root exists and run backwards until we hit
-  ;; a real dir, then run forwards making our directories.
-  (let [(backwards _here) (string.match path (string.format "(.+)%s(.+)$" path-sep))]
-    (match (what-is-at path)
+  ;; TODO: this can be removed for mkdir now we have normalize
+  ;; Or... at one point we did use that but had issues in vim.schedule...
+  (let [path (vim.fs.normalize path)
+        (backwards _here) (string.match path (string.format "(.+)%s(.+)$" :/))]
+    (case (what-is-at path)
       :directory true ;; done
       :nothing (do
                  (assert (make-path backwards))
