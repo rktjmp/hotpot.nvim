@@ -13,7 +13,7 @@
         limit (if all? -1 1)]
     (accumulate [matches [] _ possible-path (ipairs paths) &until (= limit (length matches))]
       (case (vim.api.nvim_get_runtime_file possible-path all?)
-        paths (icollect [_ path (ipairs paths) &into matches] path)))))
+        paths (icollect [_ path (ipairs paths) &into matches] (vim.fs.normalize path {:expand_env false}))))))
 
 (fn search-package-path [spec]
   "Search lua package.path for fnl files, returns a list but will only ever find at most one match."
@@ -26,7 +26,7 @@
         result (accumulate [template-match nil template templates &until template-match]
                  (accumulate [mod-match nil _ modname (ipairs modnames) &until mod-match]
                    (case (string.gsub template "(.*)%?(.*)%.lua$" (build-path-with modname))
-                     (where (path 1) (file-exists? path)) path)))]
+                     (where (path 1) (file-exists? path)) (vim.fs.normalize path {:expand_env false}))))]
   [result]))
 
 (λ search [spec]

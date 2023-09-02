@@ -38,7 +38,7 @@ local function search_runtime_path(spec)
       local tbl_17_auto = matches
       local i_18_auto = #tbl_17_auto
       for _0, path in ipairs(paths0) do
-        local val_19_auto = path
+        local val_19_auto = vim.fs.normalize(path, {expand_env = false})
         if (nil ~= val_19_auto) then
           i_18_auto = (i_18_auto + 1)
           do end (tbl_17_auto)[i_18_auto] = val_19_auto
@@ -96,7 +96,7 @@ local function search_package_path(spec)
         end
         if (((nil ~= _13_) and (_14_ == 1)) and _15_()) then
           local path = _13_
-          mod_match = path
+          mod_match = vim.fs.normalize(path, {expand_env = false})
         else
           mod_match = nil
         end
