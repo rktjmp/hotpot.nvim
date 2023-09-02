@@ -4,12 +4,12 @@
 
 ## I want to...
 
-- [Include some common functions, macros or prelude in all files](#preprocessing).
-- Compile into the `lua/` directory
-  - on demand by [colocation](#colocation) or,
-  - everything [ahead of time](#ahead-of-time-compilation).
-- Write `init.lua` as `init.fnl`
-- [Write an config `ftplugin`](#write-an-ftplugin).
+- [Include some common functions, macros or prelude in all files.](#preprocessing)
+- [Write a plugin in fennel.](#writing-a-plugin)
+- [Compile into the `lua/` directory.](#compiling-to-lua)
+- [Use a `.hotpot.lua` file.](#using-dot-hotpot)
+- Write `init.lua` as `init.fnl`.
+- [Write an config `ftplugin`.](#write-an-ftplugin)
 
 <!--
 
@@ -21,6 +21,7 @@
 -->
 
 <!-- panvimdoc-ignore-end -->
+
 
 ## Preprocessing
 
@@ -54,52 +55,206 @@ Ex.
     (values src)))
 ```
 
-## Colocation
+## Writing a plugin
 
-Colocation changes where Hotpot places the compiled lua files.
+Assuming that you wish to distribute your plugin without requiring a Fennel
+loader as a dependency, you can use [a `.hotpot.lua` file](#using-dot-hotpot)
+to build your plugin.
 
-Normally, given `~/dir/fnl/mod.fnl`, the resulting lua file would be placed at
-`~/.cache/.../dir/lua/mod.lua`. This keeps the `lua/` directory unpolluted by
-"generated files".
+Most plugins will only need to enable the default `build` and `clean` values,
+which will automatically convert all `fnl/` files to `lua/` except when they
+have "macro" in their filename.
 
-When colocation is enabled, instead the file would be placed at
-`~/dir/lua/mod.lua`, it is "colocated" in the same parent directory.
-
-You can enable colocation by creating a `.hotpot.lua` file in the project root
-(the same directory that has `fnl/` and `lua/` in it), i.e. `~/dir/.hotpot.lua`
-in the previous example.
-
-The file should return a table of settings, where `colocate` can be `true` or
-`false` (default).
-
-Ex.
+Be aware that any settings passed to `setup()` are *not* inherited in the
+project directory and must respecified in the `.hotpot.lua` file.
 
 ```lua
+-- ~/projects/plugin.nvim/.hotpot.lua
 return {
-  colocate = true
+  build = true,
+  clean = true
 }
 ```
 
-Colocation is most useful when writing plugins that have lua code in `lua/` for
-distribution. Due to Hotpots [module load order
-preference](#module-load-order-preference), it will prefer loading these over
-the `fnl/` code. By enabling colocation, Hotpot will instead overwrite these
-`lua/` files if required.
+For more details, see [Using `.hotpot.lua`](#using-dot-hotpot).
 
-There are some important things to keep in mind:
+## Compiling to `lua/`
 
-- For safety, colocation only applies to files under the `fnl/` and `lua/` directories.
-- It only takes effect when the module is loaded via `require`.
-  - You may not see any effect if `package.loaded` already contains an entry
-  for your module!
-  - If you are writing a plugin, you should take some steps to ensure all your
-  modules have been required, or use something like `hotpot.api.make` to build
-  your release.
-- Hotpot takes care not to overwrite any changes you may have made to the lua
-files. It should prompt you before taking any action but be warned if you are
-working out of both directories simultaneously.
-- It can currently only be applied to the `fnl/` and `lua/` directories as a
-whole.
+See both [using a `.hotpot.lua` file](#using-dot-hotpot) and [writing a
+plugin](#writing-a-plugin) for automated processing, or `:h hotpot.api.make`
+for manual control.
+
+# Using Dot Hotpot
+
+Hotpot can optionally be configured per-project by a `.hotpot.lua` file. This
+configuration allows for different compiler settings to be used than those
+passed to `setup()`, as well as enabling auto-build/clean functionality by
+wrapping `hotpot.api.make`.
+
+The user:
+
+- Must name the file `.hotpot.lua`.
+- Must place `.hotpot.lua` in the same directory as the `fnl/` directory.
+- `.hotpot.lua` must return a lua table, don't forget the `return` keyword!
+
+The presence of a valid `.hotpot.lua` file, *even if empty*, will override all
+hotpot settings passed to `setup()` back to their default values.
+
+```lua
+-- ~/projects/my-plugin.nvim/.hotpot.lua
+return {
+  -- configuration
+}
+```
+
+*Note: for performance reasons, the file is lua instead of fennel. You can use
+the auto-build feature to compile `.hotpot.fnl` to `.hotpot.lua` by adding a
+`{".hotpot.fnl", true}` value to the `build` list.*
+
+## Supported Options
+
+### `build`
+
+Specify auto-build instructions for the `.hotpot.lua` directory. When present,
+hotpot will build all fennel files in a project when a fennel file is saved.
+See also `:h hotpot.api.make.build` for more details.
+
+Supported values are:
+
+**`build = false`** or **`build = nil`** or the key is omitted
+
+Disable auto-building.
+
+**`build = true`**
+
+Enable auto-building with a default value that should be applicable to most
+usage. The default value skips any file with `macro` in its name and compiles
+all other files under `fnl/` to `lua/`, eg:
+
+<!-- panvimdoc-include-comment
+
+Note: due to a bug with the documentation generator, the glob patterns below
+       are incorrectly rendered.
+
+They should look like "fnl/**/*macro*.fnl", "fnl/**/*.fnl".
+
+-->
+
+```lua
+{{"fnl/**/*macro*.fnl", false},
+ {"fnl/**/*.fnl", true}}
+```
+
+**`build = {{glob_pattern, boolean_or_function}, ...}`** or **`build = {{options}, {glob_pattern, boolean_or_function}, ...}`**
+
+Each glob pattern is expanded in order and if the boolean value is true, the
+file will be compiled, if false, the file will be ignored. If given a function,
+the absolute path is passed to the function, the function should return the
+desired lua path as a string, or false.
+
+If a file matches multiple glob patterns, only the first value will be used.
+This allows earlier, more specific matches to ignore files before broader
+matches specify compiled files.
+
+*Glob patterns that begin with `fnl/` are automatically compiled to to `lua/`,
+other patterns are compiled in place or should be constructing explicitly by a
+function.*
+
+The first element in the list may also specify options to pass to
+`hotpot.api.make.build.` such as `verbose` or `dryrun`. See `:h
+:hotpot.api.make.build` for more details.
+
+Ex.
+
+<!-- panvimdoc-include-comment
+
+Note: due to a bug with the documentation generator, the glob patterns below
+       are incorrectly rendered, see the markdown file for the proper instructions.
+
+They should look like "fnl/**/*macro*.fnl", "fnl/**/*-test.fnl", "fnl/**/*.fnl", "colors/*.fnl".
+
+-->
+
+```lua
+build = {
+  {verbose = true, atomic = true},
+  {"fnl/**/*macro*.fnl", false}, -- dont compile macro files
+  {"fnl/**/*-test.fnl", false}, -- dont compile x-test.fnl files
+  {"fnl/**/*.fnl", true}, -- compile all other fnl files, automatically becomes lua/**/*.lua
+  {"colors/*.fnl", true}, -- compiles colors/x.fnl to colors/x.lua
+  {"colors/*.fnl", function(path) return string.gsub(path, "fnl$", "lua") end} -- same as above
+}
+```
+
+### `clean`
+
+Specify auto-clean instructions for the `.hotpot.lua` directory. When present
+Hotpot will remove any unknown files matching the given glob pattern after it
+runs an auto-build.
+
+Auto-clean will only run after an auto-build. Auto-clean will not run if the
+`dryrun = true` option was given to `build`, or if `atomic = true` was given
+and compilation errors occurred.
+
+Supported values are:
+
+**`clean = false`** or **`clean = nil`** or the key is omitted
+
+Disable auto-cleaning.
+
+**`clean = true`**
+
+Enable auto-cleaning with a default value that should be applicable to most
+usage. The default value removes all files from `lua/`, eg:
+
+<!-- panvimdoc-include-comment
+
+Note: due to a bug with the documentation generator, the glob patterns below
+       are incorrectly rendered, see the markdown file for the proper instructions.
+
+They should look like "lua/**/*.lua".
+
+-->
+
+```lua
+{{"lua/**/*.lua", true}}
+```
+
+**`clean = {{glob_pattern, boolean}, ...}`**
+
+Each glob pattern is expanded in order and if the boolean value is true, the
+file will be marked for removal if it is unrecognised (eg: not created by
+hotpot during the build step). If the values is false, the file will be
+retained.
+
+<!-- panvimdoc-include-comment
+
+Note: due to a bug with the documentation generator, the glob patterns below
+       are incorrectly rendered, see the markdown file for the proper instructions.
+
+They should look like "lua/lib/**/*.lua", "lua/**/*.lua".
+
+-->
+
+```lua
+clean = {
+  {"lua/lib/**/*.lua", false}, -- dont remove lib files
+  {"lua/**/*.lua", true}, -- remove anything else
+}
+```
+
+### `compiler`
+
+The compiler key supports the same values as the `compiler` options you may
+pass to `setup()`. See `:h hotpot-setup`.
+
+```lua
+compiler = {
+  modules = { ... },
+  macros = { ... },
+  preprocessor = function ... end
+}
+```
 
 ## Ahead of time compilation
 
@@ -155,23 +310,11 @@ For complete documentation, see [`:h hotpot.api.make`](doc/hotpot-api.txt).
 
 ## Writing `~/.config/nvim/init.lua` in Fennel
 
-We can use a combination of the Make API and LibUV to write our main `init.lua`
-in Fennel and automatically compile it to loadable lua on save.
+We can use a combination of the Make API and autocommands to write our main
+`init.lua` in Fennel and automatically compile it to loadable lua on save.
 
 ```fennel
 ;; ~/.config/nvim/init.fnl
-
-(fn build-init []
-  (let [{: build} (require :hotpot.api.make)
-        ;; by default, Fennel wont perform strict global checking when
-        ;; compiling but we can force it to check by providing a list
-        ;; of allowed global names, this can catch some additional errors in
-        ;; this file.
-        allowed-globals (icollect [n _ (pairs _G)] n)
-        opts {:verbosity 0 ;; set to 1 (or dont inclued the key) to see messages
-              :compiler {:modules {:allowedGlobals allowed-globals}}}]
-    ;; just pass back the whole path as is
-    (build "~/.config/nvim/init.fnl" opts ".+" #(values $1))))
 
 (let [hotpot (require :hotpot)
       setup hotpot.setup
@@ -184,14 +327,23 @@ in Fennel and automatically compile it to loadable lua on save.
                               :compilerEnv _G
                               :allowedGlobals false}}})
 
-  ;; watch this file for changes and auto-rebuild on save
-  (let [handle (uv.new_fs_event)
-        ;; uv wont accept condensed paths
-        path (vim.fn.expand "~/.config/nvim/init.fnl")]
-    ;; note the vim.schedule call
-    (uv.fs_event_start handle path {} #(vim.schedule build-init))
-    ;; close the uv handle when we quit nvim
-    (vim.api.nvim_create_autocmd :VimLeavePre {:callback #(uv.close handle)})))
+  (fn rebuild-on-save [{: buf}]
+    (let [{: build} (require :hotpot.api.make)
+          au-config {:buffer buf
+                     :callback #(build "~/.config/nvim"
+                                       {:verbose true :atomic true
+                                        ;; Enforce hard errors when unknown symbols are encountered.
+                                        :compiler {:modules {:allowedGlobals (icollect [n _ (pairs _G)] n)}}}
+                                       [["init.fnl" true]])}]
+      (vim.api.nvim_create_autocmd :BufWritePost au-config)))
+
+  ;; watch file opens, attach builder if we open the config
+  (vim.api.nvim_create_autocmd :BufRead
+                               {:pattern (-> "~/.config/nvim/init.fnl"
+                                             (vim.fs.normalize)
+                                             ;; call realpath if you have some symlink setup
+                                             (vim.loop.fs_realpath))
+                                :callback rebuild-on-save}))
 
 (require :the-rest-of-my-config)
 ```
@@ -199,10 +351,12 @@ in Fennel and automatically compile it to loadable lua on save.
 Finally, we have to manually run this code *once* to generate the new `init.lua`:
 
 - Open `init.fnl`
-- Run `:Fnlfile %` to execute the current file and *enable* the file watcher.
+- Run `:Fnlfile %` to execute the current file and *enable* the autocommand.
   - Note, this will also run any code that is executed by `(require
     :the-rest-of-my-config)`.
-- Save the file with `:w` to *run* the file watcher.
+  - You could also use `:Fnl` with the appropriate code selected.
+- Run `:e` to re-open the buffer and *attach* the autocommand.
+- Save the file with `:w` to *run* the autocommand.
   - *This will overwrite your existing `init.lua`!*
 - Open `init.lua` to confirm it contains your fennel, compiled into lua.
 - Start neovim in a new terminal to confirm the config loading is functioning

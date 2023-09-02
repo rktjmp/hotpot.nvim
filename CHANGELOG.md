@@ -11,8 +11,11 @@ and auto commands) are treated with less reverence.
 - Add support for `.hotpot.lua` file.
   - Specify per-project compiler options, automate build-on-save, see `:h hotpot-dot-hotpot`.
 - **Previous `api.make.build` interface has been deprecated, see `:h hotpot.api.make` for details.**
+  - If you are using an `init.fnl` file, you should check the updated
+  instructions in the [COOKBOOK](COOKBOOK.md).
 - **`api.make.check` has been deprecated, see `dryrun` option for `api.make.build`.**
 - **Most `api.*` function signatures have changed to accept `compile-options` as would be given to `setup()`.**
+
 
 ## 0.8.2
 

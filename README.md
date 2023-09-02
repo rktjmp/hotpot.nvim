@@ -54,7 +54,7 @@ neat("fennel") -- => "fennel is neat!"
 ## 🎉 New
 
 - Per-project configuration via `.hotpot.lua`
-  - See [`.hotpot.lua`](#dot-hotpot)
+  - See [`h hotpot-cookbook-using-dot-hotpot`](COOKBOOK.md#using-dot-hotpot)
 - `vim.loader` support
   - Replaces hotpots own bytecode cache, so call `vim.loader.enable()` if you want the
   fastest loading experience.
@@ -76,8 +76,8 @@ neat("fennel") -- => "fennel is neat!"
 - [Install](#install)
 - [Usage](#usage)
 - [Cookbook - common questions and usage guides](COOKBOOK.md)
+- [Writing Plugins](COOKBOOK.md#writing-plugins)
 - [Setup](#setup)
-- [`.hotpot.lua`](#dot-hotpot)
 - [Change Log](CHANGELOG.md)
 
 <!-- panvimdoc-ignore-end -->
@@ -288,175 +288,6 @@ Note:
 For a complete list of compiler options, see [Fennels
 documentation](http://fennel-lang.org), specifically the API usage section.
 
-# Dot Hotpot
-
-Hotpot can optionally be configured per-project by a `.hotpot.lua` file. This
-file should placed in the same directory as the `fnl/` directory in a project.
-It should return a lua table, dont forget the `return` keyword!.
-
-```lua
-return {
-  -- configuration
-}
-```
-
-When a `.hotpot.lua` file is present, it will clear and override any settings
-given to `setup()` for files in that project.
-
-This allows different projects to have different module and macro settings, or
-preprocessor functions.
-
-The presence of a `.hotpot.lua` file also enables auto-building if desired,
-where Hotpot will compile a project when any fennel file is saved.
-
-*Note: even an empty `.hotpot.lua` file will reset all options to their
-defaults!*
-
-*Note: for performance reasons, the file is lua instead of fennel. You can use
-the auto-build feature to compile `.hotpot.fnl` to `.hotpot.lua` by adding a
-`{".hotpot.fnl", true}` value to the `build` list.*
-
-## Supported Options
-
-### `build`
-
-Specify auto-build instructions for the `.hotpot.lua` directory. When present,
-hotpot will build all fennel files in a project when a fennel file is saved.
-See also `:h hotpot.api.make.build` for more details.
-
-Supported values are:
-
-- `build = false`, or `build = nil`
-
-Disable auto-building.
-
-- `build = true`
-
-Enable auto-building with a default value that should be applicable to most
-usage. The default value skips any file with `macro` in its name and compiles
-all other files under `fnl/` to `lua/`, eg:
-
-<!-- panvimdoc-include-comment
-
-Note: due to a bug with the documentation generator, the glob patterns below
-       are incorrectly rendered.
-
-They should look like "fnl/**/*macro*.fnl", "fnl/**/*.fnl".
-
--->
-
-```lua
-{{"fnl/**/*macro*.fnl", false},
- {"fnl/**/*.fnl", true}}
-```
-
-- `build = {{glob_pattern, boolean_or_function}, ...}` or `build = {{options}, {glob_pattern, boolean_or_function}, ...}`
-
-Each glob pattern is expanded in order and if the boolean value is true, the
-file will be compiled, if false, the file will be ignored. If given a function,
-the absolute path is passed to the function, the function should return the
-desired lua path as a string, or false.
-
-If a file matches multiple glob patterns, only the first value will be used.
-This allows earlier, more specific matches to ignore files before broader
-matches specify compiled files.
-
-*Glob patterns that begin with `fnl/` are automatically compiled to to `lua/`,
-other patterns are compiled in place or should be constructing explicitly by a
-function.*
-
-The first element in the list may also specify options to pass to
-`hotpot.api.make.build.` such as `verbose` or `dryrun`. See `:h
-:hotpot.api.make.build` for more details.
-
-Ex.
-
-<!-- panvimdoc-include-comment
-
-Note: due to a bug with the documentation generator, the glob patterns below
-       are incorrectly rendered, see the markdown file for the proper instructions.
-
-They should look like "fnl/**/*macro*.fnl", "fnl/**/*-test.fnl", "fnl/**/*.fnl", "colors/*.fnl".
-
--->
-
-```lua
-build = {
-  {verbose = true, atomic = true},
-  {"fnl/**/*macro*.fnl", false}, -- dont compile macro files
-  {"fnl/**/*-test.fnl", false}, -- dont compile x-test.fnl files
-  {"fnl/**/*.fnl", true}, -- compile all other fnl files, automatically becomes lua/**/*.lua
-  {"colors/*.fnl", true}, -- compiles colors/x.fnl to colors/x.lua
-  {"colors/*.fnl", function(path) return string.gsub(path, "fnl$", "lua") end} -- same as above
-}
-```
-
-### `clean`
-
-Specify auto-clean instructions for the `.hotpot.lua` directory. When present
-Hotpot will remove any unknown files matching the given glob pattern after it
-runs an auto-build.
-
-Supported values are:
-
-- `clean = false` or `clean = nil`
-
-Disable auto-cleaning.
-
-- `clean = true`
-
-Enable auto-cleaning with a default value that should be applicable to most
-usage. The default value removes all files from `lua/`, eg:
-
-<!-- panvimdoc-include-comment
-
-Note: due to a bug with the documentation generator, the glob patterns below
-       are incorrectly rendered, see the markdown file for the proper instructions.
-
-They should look like "lua/**/*.lua".
-
--->
-
-```lua
-{{"lua/**/*.lua", true}}
-```
-
-- `clean = {{glob_pattern, boolean}, ...}`
-
-Each glob pattern is expanded in order and if the boolean value is true, the
-file will be marked for removal if it is unrecognised (eg: not created by
-hotpot during the build step). If the values is false, the file will be
-retained.
-
-<!-- panvimdoc-include-comment
-
-Note: due to a bug with the documentation generator, the glob patterns below
-       are incorrectly rendered, see the markdown file for the proper instructions.
-
-They should look like "lua/lib/**/*.lua", "lua/**/*.lua".
-
--->
-
-```lua
-clean = {
-  {"lua/lib/**/*.lua", false}, -- dont remove lib files
-  {"lua/**/*.lua", true}, -- remove anything else
-}
-```
-
-### `compiler`
-
-The compiler key supports the same values as the `compiler` options you may
-pass to `setup()`. See `:h hotpot-setup`.
-
-```lua
-compiler = {
-  modules = { ... },
-  macros = { ... },
-  preprocessor = function ... end
-}
-```
-
 # Diagnostics
 
 Hotpot ships with built in diagnostics feature to show fennel compilation
@@ -573,23 +404,6 @@ lua code, or is using an incompatible fennel version, etc.
 In most cases, such as your config, Hotpot wont create `mod/lua/code.lua` and
 you wont run into any issues but it may encounter friction when writing a
 plugin in fennel.
-
-<!-- panvimdoc-ignore-start -->
-
-The colocation settings as described in the [cookbook](COOKBOOK.md) settings will
-effect this behaviour.
-
-<!-- panvimdoc-ignore-end -->
-
-<!-- panvimdoc-include-comment
-
-The colocation setting as described in `:h hotpot-cookbook` will effect this behaviour
-
--->
-
-When colocation is enabled and if hotpot is confident it can modify the lua
-file it will update it to match the fennel source. Otherwise it may prompt you
-before taking action.
 
 # Quirks
 
