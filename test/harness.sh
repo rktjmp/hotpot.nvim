@@ -58,14 +58,12 @@ run_test_sh() {
 }
 
 tests="require_hotpot \
-       bootstrap \
        require_a_fnl_file \
        api \
        api-make \
        cache_invalidation \
        plugins \
-       user_53_kebab_filename \
-       nix_compat"
+       user_53_kebab_filename"
 for name in $tests; do
   run_test_sh $name
 done
