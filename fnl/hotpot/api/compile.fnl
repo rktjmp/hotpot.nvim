@@ -24,7 +24,9 @@
 
   Accepts an options table as described by Fennels API documentation."
   ;; (string string) :: (true luacode) | (false errors)
-  (inject-macro-searcher)
+  ;; TODO: there is a dragon lurking here, where macro settings might not be as
+  ;; expected, but for now, we might just let it live.
+  (inject-macro-searcher) 
   (let [{: compile-string} (require :hotpot.fennel)
         {: traceback} (require :hotpot.runtime)]
     (xpcall #(pick-values 1 (compile-string str compiler-options)) traceback)))

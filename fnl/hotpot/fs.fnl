@@ -16,31 +16,18 @@
   (with-open [fh (assert (io.open path :w) (.. "fs.write-file! io.open failed:" path))]
              (fh:write lines)))
 
-(fn is-lua-path? [path]
-  ;; (string) :: bool
-  (and path (~= nil (string.match path "%.lua$"))))
-
-(fn is-fnl-path? [path]
-  ;; (string) :: bool
-  (and path (~= nil (string.match path "%.fnl$"))))
-
-(fn file-exists? [path]
-  ;; (string) :: bool
-  (uv.fs_access path :R))
-
-(fn file-missing? [path]
-  ;; (string) :: bool
-  (not (file-exists? path)))
+(fn is-lua-path? [path] (and path (~= nil (string.match path "%.lua$"))))
+(fn is-fnl-path? [path] (and path (~= nil (string.match path "%.fnl$"))))
+(fn file-exists? [path] (uv.fs_access path :R))
+(fn file-missing? [path] (not (file-exists? path)))
 
 (fn file-mtime [path]
-  (expect (file-exists? path)
-          "cant check mtime of %s, does not exist" path)
+  (expect (file-exists? path) "cant check mtime of %s, does not exist" path)
   (let [{: mtime} (uv.fs_stat path)]
     (values mtime.sec)))
 
 (fn file-stat [path]
-  (expect (file-exists? path)
-          "cant check hash of %s, does not exist" path)
+  (expect (file-exists? path) "cant check hash of %s, does not exist" path)
   (uv.fs_stat path))
 
 ;; dont recompute all the time
@@ -54,7 +41,7 @@
 
 (fn what-is-at [path]
   "file, directory, link, nothing or (nil err)"
-  (match (uv.fs_stat path)
+  (case (uv.fs_stat path)
     ({: type}) (values type)
     (nil _ :ENOENT) (values :nothing)
     (nil err _) (values nil (string.format "uv.fs_stat error %s" err))))
