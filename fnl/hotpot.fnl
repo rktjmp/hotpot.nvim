@@ -1,7 +1,5 @@
 (assert (= 1 (vim.fn.has "nvim-0.9.1")) "Hotpot requires neovim 0.9.1+")
 
-((include :hotpot.bootstrap))
-
 (let [{: make-searcher : compiled-cache-path} (require :hotpot.loader)
       {: join-path : make-path} (require :hotpot.fs)
       {: set-lazy-proxy} (require :hotpot.common)]
