@@ -70,12 +70,17 @@
     (icollect [path action (pairs files)]
       (if action path))))
 
-(fn do-compile [compile-targets compiler-options]
+(fn do-compile [compile-targets compiler-options root-dir]
   (let [{: compile-file} (require :hotpot.lang.fennel.compiler)]
     (map (fn [{: src : dest}]
-           (let [tmp-path (.. (vim.fn.tempname) :.lua)]
+           (let [tmp-path (.. (vim.fn.tempname) :.lua)
+                 ;; We compile via absolute paths since the cwd might not be
+                 ;; the root dir, but we want to try and provide relative filenames
+                 ;; in error messages otherwise we leak some user information.
+                 relative-filename (string.sub src (+ 2 (length root-dir)))]
              (case (compile-file src tmp-path
-                                 compiler-options.modules
+                                 (doto compiler-options.modules
+                                       (tset :filename relative-filename))
                                  compiler-options.macros
                                  compiler-options.preprocessor)
                true {: src : dest : tmp-path :compiled? true}
@@ -114,7 +119,7 @@
         focused-compile-target (filter (fn [{: src : dest}]
                                          (or force? (needs-compile? src dest)))
                                        all-compile-targets)
-        compile-results (do-compile focused-compile-target compiler-options)
+        compile-results (do-compile focused-compile-target compiler-options root-dir)
         any-errors? (any? #(not $1.compiled?) compile-results)]
     (map (fn [{: tmp-path : dest}]
            (when tmp-path
