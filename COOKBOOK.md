@@ -7,6 +7,7 @@
 - [Include some common functions, macros or prelude in all files.](#preprocessing)
 - [Write a plugin in fennel.](#writing-a-plugin)
 - [Compile into the `lua/` directory.](#compiling-to-lua)
+- [Ahead of time compilation](#using-dot-hotpot)
 - [Use a `.hotpot.lua` file.](#using-dot-hotpot)
 - Write `init.lua` as `init.fnl`.
 - [Write an config `ftplugin`.](#write-an-ftplugin)
@@ -84,7 +85,7 @@ See both [using a `.hotpot.lua` file](#using-dot-hotpot) and [writing a
 plugin](#writing-a-plugin) for automated processing, or `:h hotpot.api.make`
 for manual control.
 
-# Using Dot Hotpot
+## Using Dot Hotpot
 
 Hotpot can optionally be configured per-project by a `.hotpot.lua` file. This
 configuration allows for different compiler settings to be used than those
@@ -111,9 +112,9 @@ return {
 the auto-build feature to compile `.hotpot.fnl` to `.hotpot.lua` by adding a
 `{".hotpot.fnl", true}` value to the `build` list.*
 
-## Supported Options
+### Supported Options
 
-### `build`
+#### `build`
 
 Specify auto-build instructions for the `.hotpot.lua` directory. When present,
 hotpot will build all fennel files in a project when a fennel file is saved.
@@ -186,7 +187,7 @@ build = {
 }
 ```
 
-### `clean`
+#### `clean`
 
 Specify auto-clean instructions for the `.hotpot.lua` directory. When present
 Hotpot will remove any unknown files matching the given glob pattern after it
@@ -243,7 +244,7 @@ clean = {
 }
 ```
 
-### `compiler`
+#### `compiler`
 
 The compiler key supports the same values as the `compiler` options you may
 pass to `setup()`. See `:h hotpot-setup`.

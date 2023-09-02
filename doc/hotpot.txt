@@ -1,7 +1,7 @@
 *hotpot.txt*                                         Seamless Fennel in Neovim
 
 ==============================================================================
-Table of Contents                                   *hotpot-table-of-contents*
+Table of Contents                                   *hotpot*
 
 1. Hotpot                                                      |hotpot-hotpot|
 2. Requirements                                          |hotpot-requirements|

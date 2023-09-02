@@ -9,7 +9,7 @@ and auto commands) are treated with less reverence.
 ## 0.9.0 (unreleased)
 
 - Add support for `.hotpot.lua` file.
-  - Specify per-project compiler options, automate build-on-save, see `:h hotpot-dot-hotpot`.
+  - Specify per-project compiler options, automate build-on-save, see `:h hotpot-cookbook-using-dot-hotpot`.
 - **Previous `api.make.build` interface has been deprecated, see `:h hotpot.api.make` for details.**
   - If you are using an `init.fnl` file, you should check the updated
   instructions in the [COOKBOOK](COOKBOOK.md).

@@ -6,10 +6,8 @@ Table of Contents                          *hotpot-cookbook-table-of-contents*
 1. Preprocessing                               |hotpot-cookbook-preprocessing|
 2. Writing a plugin                         |hotpot-cookbook-writing-a-plugin|
 3. Compiling to lua/                       |hotpot-cookbook-compiling-to-lua/|
-4. Supported Options                       |hotpot-cookbook-supported-options|
-  - build                            |hotpot-cookbook-supported-options-build|
-  - clean                            |hotpot-cookbook-supported-options-clean|
-  - compiler                      |hotpot-cookbook-supported-options-compiler|
+4. Using Dot Hotpot                         |hotpot-cookbook-using-dot-hotpot|
+  - Supported Options     |hotpot-cookbook-using-dot-hotpot-supported-options|
 5. Ahead of time compilation       |hotpot-cookbook-ahead-of-time-compilation|
 6. Writing ~/.config/nvim/init.lua in Fennel|hotpot-cookbook-writing-~/.config/nvim/init.lua-in-fennel|
 7. Write an ftplugin                       |hotpot-cookbook-write-an-ftplugin|
@@ -86,7 +84,9 @@ See both |hotpot-cookbook-using-a-`.hotpot.lua`-file| and
 |hotpot-cookbook-writing-a-plugin| for automated processing, or
 |hotpot.api.make| for manual control.
 
-Using Dot Hotpot
+
+==============================================================================
+4. Using Dot Hotpot                         *hotpot-cookbook-using-dot-hotpot*
 
 Hotpot can optionally be configured per-project by a `.hotpot.lua` file. This
 configuration allows for different compiler settings to be used than those
@@ -114,11 +114,10 @@ the auto-build feature to compile .hotpot.fnl to .hotpot.lua by adding a
 {".hotpot.fnl", true} value to the build list._
 
 
-==============================================================================
-4. Supported Options                       *hotpot-cookbook-supported-options*
+SUPPORTED OPTIONS         *hotpot-cookbook-using-dot-hotpot-supported-options*
 
 
-BUILD                                *hotpot-cookbook-supported-options-build*
+BUILD ~
 
 Specify auto-build instructions for the `.hotpot.lua` directory. When present,
 hotpot will build all fennel files in a project when a fennel file is saved.
@@ -186,7 +185,7 @@ They should look like “fnl/**/macro.fnl”, “fnl/**/-test.fnl”,
 <
 
 
-CLEAN                                *hotpot-cookbook-supported-options-clean*
+CLEAN ~
 
 Specify auto-clean instructions for the `.hotpot.lua` directory. When present
 Hotpot will remove any unknown files matching the given glob pattern after it
@@ -236,7 +235,7 @@ They should look like “lua/lib//.lua”, “lua//.lua”.
 <
 
 
-COMPILER                          *hotpot-cookbook-supported-options-compiler*
+COMPILER ~
 
 The compiler key supports the same values as the `compiler` options you may
 pass to `setup()`. See |hotpot-setup|.
