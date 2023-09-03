@@ -3,7 +3,7 @@ set -u
 
 nvim_bin=${NVIM_BIN:-nvim}
 failed_count=0
-tests=(require-a-fnl-file cache-invalidation dot-hotpot api-make)
+tests=(test/test-*.lua)
 if [ $# -eq 1 ]; then
   tests=($1)
 fi
@@ -11,7 +11,7 @@ fi
 for t in ${tests[@]};
 do
   echo "SUITE START  $t..."
-  NVIM_APPNAME=$(uuidgen) $nvim_bin +"set columns=256" -l "test/${t}.lua"
+  NVIM_APPNAME=$(uuidgen) $nvim_bin +"set columns=256" -l "${t}"
   if [ $? -ne 0 ]; then
     echo "SUITE FAILED $t"
     failed_count=1
