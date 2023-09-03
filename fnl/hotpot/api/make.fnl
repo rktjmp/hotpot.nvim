@@ -48,8 +48,8 @@
           (case [(string.find glob "fnl/") action]
             (where [_ f] (function? f)) (case (f path)
                                           false (tset files path false)
-                                          (where path (string? path))
-                                          (tset files path (string.gsub path "%.fnl$" ".lua"))
+                                          (where dest-path (string? dest-path))
+                                          (tset files path (string.gsub dest-path "%.fnl$" ".lua"))
                                           ?some (error (string.format
                                                          "Invalid return value from build function: %s => %s"
                                                          path (type ?some))))
