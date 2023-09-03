@@ -71,13 +71,13 @@ project directory and must respecified in the `.hotpot.lua` file.
 -- ~/projects/plugin.nvim/.hotpot.lua
 return {
   build = true,
-  clean = true
+  -- clean = true
 }
 ```
 
-By default, Fennels compiler will allow you to compile files that reference
-unknown symbols. You may prefer to enforce a known list so your builds get
-"hard errors":
+By default, Fennels compiler wont show an error if you try to reference unknown
+symbols. You may prefer to enforce a known list so your builds get "hard
+errors":
 
 ```lua
 local allowed_globals = {}
@@ -106,9 +106,10 @@ for manual control.
 ## Using Dot Hotpot
 
 Hotpot can optionally be configured per-project by a `.hotpot.lua` file. This
-configuration allows for different compiler settings to be used than those
-passed to `setup()`, as well as enabling auto-build/clean functionality by
-wrapping `hotpot.api.make`.
+allows for alternate compiler settings to be used for some projects instead of
+those passed to `setup()`.
+
+It also enables auto-build/clean functionality by wrapping `hotpot.api.make`.
 
 > `.hotpot.lua` is intended for plugin developers, but you can apply the same
 > practices to your main Neovim config if you want to generate `lua/` files
@@ -121,8 +122,9 @@ The user:
 - Must place `.hotpot.lua` in the same directory as the `fnl/` directory.
 - `.hotpot.lua` must return a lua table, don't forget the `return` keyword!
 
-The presence of a valid `.hotpot.lua` file, *even if empty*, will override all
-hotpot settings passed to `setup()` back to their default values.
+The presence of a valid `.hotpot.lua` file -- *even an empty table* -- will
+override all hotpot settings passed to `setup()` back to their default values,
+for fennel files in that directory.
 
 ```lua
 -- ~/projects/my-plugin.nvim/.hotpot.lua
