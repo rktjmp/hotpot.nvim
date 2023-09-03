@@ -15,8 +15,7 @@ Table of Contents                                   *hotpot*
 8. Keymaps                                                    |hotpot-keymaps|
 9. Module preference                                |hotpot-module-preference|
 10. Quirks                                                     |hotpot-quirks|
-11. Windows                                                   |hotpot-windows|
-12. Licenses                                                 |hotpot-licenses|
+11. Licenses                                                 |hotpot-licenses|
 
 
 ==============================================================================
@@ -380,23 +379,7 @@ plugin in fennel.
 
 
 ==============================================================================
-11. Windows                                                   *hotpot-windows*
-
-Hotpot must be able to create symlinks for some core functionality which
-Windows may disallow by default, depending on your account type and Windows
-version.
-
-To enable symlink creation without elevated privileges, you may have to enable
-"Developer Mode" in your account settings.
-
-See "Enable your device for development"
-<https://docs.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development>
-and "Symlinks in Windows 10"
-<https://blogs.windows.com/windowsdeveloper/2016/12/02/symlinks-windows-10/>.
-
-
-==============================================================================
-12. Licenses                                                 *hotpot-licenses*
+11. Licenses                                                 *hotpot-licenses*
 
 Hotpot embeds `fennel.lua`, see `lua/hotpot/fennel.lua` for licensing
 information.

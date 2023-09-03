@@ -54,6 +54,8 @@ neat("fennel") -- => "fennel is neat!"
 ## 🎉 New
 
 - Per-project configuration via `.hotpot.lua`
+  - Build to `lua/` on save, use different compiler settings per project.
+  - For plugin development, but can be used for configs.
   - See [`h hotpot-cookbook-using-dot-hotpot`](COOKBOOK.md#using-dot-hotpot)
 - `vim.loader` support
   - Replaces hotpots own bytecode cache, so call `vim.loader.enable()` if you want the
@@ -301,7 +303,6 @@ Hotpot checks if the buffer filename ends in `macro.fnl` or `macros.fnl` which i
 common practice. It's not currently possible to enable the macro environment in
 other contexts (please open an issue).
 
-
 # The API
 
 <!-- "the api" instead of "api" so it doesnt generate a dupilcate help tag -->
@@ -413,20 +414,6 @@ purposes because it can be unclear where and when its safe to compile or
 overwrite `.lua` files. In most usage this wont occur -- files will be found in
 the RTP first but it can occur when executing in scratch buffers with the
 [api](#api) or via [commands](#commands).
-
-# Windows
-
-Hotpot must be able to create symlinks for some core functionality which
-Windows may disallow by default, depending on your account type and Windows
-version.
-
-To enable symlink creation without elevated privileges, you may have to enable
-"Developer Mode" in your account settings.
-
-See ["Enable your device for
-development"](https://docs.microsoft.com/en-us/windows/apps/get-started/enable-your-device-for-development)
-and ["Symlinks in Windows
-10"](https://blogs.windows.com/windowsdeveloper/2016/12/02/symlinks-windows-10/).
 
 # Licenses
 
