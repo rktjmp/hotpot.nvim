@@ -46,6 +46,7 @@
   ;; TODO: this can be removed for mkdir now we have normalize
   ;; Or... at one point we did use that but had issues in vim.schedule...
   (let [path (vim.fs.normalize path)
+        ;; TODO "make-path x" will fail as it cant match on any slash
         (backwards _here) (string.match path (string.format "(.+)%s(.+)$" :/))]
     (case (what-is-at path)
       :directory true ;; done

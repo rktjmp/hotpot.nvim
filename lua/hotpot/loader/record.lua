@@ -55,7 +55,7 @@ local function ftplugin_3f(r)
   return (RECORD_TYPE_FTPLUGIN == _12_)
 end
 local function path__3eindex_key(path)
-  _G.assert((nil ~= path), "Missing argument path on fnl/hotpot/loader/record.fnl:46")
+  _G.assert((nil ~= path), "Missing argument path on fnl/hotpot/loader/record.fnl:47")
   local path0 = vim.fs.normalize(path)
   return join_path(INDEX_ROOT_PATH, (uri_encode(path0, "rfc2396") .. "-metadata.mpack"))
 end
@@ -413,10 +413,10 @@ local function save(record)
                                           return record0
                                         elseif ((_121_ == false) and (nil ~= _122_)) then
                                           local e = _122_
-                                          return error(string.format("could not save record %s\n %s", record0["lua-path"], e))
+                                          return error(string.format("Could not save record for %s\nReason: %s", record0["lua-path"], e))
                                         elseif ((_121_ == nil) and (nil ~= _122_)) then
                                           local e = _122_
-                                          return error(string.format("could not save record %s\n %s", record0["lua-path"], e))
+                                          return error(string.format("Could not save record for %s\nReason: %s", record0["lua-path"], e))
                                         elseif (nil ~= _121_) then
                                           local e = _121_
                                           return error(string.format("unknown error when saving record %s %s", vim.inspect(record0), vim.inspect(e)))
@@ -427,10 +427,10 @@ local function save(record)
                                       return _120_(fout:close())
                                     elseif ((_118_ == false) and (nil ~= _119_)) then
                                       local e = _119_
-                                      return error(string.format("could not save record %s\n %s", record0["lua-path"], e))
+                                      return error(string.format("Could not save record for %s\nReason: %s", record0["lua-path"], e))
                                     elseif ((_118_ == nil) and (nil ~= _119_)) then
                                       local e = _119_
-                                      return error(string.format("could not save record %s\n %s", record0["lua-path"], e))
+                                      return error(string.format("Could not save record for %s\nReason: %s", record0["lua-path"], e))
                                     elseif (nil ~= _118_) then
                                       local e = _118_
                                       return error(string.format("unknown error when saving record %s %s", vim.inspect(record0), vim.inspect(e)))
@@ -441,10 +441,10 @@ local function save(record)
                                   return _117_(fout:write(mpacked))
                                 elseif ((_115_ == false) and (nil ~= _116_)) then
                                   local e = _116_
-                                  return error(string.format("could not save record %s\n %s", record0["lua-path"], e))
+                                  return error(string.format("Could not save record for %s\nReason: %s", record0["lua-path"], e))
                                 elseif ((_115_ == nil) and (nil ~= _116_)) then
                                   local e = _116_
-                                  return error(string.format("could not save record %s\n %s", record0["lua-path"], e))
+                                  return error(string.format("Could not save record for %s\nReason: %s", record0["lua-path"], e))
                                 elseif (nil ~= _115_) then
                                   local e = _115_
                                   return error(string.format("unknown error when saving record %s %s", vim.inspect(record0), vim.inspect(e)))
@@ -455,10 +455,10 @@ local function save(record)
                               return _114_(io.open(index_path, "wb"))
                             elseif ((_112_ == false) and (nil ~= _113_)) then
                               local e = _113_
-                              return error(string.format("could not save record %s\n %s", record0["lua-path"], e))
+                              return error(string.format("Could not save record for %s\nReason: %s", record0["lua-path"], e))
                             elseif ((_112_ == nil) and (nil ~= _113_)) then
                               local e = _113_
-                              return error(string.format("could not save record %s\n %s", record0["lua-path"], e))
+                              return error(string.format("Could not save record for %s\nReason: %s", record0["lua-path"], e))
                             elseif (nil ~= _112_) then
                               local e = _112_
                               return error(string.format("unknown error when saving record %s %s", vim.inspect(record0), vim.inspect(e)))
@@ -469,10 +469,10 @@ local function save(record)
                           return _111_(path__3eindex_key(lua_path))
                         elseif ((_109_ == false) and (nil ~= _110_)) then
                           local e = _110_
-                          return error(string.format("could not save record %s\n %s", record0["lua-path"], e))
+                          return error(string.format("Could not save record for %s\nReason: %s", record0["lua-path"], e))
                         elseif ((_109_ == nil) and (nil ~= _110_)) then
                           local e = _110_
-                          return error(string.format("could not save record %s\n %s", record0["lua-path"], e))
+                          return error(string.format("Could not save record for %s\nReason: %s", record0["lua-path"], e))
                         elseif (nil ~= _109_) then
                           local e = _109_
                           return error(string.format("unknown error when saving record %s %s", vim.inspect(record0), vim.inspect(e)))
@@ -483,10 +483,10 @@ local function save(record)
                       return _108_(pcall(vim.mpack.encode, {version = INDEX_VERSION, data = record0}))
                     elseif ((_106_ == false) and (nil ~= _107_)) then
                       local e = _107_
-                      return error(string.format("could not save record %s\n %s", record0["lua-path"], e))
+                      return error(string.format("Could not save record for %s\nReason: %s", record0["lua-path"], e))
                     elseif ((_106_ == nil) and (nil ~= _107_)) then
                       local e = _107_
-                      return error(string.format("could not save record %s\n %s", record0["lua-path"], e))
+                      return error(string.format("Could not save record for %s\nReason: %s", record0["lua-path"], e))
                     elseif (nil ~= _106_) then
                       local e = _106_
                       return error(string.format("unknown error when saving record %s %s", vim.inspect(record0), vim.inspect(e)))
@@ -497,10 +497,10 @@ local function save(record)
                   return _105_(make_path(INDEX_ROOT_PATH))
                 elseif ((_103_ == false) and (nil ~= _104_)) then
                   local e = _104_
-                  return error(string.format("could not save record %s\n %s", record["lua-path"], e))
+                  return error(string.format("Could not save record for %s\nReason: %s", record["lua-path"], e))
                 elseif ((_103_ == nil) and (nil ~= _104_)) then
                   local e = _104_
-                  return error(string.format("could not save record %s\n %s", record["lua-path"], e))
+                  return error(string.format("Could not save record for %s\nReason: %s", record["lua-path"], e))
                 elseif (nil ~= _103_) then
                   local e = _103_
                   return error(string.format("unknown error when saving record %s %s", vim.inspect(record), vim.inspect(e)))
@@ -516,10 +516,10 @@ local function save(record)
               return _102_(_130_(...))
             elseif ((_100_ == false) and (nil ~= _101_)) then
               local e = _101_
-              return error(string.format("could not save record %s\n %s", record["lua-path"], e))
+              return error(string.format("Could not save record for %s\nReason: %s", record["lua-path"], e))
             elseif ((_100_ == nil) and (nil ~= _101_)) then
               local e = _101_
-              return error(string.format("could not save record %s\n %s", record["lua-path"], e))
+              return error(string.format("Could not save record for %s\nReason: %s", record["lua-path"], e))
             elseif (nil ~= _100_) then
               local e = _100_
               return error(string.format("unknown error when saving record %s %s", vim.inspect(record), vim.inspect(e)))
@@ -530,10 +530,10 @@ local function save(record)
           return _99_(file_stat(lua_path))
         elseif ((_97_ == false) and (nil ~= _98_)) then
           local e = _98_
-          return error(string.format("could not save record %s\n %s", record["lua-path"], e))
+          return error(string.format("Could not save record for %s\nReason: %s", record["lua-path"], e))
         elseif ((_97_ == nil) and (nil ~= _98_)) then
           local e = _98_
-          return error(string.format("could not save record %s\n %s", record["lua-path"], e))
+          return error(string.format("Could not save record for %s\nReason: %s", record["lua-path"], e))
         elseif (nil ~= _97_) then
           local e = _97_
           return error(string.format("unknown error when saving record %s %s", vim.inspect(record), vim.inspect(e)))
@@ -544,10 +544,10 @@ local function save(record)
       return _96_(record)
     elseif ((_94_ == false) and (nil ~= _95_)) then
       local e = _95_
-      return error(string.format("could not save record %s\n %s", record["lua-path"], e))
+      return error(string.format("Could not save record for %s\nReason: %s", record["lua-path"], e))
     elseif ((_94_ == nil) and (nil ~= _95_)) then
       local e = _95_
-      return error(string.format("could not save record %s\n %s", record["lua-path"], e))
+      return error(string.format("Could not save record for %s\nReason: %s", record["lua-path"], e))
     elseif (nil ~= _94_) then
       local e = _94_
       return error(string.format("unknown error when saving record %s %s", vim.inspect(record), vim.inspect(e)))
@@ -558,7 +558,7 @@ local function save(record)
   return _93_((module_3f(record) or ftplugin_3f(record)))
 end
 local function drop(record)
-  _G.assert((nil ~= record), "Missing argument record on fnl/hotpot/loader/record.fnl:102")
+  _G.assert((nil ~= record), "Missing argument record on fnl/hotpot/loader/record.fnl:103")
   local function _134_(...)
     local _135_, _136_ = ...
     if (nil ~= _135_) then
@@ -585,9 +585,9 @@ local function drop(record)
   return _134_(path__3eindex_key(record["lua-path"]))
 end
 local function new(type, modname, src_path, _3fopts)
-  _G.assert((nil ~= src_path), "Missing argument src-path on fnl/hotpot/loader/record.fnl:111")
-  _G.assert((nil ~= modname), "Missing argument modname on fnl/hotpot/loader/record.fnl:111")
-  _G.assert((nil ~= type), "Missing argument type on fnl/hotpot/loader/record.fnl:111")
+  _G.assert((nil ~= src_path), "Missing argument src-path on fnl/hotpot/loader/record.fnl:112")
+  _G.assert((nil ~= modname), "Missing argument modname on fnl/hotpot/loader/record.fnl:112")
+  _G.assert((nil ~= type), "Missing argument type on fnl/hotpot/loader/record.fnl:112")
   local module
   do
     local _142_, _143_ = type
@@ -610,8 +610,8 @@ local function new(type, modname, src_path, _3fopts)
   return vim.tbl_extend("force", record, {type = type, ["lua-path-mtime-at-save"] = 0, ["lua-path-size-at-save"] = 0, files = {{path = src_path0, mtime = {sec = 0, nsec = 0}, size = 0}}})
 end
 local function set_record_files(record, files)
-  _G.assert((nil ~= files), "Missing argument files on fnl/hotpot/loader/record.fnl:129")
-  _G.assert((nil ~= record), "Missing argument record on fnl/hotpot/loader/record.fnl:129")
+  _G.assert((nil ~= files), "Missing argument files on fnl/hotpot/loader/record.fnl:130")
+  _G.assert((nil ~= record), "Missing argument record on fnl/hotpot/loader/record.fnl:130")
   local files0
   do
     table.insert(files, 1, record["src-path"])

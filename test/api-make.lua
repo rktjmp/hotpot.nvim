@@ -132,7 +132,7 @@ local function _23_(path)
     return string.gsub(string.gsub(path, "/fnl/", "/lua/"), "c.fnl$", "z.fnl")
   end
 end
-build(vim.fn.stdpath("config"), {{"fnl/**/*.fnl", _23_}})
+print(vim.inspect(build(vim.fn.stdpath("config"), {{"fnl/**/*.fnl", _23_}})))
 local lua_path0 = (vim.fn.stdpath("config") .. "/lua/a/b/z.lua")
 local function _25_(...)
   local _26_ = ...

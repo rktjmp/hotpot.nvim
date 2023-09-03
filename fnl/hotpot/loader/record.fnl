@@ -30,6 +30,7 @@
                               rfc2396-pattern "([^A-Za-z0-9%-_.!~*'()])"]
                           (pick-values 1 (string.gsub str rfc2396-pattern percent-encode-char))))))
 
+
 (local CACHE_ROOT (join-path (vim.fn.stdpath :cache) :hotpot))
 (local INDEX_ROOT_PATH (join-path CACHE_ROOT :index))
 
@@ -94,8 +95,8 @@
     (fout:close) true
     (values record)
     (catch
-      (false e) (ferror "could not save record %s\n %s" record.lua-path e)
-      (nil e) (ferror "could not save record %s\n %s" record.lua-path e)
+      (false e) (ferror "Could not save record for %s\nReason: %s" record.lua-path e)
+      (nil e) (ferror "Could not save record for %s\nReason: %s" record.lua-path e)
       e (ferror "unknown error when saving record %s %s"
                 (vim.inspect record) (vim.inspect e)))))
 

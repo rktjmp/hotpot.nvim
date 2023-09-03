@@ -9,7 +9,40 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2 # Checking out the repo
+    - name: Install tooling
+      run: |
+        sudo apt-get update
+        sudo apt-get install uuid-runtime curl jq
+        curl -sL https://api.github.com/repos/neovim/neovim/releases/latest | \
+        jq -r '.assets[].browser_download_url' | \
+        grep nvim-linux64.tar.gz | \
+        head -n 1 | \
+        xargs curl -LO && \
+        tar zxf nvim-linux64.tar.gz
+
     - name: Run tests
       run: |
-        /bin/bash test/test.sh
+        NVIM_BIN=./nvim-linux64/bin/nvim /bin/bash test/test.sh
         exit $?
+
+  run_tests_windows:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v2 # Checking out the repo
+    - name: Install Neovim
+      run: |
+        choco install neovim
+        Import-Module $env:ChocolateyInstall\helpers\chocolateyProfile.psm1
+        refreshenv
+    - name: Run tests
+      run: |
+        # echo %USERPROFILE
+        # echo $env:USERPROFILE
+        # echo $env:TEMP
+        # echo "TEMP=$env:USERPROFILE\AppData\Local\Temp" >> $env:GITHUB_ENV
+        # echo "TMP=$env:USERPROFILE\AppData\Local\Temp" >> $env:GITHUB_ENV
+        # echo $env:TEMP
+        Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+        powershell -File test\test.ps1
+        # Start-Process -FilePath powershell.exe -ArgumentList "-File test\test.ps1" -Verb RunAs
+        exit $LASTEXITCODE
