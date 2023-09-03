@@ -41,10 +41,14 @@
   ;; vim.loader caches what dirs contain what "top mods" on boot.
   ;; When we move files around, it doesn't know to re-index the dirs that now
   ;; have new mods in them. Resetting the dir alerts it things have changed.
+  ;; TODO: probably we actually dont need this? because we return the loader
+  ;; directly into memory, its here now, then next boot vim.loader will act as
+  ;; intended.
   (if record.cache-root-path
     (vim.loader.reset record.cache-root-path))
   (if record.colocation-root-path
     (vim.loader.reset record.colocation-root-path))
+  ; (bust-vim-loader-rtp-cache)
   true)
 
 (fn needs-compilation? [record]

@@ -682,17 +682,17 @@ local function make_searcher()
   return searcher
 end
 local function make_module_record_loader(module_record_maker, modname, src_path)
-  _G.assert((nil ~= src_path), "Missing argument src-path on fnl/hotpot/loader/init.fnl:364")
-  _G.assert((nil ~= modname), "Missing argument modname on fnl/hotpot/loader/init.fnl:364")
-  _G.assert((nil ~= module_record_maker), "Missing argument module-record-maker on fnl/hotpot/loader/init.fnl:364")
+  _G.assert((nil ~= src_path), "Missing argument src-path on fnl/hotpot/loader/init.fnl:368")
+  _G.assert((nil ~= modname), "Missing argument modname on fnl/hotpot/loader/init.fnl:368")
+  _G.assert((nil ~= module_record_maker), "Missing argument module-record-maker on fnl/hotpot/loader/init.fnl:368")
   local index = module_record_maker(modname, src_path)
   local loader = record_loadfile(index)
   return loader
 end
 local function make_ftplugin_record_loader(ftplugin_record_maker, modname, src_path)
-  _G.assert((nil ~= src_path), "Missing argument src-path on fnl/hotpot/loader/init.fnl:369")
-  _G.assert((nil ~= modname), "Missing argument modname on fnl/hotpot/loader/init.fnl:369")
-  _G.assert((nil ~= ftplugin_record_maker), "Missing argument ftplugin-record-maker on fnl/hotpot/loader/init.fnl:369")
+  _G.assert((nil ~= src_path), "Missing argument src-path on fnl/hotpot/loader/init.fnl:373")
+  _G.assert((nil ~= modname), "Missing argument modname on fnl/hotpot/loader/init.fnl:373")
+  _G.assert((nil ~= ftplugin_record_maker), "Missing argument ftplugin-record-maker on fnl/hotpot/loader/init.fnl:373")
   local index = ftplugin_record_maker(modname, src_path)
   local loader = record_loadfile(index)
   return loader
