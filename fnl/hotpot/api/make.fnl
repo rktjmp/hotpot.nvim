@@ -44,24 +44,26 @@
     (each [_ [glob action] (ipairs spec)]
       (assert (string.match glob "%.fnl$") (string.format "build glob patterns must end in .fnl, got %s" glob))
       (each [_ path (ipairs (vim.fn.globpath root-dir glob true true))]
-        (if (= nil (. files path))
-          (case [(string.find glob "fnl/") action]
-            (where [_ f] (function? f)) (case (f path)
-                                          false (tset files path false)
-                                          (where dest-path (string? dest-path))
-                                          (tset files path (string.gsub dest-path "%.fnl$" ".lua"))
-                                          ?some (error (string.format
-                                                         "Invalid return value from build function: %s => %s"
-                                                         path (type ?some))))
-            [_ false] (tset files path false)
-            [1 true] (tset files path
-                           (.. root-dir :/lua/ (string.sub path (+ (length root-dir) 6) -4) :lua))
-            [_ true] (tset files path (.. (string.sub path 1 -4) :lua))))))
+        (let [path (vim.fs.normalize path)]
+          (if (= nil (. files path))
+            (case [(string.find glob "fnl/") action]
+              (where [_ f] (function? f)) (case (f path)
+                                            false (tset files path false)
+                                            (where dest-path (string? dest-path))
+                                            (tset files path (-> (vim.fs.normalize dest-path)
+                                                                 (string.gsub "%.fnl$" ".lua")))
+                                            ?some (error (string.format
+                                                           "Invalid return value from build function: %s => %s"
+                                                           path (type ?some))))
+              [_ false] (tset files path false)
+              [1 true] (tset files path
+                             (.. root-dir :/lua/ (string.sub path (+ (length root-dir) 6) -4) :lua))
+              [_ true] (tset files path (.. (string.sub path 1 -4) :lua)))))))
     (each [path action (pairs files)]
       (if action
-        (table.insert split.build {:src (vim.fs.normalize path)
+        (table.insert split.build {:src path
                                    :dest (vim.fs.normalize action)})
-        (table.insert split.ignore {:src (vim.fs.normalize path)})))
+        (table.insert split.ignore {:src path})))
     split))
 
 (fn find-clean-targets [root-dir spec compile-targets]

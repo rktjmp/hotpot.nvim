@@ -24,14 +24,13 @@
           "Did not compile macro" (p :/lua/a/macro.lua)) true
   (vim.loop.fs_unlink lua-path))
 
-(print (vim.inspect
-         (build (vim.fn.stdpath :config)
-                [["fnl/**/*.fnl" (fn [path]
-                                   (if (string.find path "macro")
-                                     false
-                                     (-> path
-                                         (string.gsub "/fnl/" "/lua/")
-                                         (string.gsub "c.fnl$" "z.fnl"))))]])))
+(build (vim.fn.stdpath :config)
+       [["fnl/**/*.fnl" (fn [path]
+                          (if (string.find path "macro")
+                            false
+                            (-> path
+                                (string.gsub "/fnl/" "/lua/")
+                                (string.gsub "c.fnl$" "z.fnl"))))]])
 
 (local lua-path (.. (vim.fn.stdpath :config) :/lua/a/b/z.lua))
 (case-try

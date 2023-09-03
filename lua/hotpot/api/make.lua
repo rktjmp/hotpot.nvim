@@ -79,7 +79,8 @@ local function find_compile_targets(root_dir, spec)
     local action = _each_13_[2]
     assert(string.match(glob, "%.fnl$"), string.format("build glob patterns must end in .fnl, got %s", glob))
     for _0, path in ipairs(vim.fn.globpath(root_dir, glob, true, true)) do
-      if (nil == files[path]) then
+      local path0 = vim.fs.normalize(path)
+      if (nil == files[path0]) then
         local _14_ = {string.find(glob, "fnl/"), action}
         local function _15_()
           local _1 = (_14_)[1]
@@ -89,9 +90,9 @@ local function find_compile_targets(root_dir, spec)
         if (((_G.type(_14_) == "table") and true and (nil ~= (_14_)[2])) and _15_()) then
           local _1 = (_14_)[1]
           local f = (_14_)[2]
-          local _16_ = f(path)
+          local _16_ = f(path0)
           if (_16_ == false) then
-            files[path] = false
+            files[path0] = false
           else
             local function _17_()
               local dest_path = _16_
@@ -99,21 +100,21 @@ local function find_compile_targets(root_dir, spec)
             end
             if ((nil ~= _16_) and _17_()) then
               local dest_path = _16_
-              files[path] = string.gsub(dest_path, "%.fnl$", ".lua")
+              files[path0] = string.gsub(vim.fs.normalize(dest_path), "%.fnl$", ".lua")
             elseif true then
               local _3fsome = _16_
-              error(string.format("Invalid return value from build function: %s => %s", path, type(_3fsome)))
+              error(string.format("Invalid return value from build function: %s => %s", path0, type(_3fsome)))
             else
             end
           end
         elseif ((_G.type(_14_) == "table") and true and ((_14_)[2] == false)) then
           local _1 = (_14_)[1]
-          files[path] = false
+          files[path0] = false
         elseif ((_G.type(_14_) == "table") and ((_14_)[1] == 1) and ((_14_)[2] == true)) then
-          files[path] = (root_dir .. "/lua/" .. string.sub(path, (#root_dir + 6), -4) .. "lua")
+          files[path0] = (root_dir .. "/lua/" .. string.sub(path0, (#root_dir + 6), -4) .. "lua")
         elseif ((_G.type(_14_) == "table") and true and ((_14_)[2] == true)) then
           local _1 = (_14_)[1]
-          files[path] = (string.sub(path, 1, -4) .. "lua")
+          files[path0] = (string.sub(path0, 1, -4) .. "lua")
         else
         end
       else
@@ -122,9 +123,9 @@ local function find_compile_targets(root_dir, spec)
   end
   for path, action in pairs(files) do
     if action then
-      table.insert(split.build, {src = vim.fs.normalize(path), dest = vim.fs.normalize(action)})
+      table.insert(split.build, {src = path, dest = vim.fs.normalize(action)})
     else
-      table.insert(split.ignore, {src = vim.fs.normalize(path)})
+      table.insert(split.ignore, {src = path})
     end
   end
   return split
