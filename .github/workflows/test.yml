@@ -5,12 +5,11 @@ on:
   workflow_dispatch:
 
 jobs:
-  container:
+  run_tests_linux:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2 # Checking out the repo
-    - name: Build container
+    - name: Run tests
       run: |
-        cd test
-        ./harness.sh docker
+        /bin/bash test/test.sh
         exit $?
