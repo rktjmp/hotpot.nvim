@@ -94,12 +94,12 @@ local function find_compile_targets(root_dir, spec)
             files[path] = false
           else
             local function _17_()
-              local path0 = _16_
-              return string_3f(path0)
+              local dest_path = _16_
+              return string_3f(dest_path)
             end
             if ((nil ~= _16_) and _17_()) then
-              local path0 = _16_
-              files[path0] = string.gsub(path0, "%.fnl$", ".lua")
+              local dest_path = _16_
+              files[path] = string.gsub(dest_path, "%.fnl$", ".lua")
             elseif true then
               local _3fsome = _16_
               error(string.format("Invalid return value from build function: %s => %s", path, type(_3fsome)))
