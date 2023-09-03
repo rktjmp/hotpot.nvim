@@ -8,7 +8,7 @@
 - [Write a plugin in fennel.](#writing-a-plugin)
 - [Compile into the `lua/` directory.](#compiling-to-lua)
 - [Use a `.hotpot.lua` file.](#using-dot-hotpot)
-- [Write `init.lua` as `init.fnl`.](#writing-.confignviminit.lua-in-fennel)
+- [Write `init.lua` as `init.fnl`.](#writing-confignviminitlua-in-fennel)
 - [Write an config `ftplugin`.](#write-an-ftplugin)
 - [View compiled lua output.](#cache-operations)
 
@@ -113,7 +113,7 @@ wrapping `hotpot.api.make`.
 > `.hotpot.lua` is intended for plugin developers, but you can apply the same
 > practices to your main Neovim config if you want to generate `lua/` files
 > or others such as `colors/` etc. See also [how to write an
-> init.fnl](#writing-.confignviminit.lua-in-fennel).
+> init.fnl](#writing-confignviminitlua-in-fennel).
 
 The user:
 
