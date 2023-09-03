@@ -2,7 +2,7 @@
 set -u
 
 failed_count=0
-tests=(require-a-fnl-file cache-invalidation dot-hotpot)
+tests=(require-a-fnl-file cache-invalidation dot-hotpot api-make)
 if [ $# -eq 1 ]; then
   tests=($1)
 fi
