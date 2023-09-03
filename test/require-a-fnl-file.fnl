@@ -1,4 +1,4 @@
-(import-macros {: setup : expect} :new-tests.macros)
+(import-macros {: setup : expect} :test.macros)
 (setup)
 
 (fn test-path [modname path]

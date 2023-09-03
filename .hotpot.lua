@@ -13,10 +13,9 @@ return {
     {verbose = true, atomic = true},
     {"fnl/**/*macro*.fnl", false},
     {"fnl/**/*.fnl", true},
-    {"test-init.fnl", true},
-    {"new-tests/**/*macro*.fnl", false},
-    {"new-tests/**/utils.fnl", false},
-    {"new-tests/**/*.fnl", true}
+    {"test/**/*macro*.fnl", false},
+    {"test/**/utils.fnl", false},
+    {"test/**/*.fnl", true}
   },
   clean = {
     {"lua/hotpot/fennel.lua", false},

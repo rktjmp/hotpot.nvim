@@ -1,4 +1,4 @@
-package.preload["new-tests.utils"] = package.preload["new-tests.utils"] or function(...)
+package.preload["test.utils"] = package.preload["test.utils"] or function(...)
   local function read_file(path)
     return table.concat(vim.fn.readfile(path), "\\n")
   end
@@ -31,11 +31,11 @@ package.preload["new-tests.utils"] = package.preload["new-tests.utils"] or funct
     print("\n")
     return os.exit(results.fails)
   end
-  do end (vim.opt.runtimepath):prepend("/hotpot")
+  do end (vim.opt.runtimepath):prepend(vim.loop.cwd())
   require("hotpot")
   return {["write-file"] = write_file, ["read-file"] = read_file, OK = OK, FAIL = FAIL, exit = exit, NVIM_APPNAME = vim.env.NVIM_APPNAME}
 end
-local _local_1_ = require("new-tests.utils")
+local _local_1_ = require("test.utils")
 local FAIL = _local_1_["FAIL"]
 local NVIM_APPNAME = _local_1_["NVIM_APPNAME"]
 local OK = _local_1_["OK"]

@@ -1,4 +1,4 @@
-(import-macros {: setup : expect} :new-tests.macros)
+(import-macros {: setup : expect} :test.macros)
 (setup)
 
 (local fnl-path (.. (vim.fn.stdpath :config) :/fnl/abc.fnl))

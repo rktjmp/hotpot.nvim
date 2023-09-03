@@ -14,6 +14,6 @@
            :FAIL ,(sym :FAIL)
            :NVIM_APPNAME ,(sym :NVIM_APPNAME)
            :exit ,(sym :exit)}
-       (include :new-tests.utils)))
+       (include :test.utils)))
 
 {: setup : expect}
