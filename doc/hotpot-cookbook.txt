@@ -1,4 +1,4 @@
-*hotpot-cookbook.txt*         For 0.9.1         Last change: 2023 September 03
+*hotpot-cookbook.txt*                                         Get a stew goin'
 
 ==============================================================================
 Table of Contents                          *hotpot-cookbook-table-of-contents*
