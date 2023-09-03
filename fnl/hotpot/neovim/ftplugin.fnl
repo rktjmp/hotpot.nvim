@@ -1,45 +1,40 @@
 (import-macros {: dprint} :hotpot.macros)
 
-(fn find-ft-plugins [filetype]
+(fn generate-ftplugin-fnl-loaders [filetype ftplugin-modname]
+  ;; Find any ftplugin/<ft>.fnl files and build them if required.
   (let [{: make-ftplugin-record-loader} (require :hotpot.loader)
         {: make-ftplugin-record} (require :hotpot.lang.fennel)
-        {: file-exists? : rm-file} (require :hotpot.fs)
-        {: fetch : drop} (require :hotpot.loader.record)
         {: search} (require :hotpot.searcher)
-        modname (.. :hotpot-ftplugin. filetype)
-        make-loader #(make-ftplugin-record-loader
-                       make-ftplugin-record $1 $2)
         find-all #(search {:prefix :ftplugin
                           :extension :fnl
                           :modnames [(.. filetype)]
                           :all? true
                           :package-path? false})]
-    ;; TODO: these are always cached for now, so we dont protect lua edits but
-    ;; probably we should eventually.
+    (icollect [_ path (ipairs (or (find-all) []))]
+      (case (make-ftplugin-record-loader make-ftplugin-record ftplugin-modname path)
+        (where loader (= :function (type loader))) {: loader :modname ftplugin-modname :modpath path}
+        (where msg (= :string (type msg))) (vim.notify msg vim.log.levels.ERROR)))))
 
-    ;; We always check and build (if needed) all ftplugin files
-    (each [_ path (ipairs (or (find-all) []))]
-      (case (make-loader modname path)
-        (where loader (= :function (type loader))) :ok
-        (where msg (= :string (type msg))) (vim.notify msg vim.log.levels.ERROR)))
 
-    ;; now find every mod we built and run them all, try to guard against bad ones
-    ;; wrecking others.
-    (each [_ {: modpath} (ipairs (vim.loader.find modname {:all true}))]
-      (let [record (fetch modname)
-            loadit #(case-try
-                      (pcall loadfile modpath) (true loader)
-                      (pcall loader modname modpath) (true _)
-                      (values nil)
-                      (catch
-                        (false e) (vim.notify e vim.log.levels.ERROR)))]
-        (case (fetch modpath)
-          record (if (file-exists? record.src-path)
-                   (loadit)
-                   (do
-                     (rm-file modpath)
-                     (drop record)))
-          nil (loadit))))))
+(fn find-ft-plugins [filetype]
+  (let [{: file-exists? : rm-file} (require :hotpot.fs)
+        {: fetch : drop} (require :hotpot.loader.record)
+        ftplugin-modname (.. :hotpot-ftplugin. filetype)
+        loaders (generate-ftplugin-fnl-loaders filetype ftplugin-modname)]
+
+    ;; run ftplugin/*.fnl files
+    (each [_ {: loader : modname : modpath} (ipairs loaders)]
+      (case (pcall loader modname modpath)
+        (true _) _
+        (false e) (vim.notify e vim.log.levels.ERROR)))
+
+    ;; clear old lua files if the fnl files have been removed
+    (each [_ {: modpath} (ipairs (vim.loader.find ftplugin-modname {:all true}))]
+      ;; TODO: there is a bug here on windows, normalizing modpath does not fix it
+      (case (fetch modpath)
+        record (when (not (file-exists? record.src-path))
+                 (rm-file modpath)
+                 (drop record))))))
 
 (var enabled? false)
 (fn enable []

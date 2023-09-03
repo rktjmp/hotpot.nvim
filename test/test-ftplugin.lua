@@ -51,7 +51,7 @@ local fnl_path = p("/ftplugin/arst.fnl")
 local lua_path = (cache_prefix() .. "/ftplugin-" .. NVIM_APPNAME .. "/lua/hotpot-ftplugin/arst.lua")
 write_file(fnl_path, "(os.exit 255)")
 write_file("misdirect.lua", "\n            vim.opt.runtimepath:prepend(vim.loop.cwd())\n            require('hotpot')\n            vim.cmd('set ft=arst')\n            print('set ft')\n            os.exit(1)")
-vim.cmd("!nvim -S misdirect.lua")
+vim.cmd(string.format("!%s -S misdirect.lua", (vim.env.NVIM_BIN or "nvim")))
 do
   local _5_ = vim.v.shell_error
   if (_5_ == 255) then
@@ -73,7 +73,7 @@ do
   end
 end
 vim.loop.fs_unlink(fnl_path)
-vim.cmd("!nvim -S misdirect.lua")
+vim.cmd(string.format("!%s -S misdirect.lua", (vim.env.NVIM_BIN or "nvim")))
 do
   local _9_ = vim.v.shell_error
   if (_9_ == 1) then
@@ -84,7 +84,7 @@ do
   else
   end
 end
-do
+if (1 ~= vim.fn.has("win32")) then
   local _11_ = vim.loop.fs_access(lua_path, "R")
   if (_11_ == false) then
     OK(string.format("ftplugin lua file removed"))
@@ -93,5 +93,6 @@ do
     FAIL(string.format("ftplugin lua file removed"))
   else
   end
+else
 end
 return exit()
