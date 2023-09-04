@@ -590,7 +590,7 @@ do
         local _let_131_ = require("hotpot.runtime")
         local lookup_local_config = _let_131_["lookup-local-config"]
         local loadfile_local_config = _let_131_["loadfile-local-config"]
-        local full_path_current_file = vim.fn.expand("<afile>:p")
+        local full_path_current_file = vim.fs.normalize(vim.fn.expand("<afile>:p"))
         local function _132_(...)
           local _133_ = ...
           if (nil ~= _133_) then

@@ -286,7 +286,7 @@
              {:buffer buf
               :desc (.. :hotpot-check-dot-hotpot-dot-lua-for- buf)
               :callback #(let [{: lookup-local-config : loadfile-local-config} (require :hotpot.runtime)
-                               full-path-current-file (vim.fn.expand "<afile>:p")]
+                               full-path-current-file (vim.fs.normalize (vim.fn.expand "<afile>:p"))]
                            (case-try
                              (lookup-local-config full-path-current-file) config-path
                              (loadfile-local-config config-path) config
