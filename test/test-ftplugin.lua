@@ -50,47 +50,56 @@ local cache_prefix = _local_4_["cache-prefix"]
 local fnl_path = p("/ftplugin/arst.fnl")
 local lua_path = (cache_prefix() .. "/ftplugin-" .. NVIM_APPNAME .. "/lua/hotpot-ftplugin/arst.lua")
 write_file(fnl_path, "(os.exit 255)")
-write_file("misdirect.lua", "\n            vim.opt.runtimepath:prepend(vim.loop.cwd())\n            require('hotpot')\n            vim.cmd('set ft=arst')\n            print('set ft')\n            os.exit(1)")
-vim.cmd(string.format("!%s -S misdirect.lua", (vim.env.NVIM_BIN or "nvim")))
 do
-  local _5_ = vim.v.shell_error
+  local _5_
+  do
+    local fname = string.format("sub-nvim-%s.lua", vim.loop.hrtime())
+    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "vim.cmd('set ft=arst') print('set ft') os.exit(1)")))
+    vim.cmd(string.format("!%s -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
+    _5_ = vim.v.shell_error
+  end
   if (_5_ == 255) then
-    OK(string.format("ftplugin ran"))
+    OK(string.format(("ftplugin ran" or "")))
   elseif true then
     local __1_auto = _5_
-    FAIL(string.format("ftplugin ran"))
+    FAIL(string.format(("ftplugin ran" or "")))
   else
   end
 end
 do
   local _7_ = vim.loop.fs_access(lua_path, "R")
   if (_7_ == true) then
-    OK(string.format("ftplugin lua file exists"))
+    OK(string.format(("ftplugin lua file exists" or "")))
   elseif true then
     local __1_auto = _7_
-    FAIL(string.format("ftplugin lua file exists"))
+    FAIL(string.format(("ftplugin lua file exists" or "")))
   else
   end
 end
 vim.loop.fs_unlink(fnl_path)
-vim.cmd(string.format("!%s -S misdirect.lua", (vim.env.NVIM_BIN or "nvim")))
 do
-  local _9_ = vim.v.shell_error
+  local _9_
+  do
+    local fname = string.format("sub-nvim-%s.lua", vim.loop.hrtime())
+    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "vim.cmd('set ft=arst') print('set ft') os.exit(1)")))
+    vim.cmd(string.format("!%s -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
+    _9_ = vim.v.shell_error
+  end
   if (_9_ == 1) then
-    OK(string.format("ftplugin did not zombie"))
+    OK(string.format(("ftplugin did not zombie" or "")))
   elseif true then
     local __1_auto = _9_
-    FAIL(string.format("ftplugin did not zombie"))
+    FAIL(string.format(("ftplugin did not zombie" or "")))
   else
   end
 end
 if (1 ~= vim.fn.has("win32")) then
   local _11_ = vim.loop.fs_access(lua_path, "R")
   if (_11_ == false) then
-    OK(string.format("ftplugin lua file removed"))
+    OK(string.format(("ftplugin lua file removed" or "")))
   elseif true then
     local __1_auto = _11_
-    FAIL(string.format("ftplugin lua file removed"))
+    FAIL(string.format(("ftplugin lua file removed" or "")))
   else
   end
 else
