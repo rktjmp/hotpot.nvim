@@ -1,2 +1,2 @@
-lua/hotpot/fennel.lua linguist-vendored
-lua/hotpot.lua linguist-vendored
+lua/** linguist-vendored
+deps/** linguist-vendored
