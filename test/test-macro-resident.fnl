@@ -6,7 +6,7 @@
 (local macro-path (.. (vim.fn.stdpath :config) :/fnl/macro.fnl))
 (local lua-path (.. (vim.fn.stdpath :config) :/lua/abc.lua))
 
-(write-file dot-hotpot-path "return {build = {{verbose = false}, {'fnl/macro.fnl', false}, {'fnl/*.fnl', true}}}")
+(write-file dot-hotpot-path "return {build = {{verbose = false}, {'fnl/macro.fnl', false}, {'fnl/**/*.fnl', true}}}")
 (write-file macro-path "(fn dbl [a] `(+ ,a ,a ,a)) {: dbl}")
 (write-file fnl-path "(import-macros {: dbl} :macro) (dbl 1)")
 
@@ -19,15 +19,6 @@
 (vim.cmd (string.format "edit %s" macro-path))
 (vim.cmd "set ft=fennel")
 (vim.cmd "w")
-
-; (write-file "misdirect.lua"
-;             (string.format "vim.opt.runtimepath:prepend(vim.loop.cwd())
-;                            require('hotpot')
-;                            vim.cmd('edit %s')
-;                            vim.cmd('set ft=fennel')
-;                            vim.cmd('w')
-;                            os.exit(1)" macro-path))
-; (vim.cmd (string.format "!%s -S misdirect.lua" (or vim.env.NVIM_BIN :nvim)))
 
 (expect "return (1 + 1)" (read-file lua-path) "returns second version of macro")
 
