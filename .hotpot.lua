@@ -13,7 +13,7 @@ return {
     {verbose = true, atomic = true},
     {"fnl/**/*macro*.fnl", false},
     {"fnl/**/*.fnl", true},
-    {"test/**/*macro*.fnl", false},
+    {"test/**/macros.fnl", false}, -- focused, some tests have macro in name
     {"test/**/utils.fnl", false},
     {"test/**/*.fnl", true}
   },
