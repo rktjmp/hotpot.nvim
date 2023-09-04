@@ -16,4 +16,13 @@
            :exit ,(sym :exit)}
        (include :test.utils)))
 
-{: setup : expect}
+(fn in-sub-nvim [code ...]
+  `(let [,(sym :fname) (string.format "sub-nvim-%s.lua" (vim.loop.hrtime))]
+     (write-file fname (string.format
+                         (.. "vim.opt.runtimepath:prepend(vim.loop.cwd())
+                             require('hotpot')
+                             " ,code) ,...))
+     (vim.cmd (string.format "!%s -S %s" (or vim.env.NVIM_BIN :nvim) fname))
+     (values vim.v.shell_error)))
+
+{: setup : expect : in-sub-nvim}
