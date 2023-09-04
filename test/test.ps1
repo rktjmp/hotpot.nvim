@@ -4,7 +4,9 @@ $failed_count = 0
 $tests = Get-ChildItem -Path test -Filter "test-*.lua"
 
 if ($args.Length -eq 1) {
-    $tests = @($args[0])
+    $file = New-Object PSObject
+    $file | Add-Member -MemberType NoteProperty -Name FullName -Value $args[0]
+    $tests = @($file)
 }
 
 foreach ($t in $tests) {
