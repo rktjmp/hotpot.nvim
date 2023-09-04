@@ -66,11 +66,11 @@ local function test_path(modname, path)
           local function _12_(...)
             local _11_ = read_file(lua_path)
             if (_11_ == "return {works = true}") then
-              OK(string.format("Outputs correct lua code"))
+              OK(string.format(("Outputs correct lua code" or "")))
               return true
             elseif true then
               local __1_auto = _11_
-              FAIL(string.format("Outputs correct lua code"))
+              FAIL(string.format(("Outputs correct lua code" or "")))
               return false
             else
               return nil
@@ -87,11 +87,11 @@ local function test_path(modname, path)
       local function _16_(...)
         local _15_ = vim.loop.fs_access(lua_path, "R")
         if (_15_ == true) then
-          OK(string.format("Creates a lua file at %s", lua_path))
+          OK(string.format(("Creates a lua file at %s" or ""), lua_path))
           return true
         elseif true then
           local __1_auto = _15_
-          FAIL(string.format("Creates a lua file at %s", lua_path))
+          FAIL(string.format(("Creates a lua file at %s" or ""), lua_path))
           return false
         else
           return nil
@@ -108,11 +108,11 @@ local function test_path(modname, path)
   local function _21_()
     local _19_, _20_ = pcall(require, modname)
     if ((_19_ == true) and ((_G.type(_20_) == "table") and ((_20_).works == true))) then
-      OK(string.format("Can require module %s %s", modname, fnl_path))
+      OK(string.format(("Can require module %s %s" or ""), modname, fnl_path))
       return true
     elseif true then
       local __1_auto = _19_
-      FAIL(string.format("Can require module %s %s", modname, fnl_path))
+      FAIL(string.format(("Can require module %s %s" or ""), modname, fnl_path))
       return false
     else
       return nil

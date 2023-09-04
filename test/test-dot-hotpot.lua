@@ -53,20 +53,20 @@ require("abc")
 do
   local _4_ = _G.loaded_dot
   if (_4_ == true) then
-    OK(string.format(".hotpot.lua file loaded"))
+    OK(string.format((".hotpot.lua file loaded" or "")))
   elseif true then
     local __1_auto = _4_
-    FAIL(string.format(".hotpot.lua file loaded"))
+    FAIL(string.format((".hotpot.lua file loaded" or "")))
   else
   end
 end
 do
   local _6_ = read_file(lua_cache_path)
   if (_6_ == "do local _ = (1 + 1) end\\nreturn {works = true}") then
-    OK(string.format(".hotpot.lua applies a preprocessor"))
+    OK(string.format((".hotpot.lua applies a preprocessor" or "")))
   elseif true then
     local __1_auto = _6_
-    FAIL(string.format(".hotpot.lua applies a preprocessor"))
+    FAIL(string.format((".hotpot.lua applies a preprocessor" or "")))
   else
   end
 end
@@ -77,20 +77,20 @@ vim.cmd("w")
 do
   local _8_ = read_file(lua_path)
   if (_8_ == "return {works = true}") then
-    OK(string.format("build = true outputs to lua/ dir"))
+    OK(string.format(("build = true outputs to lua/ dir" or "")))
   elseif true then
     local __1_auto = _8_
-    FAIL(string.format("build = true outputs to lua/ dir"))
+    FAIL(string.format(("build = true outputs to lua/ dir" or "")))
   else
   end
 end
 do
   local _10_ = vim.loop.fs_access(lua_cache_path, "R")
   if (_10_ == true) then
-    OK(string.format("previous cache lua still exists"))
+    OK(string.format(("previous cache lua still exists" or "")))
   elseif true then
     local __1_auto = _10_
-    FAIL(string.format("previous cache lua still exists"))
+    FAIL(string.format(("previous cache lua still exists" or "")))
   else
   end
 end
@@ -99,10 +99,10 @@ write_file(junk_path, "return 1")
 do
   local _12_ = vim.loop.fs_access(junk_path, "R")
   if (_12_ == true) then
-    OK(string.format("junk file exists"))
+    OK(string.format(("junk file exists" or "")))
   elseif true then
     local __1_auto = _12_
-    FAIL(string.format("junk file exists"))
+    FAIL(string.format(("junk file exists" or "")))
   else
   end
 end
@@ -112,10 +112,10 @@ vim.cmd("w")
 do
   local _14_ = vim.loop.fs_access(junk_path, "R")
   if (_14_ == false) then
-    OK(string.format("junk file is cleaned away"))
+    OK(string.format(("junk file is cleaned away" or "")))
   elseif true then
     local __1_auto = _14_
-    FAIL(string.format("junk file is cleaned away"))
+    FAIL(string.format(("junk file is cleaned away" or "")))
   else
   end
 end

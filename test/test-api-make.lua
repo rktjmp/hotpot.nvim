@@ -72,11 +72,11 @@ local function _5_(...)
         local function _13_(...)
           local _12_ = vim.loop.fs_access(p("/lua/a/macro.lua"), "R")
           if (_12_ == false) then
-            OK(string.format("Did not compile macro", p("/lua/a/macro.lua")))
+            OK(string.format(("Did not compile macro" or ""), p("/lua/a/macro.lua")))
             return true
           elseif true then
             local __1_auto = _12_
-            FAIL(string.format("Did not compile macro", p("/lua/a/macro.lua")))
+            FAIL(string.format(("Did not compile macro" or ""), p("/lua/a/macro.lua")))
             return false
           else
             return nil
@@ -93,11 +93,11 @@ local function _5_(...)
     local function _17_(...)
       local _16_ = read_file(lua_path)
       if (_16_ == "local function x()\\n  return nil\\nend\\nreturn x") then
-        OK(string.format("Outputs correct lua code"))
+        OK(string.format(("Outputs correct lua code" or "")))
         return true
       elseif true then
         local __1_auto = _16_
-        FAIL(string.format("Outputs correct lua code"))
+        FAIL(string.format(("Outputs correct lua code" or "")))
         return false
       else
         return nil
@@ -114,11 +114,11 @@ end
 local function _21_(...)
   local _20_ = vim.loop.fs_access(lua_path, "R")
   if (_20_ == true) then
-    OK(string.format("Creates a lua file at %s", lua_path))
+    OK(string.format(("Creates a lua file at %s" or ""), lua_path))
     return true
   elseif true then
     local __1_auto = _20_
-    FAIL(string.format("Creates a lua file at %s", lua_path))
+    FAIL(string.format(("Creates a lua file at %s" or ""), lua_path))
     return false
   else
     return nil
@@ -154,11 +154,11 @@ local function _25_(...)
         local function _33_(...)
           local _32_ = vim.loop.fs_access(p("/lua/a/macro.lua"), "R")
           if (_32_ == false) then
-            OK(string.format("Did not compile macro", p("/lua/a/macro.lua")))
+            OK(string.format(("Did not compile macro" or ""), p("/lua/a/macro.lua")))
             return true
           elseif true then
             local __1_auto = _32_
-            FAIL(string.format("Did not compile macro", p("/lua/a/macro.lua")))
+            FAIL(string.format(("Did not compile macro" or ""), p("/lua/a/macro.lua")))
             return false
           else
             return nil
@@ -175,11 +175,11 @@ local function _25_(...)
     local function _37_(...)
       local _36_ = read_file(lua_path0)
       if (_36_ == "local function x()\\n  return nil\\nend\\nreturn x") then
-        OK(string.format("Outputs correct lua code"))
+        OK(string.format(("Outputs correct lua code" or "")))
         return true
       elseif true then
         local __1_auto = _36_
-        FAIL(string.format("Outputs correct lua code"))
+        FAIL(string.format(("Outputs correct lua code" or "")))
         return false
       else
         return nil
@@ -196,11 +196,11 @@ end
 local function _41_(...)
   local _40_ = vim.loop.fs_access(lua_path0, "R")
   if (_40_ == true) then
-    OK(string.format("Creates a lua file at %s", lua_path0))
+    OK(string.format(("Creates a lua file at %s" or ""), lua_path0))
     return true
   elseif true then
     local __1_auto = _40_
-    FAIL(string.format("Creates a lua file at %s", lua_path0))
+    FAIL(string.format(("Creates a lua file at %s" or ""), lua_path0))
     return false
   else
     return nil
