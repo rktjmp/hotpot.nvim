@@ -22,7 +22,9 @@
                 (let [s (. [...] i)]
                   (if (string.match (tostring s) "^&")
                     `(.. ,(tostring s) " = " (vim.inspect ,(sym (string.sub (tostring s) 2))))
-                    `(.. ,(tostring s) " = " (tostring ,s))))))
+                    `(if ,(= :string (type s))
+                       ,s
+                       (.. ,(type s) " = " (tostring ,s)))))))
   `(let [x# true]
      (macro ex [s#]
        (let [{:filename f# :line l#} s#]
