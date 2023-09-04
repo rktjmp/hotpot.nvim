@@ -169,37 +169,47 @@ end
 local function do_compile(compile_targets, compiler_options, root_dir)
   local _let_29_ = require("hotpot.lang.fennel.compiler")
   local compile_file = _let_29_["compile-file"]
-  local function _32_(_30_)
-    local _arg_31_ = _30_
-    local src = _arg_31_["src"]
-    local dest = _arg_31_["dest"]
+  do
+    local _30_ = package.loaded
+    if ((_G.type(_30_) == "table") and (nil ~= (_30_)["hotpot.fennel"])) then
+      local fennel = (_30_)["hotpot.fennel"]
+      for k, _ in pairs(fennel["macro-loaded"]) do
+        fennel["macro-loaded"][k] = nil
+      end
+    else
+    end
+  end
+  local function _34_(_32_)
+    local _arg_33_ = _32_
+    local src = _arg_33_["src"]
+    local dest = _arg_33_["dest"]
     local tmp_path = (vim.fn.tempname() .. ".lua")
     local relative_filename = string.sub(src, (2 + #root_dir))
-    local _33_, _34_ = nil, nil
-    local _36_
+    local _35_, _36_ = nil, nil
+    local _38_
     do
-      local _35_ = compiler_options.modules
-      _35_["filename"] = relative_filename
-      _36_ = _35_
+      local _37_ = compiler_options.modules
+      _37_["filename"] = relative_filename
+      _38_ = _37_
     end
-    _33_, _34_ = compile_file(src, tmp_path, _36_, compiler_options.macros, compiler_options.preprocessor)
-    if (_33_ == true) then
+    _35_, _36_ = compile_file(src, tmp_path, _38_, compiler_options.macros, compiler_options.preprocessor)
+    if (_35_ == true) then
       return {src = src, dest = dest, ["tmp-path"] = tmp_path, ["compiled?"] = true}
-    elseif ((_33_ == false) and (nil ~= _34_)) then
-      local e = _34_
+    elseif ((_35_ == false) and (nil ~= _36_)) then
+      local e = _36_
       return {src = src, dest = dest, err = e, ["compiled?"] = false}
     else
       return nil
     end
   end
-  return map(_32_, compile_targets)
+  return map(_34_, compile_targets)
 end
-local function report_compile_results(compile_results, _38_)
-  local _arg_39_ = _38_
-  local any_errors_3f = _arg_39_["any-errors?"]
-  local verbose_3f = _arg_39_["verbose?"]
-  local atomic_3f = _arg_39_["atomic?"]
-  local dry_run_3f = _arg_39_["dry-run?"]
+local function report_compile_results(compile_results, _40_)
+  local _arg_41_ = _40_
+  local any_errors_3f = _arg_41_["any-errors?"]
+  local verbose_3f = _arg_41_["verbose?"]
+  local atomic_3f = _arg_41_["atomic?"]
+  local dry_run_3f = _arg_41_["dry-run?"]
   local report = {}
   if dry_run_3f then
     table.insert(report, {"No changes were written to disk! Compiled with dryrun = true!\n", "DiagnosticWarn"})
@@ -209,31 +219,31 @@ local function report_compile_results(compile_results, _38_)
     table.insert(report, {"No changes were written to disk! Compiled with atomic = true and some files had compilation errors!\n", "DiagnosticWarn"})
   else
   end
-  local function _42_(_241)
-    local _let_43_ = _241
-    local compiled_3f = _let_43_["compiled?"]
-    local src = _let_43_["src"]
-    local dest = _let_43_["dest"]
-    local function _45_()
+  local function _44_(_241)
+    local _let_45_ = _241
+    local compiled_3f = _let_45_["compiled?"]
+    local src = _let_45_["src"]
+    local dest = _let_45_["dest"]
+    local function _47_()
       if (_241)["compiled?"] then
         return {"\226\152\145  ", "DiagnosticOK"}
       else
         return {"\226\152\146  ", "DiagnosticWarn"}
       end
     end
-    local _let_44_ = _45_()
-    local char = _let_44_[1]
-    local level = _let_44_[2]
+    local _let_46_ = _47_()
+    local char = _let_46_[1]
+    local level = _let_46_[2]
     table.insert(report, {string.format("%s%s\n", char, src), level})
     return table.insert(report, {string.format("-> %s\n", dest), level})
   end
-  local function _48_(_46_)
-    local _arg_47_ = _46_
-    local compiled_3f = _arg_47_["compiled?"]
+  local function _50_(_48_)
+    local _arg_49_ = _48_
+    local compiled_3f = _arg_49_["compiled?"]
     return (verbose_3f or not compiled_3f)
   end
-  map(_42_, filter(_48_, compile_results))
-  local function _49_(_241)
+  map(_44_, filter(_50_, compile_results))
+  local function _51_(_241)
     if ((_G.type(_241) == "table") and (nil ~= (_241).err)) then
       local err = (_241).err
       return table.insert(report, {err, "DiagnosticError"})
@@ -241,7 +251,7 @@ local function report_compile_results(compile_results, _38_)
       return nil
     end
   end
-  map(_49_, compile_results)
+  map(_51_, compile_results)
   if (0 < #report) then
     vim.api.nvim_echo(report, true, {})
   else
@@ -251,53 +261,53 @@ end
 local function do_build(opts, root_dir, build_spec)
   assert(validate_spec("build", build_spec))
   local root_dir0 = vim.fs.normalize(root_dir)
-  local _let_52_ = opts
-  local force_3f = _let_52_["force"]
-  local verbose_3f = _let_52_["verbose"]
-  local dry_run_3f = _let_52_["dryrun"]
-  local atomic_3f = _let_52_["atomic"]
-  local _let_53_ = require("hotpot.fs")
-  local rm_file = _let_53_["rm-file"]
-  local copy_file = _let_53_["copy-file"]
+  local _let_54_ = opts
+  local force_3f = _let_54_["force"]
+  local verbose_3f = _let_54_["verbose"]
+  local dry_run_3f = _let_54_["dryrun"]
+  local atomic_3f = _let_54_["atomic"]
+  local _let_55_ = require("hotpot.fs")
+  local rm_file = _let_55_["rm-file"]
+  local copy_file = _let_55_["copy-file"]
   local compiler_options = opts.compiler
-  local _let_54_ = find_compile_targets(root_dir0, build_spec)
-  local all_compile_targets = _let_54_["build"]
-  local all_ignore_targets = _let_54_["ignore"]
+  local _let_56_ = find_compile_targets(root_dir0, build_spec)
+  local all_compile_targets = _let_56_["build"]
+  local all_ignore_targets = _let_56_["ignore"]
   local force_3f0
-  local function _55_()
-    local _56_ = opts["infer-force-for-file"]
-    if (nil ~= _56_) then
-      local file = _56_
-      local function _57_(_241)
+  local function _57_()
+    local _58_ = opts["infer-force-for-file"]
+    if (nil ~= _58_) then
+      local file = _58_
+      local function _59_(_241)
         return (_241.src == file)
       end
-      return any_3f(_57_, all_ignore_targets)
+      return any_3f(_59_, all_ignore_targets)
     elseif true then
-      local _ = _56_
+      local _ = _58_
       return false
     else
       return nil
     end
   end
-  force_3f0 = (force_3f or _55_())
+  force_3f0 = (force_3f or _57_())
   local focused_compile_target
-  local function _61_(_59_)
-    local _arg_60_ = _59_
-    local src = _arg_60_["src"]
-    local dest = _arg_60_["dest"]
+  local function _63_(_61_)
+    local _arg_62_ = _61_
+    local src = _arg_62_["src"]
+    local dest = _arg_62_["dest"]
     return (force_3f0 or needs_compile_3f(src, dest))
   end
-  focused_compile_target = filter(_61_, all_compile_targets)
+  focused_compile_target = filter(_63_, all_compile_targets)
   local compile_results = do_compile(focused_compile_target, compiler_options, root_dir0)
   local any_errors_3f
-  local function _62_(_241)
+  local function _64_(_241)
     return not _241["compiled?"]
   end
-  any_errors_3f = any_3f(_62_, compile_results)
-  local function _65_(_63_)
-    local _arg_64_ = _63_
-    local tmp_path = _arg_64_["tmp-path"]
-    local dest = _arg_64_["dest"]
+  any_errors_3f = any_3f(_64_, compile_results)
+  local function _67_(_65_)
+    local _arg_66_ = _65_
+    local tmp_path = _arg_66_["tmp-path"]
+    local dest = _arg_66_["dest"]
     if tmp_path then
       if (not dry_run_3f and (not atomic_3f or not any_errors_3f)) then
         copy_file(tmp_path, dest)
@@ -308,15 +318,15 @@ local function do_build(opts, root_dir, build_spec)
       return nil
     end
   end
-  map(_65_, compile_results)
+  map(_67_, compile_results)
   report_compile_results(compile_results, {["any-errors?"] = any_errors_3f, ["dry-run?"] = dry_run_3f, ["verbose?"] = verbose_3f, ["atomic?"] = atomic_3f})
   local _return
   do
     local tbl_14_auto = {}
-    for _, _68_ in ipairs(all_compile_targets) do
-      local _each_69_ = _68_
-      local src = _each_69_["src"]
-      local dest = _each_69_["dest"]
+    for _, _70_ in ipairs(all_compile_targets) do
+      local _each_71_ = _70_
+      local src = _each_71_["src"]
+      local dest = _each_71_["dest"]
       local k_15_auto, v_16_auto = src, {src = src, dest = dest}
       if ((k_15_auto ~= nil) and (v_16_auto ~= nil)) then
         tbl_14_auto[k_15_auto] = v_16_auto
@@ -328,19 +338,19 @@ local function do_build(opts, root_dir, build_spec)
   local _return0
   do
     local tbl_14_auto = _return
-    for _, _71_ in ipairs(compile_results) do
-      local _each_72_ = _71_
-      local src = _each_72_["src"]
-      local compiled_3f = _each_72_["compiled?"]
-      local err = _each_72_["err"]
+    for _, _73_ in ipairs(compile_results) do
+      local _each_74_ = _73_
+      local src = _each_74_["src"]
+      local compiled_3f = _each_74_["compiled?"]
+      local err = _each_74_["err"]
       local k_15_auto, v_16_auto = nil, nil
-      local function _74_()
-        local _73_ = _return[src]
-        _73_["compiled?"] = compiled_3f
-        _73_["err"] = err
-        return _73_
+      local function _76_()
+        local _75_ = _return[src]
+        _75_["compiled?"] = compiled_3f
+        _75_["err"] = err
+        return _75_
       end
-      k_15_auto, v_16_auto = src, _74_()
+      k_15_auto, v_16_auto = src, _76_()
       if ((k_15_auto ~= nil) and (v_16_auto ~= nil)) then
         tbl_14_auto[k_15_auto] = v_16_auto
       else
@@ -361,14 +371,14 @@ local function do_build(opts, root_dir, build_spec)
   return tbl_17_auto
 end
 local function do_clean(clean_targets, opts)
-  local _let_77_ = require("hotpot.fs")
-  local rm_file = _let_77_["rm-file"]
+  local _let_79_ = require("hotpot.fs")
+  local rm_file = _let_79_["rm-file"]
   for _, file in ipairs(clean_targets) do
-    local _78_, _79_ = rm_file(file)
-    if (_78_ == true) then
+    local _80_, _81_ = rm_file(file)
+    if (_80_ == true) then
       vim.notify(string.format("rm %s", file), vim.log.levels.WARN)
-    elseif ((_78_ == false) and (nil ~= _79_)) then
-      local e = _79_
+    elseif ((_80_ == false) and (nil ~= _81_)) then
+      local e = _81_
       vim.notify(string.format("Could not clean file %s, %s", file, e), vim.log.levels.ERROR)
     else
     end
@@ -376,30 +386,30 @@ local function do_clean(clean_targets, opts)
   return nil
 end
 M.build = function(...)
-  local _81_ = {...}
-  local function _82_(...)
-    local root = (_81_)[1]
-    local build_specs = (_81_)[2]
+  local _83_ = {...}
+  local function _84_(...)
+    local root = (_83_)[1]
+    local build_specs = (_83_)[2]
     return (string_3f(root) and table_3f(build_specs))
   end
-  if (((_G.type(_81_) == "table") and (nil ~= (_81_)[1]) and (nil ~= (_81_)[2]) and ((_81_)[3] == nil)) and _82_(...)) then
-    local root = (_81_)[1]
-    local build_specs = (_81_)[2]
+  if (((_G.type(_83_) == "table") and (nil ~= (_83_)[1]) and (nil ~= (_83_)[2]) and ((_83_)[3] == nil)) and _84_(...)) then
+    local root = (_83_)[1]
+    local build_specs = (_83_)[2]
     return do_build(merge_with_default_options({}), root, build_specs)
   else
-    local function _83_(...)
-      local root = (_81_)[1]
-      local opts = (_81_)[2]
-      local build_specs = (_81_)[3]
+    local function _85_(...)
+      local root = (_83_)[1]
+      local opts = (_83_)[2]
+      local build_specs = (_83_)[3]
       return (string_3f(root) and table_3f(opts) and table_3f(build_specs))
     end
-    if (((_G.type(_81_) == "table") and (nil ~= (_81_)[1]) and (nil ~= (_81_)[2]) and (nil ~= (_81_)[3]) and ((_81_)[4] == nil)) and _83_(...)) then
-      local root = (_81_)[1]
-      local opts = (_81_)[2]
-      local build_specs = (_81_)[3]
+    if (((_G.type(_83_) == "table") and (nil ~= (_83_)[1]) and (nil ~= (_83_)[2]) and (nil ~= (_83_)[3]) and ((_83_)[4] == nil)) and _85_(...)) then
+      local root = (_83_)[1]
+      local opts = (_83_)[2]
+      local build_specs = (_83_)[3]
       return do_build(merge_with_default_options(opts), root, build_specs)
     elseif true then
-      local _ = _81_
+      local _ = _83_
       return vim.notify(("The hotpot.api.make usage has changed, please see\n" .. ":h hotpot-cookbook-using-dot-hotpot\n" .. ":h hotpot.api.make\n" .. "Unfortunately it was not possible to support both options simultaneously :( sorry."), vim.log.levels.WARN)
     else
       return nil
@@ -412,7 +422,7 @@ end
 do
   local function build_spec_or_default(given_spec)
     local default_spec = {{"fnl/**/*macro*.fnl", false}, {"fnl/**/*.fnl", true}}
-    local function _86_()
+    local function _88_()
       if (given_spec == true) then
         return {default_spec, {}}
       elseif ((_G.type(given_spec) == "table") and ((_G.type(given_spec[1]) == "table") and ((given_spec[1])[1] == nil)) and (given_spec[2] == nil)) then
@@ -429,20 +439,20 @@ do
         return nil
       end
     end
-    local _let_85_ = _86_()
-    local spec = _let_85_[1]
-    local opts = _let_85_[2]
+    local _let_87_ = _88_()
+    local spec = _let_87_[1]
+    local opts = _let_87_[2]
     return {["build-spec"] = spec, ["build-options"] = opts}
   end
   local function clean_spec_or_default(clean_spec)
     if (clean_spec == true) then
       return {{"lua/**/*.lua", true}}
     else
-      local function _87_()
+      local function _89_()
         local t = clean_spec
         return table_3f(t)
       end
-      if ((nil ~= clean_spec) and _87_()) then
+      if ((nil ~= clean_spec) and _89_()) then
         local t = clean_spec
         return t
       else
@@ -452,123 +462,123 @@ do
   end
   local function handle_config(config, current_file, root_dir)
     if config.build then
-      local function _89_(...)
-        local _90_, _91_ = ...
-        if ((_G.type(_90_) == "table") and (nil ~= (_90_)["build-spec"]) and (nil ~= (_90_)["build-options"])) then
-          local build_spec = (_90_)["build-spec"]
-          local build_options = (_90_)["build-options"]
-          local function _92_(...)
-            local _93_, _94_ = ...
-            if (_93_ == true) then
-              local function _95_(...)
-                local _96_, _97_ = ...
+      local function _91_(...)
+        local _92_, _93_ = ...
+        if ((_G.type(_92_) == "table") and (nil ~= (_92_)["build-spec"]) and (nil ~= (_92_)["build-options"])) then
+          local build_spec = (_92_)["build-spec"]
+          local build_options = (_92_)["build-options"]
+          local function _94_(...)
+            local _95_, _96_ = ...
+            if (_95_ == true) then
+              local function _97_(...)
+                local _98_, _99_ = ...
                 if true then
-                  local _ = _96_
-                  local function _98_(...)
-                    local _99_, _100_ = ...
+                  local _ = _98_
+                  local function _100_(...)
+                    local _101_, _102_ = ...
                     if true then
-                      local _0 = _99_
-                      local function _101_(...)
-                        local _102_, _103_ = ...
-                        if (nil ~= _102_) then
-                          local compile_results = _102_
-                          local function _104_(...)
-                            local _105_, _106_ = ...
-                            if (nil ~= _105_) then
-                              local any_errors_3f = _105_
+                      local _0 = _101_
+                      local function _103_(...)
+                        local _104_, _105_ = ...
+                        if (nil ~= _104_) then
+                          local compile_results = _104_
+                          local function _106_(...)
+                            local _107_, _108_ = ...
+                            if (nil ~= _107_) then
+                              local any_errors_3f = _107_
                               if (config.clean and not build_options.dryrun and (not build_options.atomic or (build_options.atomic and not any_errors_3f))) then
-                                local function _107_(...)
-                                  local _108_, _109_ = ...
-                                  if (nil ~= _108_) then
-                                    local clean_spec = _108_
-                                    local function _110_(...)
-                                      local _111_, _112_ = ...
-                                      if (_111_ == true) then
-                                        local function _113_(...)
-                                          local _114_, _115_ = ...
-                                          if (nil ~= _114_) then
-                                            local clean_targets = _114_
+                                local function _109_(...)
+                                  local _110_, _111_ = ...
+                                  if (nil ~= _110_) then
+                                    local clean_spec = _110_
+                                    local function _112_(...)
+                                      local _113_, _114_ = ...
+                                      if (_113_ == true) then
+                                        local function _115_(...)
+                                          local _116_, _117_ = ...
+                                          if (nil ~= _116_) then
+                                            local clean_targets = _116_
                                             return do_clean(clean_targets, build_options)
-                                          elseif ((_114_ == nil) and (nil ~= _115_)) then
-                                            local e = _115_
+                                          elseif ((_116_ == nil) and (nil ~= _117_)) then
+                                            local e = _117_
                                             return vim.notify(e, vim.log.levels.ERROR)
                                           else
                                             return nil
                                           end
                                         end
-                                        return _113_(find_clean_targets(root_dir, clean_spec, compile_results))
-                                      elseif ((_111_ == nil) and (nil ~= _112_)) then
-                                        local e = _112_
+                                        return _115_(find_clean_targets(root_dir, clean_spec, compile_results))
+                                      elseif ((_113_ == nil) and (nil ~= _114_)) then
+                                        local e = _114_
                                         return vim.notify(e, vim.log.levels.ERROR)
                                       else
                                         return nil
                                       end
                                     end
-                                    return _110_(validate_spec("clean", clean_spec))
-                                  elseif ((_108_ == nil) and (nil ~= _109_)) then
-                                    local e = _109_
+                                    return _112_(validate_spec("clean", clean_spec))
+                                  elseif ((_110_ == nil) and (nil ~= _111_)) then
+                                    local e = _111_
                                     return vim.notify(e, vim.log.levels.ERROR)
                                   else
                                     return nil
                                   end
                                 end
-                                return _107_(clean_spec_or_default(config.clean))
+                                return _109_(clean_spec_or_default(config.clean))
                               else
                                 return nil
                               end
-                            elseif ((_105_ == nil) and (nil ~= _106_)) then
-                              local e = _106_
+                            elseif ((_107_ == nil) and (nil ~= _108_)) then
+                              local e = _108_
                               return vim.notify(e, vim.log.levels.ERROR)
                             else
                               return nil
                             end
                           end
-                          local function _121_(_241)
+                          local function _123_(_241)
                             return not _241["compiled?"]
                           end
-                          return _104_(any_3f(_121_, compile_results))
-                        elseif ((_102_ == nil) and (nil ~= _103_)) then
-                          local e = _103_
+                          return _106_(any_3f(_123_, compile_results))
+                        elseif ((_104_ == nil) and (nil ~= _105_)) then
+                          local e = _105_
                           return vim.notify(e, vim.log.levels.ERROR)
                         else
                           return nil
                         end
                       end
-                      return _101_(M.build(root_dir, build_options, build_spec))
-                    elseif ((_99_ == nil) and (nil ~= _100_)) then
-                      local e = _100_
+                      return _103_(M.build(root_dir, build_options, build_spec))
+                    elseif ((_101_ == nil) and (nil ~= _102_)) then
+                      local e = _102_
                       return vim.notify(e, vim.log.levels.ERROR)
                     else
                       return nil
                     end
                   end
                   build_options.compiler = config.compiler
-                  return _98_(nil)
-                elseif ((_96_ == nil) and (nil ~= _97_)) then
-                  local e = _97_
+                  return _100_(nil)
+                elseif ((_98_ == nil) and (nil ~= _99_)) then
+                  local e = _99_
                   return vim.notify(e, vim.log.levels.ERROR)
                 else
                   return nil
                 end
               end
               build_options["infer-force-for-file"] = current_file
-              return _95_(nil)
-            elseif ((_93_ == nil) and (nil ~= _94_)) then
-              local e = _94_
+              return _97_(nil)
+            elseif ((_95_ == nil) and (nil ~= _96_)) then
+              local e = _96_
               return vim.notify(e, vim.log.levels.ERROR)
             else
               return nil
             end
           end
-          return _92_(validate_spec("build", build_spec))
-        elseif ((_90_ == nil) and (nil ~= _91_)) then
-          local e = _91_
+          return _94_(validate_spec("build", build_spec))
+        elseif ((_92_ == nil) and (nil ~= _93_)) then
+          local e = _93_
           return vim.notify(e, vim.log.levels.ERROR)
         else
           return nil
         end
       end
-      return _89_(build_spec_or_default(config.build))
+      return _91_(build_spec_or_default(config.build))
     else
       return nil
     end
@@ -576,39 +586,39 @@ do
   local function attach(buf)
     if not (automake_memo["attached-buffers"])[buf] then
       automake_memo["attached-buffers"][buf] = true
-      local function _128_()
-        local _let_129_ = require("hotpot.runtime")
-        local lookup_local_config = _let_129_["lookup-local-config"]
-        local loadfile_local_config = _let_129_["loadfile-local-config"]
+      local function _130_()
+        local _let_131_ = require("hotpot.runtime")
+        local lookup_local_config = _let_131_["lookup-local-config"]
+        local loadfile_local_config = _let_131_["loadfile-local-config"]
         local full_path_current_file = vim.fn.expand("<afile>:p")
-        local function _130_(...)
-          local _131_ = ...
-          if (nil ~= _131_) then
-            local config_path = _131_
-            local function _132_(...)
-              local _133_ = ...
-              if (nil ~= _133_) then
-                local config = _133_
+        local function _132_(...)
+          local _133_ = ...
+          if (nil ~= _133_) then
+            local config_path = _133_
+            local function _134_(...)
+              local _135_ = ...
+              if (nil ~= _135_) then
+                local config = _135_
                 return handle_config(config, full_path_current_file, vim.fs.dirname(config_path))
               elseif true then
-                local __75_auto = _133_
+                local __75_auto = _135_
                 return ...
               else
                 return nil
               end
             end
-            return _132_(loadfile_local_config(config_path))
+            return _134_(loadfile_local_config(config_path))
           elseif true then
-            local __75_auto = _131_
+            local __75_auto = _133_
             return ...
           else
             return nil
           end
         end
-        _130_(lookup_local_config(full_path_current_file))
+        _132_(lookup_local_config(full_path_current_file))
         return nil
       end
-      return vim.api.nvim_create_autocmd("BufWritePost", {buffer = buf, desc = ("hotpot-check-dot-hotpot-dot-lua-for-" .. buf), callback = _128_})
+      return vim.api.nvim_create_autocmd("BufWritePost", {buffer = buf, desc = ("hotpot-check-dot-hotpot-dot-lua-for-" .. buf), callback = _130_})
     else
       return nil
     end
@@ -616,7 +626,7 @@ do
   local function enable()
     if not automake_memo.augroup then
       automake_memo.augroup = vim.api.nvim_create_augroup("hotpot-automake-enabled", {clear = true})
-      local function _137_(event)
+      local function _139_(event)
         if ((_G.type(event) == "table") and (event.match == "fennel") and (nil ~= event.buf)) then
           local buf = event.buf
           attach(buf)
@@ -624,7 +634,7 @@ do
         end
         return nil
       end
-      return vim.api.nvim_create_autocmd("FileType", {group = automake_memo.augroup, pattern = "fennel", desc = "Hotpot automake auto-attach", callback = _137_})
+      return vim.api.nvim_create_autocmd("FileType", {group = automake_memo.augroup, pattern = "fennel", desc = "Hotpot automake auto-attach", callback = _139_})
     else
       return nil
     end

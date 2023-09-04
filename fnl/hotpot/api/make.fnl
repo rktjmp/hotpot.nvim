@@ -80,6 +80,15 @@
 
 (fn do-compile [compile-targets compiler-options root-dir]
   (let [{: compile-file} (require :hotpot.lang.fennel.compiler)]
+    ;; Issue https://github.com/rktjmp/hotpot.nvim/issues/117
+    ;; Macro modules are retained in memory, so even if they're edited,
+    ;; we compile with the older version and output incorrect code.
+    ;; For now (?) we will force all macros to be reloaded each time make is
+    ;; called to ensure they're reloaded.
+    (case package.loaded
+      {:hotpot.fennel fennel} (each [k _ (pairs fennel.macro-loaded)]
+                                (tset fennel.macro-loaded k nil)))
+
     (map (fn [{: src : dest}]
            (let [tmp-path (.. (vim.fn.tempname) :.lua)
                  ;; We compile via absolute paths since the cwd might not be
