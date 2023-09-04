@@ -44,11 +44,11 @@ local read_file = _local_1_["read-file"]
 local write_file = _local_1_["write-file"]
 local fnl_path = (vim.fn.stdpath("config") .. "/fnl/" .. "abc" .. ".fnl")
 local lua_path = (vim.fn.stdpath("cache") .. "/hotpot/compiled/" .. NVIM_APPNAME .. "/lua/" .. "abc" .. ".lua")
-write_file(fnl_path, "{:works true}")
+write_file(fnl_path, "{:first true}")
 require("abc")
 do
   local _4_ = read_file(lua_path)
-  if (_4_ == "return {works = true}") then
+  if (_4_ == "return {first = true}") then
     OK(string.format("Outputs correct lua code"))
   elseif true then
     local __1_auto = _4_
@@ -56,16 +56,82 @@ do
   else
   end
 end
-write_file(fnl_path, "{:verks true}")
+local stats_a = vim.loop.fs_stat(lua_path)
+vim.loop.sleep(50)
+write_file(fnl_path, "{:second true}")
 package.loaded.abc = nil
 require("abc")
+local stats_b = vim.loop.fs_stat(lua_path)
 do
   local _6_ = read_file(lua_path)
-  if (_6_ == "return {verks = true}") then
+  if (_6_ == "return {second = true}") then
     OK(string.format("Outputs updated lua code"))
   elseif true then
     local __1_auto = _6_
     FAIL(string.format("Outputs updated lua code"))
+  else
+  end
+end
+do
+  local _8_ = (stats_a.size == stats_b.size)
+  if (_8_ == false) then
+    OK(string.format("size changed"))
+  elseif true then
+    local __1_auto = _8_
+    FAIL(string.format("size changed"))
+  else
+  end
+end
+do
+  local _10_ = (stats_a.mtime.nsec == stats_b.mtime.nsec)
+  if (_10_ == false) then
+    OK(string.format("mtime.nsec changed"))
+  elseif true then
+    local __1_auto = _10_
+    FAIL(string.format("mtime.nsec changed"))
+  else
+  end
+end
+package.loaded.abc = nil
+require("abc")
+local stats_c = vim.loop.fs_stat(lua_path)
+do
+  local _12_ = read_file(lua_path)
+  if (_12_ == "return {second = true}") then
+    OK(string.format("Didnt alter lua code"))
+  elseif true then
+    local __1_auto = _12_
+    FAIL(string.format("Didnt alter lua code"))
+  else
+  end
+end
+do
+  local _14_ = (stats_b.size == stats_c.size)
+  if (_14_ == true) then
+    OK(string.format("size same"))
+  elseif true then
+    local __1_auto = _14_
+    FAIL(string.format("size same"))
+  else
+  end
+end
+do
+  local _16_ = (stats_b.mtime.sec == stats_c.mtime.sec)
+  if (_16_ == true) then
+    OK(string.format("mtime.sec same"))
+  elseif true then
+    local __1_auto = _16_
+    FAIL(string.format("mtime.sec same"))
+  else
+  end
+end
+do
+  local _18_ = (stats_b.mtime.nsec == stats_c.mtime.nsec)
+  if (_18_ == true) then
+    OK(string.format("mtime.nsec same"))
+  elseif true then
+    local __1_auto = _18_
+    FAIL(string.format("mtime.nsec same"))
   else
   end
 end

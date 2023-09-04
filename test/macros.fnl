@@ -1,8 +1,8 @@
 (fn expect [shape expr message ...]
   `(case ,expr
-    ,shape (do
-             (OK (string.format ,message ,...))
-             true)
+     (where ,shape) (do
+                      (OK (string.format ,message ,...))
+                      true)
     _# (do
          (FAIL (string.format ,message ,...))
          false)))
