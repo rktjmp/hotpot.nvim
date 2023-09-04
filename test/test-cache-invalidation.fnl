@@ -1,4 +1,4 @@
-(import-macros {: setup : expect} :test.macros)
+(import-macros {: setup : expect : in-sub-nvim} :test.macros)
 (setup)
 
 (local fnl-path (.. (vim.fn.stdpath :config) :/fnl/ :abc :.fnl))
@@ -9,32 +9,41 @@
                     :abc
                     :.lua))
 
+;; Spawn requires in separate processes so vim.loader sees the new lua in the
+;; second require call, instead of contrively busting the rtp in the test
+;; (feels too orthogonal to real use).
+
 (write-file fnl-path "{:first true}")
-(require :abc)
-(expect "return {first = true}" (read-file lua-path)
-        "Outputs correct lua code")
+(expect 1 (in-sub-nvim "require('abc') os.exit(1)"))
 (local stats_a (vim.loop.fs_stat lua-path))
+(expect "return {first = true}" (read-file lua-path)
+        "First require outputs lua code")
 
-(vim.loop.sleep 50)
+;; "edit" the file
 (write-file fnl-path "{:second true}")
-(set package.loaded.abc nil)
-(require :abc)
+(expect 1 (in-sub-nvim "require('abc') os.exit(1)"))
 (local stats_b (vim.loop.fs_stat lua-path))
+
 (expect "return {second = true}" (read-file lua-path)
-        "Outputs updated lua code")
+        "Second require outputs updated lua code")
+(expect false (= stats_a.size stats_b.size)
+        "Recompiled file size changed")
+;; We dont check mtime.sec since it will be the same in most cases without a
+;; long sleep time.
+(expect false (= stats_a.mtime.nsec stats_b.mtime.nsec)
+        "Recompiled file mtime.nsec changed")
 
-(expect false (= stats_a.size stats_b.size) "size changed")
-; (expect false (= stats_a.mtime.sec stats_b.mtime.sec) "mtime.sec changed")
-(expect false (= stats_a.mtime.nsec stats_b.mtime.nsec) "mtime.nsec changed")
-
-(set package.loaded.abc nil)
-(require :abc)
+;; make no changes but re-require
+(expect 1 (in-sub-nvim "require('abc') os.exit(1)"))
 (local stats_c (vim.loop.fs_stat lua-path))
-(expect "return {second = true}" (read-file lua-path)
-        "Didnt alter lua code")
 
-(expect true (= stats_b.size stats_c.size) "size same")
-(expect true (= stats_b.mtime.sec stats_c.mtime.sec) "mtime.sec same")
-(expect true (= stats_b.mtime.nsec stats_c.mtime.nsec) "mtime.nsec same")
+(expect "return {second = true}" (read-file lua-path)
+        "Third require did not alter lua code")
+(expect true (= stats_b.size stats_c.size)
+        "Third require and second require stat.size is the same")
+(expect true (= stats_b.mtime.sec stats_c.mtime.sec)
+        "Third require and second require stat.mtime.sec is the same")
+(expect true (= stats_b.mtime.nsec stats_c.mtime.nsec)
+        "Third require and second require stat.mtime.nsec is the same")
 
 (exit)
