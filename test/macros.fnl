@@ -1,10 +1,10 @@
 (fn expect [shape expr message ...]
   `(case ,expr
      (where ,shape) (do
-                      (OK (string.format ,message ,...))
+                      (OK (string.format (or ,message "") ,...))
                       true)
     _# (do
-         (FAIL (string.format ,message ,...))
+         (FAIL (string.format (or ,message "") ,...))
          false)))
 
 (fn setup []
