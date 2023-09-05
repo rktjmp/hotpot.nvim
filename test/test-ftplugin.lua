@@ -55,7 +55,7 @@ do
   do
     local fname = string.format("sub-nvim-%s.lua", vim.loop.hrtime())
     write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "vim.cmd('set ft=arst') print('set ft') os.exit(1)")))
-    vim.cmd(string.format("!%s -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
+    vim.cmd(string.format("!%s --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
     _5_ = vim.v.shell_error
   end
   if (_5_ == 255) then
@@ -82,7 +82,7 @@ do
   do
     local fname = string.format("sub-nvim-%s.lua", vim.loop.hrtime())
     write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "vim.cmd('set ft=arst') print('set ft') os.exit(1)")))
-    vim.cmd(string.format("!%s -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
+    vim.cmd(string.format("!%s --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
     _9_ = vim.v.shell_error
   end
   if (_9_ == 1) then

@@ -156,12 +156,14 @@ local function compile_file(fnl_path, lua_path, modules_options, macros_options,
     end
   end
   local function do_compile()
-    local _let_27_ = require("hotpot.fs")
-    local read_file_21 = _let_27_["read-file!"]
-    local write_file_21 = _let_27_["write-file!"]
-    local is_lua_path_3f = _let_27_["is-lua-path?"]
-    local is_fnl_path_3f = _let_27_["is-fnl-path?"]
-    local make_path = _let_27_["make-path"]
+    local _let_27_ = require("hotpot.runtime")
+    local windows_3f = _let_27_["windows?"]
+    local _let_28_ = require("hotpot.fs")
+    local read_file_21 = _let_28_["read-file!"]
+    local write_file_21 = _let_28_["write-file!"]
+    local is_lua_path_3f = _let_28_["is-lua-path?"]
+    local is_fnl_path_3f = _let_28_["is-fnl-path?"]
+    local make_path = _let_28_["make-path"]
     local _
     if not is_fnl_path_3f(fnl_path) then
       local failed_what_1_auto = "(is-fnl-path? fnl-path)"
@@ -180,79 +182,80 @@ local function compile_file(fnl_path, lua_path, modules_options, macros_options,
     end
     local fnl_code
     do
-      local _30_, _31_ = read_file_21(fnl_path)
-      if ((_30_ == nil) and (nil ~= _31_)) then
-        local err = _31_
+      local _31_, _32_ = read_file_21(fnl_path)
+      if ((_31_ == nil) and (nil ~= _32_)) then
+        local err = _32_
         fnl_code = error(err)
-      elseif (nil ~= _30_) then
-        local src = _30_
+      elseif (nil ~= _31_) then
+        local src = _31_
         fnl_code = src
       else
         fnl_code = nil
       end
     end
+    assert((not windows_3f or (windows_3f and (#lua_path < 259))), string.format(("Lua path length (%s) was over the maximum supported by windows and " .. "can't be saved. Try using ':h hotpot-dot-hotpot' with build = true to " .. "compile to a shorter path."), lua_path))
     if not modules_options.filename then
       modules_options["filename"] = fnl_path
     else
     end
-    local _34_, _35_ = compile_string(fnl_code, modules_options, macros_options, _3fpreprocessor)
-    if ((_34_ == true) and (nil ~= _35_)) then
-      local lua_code = _35_
+    local _35_, _36_ = compile_string(fnl_code, modules_options, macros_options, _3fpreprocessor)
+    if ((_35_ == true) and (nil ~= _36_)) then
+      local lua_code = _36_
       check_existing(lua_path)
       make_path(vim.fs.dirname(lua_path))
       return write_file_21(lua_path, lua_code)
-    elseif ((_34_ == false) and (nil ~= _35_)) then
-      local errors = _35_
+    elseif ((_35_ == false) and (nil ~= _36_)) then
+      local errors = _36_
       return error(errors)
     else
       return nil
     end
   end
-  local function _37_(_241)
+  local function _38_(_241)
     local lines = vim.split(_241, "\n")
-    local function _39_()
-      local _var_40_ = {"", true}
-      local s = _var_40_[1]
-      local c = _var_40_[2]
+    local function _40_()
+      local _var_41_ = {"", true}
+      local s = _var_41_[1]
+      local c = _var_41_[2]
       for _, line in ipairs(lines) do
         if not c then break end
-        local function _43_()
-          local _42_ = string.find(line, "stack traceback:", 1, true)
-          if (_42_ == 1) then
+        local function _44_()
+          local _43_ = string.find(line, "stack traceback:", 1, true)
+          if (_43_ == 1) then
             return {s, false}
           elseif true then
-            local _0 = _42_
+            local _0 = _43_
             return {(s .. line .. "\n"), true}
           else
             return nil
           end
         end
-        local _set_41_ = _43_()
-        s = _set_41_[1]
-        c = _set_41_[2]
+        local _set_42_ = _44_()
+        s = _set_42_[1]
+        c = _set_42_[2]
       end
       return {s, c}
     end
-    local _let_38_ = _39_()
-    local s = _let_38_[1]
-    local _ = _let_38_[2]
+    local _let_39_ = _40_()
+    local s = _let_39_[1]
+    local _ = _let_39_[2]
     return s
   end
-  return xpcall(do_compile, _37_)
+  return xpcall(do_compile, _38_)
 end
 local function compile_record(record, modules_options, macros_options, preprocessor)
-  _G.assert((nil ~= preprocessor), "Missing argument preprocessor on fnl/hotpot/lang/fennel/compiler.fnl:134")
-  _G.assert((nil ~= macros_options), "Missing argument macros-options on fnl/hotpot/lang/fennel/compiler.fnl:134")
-  _G.assert((nil ~= modules_options), "Missing argument modules-options on fnl/hotpot/lang/fennel/compiler.fnl:134")
-  _G.assert((nil ~= record), "Missing argument record on fnl/hotpot/lang/fennel/compiler.fnl:134")
-  local _let_45_ = require("hotpot.dependency-map")
-  local deps_for_fnl_path = _let_45_["deps-for-fnl-path"]
-  local _let_46_ = record
-  local lua_path = _let_46_["lua-path"]
-  local src_path = _let_46_["src-path"]
-  local modname = _let_46_["modname"]
-  local _let_47_ = require("hotpot.lang.fennel.dependency-tracker")
-  local new_macro_dep_tracking_plugin = _let_47_["new"]
+  _G.assert((nil ~= preprocessor), "Missing argument preprocessor on fnl/hotpot/lang/fennel/compiler.fnl:139")
+  _G.assert((nil ~= macros_options), "Missing argument macros-options on fnl/hotpot/lang/fennel/compiler.fnl:139")
+  _G.assert((nil ~= modules_options), "Missing argument modules-options on fnl/hotpot/lang/fennel/compiler.fnl:139")
+  _G.assert((nil ~= record), "Missing argument record on fnl/hotpot/lang/fennel/compiler.fnl:139")
+  local _let_46_ = require("hotpot.dependency-map")
+  local deps_for_fnl_path = _let_46_["deps-for-fnl-path"]
+  local _let_47_ = record
+  local lua_path = _let_47_["lua-path"]
+  local src_path = _let_47_["src-path"]
+  local modname = _let_47_["modname"]
+  local _let_48_ = require("hotpot.lang.fennel.dependency-tracker")
+  local new_macro_dep_tracking_plugin = _let_48_["new"]
   local modules_options0
   do
     modules_options["module-name"] = modname
@@ -263,30 +266,30 @@ local function compile_record(record, modules_options, macros_options, preproces
   local plugin = new_macro_dep_tracking_plugin(src_path, modname)
   table.insert(modules_options0.plugins, 1, plugin)
   local ok_3f, extra = nil, nil
-  local function _48_(...)
-    local _49_ = ...
-    if (_49_ == true) then
-      local function _50_(...)
-        local _51_ = ...
-        if (nil ~= _51_) then
-          local deps = _51_
+  local function _49_(...)
+    local _50_ = ...
+    if (_50_ == true) then
+      local function _51_(...)
+        local _52_ = ...
+        if (nil ~= _52_) then
+          local deps = _52_
           return true, deps
         elseif true then
-          local __75_auto = _51_
+          local __75_auto = _52_
           return ...
         else
           return nil
         end
       end
-      return _50_((deps_for_fnl_path(src_path) or {}))
+      return _51_((deps_for_fnl_path(src_path) or {}))
     elseif true then
-      local __75_auto = _49_
+      local __75_auto = _50_
       return ...
     else
       return nil
     end
   end
-  ok_3f, extra = _48_(compile_file(src_path, lua_path, modules_options0, macros_options, preprocessor))
+  ok_3f, extra = _49_(compile_file(src_path, lua_path, modules_options0, macros_options, preprocessor))
   table.remove(modules_options0.plugins, 1)
   return ok_3f, extra
 end

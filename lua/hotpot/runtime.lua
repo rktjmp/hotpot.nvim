@@ -60,11 +60,25 @@ local function loadfile_local_config(path)
   end
   return _7_(loadfile(path))
 end
+local windows_3f = (nil ~= string.find(string.lower(vim.loop.os_uname().sysname), "windows"))
+M["windows?"] = function()
+  return windows_3f
+end
+if not vim.loop.fs_realpath(vim.fn.stdpath("cache")) then
+  vim.fn.mkdir(vim.fn.stdpath("cache"), "p")
+else
+end
+local NVIM_CACHE_DIR = vim.fs.normalize(vim.loop.fs_realpath(vim.fn.stdpath("cache")))
+M["cache-root-path"] = function()
+  local _let_16_ = require("hotpot.fs")
+  local join_path = _let_16_["join-path"]
+  return join_path(NVIM_CACHE_DIR, "hotpot")
+end
 M["default-config"] = function()
-  local function _15_(src)
+  local function _17_(src)
     return src
   end
-  return {compiler = {modules = {}, macros = {env = "_COMPILER"}, preprocessor = _15_, traceback = "hotpot"}, enable_hotpot_diagnostics = true, provide_require_fennel = false}
+  return {compiler = {modules = {}, macros = {env = "_COMPILER"}, preprocessor = _17_, traceback = "hotpot"}, enable_hotpot_diagnostics = true, provide_require_fennel = false}
 end
 local user_config = M["default-config"]()
 M["user-config"] = function()
@@ -73,63 +87,63 @@ end
 M["set-user-config"] = function(given_config)
   local new_config = M["default-config"]()
   for _, k in ipairs({"preprocessor", "modules", "macros", "traceback"}) do
-    local _16_
+    local _18_
     do
-      local t_17_ = given_config
-      if (nil ~= t_17_) then
-        t_17_ = (t_17_).compiler
+      local t_19_ = given_config
+      if (nil ~= t_19_) then
+        t_19_ = (t_19_).compiler
       else
       end
-      if (nil ~= t_17_) then
-        t_17_ = (t_17_)[k]
+      if (nil ~= t_19_) then
+        t_19_ = (t_19_)[k]
       else
       end
-      _16_ = t_17_
+      _18_ = t_19_
     end
-    if (nil ~= _16_) then
-      local val = _16_
+    if (nil ~= _18_) then
+      local val = _18_
       new_config["compiler"][k] = val
     else
     end
   end
   do
-    local _21_
+    local _23_
     do
-      local t_22_ = given_config
-      if (nil ~= t_22_) then
-        t_22_ = (t_22_).provide_require_fennel
+      local t_24_ = given_config
+      if (nil ~= t_24_) then
+        t_24_ = (t_24_).provide_require_fennel
       else
       end
-      _21_ = t_22_
+      _23_ = t_24_
     end
-    if (nil ~= _21_) then
-      local val = _21_
+    if (nil ~= _23_) then
+      local val = _23_
       new_config["provide_require_fennel"] = val
     else
     end
   end
   do
-    local _25_
+    local _27_
     do
-      local t_26_ = given_config
-      if (nil ~= t_26_) then
-        t_26_ = (t_26_).enable_hotpot_diagnostics
+      local t_28_ = given_config
+      if (nil ~= t_28_) then
+        t_28_ = (t_28_).enable_hotpot_diagnostics
       else
       end
-      _25_ = t_26_
+      _27_ = t_28_
     end
-    if (nil ~= _25_) then
-      local val = _25_
+    if (nil ~= _27_) then
+      local val = _27_
       new_config["enable_hotpot_diagnostics"] = val
     else
     end
   end
   do
-    local _29_ = new_config.compiler.traceback
-    if (_29_ == "hotpot") then
-    elseif (_29_ == "fennel") then
+    local _31_ = new_config.compiler.traceback
+    if (_31_ == "hotpot") then
+    elseif (_31_ == "fennel") then
     elseif true then
-      local _ = _29_
+      local _ = _31_
       error("invalid config.compiler.traceback value, must be 'hotpot' or 'fennel'")
     else
     end
@@ -141,15 +155,15 @@ M["lookup-local-config"] = function(file)
   return lookup_local_config(file)
 end
 M["loadfile-local-config"] = function(config_path)
-  local _31_, _32_ = loadfile_local_config(config_path)
-  if (nil ~= _31_) then
-    local config = _31_
+  local _33_, _34_ = loadfile_local_config(config_path)
+  if (nil ~= _33_) then
+    local config = _33_
     return config
-  elseif ((_31_ == nil) and (nil ~= _32_)) then
-    local err = _32_
+  elseif ((_33_ == nil) and (nil ~= _34_)) then
+    local err = _34_
     vim.notify(fmt(("Hotpot could not load local config due to lua error.\n" .. "Path: %s\n" .. "Error: %s"), config_path, err), vim.log.levels.WARN)
     return nil
-  elseif (_31_ == nil) then
+  elseif (_33_ == nil) then
     vim.notify(fmt(("Hotpot found local config but it return nil, update it to return a table insead.\n" .. "Path: %s\n"), config_path), vim.log.levels.WARN)
     return nil
   else
@@ -160,16 +174,16 @@ M["config-for-context"] = function(file)
   if (nil == file) then
     return M["user-config"]()
   else
-    local _34_ = M["lookup-local-config"](file)
-    if (_34_ == nil) then
+    local _36_ = M["lookup-local-config"](file)
+    if (_36_ == nil) then
       return M["user-config"]()
-    elseif (nil ~= _34_) then
-      local config_path = _34_
-      local _35_ = M["loadfile-local-config"](config_path)
-      if (nil ~= _35_) then
-        local config = _35_
+    elseif (nil ~= _36_) then
+      local config_path = _36_
+      local _37_ = M["loadfile-local-config"](config_path)
+      if (nil ~= _37_) then
+        local config = _37_
         return config
-      elseif (_35_ == nil) then
+      elseif (_37_ == nil) then
         vim.notify("Using safe defaults", vim.log.levels.WARN)
         return M["default-config"]()
       else
@@ -182,11 +196,11 @@ M["config-for-context"] = function(file)
 end
 M["set-user-config"](M["default-config"]())
 M["proxied-keys"] = "traceback"
-local function _39_(_241, _242)
+local function _41_(_241, _242)
   if (_242 == "traceback") then
     return lazy_traceback()
   else
     return nil
   end
 end
-return setmetatable(M, {__index = _39_})
+return setmetatable(M, {__index = _41_})
