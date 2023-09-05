@@ -4,18 +4,13 @@
         : file-stat
         : rm-file : join-path} (require :hotpot.fs))
 
+;; Special "try search again" value when we adjust the FS for reasons and
+;; want to act like we didnt.
 (local REPEAT_SEARCH :REPEAT_SEARCH)
-(local CACHE_ROOT (-> (vim.fn.stdpath :cache)
-                      ;; this must be ordered fs_realpath -> normalize
-                      (vim.loop.fs_realpath) ;; windows RUNNER~1 -> runneradmin
-                      (vim.fs.normalize) ;; windows \\ -> /
-                      (join-path :hotpot)))
 
-;; Warning: if you change this :compiled
-;; dir, you must also change the read-only
-;; nix fix in boostrap.fnl
 (fn cache-path-for-compiled-artefact [...]
-  (join-path CACHE_ROOT :compiled ...))
+  (let [{: cache-root-path} (require :hotpot.runtime)]
+    (join-path (cache-root-path) :compiled ...)))
 
 (local {:fetch fetch-index :save save-index :drop drop-index
         :new-ftplugin make-ftplugin-record

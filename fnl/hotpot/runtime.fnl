@@ -41,6 +41,22 @@
                 (string.lower)
                 (string.find :windows))))
 (fn M.windows? [] windows?)
+
+;; For windows compatiblity, we must call uv.fs_realpath on stdpath(:cache) to
+;; convert short-name (users/RUNNER~1) paths to long-names (users/runneradmin).
+;; uv.fs_realpath returns nil if the path does not exist, so we have to ensure
+;; the cache "root" exists (eg temp/nvim) immediately before we ever try
+;; constructing what will be our path strings inside the neovim cache dir.
+(when (not (vim.loop.fs_realpath (vim.fn.stdpath :cache)))
+  (vim.fn.mkdir (vim.fn.stdpath :cache) :p))
+(local NVIM_CACHE_DIR (-> (vim.fn.stdpath :cache)
+                          ;; this must be ordered fs_realpath -> normalize
+                          (vim.loop.fs_realpath) ;; windows RUNNER~1 -> runneradmin
+                          (vim.fs.normalize))) ;; windows \\ -> /
+(fn M.cache-root-path []
+  (let [{: join-path} (require :hotpot.fs)]
+    (join-path NVIM_CACHE_DIR :hotpot)))
+
 (fn M.default-config []
   "Return a new hotpot configuration table with default options."
   {:compiler {:modules {}

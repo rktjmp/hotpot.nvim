@@ -21,6 +21,7 @@
 (local {: file-exists? : file-missing? : read-file!
         : file-stat : rm-file
         : make-path : join-path} (require :hotpot.fs))
+(local {: windows? : cache-root-path} (require :hotpot.runtime))
 
 (local uri-encode (or (and vim.uri_encode #(vim.uri_encode $1 :rfc2396))
                       ;; backported from nvim-0.10
@@ -30,9 +31,7 @@
                               rfc2396-pattern "([^A-Za-z0-9%-_.!~*'()])"]
                           (pick-values 1 (string.gsub str rfc2396-pattern percent-encode-char))))))
 
-
-(local CACHE_ROOT (join-path (vim.fn.stdpath :cache) :hotpot))
-(local INDEX_ROOT_PATH (join-path CACHE_ROOT :index))
+(local INDEX_ROOT_PATH (join-path (cache-root-path) :index))
 
 (local INDEX_VERSION 2)
 (local RECORD_TYPE_MODULE 1)

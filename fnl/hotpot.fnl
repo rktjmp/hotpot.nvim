@@ -1,13 +1,5 @@
 (assert (= 1 (vim.fn.has "nvim-0.9.1")) "Hotpot requires neovim 0.9.1+")
 
-;; For windows compatiblity, we must call uv.fs_realpath on stdpath(:cache) to
-;; convert short-name (users/RUNNER~1) paths to long-names (users/runneradmin).
-;; uv.fs_realpath returns nil if the path does not exist, so we have to ensure
-;; the cache "root" exists (eg temp/nvim) immediately before we ever try
-;; constructing what will be our path strings inside the neovim cache dir.
-(when (not (vim.loop.fs_realpath (vim.fn.stdpath :cache)))
-  (vim.fn.mkdir (vim.fn.stdpath :cache) :p))
-
 (let [{: make-searcher : compiled-cache-path} (require :hotpot.loader)
       {: join-path : make-path} (require :hotpot.fs)
       {: set-lazy-proxy} (require :hotpot.common)
