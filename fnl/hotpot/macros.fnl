@@ -33,7 +33,17 @@
                            (ex x#)
                            (table.concat ,body " ")))))
 
+(fn fmtdoc [...]
+  "(fmtdoc :strings :to :concat :and format values)"
+  (-> (faccumulate [[body mode] [`(..) :concat] i 1 (select :# ...)]
+        (case [(select i ...) mode]
+          (where [str :concat] (= :string (type str))) [(doto body (table.insert str)) :concat]
+          [val :concat] [`(string.format ,body ,val) :format]
+          [val :format] [(doto body (table.insert val)) :format]))
+      (. 1)))
+
 {: expect
  : ferror
  : dprint
- : profile-as}
+ : profile-as
+ : fmtdoc}
