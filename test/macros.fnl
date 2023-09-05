@@ -22,7 +22,7 @@
                          (.. "vim.opt.runtimepath:prepend(vim.loop.cwd())
                              require('hotpot')
                              " ,code) ,...))
-     (vim.cmd (string.format "!%s -S %s" (or vim.env.NVIM_BIN :nvim) fname))
+     (vim.cmd (string.format "!%s --headless -S %s" (or vim.env.NVIM_BIN :nvim) fname))
      (values vim.v.shell_error)))
 
 {: setup : expect : in-sub-nvim}

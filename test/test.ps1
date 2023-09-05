@@ -15,7 +15,7 @@ foreach ($t in $tests) {
     $randomNumber = Get-Random -Minimum 1 -Maximum 999
     $env:NVIM_APPNAME = "${randomNumber}_${timestamp}"
     $env:NVIM_BIN = "c:\tools\neovim\nvim-win64\bin\nvim"
-    c:\tools\neovim\nvim-win64\bin\nvim +"set columns=1000" -l $t.FullName
+    c:\tools\neovim\nvim-win64\bin\nvim --headless +"set columns=1000" -l $t.FullName
     if ($LastExitCode -ne 0) {
         Write-Output "SUITE FAILED $t"
         $failed_count = 1
