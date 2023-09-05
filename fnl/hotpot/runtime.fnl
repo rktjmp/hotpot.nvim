@@ -35,6 +35,12 @@
       (false e) (values nil e)
       (nil e) (values nil e))))
 
+(local windows?
+  (not= nil (-> (vim.loop.os_uname)
+                (. :sysname)
+                (string.lower)
+                (string.find :windows))))
+(fn M.windows? [] windows?)
 (fn M.default-config []
   "Return a new hotpot configuration table with default options."
   {:compiler {:modules {}
