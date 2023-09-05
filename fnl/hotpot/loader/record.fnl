@@ -97,8 +97,8 @@
     (catch
       (false e) (ferror "Could not save record for %s\nReason: %s" record.lua-path e)
       (nil e) (ferror "Could not save record for %s\nReason: %s" record.lua-path e)
-      e (ferror "unknown error when saving record %s %s"
-                (vim.inspect record) (vim.inspect e)))))
+      ?e (ferror "unknown error when saving record %s %s"
+                (vim.inspect record) (vim.inspect ?e)))))
 
 (λ drop [record]
   "Drop record from the index. Returns true or raises"
