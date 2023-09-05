@@ -1,4 +1,4 @@
-(import-macros {: expect : dprint} :hotpot.macros)
+(import-macros {: expect : dprint : fmtdoc} :hotpot.macros)
 (local {:format fmt} string)
 
 ;; we only want to inject the macro searcher once, but we also
@@ -105,7 +105,8 @@
       (expect (or (= :file type) (= nil type))
               "Refusing to write to %q, it exists as a %s" path type)))
   (fn do-compile []
-    (let [{: read-file!
+    (let [{: windows?} (require :hotpot.runtime)
+          {: read-file!
            : write-file!
            : is-lua-path?
            : is-fnl-path?
@@ -115,6 +116,10 @@
           fnl-code (case (read-file! fnl-path)
                      (nil err) (error err)
                      src src)]
+      (assert (or (not windows?) (and windows? (< (length lua-path) 259)))
+              (fmtdoc "Lua path length (%s) was over the maximum supported by windows and "
+                      "can't be saved. Try using ':h hotpot-dot-hotpot' with build = true to "
+                      "compile to a shorter path." lua-path))
       (if (not modules-options.filename)
         (tset modules-options :filename fnl-path))
       (case (compile-string fnl-code modules-options macros-options ?preprocessor)
