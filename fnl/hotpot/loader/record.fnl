@@ -15,7 +15,7 @@
 ;;; colocation.
 ;;;
 
-(import-macros {: ferror} :hotpot.macros)
+(import-macros {: ferror : fmtdoc} :hotpot.macros)
 
 (local {:format fmt} string)
 (local {: file-exists? : file-missing? : read-file!
@@ -44,8 +44,22 @@
   (= RECORD_TYPE_FTPLUGIN (?. r :type)))
 
 (λ path->index-key [path]
-  (let [path (vim.fs.normalize path)]
-    (join-path INDEX_ROOT_PATH (.. (uri-encode path :rfc2396) :-metadata.mpack))))
+  (let [normalize-path (vim.fs.normalize path)
+        uri-path (.. (uri-encode normalize-path :rfc2396) :-metadata.mpack)
+        uri-index-path (join-path INDEX_ROOT_PATH uri-path)]
+    ;; windows has a hard limit on path length, so if we cant fit our uri
+    ;; encoded path try a known length sha, then die.
+    (if (or (not windows?) (and windows? (< (length uri-index-path) 259)))
+      (values uri-index-path)
+      (let [sha-path (vim.fn.sha256 normalize-path)
+            sha-index-path (.. (join-path INDEX_ROOT_PATH sha-path) :-metadata.mpack)]
+        (if (< (length sha-index-path) 259)
+          (values sha-index-path)
+          (values false (fmtdoc "The generated index-path for %s was over windows "
+                                "maximum allowed path length. You may encounter "
+                                "issues with building new versions of this file. "
+                                "Consider trying `:h hotpot-dot-hotpot` with build = true."
+                                path)))))))
 
 (fn load [lua-path]
   (case-try
@@ -72,8 +86,8 @@
     record (case record
              (where record (module? record)) record
              (where record (ftplugin? record)) record
-             _ (values nil  (fmt "Could not load record, unknown type. Record: %s"
-                                 (vim.inspect record))))
+             _ (values nil (fmt "Could not load record, unknown type. Record: %s"
+                                (vim.inspect record))))
     (false e) nil
     _ nil))
 
