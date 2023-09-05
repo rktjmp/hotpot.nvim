@@ -5,7 +5,11 @@
         : rm-file : join-path} (require :hotpot.fs))
 
 (local REPEAT_SEARCH :REPEAT_SEARCH)
-(local CACHE_ROOT (join-path (vim.fn.stdpath :cache) :hotpot))
+(local CACHE_ROOT (-> (vim.fn.stdpath :cache)
+                      ;; this must be ordered fs_realpath -> normalize
+                      (vim.loop.fs_realpath) ;; windows RUNNER~1 -> runneradmin
+                      (vim.fs.normalize) ;; windows \\ -> /
+                      (join-path :hotpot)))
 
 ;; Warning: if you change this :compiled
 ;; dir, you must also change the read-only
