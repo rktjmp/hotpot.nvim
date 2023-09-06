@@ -228,12 +228,12 @@ require("hotpot").setup({
     -- options passed to fennel.compile for macros, defaults as shown
     macros = {
       env = "_COMPILER" -- MUST be set along with any other options
-    }
+    },
+    -- A function that accepts a string of fennel source and a table of
+    -- of some information. Can be used to alter fennel code before it is
+    -- compiled.
+    preprocessor = nil
   }
-  -- A function that accepts a string of fennel source and a table of
-  -- of some information. Can be used to alter fennel code before it is
-  -- compiled.
-  preprocessor = nil
 })
 ```
 
@@ -254,15 +254,15 @@ require("hotpot").setup({
 
 <!-- panvimdoc-include-comment
 
-- `preprocessor` is a function that accepts the fennel source code as a string,
-and an table, `{: path : modname : macro?}`.
+- `compiler.preprocessor` is a function that accepts the fennel source code as a string,
+and an table, `{: path : modname : macro}`.
 
 -->
 
 <!-- panvimdoc-ignore-start -->
 
-- `preprocessor` is a function that accepts the fennel source code as a string,
-and an table, `{: path : modname : macro?}`.
+- `compiler.preprocessor` is a function that accepts the fennel source code as a string,
+and an table, `{: path : modname : macro}`.
 
 <!-- panvimdoc-ignore-end -->
 
