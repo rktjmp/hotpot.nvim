@@ -364,18 +364,10 @@
       false (or (. package :preload modname)
                 (find-module modname)))))
 
-(λ make-module-record-loader [module-record-maker modname src-path]
-  (let [index (module-record-maker modname src-path)
-        loader (record-loadfile index)]
-    loader))
-
-(λ make-ftplugin-record-loader [ftplugin-record-maker modname src-path]
-  (let [index (ftplugin-record-maker modname src-path)
-        loader (record-loadfile index)]
-    loader))
+(λ make-record-loader [record]
+  (record-loadfile record))
 
 {: make-searcher
  :compiled-cache-path (cache-path-for-compiled-artefact)
  : cache-path-for-compiled-artefact
- : make-module-record-loader
- : make-ftplugin-record-loader}
+ : make-record-loader}
