@@ -53,7 +53,7 @@ write_file(fnl_path, "(os.exit 255)")
 do
   local _5_
   do
-    local fname = string.format("sub-nvim-%s.lua", vim.loop.hrtime())
+    local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
     write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "vim.cmd('set ft=arst') print('set ft') os.exit(1)")))
     vim.cmd(string.format("!%s --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
     _5_ = vim.v.shell_error
@@ -80,7 +80,7 @@ vim.loop.fs_unlink(fnl_path)
 do
   local _9_
   do
-    local fname = string.format("sub-nvim-%s.lua", vim.loop.hrtime())
+    local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
     write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "vim.cmd('set ft=arst') print('set ft') os.exit(1)")))
     vim.cmd(string.format("!%s --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
     _9_ = vim.v.shell_error

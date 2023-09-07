@@ -17,7 +17,7 @@
        (include :test.utils)))
 
 (fn in-sub-nvim [code ...]
-  `(let [,(sym :fname) (string.format "sub-nvim-%s.lua" (vim.loop.hrtime))]
+  `(let [,(sym :fname) (string.format "sub-nvim-%d.lua" (vim.loop.hrtime))]
      (write-file fname (string.format
                          (.. "vim.opt.runtimepath:prepend(vim.loop.cwd())
                              require('hotpot')

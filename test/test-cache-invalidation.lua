@@ -48,7 +48,7 @@ write_file(fnl_path, "{:first true}")
 do
   local _4_
   do
-    local fname = string.format("sub-nvim-%s.lua", vim.loop.hrtime())
+    local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
     write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "require('abc') os.exit(1)")))
     vim.cmd(string.format("!%s --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
     _4_ = vim.v.shell_error
@@ -76,7 +76,7 @@ write_file(fnl_path, "{:second true}")
 do
   local _8_
   do
-    local fname = string.format("sub-nvim-%s.lua", vim.loop.hrtime())
+    local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
     write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "require('abc') os.exit(1)")))
     vim.cmd(string.format("!%s --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
     _8_ = vim.v.shell_error
@@ -123,7 +123,7 @@ end
 do
   local _16_
   do
-    local fname = string.format("sub-nvim-%s.lua", vim.loop.hrtime())
+    local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
     write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "require('abc') os.exit(1)")))
     vim.cmd(string.format("!%s --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
     _16_ = vim.v.shell_error
