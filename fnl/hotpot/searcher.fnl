@@ -3,7 +3,16 @@
 (fn slash-modname [modname]
   (string.gsub modname "%." :/))
 
-(fn search-runtime-path [spec]
+(fn globsearch-runtime-path [spec]
+  (let [{: all? : glob : path} spec
+        limit (if all? -1 1)]
+    (accumulate [matches []
+                 _ path (ipairs (vim.fn.globpath path glob true true))
+                 &until (= limit (length matches))]
+      (doto matches (table.insert
+                      (vim.fs.normalize path {:expand_env false}))))))
+
+(fn modsearch-runtime-path [spec]
   "Search Neovim RTP for given spec, returns a list of results which may
   contain at most one or many results depending on all? option."
   (let [{: join-path} (require :hotpot.fs)
@@ -17,7 +26,7 @@
                 (vim.fs.normalize path {:expand_env false}))
         _ matches))))
 
-(fn search-package-path [spec]
+(fn modsearch-package-path [spec]
   "Search lua package.path for fnl files, returns a list but will only ever find at most one match."
   (let [{: file-exists?} (require :hotpot.fs)
         {: modnames : extension} spec
@@ -31,7 +40,7 @@
                      (where (path 1) (file-exists? path)) (vim.fs.normalize path {:expand_env false}))))]
   [result]))
 
-(λ search [spec]
+(λ mod-search [spec]
   "Searches RTP and then package.path for file(s) that satisfiy the given
   search specifications. Returns a list with 1 or many absolute paths to
   files that match the given mod names or nil.
@@ -45,6 +54,8 @@
 
   prefix: A directory to search inside of when performing RTP searches. Does
     not effect package.path searches. Ex: :fnl
+
+  The spec may contain:
 
   all?: true or false dictating whether to return more than the first match.
     Does not effect package.path searches.
@@ -60,8 +71,36 @@
     (each [_ key (ipairs [:modnames :extension :prefix])]
       (assert (. spec key) (.. "search spec must have " key " field")))
     (case-try
-      (if spec.runtime-path? (search-runtime-path spec) []) [nil]
-      (if spec.package-path? (search-package-path spec) []) [nil]
+      (if spec.runtime-path? (modsearch-runtime-path spec) []) [nil]
+      (if spec.package-path? (modsearch-package-path spec) []) [nil]
       (values nil))))
 
-{: search}
+(λ glob-search [spec]
+  "Searches the RTP for files that match the given glob pattern. Returns a list
+  with 1 or many absolute paths to files that were found or nil.
+
+  The spec must contain the following keys:
+
+  glob: glob pattern to match on
+
+  The spec may contain the following keys:
+
+  all?: true or false, return all matches or only the first. Defaults to false.
+
+  path: string, defaults to vim.go.rtp."
+  (let [defaults {:all? false
+                  :path vim.go.rtp}
+        spec (vim.tbl_extend :keep spec defaults)]
+    (each [_ key (ipairs [:glob])]
+      (assert (. spec key) (.. "glob-search spec must have " key " field")))
+    (case (globsearch-runtime-path spec)
+      ;; Return nil so the interface is consistent with mod-search, which
+      ;; traditionally returns nil for loader reasons. Probably we could
+      ;; normalise on an empty list instead, its more "safe" to just throw the
+      ;; call inside ipairs, etc.
+      ;; TODO: replace search returns with [] instead of nil
+      [nil] nil
+      paths paths)))
+
+{:search mod-search
+ : glob-search}

@@ -31,7 +31,7 @@ uri_encode = ((vim.uri_encode and _4_) or _5_)
 local INDEX_ROOT_PATH = join_path(cache_root_path(), "index")
 local INDEX_VERSION = 2
 local RECORD_TYPE_MODULE = 1
-local RECORD_TYPE_FTPLUGIN = 2
+local RECORD_TYPE_RUNTIME = 2
 local function module_3f(r)
   local _10_
   do
@@ -44,7 +44,7 @@ local function module_3f(r)
   end
   return (RECORD_TYPE_MODULE == _10_)
 end
-local function ftplugin_3f(r)
+local function runtime_3f(r)
   local _13_
   do
     local t_12_ = r
@@ -54,10 +54,10 @@ local function ftplugin_3f(r)
     end
     _13_ = t_12_
   end
-  return (RECORD_TYPE_FTPLUGIN == _13_)
+  return (RECORD_TYPE_RUNTIME == _13_)
 end
 local function path__3eindex_key(path)
-  _G.assert((nil ~= path), "Missing argument path on fnl/hotpot/loader/record.fnl:46")
+  _G.assert((nil ~= path), "Missing argument path on fnl/hotpot/loader/record.fnl:38")
   local normalize_path = vim.fs.normalize(path)
   local uri_path = (uri_encode(normalize_path, "rfc2396") .. "-metadata.mpack")
   local uri_index_path = join_path(INDEX_ROOT_PATH, uri_path)
@@ -364,7 +364,7 @@ local function fetch(lua_path)
     else
       local function _93_()
         local record0 = record
-        return ftplugin_3f(record0)
+        return runtime_3f(record0)
       end
       if ((nil ~= record) and _93_()) then
         local record0 = record
@@ -569,10 +569,10 @@ local function save(record)
       return nil
     end
   end
-  return _96_((module_3f(record) or ftplugin_3f(record)))
+  return _96_((module_3f(record) or runtime_3f(record)))
 end
 local function drop(record)
-  _G.assert((nil ~= record), "Missing argument record on fnl/hotpot/loader/record.fnl:116")
+  _G.assert((nil ~= record), "Missing argument record on fnl/hotpot/loader/record.fnl:108")
   local function _137_(...)
     local _138_, _139_ = ...
     if (nil ~= _138_) then
@@ -599,16 +599,16 @@ local function drop(record)
   return _137_(path__3eindex_key(record["lua-path"]))
 end
 local function new(type, modname, src_path, _3fopts)
-  _G.assert((nil ~= src_path), "Missing argument src-path on fnl/hotpot/loader/record.fnl:125")
-  _G.assert((nil ~= modname), "Missing argument modname on fnl/hotpot/loader/record.fnl:125")
-  _G.assert((nil ~= type), "Missing argument type on fnl/hotpot/loader/record.fnl:125")
+  _G.assert((nil ~= src_path), "Missing argument src-path on fnl/hotpot/loader/record.fnl:117")
+  _G.assert((nil ~= modname), "Missing argument modname on fnl/hotpot/loader/record.fnl:117")
+  _G.assert((nil ~= type), "Missing argument type on fnl/hotpot/loader/record.fnl:117")
   local module
   do
     local _145_, _146_ = type
     if (_145_ == RECORD_TYPE_MODULE) then
       module = "hotpot.loader.record.module"
-    elseif (_145_ == RECORD_TYPE_FTPLUGIN) then
-      module = "hotpot.loader.record.ftplugin"
+    elseif (_145_ == RECORD_TYPE_RUNTIME) then
+      module = "hotpot.loader.record.runtime"
     elseif true then
       local _ = _145_
       module = error(string.format("Could not create record, unknown type: %s at %s", type, src_path))
@@ -624,8 +624,8 @@ local function new(type, modname, src_path, _3fopts)
   return vim.tbl_extend("force", record, {type = type, ["lua-path-mtime-at-save"] = 0, ["lua-path-size-at-save"] = 0, files = {{path = src_path0, mtime = {sec = 0, nsec = 0}, size = 0}}})
 end
 local function set_record_files(record, files)
-  _G.assert((nil ~= files), "Missing argument files on fnl/hotpot/loader/record.fnl:143")
-  _G.assert((nil ~= record), "Missing argument record on fnl/hotpot/loader/record.fnl:143")
+  _G.assert((nil ~= files), "Missing argument files on fnl/hotpot/loader/record.fnl:135")
+  _G.assert((nil ~= record), "Missing argument record on fnl/hotpot/loader/record.fnl:135")
   local files0
   do
     table.insert(files, 1, record["src-path"])
@@ -668,6 +668,6 @@ local function _154_(...)
   return new(RECORD_TYPE_MODULE, ...)
 end
 local function _155_(...)
-  return new(RECORD_TYPE_FTPLUGIN, ...)
+  return new(RECORD_TYPE_RUNTIME, ...)
 end
-return {save = save, fetch = fetch, drop = drop, ["new-module"] = _154_, ["new-ftplugin"] = _155_, ["set-record-files"] = set_record_files, ["lua-file-modified?"] = lua_file_modified_3f}
+return {save = save, fetch = fetch, drop = drop, ["new-module"] = _154_, ["new-runtime"] = _155_, ["set-record-files"] = set_record_files, ["lua-file-modified?"] = lua_file_modified_3f}

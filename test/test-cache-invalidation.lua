@@ -50,7 +50,7 @@ do
   do
     local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
     write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "require('abc') os.exit(1)")))
-    vim.cmd(string.format("!%s --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
+    vim.cmd(string.format("!%s +'set columns=1000' --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
     _4_ = vim.v.shell_error
   end
   if (_4_ == 1) then
@@ -78,7 +78,7 @@ do
   do
     local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
     write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "require('abc') os.exit(1)")))
-    vim.cmd(string.format("!%s --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
+    vim.cmd(string.format("!%s +'set columns=1000' --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
     _8_ = vim.v.shell_error
   end
   if (_8_ == 1) then
@@ -125,7 +125,7 @@ do
   do
     local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
     write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "require('abc') os.exit(1)")))
-    vim.cmd(string.format("!%s --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
+    vim.cmd(string.format("!%s +'set columns=1000' --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
     _16_ = vim.v.shell_error
   end
   if (_16_ == 1) then

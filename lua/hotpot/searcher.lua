@@ -1,14 +1,33 @@
 local function slash_modname(modname)
   return string.gsub(modname, "%.", "/")
 end
-local function search_runtime_path(spec)
-  local _let_1_ = require("hotpot.fs")
-  local join_path = _let_1_["join-path"]
-  local _let_2_ = spec
-  local all_3f = _let_2_["all?"]
-  local modnames = _let_2_["modnames"]
-  local prefix = _let_2_["prefix"]
-  local extension = _let_2_["extension"]
+local function globsearch_runtime_path(spec)
+  local _let_1_ = spec
+  local all_3f = _let_1_["all?"]
+  local glob = _let_1_["glob"]
+  local path = _let_1_["path"]
+  local limit
+  if all_3f then
+    limit = -1
+  else
+    limit = 1
+  end
+  local matches = {}
+  for _, path0 in ipairs(vim.fn.globpath(path, glob, true, true)) do
+    if (limit == #matches) then break end
+    table.insert(matches, vim.fs.normalize(path0, {expand_env = false}))
+    matches = matches
+  end
+  return matches
+end
+local function modsearch_runtime_path(spec)
+  local _let_3_ = require("hotpot.fs")
+  local join_path = _let_3_["join-path"]
+  local _let_4_ = spec
+  local all_3f = _let_4_["all?"]
+  local modnames = _let_4_["modnames"]
+  local prefix = _let_4_["prefix"]
+  local extension = _let_4_["extension"]
   local paths
   do
     local tbl_17_auto = {}
@@ -32,9 +51,9 @@ local function search_runtime_path(spec)
   local matches = {}
   for _, possible_path in ipairs(paths) do
     if (limit == #matches) then break end
-    local _5_ = vim.api.nvim_get_runtime_file(possible_path, all_3f)
-    if (nil ~= _5_) then
-      local paths0 = _5_
+    local _7_ = vim.api.nvim_get_runtime_file(possible_path, all_3f)
+    if (nil ~= _7_) then
+      local paths0 = _7_
       local tbl_17_auto = matches
       local i_18_auto = #tbl_17_auto
       for _0, path in ipairs(paths0) do
@@ -47,7 +66,7 @@ local function search_runtime_path(spec)
       end
       matches = tbl_17_auto
     elseif true then
-      local _0 = _5_
+      local _0 = _7_
       matches = matches
     else
       matches = nil
@@ -55,12 +74,12 @@ local function search_runtime_path(spec)
   end
   return matches
 end
-local function search_package_path(spec)
-  local _let_8_ = require("hotpot.fs")
-  local file_exists_3f = _let_8_["file-exists?"]
-  local _let_9_ = spec
-  local modnames = _let_9_["modnames"]
-  local extension = _let_9_["extension"]
+local function modsearch_package_path(spec)
+  local _let_10_ = require("hotpot.fs")
+  local file_exists_3f = _let_10_["file-exists?"]
+  local _let_11_ = spec
+  local modnames = _let_11_["modnames"]
+  local extension = _let_11_["extension"]
   local modnames0
   do
     local tbl_17_auto = {}
@@ -77,13 +96,13 @@ local function search_package_path(spec)
   end
   local templates = string.gmatch((package.path .. ";"), "(.-);")
   local build_path_with
-  local function _11_(modname)
-    local function _12_(_241, _242)
+  local function _13_(modname)
+    local function _14_(_241, _242)
       return (_241 .. modname .. _242 .. "." .. extension)
     end
-    return _12_
+    return _14_
   end
-  build_path_with = _11_
+  build_path_with = _13_
   local result
   do
     local template_match = nil
@@ -92,13 +111,13 @@ local function search_package_path(spec)
       local mod_match = nil
       for _, modname in ipairs(modnames0) do
         if mod_match then break end
-        local _13_, _14_ = string.gsub(template, "(.*)%?(.*)%.lua$", build_path_with(modname))
-        local function _15_()
-          local path = _13_
+        local _15_, _16_ = string.gsub(template, "(.*)%?(.*)%.lua$", build_path_with(modname))
+        local function _17_()
+          local path = _15_
           return file_exists_3f(path)
         end
-        if (((nil ~= _13_) and (_14_ == 1)) and _15_()) then
-          local path = _13_
+        if (((nil ~= _15_) and (_16_ == 1)) and _17_()) then
+          local path = _15_
           mod_match = vim.fs.normalize(path, {expand_env = false})
         else
           mod_match = nil
@@ -110,49 +129,66 @@ local function search_package_path(spec)
   end
   return {result}
 end
-local function search(spec)
-  _G.assert((nil ~= spec), "Missing argument spec on fnl/hotpot/searcher.fnl:34")
+local function mod_search(spec)
+  _G.assert((nil ~= spec), "Missing argument spec on fnl/hotpot/searcher.fnl:43")
   local defaults = {["runtime-path?"] = true, ["package-path?"] = true, ["all?"] = false}
   local spec0 = vim.tbl_extend("keep", spec, defaults)
   for _, key in ipairs({"modnames", "extension", "prefix"}) do
     assert((spec0)[key], ("search spec must have " .. key .. " field"))
   end
-  local function _17_(...)
-    local _18_ = ...
-    if ((_G.type(_18_) == "table") and ((_18_)[1] == nil)) then
-      local function _19_(...)
-        local _20_ = ...
-        if ((_G.type(_20_) == "table") and ((_20_)[1] == nil)) then
+  local function _19_(...)
+    local _20_ = ...
+    if ((_G.type(_20_) == "table") and ((_20_)[1] == nil)) then
+      local function _21_(...)
+        local _22_ = ...
+        if ((_G.type(_22_) == "table") and ((_22_)[1] == nil)) then
           return nil
         elseif true then
-          local __75_auto = _20_
+          local __75_auto = _22_
           return ...
         else
           return nil
         end
       end
-      local function _22_(...)
+      local function _24_(...)
         if spec0["package-path?"] then
-          return search_package_path(spec0)
+          return modsearch_package_path(spec0)
         else
           return {}
         end
       end
-      return _19_(_22_(...))
+      return _21_(_24_(...))
     elseif true then
-      local __75_auto = _18_
+      local __75_auto = _20_
       return ...
     else
       return nil
     end
   end
-  local function _24_()
+  local function _26_()
     if spec0["runtime-path?"] then
-      return search_runtime_path(spec0)
+      return modsearch_runtime_path(spec0)
     else
       return {}
     end
   end
-  return _17_(_24_())
+  return _19_(_26_())
 end
-return {search = search}
+local function glob_search(spec)
+  _G.assert((nil ~= spec), "Missing argument spec on fnl/hotpot/searcher.fnl:78")
+  local defaults = {path = vim.go.rtp, ["all?"] = false}
+  local spec0 = vim.tbl_extend("keep", spec, defaults)
+  for _, key in ipairs({"glob"}) do
+    assert((spec0)[key], ("glob-search spec must have " .. key .. " field"))
+  end
+  local _27_ = globsearch_runtime_path(spec0)
+  if ((_G.type(_27_) == "table") and ((_27_)[1] == nil)) then
+    return nil
+  elseif (nil ~= _27_) then
+    local paths = _27_
+    return paths
+  else
+    return nil
+  end
+end
+return {search = mod_search, ["glob-search"] = glob_search}

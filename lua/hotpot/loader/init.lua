@@ -16,7 +16,6 @@ local _local_4_ = require("hotpot.loader.record")
 local fetch_index = _local_4_["fetch"]
 local save_index = _local_4_["save"]
 local drop_index = _local_4_["drop"]
-local make_ftplugin_record = _local_4_["new-ftplugin"]
 local lua_file_modified_3f = _local_4_["lua-file-modified?"]
 local replace_index_files = _local_4_["set-record-files"]
 local _local_5_ = require("hotpot.lang.fennel")
@@ -682,20 +681,8 @@ local function make_searcher()
   end
   return searcher
 end
-local function make_module_record_loader(module_record_maker, modname, src_path)
-  _G.assert((nil ~= src_path), "Missing argument src-path on fnl/hotpot/loader/init.fnl:367")
-  _G.assert((nil ~= modname), "Missing argument modname on fnl/hotpot/loader/init.fnl:367")
-  _G.assert((nil ~= module_record_maker), "Missing argument module-record-maker on fnl/hotpot/loader/init.fnl:367")
-  local index = module_record_maker(modname, src_path)
-  local loader = record_loadfile(index)
-  return loader
+local function make_record_loader(record)
+  _G.assert((nil ~= record), "Missing argument record on fnl/hotpot/loader/init.fnl:366")
+  return record_loadfile(record)
 end
-local function make_ftplugin_record_loader(ftplugin_record_maker, modname, src_path)
-  _G.assert((nil ~= src_path), "Missing argument src-path on fnl/hotpot/loader/init.fnl:372")
-  _G.assert((nil ~= modname), "Missing argument modname on fnl/hotpot/loader/init.fnl:372")
-  _G.assert((nil ~= ftplugin_record_maker), "Missing argument ftplugin-record-maker on fnl/hotpot/loader/init.fnl:372")
-  local index = ftplugin_record_maker(modname, src_path)
-  local loader = record_loadfile(index)
-  return loader
-end
-return {["make-searcher"] = make_searcher, ["compiled-cache-path"] = cache_path_for_compiled_artefact(), ["cache-path-for-compiled-artefact"] = cache_path_for_compiled_artefact, ["make-module-record-loader"] = make_module_record_loader, ["make-ftplugin-record-loader"] = make_ftplugin_record_loader}
+return {["make-searcher"] = make_searcher, ["compiled-cache-path"] = cache_path_for_compiled_artefact(), ["cache-path-for-compiled-artefact"] = cache_path_for_compiled_artefact, ["make-record-loader"] = make_record_loader}

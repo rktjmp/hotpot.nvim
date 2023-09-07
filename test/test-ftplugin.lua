@@ -47,18 +47,24 @@ local function p(x)
 end
 local _local_4_ = require("hotpot.api.cache")
 local cache_prefix = _local_4_["cache-prefix"]
-local fnl_path = p("/ftplugin/arst.fnl")
-local lua_path = (cache_prefix() .. "/ftplugin-" .. NVIM_APPNAME .. "/lua/hotpot-ftplugin/arst.lua")
-write_file(fnl_path, "(os.exit 255)")
+local fnl_path_1 = p("/ftplugin/arst.fnl")
+local fnl_path_2 = p("/ftplugin/arst/nested.fnl")
+local fnl_path_3 = p("/ftplugin/arst_under.fnl")
+local lua_path_1 = (cache_prefix() .. "/hotpot-runtime-" .. NVIM_APPNAME .. "/lua/hotpot-runtime-ftplugin/arst.lua")
+local lua_path_2 = (cache_prefix() .. "/hotpot-runtime-" .. NVIM_APPNAME .. "/lua/hotpot-runtime-ftplugin/arst/nested.lua")
+local lua_path_3 = (cache_prefix() .. "/hotpot-runtime-" .. NVIM_APPNAME .. "/lua/hotpot-runtime-ftplugin/arst_under.lua")
+write_file(fnl_path_1, "(set _G.t1 1)")
+write_file(fnl_path_2, "(set _G.t2 10)")
+write_file(fnl_path_3, "(set _G.t3 100)")
 do
   local _5_
   do
     local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
-    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "vim.cmd('set ft=arst') print('set ft') os.exit(1)")))
-    vim.cmd(string.format("!%s --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
+    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "_G.t1 = 1\n                         _G.t2 = 1\n                         _G.t3 = 1\n                         vim.cmd('set ft=arst')\n                         vim.defer_fn(function()\n                           os.exit(_G.t1 + _G.t2 + _G.t3)\n                         end, 200)")))
+    vim.cmd(string.format("!%s +'set columns=1000' --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
     _5_ = vim.v.shell_error
   end
-  if (_5_ == 255) then
+  if (_5_ == 111) then
     OK(string.format(("ftplugin ran" or "")))
   elseif true then
     local __1_auto = _5_
@@ -67,7 +73,7 @@ do
   end
 end
 do
-  local _7_ = vim.loop.fs_access(lua_path, "R")
+  local _7_ = (vim.loop.fs_access(lua_path_1, "R") and vim.loop.fs_access(lua_path_2, "R") and vim.loop.fs_access(lua_path_3, "R"))
   if (_7_ == true) then
     OK(string.format(("ftplugin lua file exists" or "")))
   elseif true then
@@ -76,29 +82,57 @@ do
   else
   end
 end
-vim.loop.fs_unlink(fnl_path)
+local stats_a = {x = vim.loop.fs_stat(lua_path_1), y = vim.loop.fs_stat(lua_path_2), z = vim.loop.fs_stat(lua_path_3)}
 do
   local _9_
   do
     local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
-    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "vim.cmd('set ft=arst') print('set ft') os.exit(1)")))
-    vim.cmd(string.format("!%s --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
+    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "_G.t1 = 0\n                         _G.t2 = 0\n                         _G.t3 = 0\n                         vim.cmd('set ft=arst')\n                         vim.defer_fn(function()\n                           os.exit(_G.t1 + _G.t2 + _G.t3)\n                         end, 200)")))
+    vim.cmd(string.format("!%s +'set columns=1000' --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
     _9_ = vim.v.shell_error
   end
-  if (_9_ == 1) then
-    OK(string.format(("ftplugin did not zombie" or "")))
+  if (_9_ == 111) then
+    OK(string.format(("ftplugin ran second time" or "")))
   elseif true then
     local __1_auto = _9_
-    FAIL(string.format(("ftplugin did not zombie" or "")))
+    FAIL(string.format(("ftplugin ran second time" or "")))
+  else
+  end
+end
+local stats_b = {x = vim.loop.fs_stat(lua_path_1), y = vim.loop.fs_stat(lua_path_2), z = vim.loop.fs_stat(lua_path_3)}
+do
+  local _11_ = ((stats_a.x.mtime.sec == stats_b.x.mtime.sec) and (stats_a.x.mtime.nsec == stats_b.x.mtime.nsec) and (stats_a.y.mtime.sec == stats_b.y.mtime.sec) and (stats_a.y.mtime.nsec == stats_b.y.mtime.nsec) and (stats_a.z.mtime.sec == stats_b.z.mtime.sec) and (stats_a.z.mtime.nsec == stats_b.z.mtime.nsec))
+  if (_11_ == true) then
+    OK(string.format(("ftplugin lua file was not recompiled" or "")))
+  elseif true then
+    local __1_auto = _11_
+    FAIL(string.format(("ftplugin lua file was not recompiled" or "")))
+  else
+  end
+end
+vim.loop.fs_unlink(fnl_path_1)
+do
+  local _13_
+  do
+    local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
+    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "_G.t1 = 0\n                         _G.t2 = 0\n                         _G.t3 = 0\n                         vim.cmd('set ft=arst')\n                         vim.defer_fn(function()\n                           os.exit(_G.t1 + _G.t2 + _G.t3)\n                         end, 200)")))
+    vim.cmd(string.format("!%s +'set columns=1000' --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
+    _13_ = vim.v.shell_error
+  end
+  if (_13_ == 110) then
+    OK(string.format(("ftplugin ran second time" or "")))
+  elseif true then
+    local __1_auto = _13_
+    FAIL(string.format(("ftplugin ran second time" or "")))
   else
   end
 end
 if (1 ~= vim.fn.has("win32")) then
-  local _11_ = vim.loop.fs_access(lua_path, "R")
-  if (_11_ == false) then
+  local _15_ = vim.loop.fs_access(lua_path_1, "R")
+  if (_15_ == false) then
     OK(string.format(("ftplugin lua file removed" or "")))
   elseif true then
-    local __1_auto = _11_
+    local __1_auto = _15_
     FAIL(string.format(("ftplugin lua file removed" or "")))
   else
   end
