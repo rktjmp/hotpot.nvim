@@ -13,7 +13,6 @@
     (join-path (cache-root-path) :compiled ...)))
 
 (local {:fetch fetch-index :save save-index :drop drop-index
-        :new-ftplugin make-ftplugin-record
         : lua-file-modified?
         :set-record-files replace-index-files} (require :hotpot.loader.record))
 (local {: make-module-record} (require :hotpot.lang.fennel))

@@ -6,14 +6,6 @@
 ;;; the original source, as well as things such as locations of sigil files or
 ;;; the module namespace. These records are saved to disk in the "index".
 ;;;
-;;; There are currently two record types:
-;;;
-;;; One for regular fennel/lua modules that live in fnl and lua dirs. These
-;;; support features such as colocation.
-;;;
-;;; One for ftplugin modules that live in ftplugin dirs. These do not support
-;;; colocation.
-;;;
 
 (import-macros {: ferror : fmtdoc} :hotpot.macros)
 
@@ -35,13 +27,13 @@
 
 (local INDEX_VERSION 2)
 (local RECORD_TYPE_MODULE 1)
-(local RECORD_TYPE_FTPLUGIN 2)
+(local RECORD_TYPE_RUNTIME 2)
 
 (fn module? [r]
   (= RECORD_TYPE_MODULE (?. r :type)))
 
-(fn ftplugin? [r]
-  (= RECORD_TYPE_FTPLUGIN (?. r :type)))
+(fn runtime? [r]
+  (= RECORD_TYPE_RUNTIME (?. r :type)))
 
 (λ path->index-key [path]
   (let [normalize-path (vim.fs.normalize path)
@@ -85,7 +77,7 @@
   (case (load lua-path)
     record (case record
              (where record (module? record)) record
-             (where record (ftplugin? record)) record
+             (where record (runtime? record)) record
              _ (values nil (fmt "Could not load record, unknown type. Record: %s"
                                 (vim.inspect record))))
     (false e) nil
@@ -94,7 +86,7 @@
 (fn save [record]
   "Save record into the index. Returns the record or raises."
   (case-try
-    (or (module? record) (ftplugin? record)) true
+    (or (module? record) (runtime? record)) true
     record {: lua-path}
     (file-stat lua-path) {: mtime : size}
     (doto record
@@ -127,7 +119,7 @@
   Returns the record or raises if unable to validate the created record."
   (let [module (case type
                  (where (= RECORD_TYPE_MODULE)) :hotpot.loader.record.module
-                 (where (= RECORD_TYPE_FTPLUGIN)) :hotpot.loader.record.ftplugin
+                 (where (= RECORD_TYPE_RUNTIME)) :hotpot.loader.record.runtime
                  _ (ferror "Could not create record, unknown type: %s at %s" type src-path))
         {:new new-type} (require module)
         src-path (vim.fs.normalize src-path)
@@ -157,6 +149,6 @@
 
 {: save : fetch : drop
  :new-module #(new RECORD_TYPE_MODULE $...)
- :new-ftplugin #(new RECORD_TYPE_FTPLUGIN $...)
+ :new-runtime #(new RECORD_TYPE_RUNTIME $...)
  : set-record-files
  : lua-file-modified?}

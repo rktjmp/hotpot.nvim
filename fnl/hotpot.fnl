@@ -3,7 +3,7 @@
 (let [{: make-searcher : compiled-cache-path} (require :hotpot.loader)
       {: join-path : make-path} (require :hotpot.fs)
       {: set-lazy-proxy} (require :hotpot.common)
-      ftplugin (require :hotpot.neovim.ftplugin)
+      neovim-runtime (require :hotpot.neovim.runtime)
       {: automake} (require :hotpot.api.make)]
 
   ;; We must ensure the rtp dir exists now otherwise vim.loader wont see
@@ -13,7 +13,7 @@
   (tset package.loaders 1 (make-searcher))
 
   ;; Use may not all setup, we always want these enabled
-  (ftplugin.enable)
+  (neovim-runtime.enable)
   (automake.enable)
 
   (fn setup [options]

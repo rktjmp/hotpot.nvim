@@ -7,12 +7,12 @@
         opts (vim.tbl_extend :error (or ?opts {})  {:prefix :fnl :extension :fnl})]
     (new-module modname fnl-path opts)))
 
-(fn make-ftplugin-record [modname fnl-path ?opts]
-  (let [{: new-ftplugin} (require :hotpot.loader.record)
+(fn make-runtime-record [modname fnl-path ?opts]
+  (let [{: new-runtime} (require :hotpot.loader.record)
         opts (vim.tbl_extend :error (or ?opts {})  {:extension :fnl})]
-    (new-ftplugin modname fnl-path opts)))
+    (new-runtime modname fnl-path opts)))
 
 {:language :fennel
  : compile-record
- : make-module-record
- : make-ftplugin-record}
+ : make-runtime-record
+ : make-module-record}
