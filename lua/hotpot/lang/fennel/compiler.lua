@@ -51,7 +51,7 @@ local function make_macro_loader(modname, fnl_path)
   options = (compiler_options_stack[1] or {modules = {}, macros = {env = "_COMPILER"}, preprocessor = _9_})
   local preprocessor
   local function _10_(_241)
-    return options.preprocessor(_241, {["macro?"] = true, path = fnl_path, modname = modname})
+    return options.preprocessor(_241, {macro = true, ["macro?"] = true, path = fnl_path, modname = modname})
   end
   preprocessor = _10_
   local options0
@@ -102,9 +102,9 @@ local function macro_searcher(modname)
   return _17_(search(spec))
 end
 local function compile_string(source, modules_options, macros_options, _3fpreprocessor)
-  _G.assert((nil ~= macros_options), "Missing argument macros-options on fnl/hotpot/lang/fennel/compiler.fnl:66")
-  _G.assert((nil ~= modules_options), "Missing argument modules-options on fnl/hotpot/lang/fennel/compiler.fnl:66")
-  _G.assert((nil ~= source), "Missing argument source on fnl/hotpot/lang/fennel/compiler.fnl:66")
+  _G.assert((nil ~= macros_options), "Missing argument macros-options on fnl/hotpot/lang/fennel/compiler.fnl:67")
+  _G.assert((nil ~= modules_options), "Missing argument modules-options on fnl/hotpot/lang/fennel/compiler.fnl:67")
+  _G.assert((nil ~= source), "Missing argument source on fnl/hotpot/lang/fennel/compiler.fnl:67")
   local fennel = require("hotpot.fennel")
   local _let_20_ = require("hotpot.runtime")
   local traceback = _let_20_["traceback"]
@@ -120,7 +120,7 @@ local function compile_string(source, modules_options, macros_options, _3fprepro
     return src
   end
   preprocessor = (_3fpreprocessor or _21_)
-  local source0 = preprocessor(source, {path = modules_options.filename, modname = modules_options.modname, macro = false})
+  local source0 = preprocessor(source, {path = modules_options.filename, modname = modules_options.modname, macro = false, ["macro?"] = false})
   if not injected_macro_searcher_3f then
     table.insert(fennel["macro-searchers"], 1, macro_searcher)
     injected_macro_searcher_3f = true
@@ -139,10 +139,10 @@ local function compile_string(source, modules_options, macros_options, _3fprepro
   return ok_3f, val
 end
 local function compile_file(fnl_path, lua_path, modules_options, macros_options, _3fpreprocessor)
-  _G.assert((nil ~= macros_options), "Missing argument macros-options on fnl/hotpot/lang/fennel/compiler.fnl:99")
-  _G.assert((nil ~= modules_options), "Missing argument modules-options on fnl/hotpot/lang/fennel/compiler.fnl:99")
-  _G.assert((nil ~= lua_path), "Missing argument lua-path on fnl/hotpot/lang/fennel/compiler.fnl:99")
-  _G.assert((nil ~= fnl_path), "Missing argument fnl-path on fnl/hotpot/lang/fennel/compiler.fnl:99")
+  _G.assert((nil ~= macros_options), "Missing argument macros-options on fnl/hotpot/lang/fennel/compiler.fnl:101")
+  _G.assert((nil ~= modules_options), "Missing argument modules-options on fnl/hotpot/lang/fennel/compiler.fnl:101")
+  _G.assert((nil ~= lua_path), "Missing argument lua-path on fnl/hotpot/lang/fennel/compiler.fnl:101")
+  _G.assert((nil ~= fnl_path), "Missing argument fnl-path on fnl/hotpot/lang/fennel/compiler.fnl:101")
   local function check_existing(path)
     local uv = vim.loop
     local _let_25_ = (uv.fs_stat(path) or {})
@@ -244,10 +244,10 @@ local function compile_file(fnl_path, lua_path, modules_options, macros_options,
   return xpcall(do_compile, _38_)
 end
 local function compile_record(record, modules_options, macros_options, preprocessor)
-  _G.assert((nil ~= preprocessor), "Missing argument preprocessor on fnl/hotpot/lang/fennel/compiler.fnl:139")
-  _G.assert((nil ~= macros_options), "Missing argument macros-options on fnl/hotpot/lang/fennel/compiler.fnl:139")
-  _G.assert((nil ~= modules_options), "Missing argument modules-options on fnl/hotpot/lang/fennel/compiler.fnl:139")
-  _G.assert((nil ~= record), "Missing argument record on fnl/hotpot/lang/fennel/compiler.fnl:139")
+  _G.assert((nil ~= preprocessor), "Missing argument preprocessor on fnl/hotpot/lang/fennel/compiler.fnl:141")
+  _G.assert((nil ~= macros_options), "Missing argument macros-options on fnl/hotpot/lang/fennel/compiler.fnl:141")
+  _G.assert((nil ~= modules_options), "Missing argument modules-options on fnl/hotpot/lang/fennel/compiler.fnl:141")
+  _G.assert((nil ~= record), "Missing argument record on fnl/hotpot/lang/fennel/compiler.fnl:141")
   local _let_46_ = require("hotpot.dependency-map")
   local deps_for_fnl_path = _let_46_["deps-for-fnl-path"]
   local _let_47_ = record

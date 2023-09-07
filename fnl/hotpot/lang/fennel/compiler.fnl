@@ -28,7 +28,8 @@
                     {:modules {}
                      :macros {:env :_COMPILER}
                      :preprocessor (fn [src] src)})
-        preprocessor #(options.preprocessor $1 {:macro? true
+        preprocessor #(options.preprocessor $1 {:macro true
+                                                :macro? true
                                                 :path fnl-path
                                                 :modname modname})
         options (doto options.macros
@@ -74,6 +75,7 @@
         _ (spooky-prepare-plugins! options)
         preprocessor (or ?preprocessor (fn [src] src))
         source (preprocessor source {:macro false
+                                     :macro? false
                                      :path modules-options.filename
                                      :modname modules-options.modname})]
     (when (not injected-macro-searcher?)
