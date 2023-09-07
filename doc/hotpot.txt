@@ -100,7 +100,7 @@ likely without the runtimepath alterations.
         "--filter=blob:none",
         "--single-branch",
         -- You may with to pin a known version tag with `--branch=vX.Y.Z`
-        "--branch=v0.9.2",
+        "--branch=v0.9.3",
         "https://github.com/rktjmp/hotpot.nvim.git",
         hotpotpath,
       })
@@ -181,12 +181,12 @@ Fennels configuration options as described on fennel-lang.org
         -- options passed to fennel.compile for macros, defaults as shown
         macros = {
           env = "_COMPILER" -- MUST be set along with any other options
-        }
+        },
+        -- A function that accepts a string of fennel source and a table of
+        -- of some information. Can be used to alter fennel code before it is
+        -- compiled.
+        preprocessor = nil
       }
-      -- A function that accepts a string of fennel source and a table of
-      -- of some information. Can be used to alter fennel code before it is
-      -- compiled.
-      preprocessor = nil
     })
 <
 
@@ -202,8 +202,8 @@ Fennels configuration options as described on fennel-lang.org
 - `compiler.macros` is passed to the Fennel compiler when compiling macro files.
     **Be sure to include env = "_COMPILER"** unless you have a good reason not to.
 
-- `preprocessor` is a function that accepts the fennel source code as a string,
-    and an table, `{: path : modname : macro?}`.
+- `compiler.preprocessor` is a function that accepts the fennel source code as a string,
+    and an table, `{: path : modname : macro}`.
 
 Fennel compiler plugins are supported in two forms, as a table (ie. as
 described by Fennels documentation) and as a string which should be a module
