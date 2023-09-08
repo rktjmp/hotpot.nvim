@@ -27,7 +27,7 @@
 
 (fn any? [f seq]
   (accumulate [x false _ v (ipairs seq) &until x]
-    (f v)))
+    (if (f v) true false)))
 
 (fn none? [f seq]
   (not (any? f seq)))

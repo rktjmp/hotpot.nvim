@@ -263,7 +263,7 @@
              (set build-options.infer-force-for-file current-file) _
              (set build-options.compiler config.compiler) _
              (M.build root-dir build-options build-spec) compile-results
-             (any? #(not $1.compiled?) compile-results) any-errors?
+             (any? #$1.err? compile-results) any-errors?
              (when (and config.clean
                         (not build-options.dryrun)
                         (or (not build-options.atomic)
