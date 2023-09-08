@@ -43,7 +43,9 @@ local exit = _local_1_["exit"]
 local read_file = _local_1_["read-file"]
 local write_file = _local_1_["write-file"]
 local fnl_path = (vim.fn.stdpath("config") .. "/fnl/abc.fnl")
+local fnl_path_2 = (vim.fn.stdpath("config") .. "/fnl/def.fnl")
 local lua_path = (vim.fn.stdpath("config") .. "/lua/abc.lua")
+local lua_path_2 = (vim.fn.stdpath("config") .. "/lua/def.lua")
 local junk_path = (vim.fn.stdpath("config") .. "/lua/junk.lua")
 local lua_cache_path = (vim.fn.stdpath("cache") .. "/hotpot/compiled/" .. NVIM_APPNAME .. "/lua/abc.lua")
 local dot_hotpot_path = (vim.fn.stdpath("config") .. "/.hotpot.lua")
@@ -70,6 +72,7 @@ do
   else
   end
 end
+write_file(fnl_path_2, "{:works :also-true}")
 write_file(dot_hotpot_path, "\nreturn {\n  build = true\n}")
 vim.cmd(string.format("edit %s", fnl_path))
 vim.cmd("set ft=fennel")
@@ -85,23 +88,33 @@ do
   end
 end
 do
-  local _10_ = vim.loop.fs_access(lua_cache_path, "R")
-  if (_10_ == true) then
-    OK(string.format(("previous cache lua still exists" or "")))
+  local _10_ = read_file(lua_path_2)
+  if (_10_ == "return {works = \"also-true\"}") then
+    OK(string.format(("build = true outputs to lua/ dir" or "")))
   elseif true then
     local __1_auto = _10_
+    FAIL(string.format(("build = true outputs to lua/ dir" or "")))
+  else
+  end
+end
+do
+  local _12_ = vim.loop.fs_access(lua_cache_path, "R")
+  if (_12_ == true) then
+    OK(string.format(("previous cache lua still exists" or "")))
+  elseif true then
+    local __1_auto = _12_
     FAIL(string.format(("previous cache lua still exists" or "")))
   else
   end
 end
-write_file(dot_hotpot_path, "\nreturn {\n  build = true,\n  clean = true\n}")
+write_file(dot_hotpot_path, "\nreturn {\n  build = {{atomic = true},\n           {'fnl/**/*.fnl', true}},\n  clean = true,\n}")
 write_file(junk_path, "return 1")
 do
-  local _12_ = vim.loop.fs_access(junk_path, "R")
-  if (_12_ == true) then
+  local _14_ = vim.loop.fs_access(junk_path, "R")
+  if (_14_ == true) then
     OK(string.format(("junk file exists" or "")))
   elseif true then
-    local __1_auto = _12_
+    local __1_auto = _14_
     FAIL(string.format(("junk file exists" or "")))
   else
   end
@@ -110,11 +123,11 @@ vim.cmd(string.format("edit %s", fnl_path))
 vim.cmd("set ft=fennel")
 vim.cmd("w")
 do
-  local _14_ = vim.loop.fs_access(junk_path, "R")
-  if (_14_ == false) then
+  local _16_ = vim.loop.fs_access(junk_path, "R")
+  if (_16_ == false) then
     OK(string.format(("junk file is cleaned away" or "")))
   elseif true then
-    local __1_auto = _14_
+    local __1_auto = _16_
     FAIL(string.format(("junk file is cleaned away" or "")))
   else
   end

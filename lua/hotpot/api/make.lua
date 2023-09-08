@@ -534,7 +534,7 @@ do
                             end
                           end
                           local function _123_(_241)
-                            return not _241["compiled?"]
+                            return _241["err?"]
                           end
                           return _106_(any_3f(_123_, compile_results))
                         elseif ((_104_ == nil) and (nil ~= _105_)) then

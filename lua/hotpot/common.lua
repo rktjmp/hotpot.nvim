@@ -40,7 +40,11 @@ local function any_3f(f, seq)
   local x = false
   for _, v in ipairs(seq) do
     if x then break end
-    x = f(v)
+    if f(v) then
+      x = true
+    else
+      x = false
+    end
   end
   return x
 end
@@ -61,14 +65,14 @@ local function map(f, seq)
   return tbl_17_auto
 end
 local function filter(f, seq)
-  local function _7_(_241)
+  local function _8_(_241)
     if f(_241) then
       return _241
     else
       return nil
     end
   end
-  return map(_7_, seq)
+  return map(_8_, seq)
 end
 local function string_3f(x)
   return ("string" == type(x))
