@@ -9,16 +9,16 @@
 (local compiler-options-stack [])
 
 (fn spooky-prepare-plugins! [options]
-  (let [{: search} (require :hotpot.searcher)
+  (let [{: mod-search} (require :hotpot.searcher)
         fennel (require :hotpot.fennel)]
     ;; to allow for runtime adjustments of plugins, we'll always do
     ;; this when creating a loader, and just peek for strings
     ;; to replace with real values
     (set options.plugins (icollect [_i plug (ipairs (or options.plugins []))]
                            (match (type plug)
-                             :string (case (search {:prefix :fnl :extension :fnl :modnames [plug]})
+                             :string (case (mod-search {:prefix :fnl :extension :fnl :modnames [plug]})
                                        [path] (fennel.dofile path {:env :_COMPILER})
-                                       nil (error (string.format "Could not find fennel compiler plugin %q" plug)))
+                                       _ (error (string.format "Could not find fennel compiler plugin %q" plug)))
                              _ plug)))))
 
 (fn make-macro-loader [modname fnl-path]
@@ -54,15 +54,17 @@
         (fennel.eval fnl-code options modname)))))
 
 (fn macro-searcher [modname]
-  (let [{: search} (require :hotpot.searcher)
+  (let [{: mod-search} (require :hotpot.searcher)
         spec  {:prefix :fnl
                :extension :fnl
                :modnames [(.. modname :.init-macros)
                           (.. modname :.init)
                           modname]}]
     (case-try
-      (search spec) [path]
-      (make-macro-loader modname path))))
+      (mod-search spec) [path]
+      (make-macro-loader modname path)
+      (catch
+        [nil] nil))))
 
 (λ compile-string [source modules-options macros-options ?preprocessor]
   "Compile given string of fennel into lua, returns `true lua` or `false error`"

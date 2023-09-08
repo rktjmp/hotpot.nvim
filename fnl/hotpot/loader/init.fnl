@@ -302,9 +302,9 @@
       [nil] false))
 
   (fn search-by-rtp-fnl [modname]
-    (let [search-runtime-path (let [{: search} (require :hotpot.searcher)]
+    (let [search-runtime-path (let [{: mod-search} (require :hotpot.searcher)]
                                 (fn [modname]
-                                  (search {:prefix :fnl
+                                  (mod-search {:prefix :fnl
                                            :extension :fnl
                                            :modnames [(.. modname ".init") modname]
                                            :package-path? false})))]
@@ -318,7 +318,7 @@
                      (values loader)
                      ;; catch compiler errors
                      (false e) (values e))
-        nil false)))
+        _ false)))
 
   ;; Mostly to handle relative requires that are messy in the other branches.
   ;; These files are never compiled (!!!) and only intepreted because its too
@@ -327,9 +327,9 @@
   ;;
   ;; As of 0.9.1-0.10.0-dev, neovims vim.loader does not look at package.path at all.
   (fn search-by-package-path [modname]
-    (let [search-package-path (let [{: search} (require :hotpot.searcher)]
+    (let [search-package-path (let [{: mod-search} (require :hotpot.searcher)]
                                 (fn [modname]
-                                  (search {:prefix :fnl
+                                  (mod-search {:prefix :fnl
                                            :extension :fnl
                                            :modnames [(.. modname ".init") modname]
                                            :runtime-path? false})))]
@@ -340,7 +340,7 @@
                                      modname modpath)
                                 vim.log.levels.NOTICE)
                     #(dofile modpath))
-        nil false)))
+        _ false)))
 
   (case-try
     ;; Searchers can return nil in exceptional but not unusual cases, such when

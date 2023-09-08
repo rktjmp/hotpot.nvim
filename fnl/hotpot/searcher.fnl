@@ -42,8 +42,8 @@
 
 (λ mod-search [spec]
   "Searches RTP and then package.path for file(s) that satisfiy the given
-  search specifications. Returns a list with 1 or many absolute paths to
-  files that match the given mod names or nil.
+  search specifications. Returns a list with 0, 1 or many absolute paths to
+  files that match the given mod names.
 
   The spec must contain the following keys:
 
@@ -73,11 +73,11 @@
     (case-try
       (if spec.runtime-path? (modsearch-runtime-path spec) []) [nil]
       (if spec.package-path? (modsearch-package-path spec) []) [nil]
-      (values nil))))
+      (values []))))
 
 (λ glob-search [spec]
   "Searches the RTP for files that match the given glob pattern. Returns a list
-  with 1 or many absolute paths to files that were found or nil.
+  with 0, 1 or many absolute paths to files that were found.
 
   The spec must contain the following keys:
 
@@ -93,14 +93,7 @@
         spec (vim.tbl_extend :keep spec defaults)]
     (each [_ key (ipairs [:glob])]
       (assert (. spec key) (.. "glob-search spec must have " key " field")))
-    (case (globsearch-runtime-path spec)
-      ;; Return nil so the interface is consistent with mod-search, which
-      ;; traditionally returns nil for loader reasons. Probably we could
-      ;; normalise on an empty list instead, its more "safe" to just throw the
-      ;; call inside ipairs, etc.
-      ;; TODO: replace search returns with [] instead of nil
-      [nil] nil
-      paths paths)))
+    (globsearch-runtime-path spec)))
 
-{:search mod-search
+{: mod-search
  : glob-search}
