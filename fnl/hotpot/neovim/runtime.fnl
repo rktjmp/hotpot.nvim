@@ -1,30 +1,60 @@
 (import-macros {: dprint} :hotpot.macros)
 (local {:format fmt} string)
 
-(fn generate-runtime-loaders [plugin-type glob]
+;; A note on ordering.
+;;
+;; There are two main stages to Nvims autoloading, first all plugin/*
+;; (and other runtime dir) files are run, then after/plugin/* are run.
+;;
+;; We do not have the opportunity to insert ourselves at the "first" and
+;; "after" load points, we can only really wait for VimEnter, which occurs
+;; *after* the after/plugin/* step.
+;;
+;; This has an advantage, we know we execute after any other after/ files, so
+;; we can do both plugin/*.fnl and after/plugin/*.fnl in one step. They will
+;; naturally be found in a->b order because of the order "after" dirs are
+;; listed in the rtp.
+;;
+;; The one quirk is, we must ensure that plugin/x.fnl does not arrive at the
+;; same lua location as after/plugin/x.fnl, which can happen if the record
+;; context regex is not greedy enough. To get around this, we can just peek the
+;; found path, and if it includes "after/" just before our glob match, we'll
+;; swap the type to after and expand the glob slightly.
+
+(fn generate-runtime-loaders [plugin-type glob path]
   (let [{: make-record-loader} (require :hotpot.loader)
         {:fetch fetch-record} (require :hotpot.loader.record)
         {: make-runtime-record} (require :hotpot.lang.fennel)
         {: glob-search : search} (require :hotpot.searcher)
-        find-all #(glob-search {:glob glob
-                                :all? true})]
-    (icollect [_ path (ipairs (or (find-all) []))]
-      (let [modname (-> (string.match path (.. plugin-type "/(.-)%.fnl$"))
-                        (string.gsub "/" "."))
-            fresh-record (make-runtime-record modname path {:runtime-type plugin-type
-                                                            :glob glob})
-            record (or (fetch-record fresh-record.lua-path) fresh-record)]
-        (case (make-record-loader record)
-          (where loader (= :function (type loader))) {: loader
-                                                      :modname record.modname
-                                                      :modpath record.src-path}
-          (where msg (= :string (type msg))) (vim.notify msg vim.log.levels.ERROR))))))
+        {: file-exists?} (require :hotpot.fs)
+        find-all #(glob-search {: glob : path :all? true})]
+    (icollect [_ fnl-path (ipairs (or (find-all) []))]
+      (case-try
+        ;; dont execute fnl if there is a direct .lua sibling
+        (string.gsub fnl-path "fnl$" "lua") lua-twin-path
+        (file-exists? lua-twin-path) false
+        (let [(plugin-type glob) (if (string.match fnl-path (.. "after/" plugin-type))
+                                   (values :after (.. :after/ glob))
+                                   (values plugin-type glob))
+              modname (-> (string.match fnl-path (.. plugin-type "/(.-)%.fnl$"))
+                          (string.gsub "/" "."))
+              fresh-record (make-runtime-record modname fnl-path {:runtime-type plugin-type
+                                                                  :glob glob})
+              record (or (fetch-record fresh-record.lua-path) fresh-record)]
+          (case (make-record-loader record)
+            (where loader (= :function (type loader))) {: loader
+                                                        :modname record.modname
+                                                        :modpath record.src-path}
+            (where msg (= :string (type msg))) (vim.notify msg vim.log.levels.ERROR)))
+        (catch
+          true nil)))))
 
-(fn find-runtime-plugins [plugin-type glob]
+(fn find-runtime-plugins [plugin-type glob ?path]
   (let [{: file-exists? : rm-file} (require :hotpot.fs)
         {: glob-search} (require :hotpot.searcher)
         {: fetch : drop} (require :hotpot.loader.record)
-        loaders (generate-runtime-loaders plugin-type glob)]
+        path (or ?path vim.go.rtp)
+        loaders (generate-runtime-loaders plugin-type glob path)]
 
     ;; run all <runtime>/*.fnl files
     (each [_ {: loader : modname : modpath} (ipairs loaders)]
@@ -34,7 +64,13 @@
 
     ;; clear old lua files if the fnl files have been removed
     (each [_ lua-path (ipairs (or (glob-search {:glob (fmt "lua/hotpot-runtime-%s/**/*.lua" plugin-type)
-                                            :all? true}) []))]
+                                                :all? true}) []))]
+      (case (fetch lua-path)
+        record (when (not (file-exists? record.src-path))
+                 (rm-file lua-path)
+                 (drop record))))
+    (each [_ lua-path (ipairs (or (glob-search {:glob (fmt "lua/hotpot-runtime-after/%s/**/*.lua" plugin-type)
+                                                :all? true}) []))]
       (case (fetch lua-path)
         record (when (not (file-exists? record.src-path))
                  (rm-file lua-path)
@@ -49,39 +85,24 @@
     (find-runtime-plugins :indent (fmt "indent/%s.fnl" filetype))
     (values nil)))
 
-(var found-plugins? false)
-(fn find-plugins []
-  (when (not found-plugins?)
-    (set found-plugins? true)
-    (find-runtime-plugins :plugin "plugin/**/*.fnl")))
-
-(var found-after? false)
-(fn find-afters []
-  (when (not found-after?)
-    (set found-after? true)
-    (find-runtime-plugins :after "after/**/*.fnl")))
-
 (var enabled? false)
 (fn enable []
   (let [{: nvim_create_autocmd : nvim_create_augroup} vim.api
         au-group (nvim_create_augroup :hotpot-nvim-runtime-loaders {})]
-
-    (when (not enabled?)
+    ;; As of 0.9.1,
+    ;; --noplugin sets loadplugins = false
+    ;; --clean should already disable us, as it skips all user dirs
+    ;; Per :h --noplugin, -u NONE should not load plugins, -u NORC should.
+    ;; -u NONE, sets loadplugins = false
+    ;; -u NORC, sets loadplugins = true
+    (when (and vim.go.loadplugins (not enabled?))
       (set enabled? true)
-      ;; TODO: dont run if --noplugin or --clean or -u NONE or
-      ;; vim.go.noloadplugins / loadplugins = false
       (nvim_create_autocmd :FileType {:callback find-ftplugins
                                       :desc "Execute ftplugin/*.fnl files"
                                       :group au-group})
-
-      (nvim_create_autocmd :User  {:callback find-afters
-                                   :pattern :HotpotDelegateFnlAfter
-                                   :desc "Execute after/**/*.fnl files"
-                                   :group au-group})
-
       (if (= 1 vim.v.vim_did_enter)
-        (find-plugins)
-        (nvim_create_autocmd :VimEnter {:callback find-plugins
+        (find-runtime-plugins :plugin "plugin/**/*.fnl")
+        (nvim_create_autocmd :VimEnter {:callback #(find-runtime-plugins :plugin "plugin/**/*.fnl")
                                         :desc "Execute plugin/**/*.fnl files"
                                         :once true
                                         :group au-group})))))
