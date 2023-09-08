@@ -25,10 +25,9 @@
   (let [{: make-record-loader} (require :hotpot.loader)
         {:fetch fetch-record} (require :hotpot.loader.record)
         {: make-runtime-record} (require :hotpot.lang.fennel)
-        {: glob-search : search} (require :hotpot.searcher)
-        {: file-exists?} (require :hotpot.fs)
-        find-all #(glob-search {: glob : path :all? true})]
-    (icollect [_ fnl-path (ipairs (or (find-all) []))]
+        {: glob-search} (require :hotpot.searcher)
+        {: file-exists?} (require :hotpot.fs)]
+    (icollect [_ fnl-path (ipairs (glob-search {: glob : path :all? true}))]
       (case-try
         ;; dont execute fnl if there is a direct .lua sibling
         (string.gsub fnl-path "fnl$" "lua") lua-twin-path
@@ -61,18 +60,12 @@
         (false e) (vim.notify e vim.log.levels.ERROR)))
 
     ;; clear old lua files if the fnl files have been removed
-    (each [_ lua-path (ipairs (or (glob-search {:glob (fmt "lua/hotpot-runtime-%s/**/*.lua" plugin-type)
-                                                :all? true}) []))]
-      (case (fetch lua-path)
-        record (when (not (file-exists? record.src-path))
-                 (rm-file lua-path)
-                 (drop record))))
-    (each [_ lua-path (ipairs (or (glob-search {:glob (fmt "lua/hotpot-runtime-after/%s/**/*.lua" plugin-type)
-                                                :all? true}) []))]
-      (case (fetch lua-path)
-        record (when (not (file-exists? record.src-path))
-                 (rm-file lua-path)
-                 (drop record))))))
+    (each [_ s-path (ipairs ["lua/hotpot-runtime-%s/**/*.lua" "lua/hotpot-runtime-after/%s/**/*.lua"])]
+      (each [_ lua-path (ipairs (glob-search {:glob (fmt s-path plugin-type) :all? true}))]
+        (case (fetch lua-path)
+          record (when (not (file-exists? record.src-path))
+                   (rm-file lua-path)
+                   (drop record)))))))
 
 (fn find-ftplugins [event]
   (let [{:match filetype} event]
