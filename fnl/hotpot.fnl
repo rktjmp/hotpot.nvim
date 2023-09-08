@@ -12,7 +12,7 @@
   (vim.opt.runtimepath:prepend (join-path compiled-cache-path "*"))
   (tset package.loaders 1 (make-searcher))
 
-  ;; Use may not all setup, we always want these enabled
+  ;; User may not call setup, we always want these enabled
   (neovim-runtime.enable)
   (automake.enable)
 
