@@ -126,7 +126,7 @@ if not vim.loop.fs_stat(hotpotpath) then
     "--filter=blob:none",
     "--single-branch",
     -- You may with to pin a known version tag with `--branch=vX.Y.Z`
-    "--branch=v0.9.3",
+    "--branch=v0.9.4",
     "https://github.com/rktjmp/hotpot.nvim.git",
     hotpotpath,
   })
