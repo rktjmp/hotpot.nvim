@@ -9,6 +9,7 @@
 (local fnl-path-1 (p :/ftplugin/arst.fnl))
 (local fnl-path-2 (p :/ftplugin/arst/nested.fnl))
 (local fnl-path-3 (p :/ftplugin/arst_under.fnl))
+(local fnl-path-4 (p :/after/ftplugin/arst_under.fnl))
 
 (local lua-path-1 (.. (cache-prefix)
                       :/hotpot-runtime- NVIM_APPNAME
@@ -23,13 +24,15 @@
 (write-file fnl-path-1 "(set _G.t1 1)")
 (write-file fnl-path-2 "(set _G.t2 10)")
 (write-file fnl-path-3 "(set _G.t3 100)")
+(write-file fnl-path-4 "(set _G.after 0)")
 
-(expect 111 (in-sub-nvim "_G.t1 = 1
-                         _G.t2 = 1
-                         _G.t3 = 1
+(expect 111 (in-sub-nvim "_G.t1 = 0
+                         _G.t2 = 0
+                         _G.t3 = 0
+                         _G.after = 1
                          vim.cmd('set ft=arst')
                          vim.defer_fn(function()
-                           os.exit(_G.t1 + _G.t2 + _G.t3)
+                           os.exit(_G.t1 + _G.t2 + _G.t3 + _G.after)
                          end, 200)")
         "ftplugin ran")
 
@@ -45,9 +48,10 @@
 (expect 111 (in-sub-nvim "_G.t1 = 0
                          _G.t2 = 0
                          _G.t3 = 0
+                         _G.after = 1
                          vim.cmd('set ft=arst')
                          vim.defer_fn(function()
-                           os.exit(_G.t1 + _G.t2 + _G.t3)
+                           os.exit(_G.t1 + _G.t2 + _G.t3 + _G.after)
                          end, 200)")
         "ftplugin ran second time")
 
@@ -67,9 +71,10 @@
 (expect 110 (in-sub-nvim "_G.t1 = 0
                          _G.t2 = 0
                          _G.t3 = 0
+                         _G.after = 1
                          vim.cmd('set ft=arst')
                          vim.defer_fn(function()
-                           os.exit(_G.t1 + _G.t2 + _G.t3)
+                           os.exit(_G.t1 + _G.t2 + _G.t3 + _G.after)
                          end, 200)")
         "ftplugin ran second time")
 
