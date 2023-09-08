@@ -50,17 +50,19 @@ local cache_prefix = _local_4_["cache-prefix"]
 local fnl_path_1 = p("/ftplugin/arst.fnl")
 local fnl_path_2 = p("/ftplugin/arst/nested.fnl")
 local fnl_path_3 = p("/ftplugin/arst_under.fnl")
+local fnl_path_4 = p("/after/ftplugin/arst_under.fnl")
 local lua_path_1 = (cache_prefix() .. "/hotpot-runtime-" .. NVIM_APPNAME .. "/lua/hotpot-runtime-ftplugin/arst.lua")
 local lua_path_2 = (cache_prefix() .. "/hotpot-runtime-" .. NVIM_APPNAME .. "/lua/hotpot-runtime-ftplugin/arst/nested.lua")
 local lua_path_3 = (cache_prefix() .. "/hotpot-runtime-" .. NVIM_APPNAME .. "/lua/hotpot-runtime-ftplugin/arst_under.lua")
 write_file(fnl_path_1, "(set _G.t1 1)")
 write_file(fnl_path_2, "(set _G.t2 10)")
 write_file(fnl_path_3, "(set _G.t3 100)")
+write_file(fnl_path_4, "(set _G.after 0)")
 do
   local _5_
   do
     local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
-    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "_G.t1 = 1\n                         _G.t2 = 1\n                         _G.t3 = 1\n                         vim.cmd('set ft=arst')\n                         vim.defer_fn(function()\n                           os.exit(_G.t1 + _G.t2 + _G.t3)\n                         end, 200)")))
+    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "_G.t1 = 0\n                         _G.t2 = 0\n                         _G.t3 = 0\n                         _G.after = 1\n                         vim.cmd('set ft=arst')\n                         vim.defer_fn(function()\n                           os.exit(_G.t1 + _G.t2 + _G.t3 + _G.after)\n                         end, 200)")))
     vim.cmd(string.format("!%s +'set columns=1000' --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
     _5_ = vim.v.shell_error
   end
@@ -87,7 +89,7 @@ do
   local _9_
   do
     local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
-    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "_G.t1 = 0\n                         _G.t2 = 0\n                         _G.t3 = 0\n                         vim.cmd('set ft=arst')\n                         vim.defer_fn(function()\n                           os.exit(_G.t1 + _G.t2 + _G.t3)\n                         end, 200)")))
+    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "_G.t1 = 0\n                         _G.t2 = 0\n                         _G.t3 = 0\n                         _G.after = 1\n                         vim.cmd('set ft=arst')\n                         vim.defer_fn(function()\n                           os.exit(_G.t1 + _G.t2 + _G.t3 + _G.after)\n                         end, 200)")))
     vim.cmd(string.format("!%s +'set columns=1000' --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
     _9_ = vim.v.shell_error
   end
@@ -115,7 +117,7 @@ do
   local _13_
   do
     local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
-    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "_G.t1 = 0\n                         _G.t2 = 0\n                         _G.t3 = 0\n                         vim.cmd('set ft=arst')\n                         vim.defer_fn(function()\n                           os.exit(_G.t1 + _G.t2 + _G.t3)\n                         end, 200)")))
+    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "_G.t1 = 0\n                         _G.t2 = 0\n                         _G.t3 = 0\n                         _G.after = 1\n                         vim.cmd('set ft=arst')\n                         vim.defer_fn(function()\n                           os.exit(_G.t1 + _G.t2 + _G.t3 + _G.after)\n                         end, 200)")))
     vim.cmd(string.format("!%s +'set columns=1000' --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
     _13_ = vim.v.shell_error
   end
