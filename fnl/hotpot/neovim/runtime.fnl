@@ -33,13 +33,11 @@
         ;; dont execute fnl if there is a direct .lua sibling
         (string.gsub fnl-path "fnl$" "lua") lua-twin-path
         (file-exists? lua-twin-path) false
-        (let [(plugin-type glob) (if (string.match fnl-path (.. "after/" plugin-type))
-                                   (values :after (.. :after/ glob))
-                                   (values plugin-type glob))
+        (let [plugin-type (or (string.match fnl-path (.. "/(after)/" plugin-type))
+                              plugin-type)
               modname (-> (string.match fnl-path (.. plugin-type "/(.-)%.fnl$"))
                           (string.gsub "/" "."))
-              fresh-record (make-runtime-record modname fnl-path {:runtime-type plugin-type
-                                                                  :glob glob})
+              fresh-record (make-runtime-record modname fnl-path {:runtime-type plugin-type})
               record (or (fetch-record fresh-record.lua-path) fresh-record)]
           (case (make-record-loader record)
             (where loader (= :function (type loader))) {: loader
