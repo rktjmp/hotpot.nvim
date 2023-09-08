@@ -67,10 +67,10 @@ end
 local function eval_module(modname, _3foptions)
   assert(modname, "eval-module: must provide modname")
   local _let_16_ = require("hotpot.searcher")
-  local search = _let_16_["search"]
+  local mod_search = _let_16_["mod-search"]
   local _let_17_ = require("hotpot.common")
   local put_new = _let_17_["put-new"]
-  local _18_ = search({prefix = "fnl", extension = "fnl", modnames = {(modname .. ".init"), modname}})
+  local _18_ = mod_search({prefix = "fnl", extension = "fnl", modnames = {(modname .. ".init"), modname}})
   if ((_G.type(_18_) == "table") and (nil ~= (_18_)[1])) then
     local path = (_18_)[1]
     local options
@@ -81,7 +81,8 @@ local function eval_module(modname, _3foptions)
       options = _19_
     end
     return eval_file(path, options)
-  elseif (_18_ == nil) then
+  elseif true then
+    local _ = _18_
     return error(string.format("compile-modname: could not find file for %s", modname))
   else
     return nil

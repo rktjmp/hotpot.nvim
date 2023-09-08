@@ -536,9 +536,9 @@ local function find_module(modname)
     local search_runtime_path
     do
       local _let_127_ = require("hotpot.searcher")
-      local search = _let_127_["search"]
+      local mod_search = _let_127_["mod-search"]
       local function _128_(modname1)
-        return search({prefix = "fnl", extension = "fnl", modnames = {(modname1 .. ".init"), modname1}, ["package-path?"] = false})
+        return mod_search({prefix = "fnl", extension = "fnl", modnames = {(modname1 .. ".init"), modname1}, ["package-path?"] = false})
       end
       search_runtime_path = _128_
     end
@@ -601,7 +601,8 @@ local function find_module(modname)
         end
       end
       return _130_(make_module_record(modname0, src_path))
-    elseif (_129_ == nil) then
+    elseif true then
+      local _ = _129_
       return false
     else
       return nil
@@ -611,9 +612,9 @@ local function find_module(modname)
     local search_package_path
     do
       local _let_145_ = require("hotpot.searcher")
-      local search = _let_145_["search"]
+      local mod_search = _let_145_["mod-search"]
       local function _146_(modname1)
-        return search({prefix = "fnl", extension = "fnl", modnames = {(modname1 .. ".init"), modname1}, ["runtime-path?"] = false})
+        return mod_search({prefix = "fnl", extension = "fnl", modnames = {(modname1 .. ".init"), modname1}, ["runtime-path?"] = false})
       end
       search_package_path = _146_
     end
@@ -627,7 +628,8 @@ local function find_module(modname)
         return dofile(modpath)
       end
       return _149_
-    elseif (_147_ == nil) then
+    elseif true then
+      local _ = _147_
       return false
     else
       return nil

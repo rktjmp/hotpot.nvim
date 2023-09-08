@@ -142,7 +142,7 @@ local function mod_search(spec)
       local function _21_(...)
         local _22_ = ...
         if ((_G.type(_22_) == "table") and ((_22_)[1] == nil)) then
-          return nil
+          return {}
         elseif true then
           local __75_auto = _22_
           return ...
@@ -181,14 +181,6 @@ local function glob_search(spec)
   for _, key in ipairs({"glob"}) do
     assert((spec0)[key], ("glob-search spec must have " .. key .. " field"))
   end
-  local _27_ = globsearch_runtime_path(spec0)
-  if ((_G.type(_27_) == "table") and ((_27_)[1] == nil)) then
-    return nil
-  elseif (nil ~= _27_) then
-    local paths = _27_
-    return paths
-  else
-    return nil
-  end
+  return globsearch_runtime_path(spec0)
 end
-return {search = mod_search, ["glob-search"] = glob_search}
+return {["mod-search"] = mod_search, ["glob-search"] = glob_search}
