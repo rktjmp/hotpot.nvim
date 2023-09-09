@@ -50,7 +50,7 @@
   "Open the cache directory in a split
 
   Accepts an optional `how` and `opts` arguments which
-  are translated to `(vim.cmd.<how> (cache-path) <opts>)"
+  are translated to `(vim.cmd.<how> (cache-path) <opts>)`"
   (vim.cmd.vsplit (cache-prefix)))
 
 {: open-cache
