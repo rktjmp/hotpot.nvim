@@ -267,30 +267,32 @@
              (set build-options.compiler config.compiler) _
              (M.build root-dir build-options build-spec) compile-results
              (any? #$1.err? compile-results) any-errors?
-             (when (and config.clean
-                        (not build-options.dryrun)
-                        (or (not build-options.atomic)
-                            (and build-options.atomic (not any-errors?))))
+             (if (and config.clean
+                      (not build-options.dryrun)
+                      (or (not build-options.atomic)
+                          (and build-options.atomic (not any-errors?))))
                (case-try
                  (clean-spec-or-default config.clean) clean-spec
                  (validate-spec :clean clean-spec) true
                  (find-clean-targets root-dir clean-spec compile-results) clean-targets
-                 (do-clean clean-targets build-options)
+                 (do-clean clean-targets build-options) _
+                 (values compile-results)
                  (catch
-                   (nil e) (vim.notify e vim.log.levels.ERROR))))
+                   (nil e) (vim.notify e vim.log.levels.ERROR)))
+               (values compile-results))
              (catch
                (nil e) (vim.notify e vim.log.levels.ERROR)))))
 
        (fn build [file-dir-or-dot-hotpot ?opts]
          "Finds any .hotpot.lua file nearest to given `file-dir-or-dot-hotpot`
-  path and builds accordingly.
+          path and builds accordingly.
 
-  If `build = false | nil` in the .hotpot.lua file, proceeds as if
-  it were `build = true`.
+          If `build = false | nil` in the .hotpot.lua file, proceeds as if
+          it were `build = true`.
 
-  Optionally accepts an options table which may contain the same keys as
-  described for `api.make.build`. By default, `force = true` and
-  `verbose = true`."
+          Optionally accepts an options table which may contain the same keys as
+          described for `api.make.build`. By default, `force = true` and
+          `verbose = true`."
          (let [{: lookup-local-config : loadfile-local-config} (require :hotpot.runtime)
                query-path (-> (vim.fs.normalize file-dir-or-dot-hotpot)
                               (vim.fn.expand)
