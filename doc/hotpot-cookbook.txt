@@ -117,8 +117,7 @@ This adds support for:
 - Alternative compiler settings per project than those passed to `setup()`.
 
 `.hotpot.lua` wraps functionality exposed by |hotpot.api.make|, you can also
-manually invoke the automake system by calling
-|hotpot.api.make.automake.build|.
+manually invoke the automake system by calling |hotpot.api.make.auto.build|.
 
 
   `.hotpot.lua` is intended for plugin developers, but you can apply the same
@@ -159,7 +158,7 @@ hotpot will build all fennel files in a project when a fennel file is saved.
 
 See also |hotpot.api.make.build| for more details and the underlying API.
 
-See also |hotpot.api.make.automake.build| to manually invoke the build rules
+See also |hotpot.api.make.auto.build| to manually invoke the build rules
 without opening and saving a file.
 
 Supported values are:

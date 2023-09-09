@@ -4,7 +4,7 @@
       {: join-path : make-path} (require :hotpot.fs)
       {: set-lazy-proxy} (require :hotpot.common)
       neovim-runtime (require :hotpot.neovim.runtime)
-      {: automake} (require :hotpot.api.make)]
+      {:auto automake} (require :hotpot.api.make)]
 
   ;; We must ensure the rtp dir exists now otherwise vim.loader wont see
   ;; it, and wont setup some internal mechanisms for the directory.

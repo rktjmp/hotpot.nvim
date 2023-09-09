@@ -8,7 +8,7 @@ and auto commands) are treated with less reverence.
 
 ## 0.9.5
 
-- Add `api.make.automake.build(path, ?opts)` to manually trigger `.hotpot.lua`
+- Add `api.make.auto.build(path, ?opts)` to manually trigger `.hotpot.lua`
   saving a file.
 
 ## 0.9.4

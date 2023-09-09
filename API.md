@@ -15,7 +15,7 @@
   - [detach-input](#hotpotapireflectdetach-input)
   - [set-mode](#hotpotapireflectset-mode)
 - [Make API](#hotpotapimake)
-  - [automake.build](#hotpotapimakeautomakebuild)
+  - [auto.build](#hotpotapimakeautobuild)
   - [build](#hotpotapimakebuild)
   - [check](#hotpotapimakecheck)
 - [Eval API](#hotpotapieval)
@@ -115,8 +115,8 @@ Enables autocommand to attach diagnostics to Fennel filetype buffers
 `(error-for-buf user-buf)`
 
 Get current error for buffer (includes all Fennel hints) or nil if no error.
-  The raw fennel error is also attached to the `user_data` field of the
-  diagnostic structure returned by Neovim.
+The raw fennel error is also attached to the `user_data` field of the
+diagnostic structure returned by Neovim.
 
 ## hotpot.api.reflect
 
@@ -235,13 +235,13 @@ Attach given buffer to session. This will detach any existing attachment first.
 `(attach-output given-buf-id)`
 
 Configures a new Hotpot reflect session. Accepts a buffer id. Assumes the
-  buffer is already in a window that was configured by the caller (float,
-  split, etc). The contents of this buffer should be treated as ephemeral,
-  do not pass an important buffer in!
+buffer is already in a window that was configured by the caller (float,
+split, etc). The contents of this buffer should be treated as ephemeral,
+do not pass an important buffer in!
 
-  Returns `session-id {: attach : detach}` where `attach` and `detach`
-  act as the module level `attach` and `detach` with the session-id
-  argument already filled.
+Returns `session-id {: attach : detach}` where `attach` and `detach`
+act as the module level `attach` and `detach` with the session-id
+argument already filled.
 
 
 
@@ -270,19 +270,19 @@ Set session to eval or compile mode
 Tools to compile Fennel code ahead of time.
 
 
-### `hotpot.api.make.automake.build`
+### `hotpot.api.make.auto.build`
 
-`(automake.build file-dir-or-dot-hotpot ?opts)`
+`(auto.build file-dir-or-dot-hotpot ?opts)`
 
 Finds any .hotpot.lua file nearest to given `file-dir-or-dot-hotpot`
-  path and builds accordingly.
+path and builds accordingly.
 
-  If `build = false | nil` in the .hotpot.lua file, proceeds as if
-  it were `build = true`.
+If `build = false | nil` in the .hotpot.lua file, proceeds as if
+it were `build = true`.
 
-  Optionally accepts an options table which may contain the same keys as
-  described for `api.make.build`. By default, `force = true` and
-  `verbose = true`.
+Optionally accepts an options table which may contain the same keys as
+described for `api.make.build`. By default, `force = true` and
+`verbose = true`.
 
 
 
@@ -291,48 +291,48 @@ Finds any .hotpot.lua file nearest to given `file-dir-or-dot-hotpot`
 `(build ...)`
 
 Build fennel files found inside a directory that match a given set of glob
-  patterns.
+patterns.
 
-  ```
-  (build :some/dir
-         {:verbose true}
-         [[:fnl/**/*macro*.fnl false]
-          [:fnl/**/*.fnl true]
-          [:colors/*.fnl (fn [path] (string.gsub path :fnl$ :lua))]])
-  ```
+```
+(build :some/dir
+       {:verbose true}
+       [[:fnl/**/*macro*.fnl false]
+        [:fnl/**/*.fnl true]
+        [:colors/*.fnl (fn [path] (string.gsub path :fnl$ :lua))]])
+```
 
-  Build accepts a `root-directory` to work in, an optional `options` table and
-  a list of pairs, where each pair is a glob string and boolean value or a
-  function. A true value indicates a matching file should be compiled, and
-  false indicates the file should be ignored. Functions are passed the globbed
-  file path (which may or may not be absolute depending on the root directory).
-  and should return false or a string for the lua destination path.
+Build accepts a `root-directory` to work in, an optional `options` table and
+a list of pairs, where each pair is a glob string and boolean value or a
+function. A true value indicates a matching file should be compiled, and
+false indicates the file should be ignored. Functions are passed the globbed
+file path (which may or may not be absolute depending on the root directory).
+and should return false or a string for the lua destination path.
 
-  The options table may contain the following keys:
+The options table may contain the following keys:
 
-  - `atomic`, boolean, default false. When true, if there are any errors during
-     compilation, no files are written to disk. Defaults to false.
+- `atomic`, boolean, default false. When true, if there are any errors during
+   compilation, no files are written to disk. Defaults to false.
 
-  - `force`, boolean, default false. When true, all matched files are built, when
-    false, only changed files are build.
+- `force`, boolean, default false. When true, all matched files are built, when
+  false, only changed files are build.
 
-  - `dryrun`, boolean, default false. When true, no biles are written to disk.
+- `dryrun`, boolean, default false. When true, no biles are written to disk.
 
-  - `verbose`, boolean, default false. When true, all compile events are logged,
-    when false, only errors are logged.
+- `verbose`, boolean, default false. When true, all compile events are logged,
+  when false, only errors are logged.
 
-  - `compiler`, table, default nil. A table containing modules, macros and preprocessor
-    options to pass to the compiler. See :h hotpot-setup.
+- `compiler`, table, default nil. A table containing modules, macros and preprocessor
+  options to pass to the compiler. See :h hotpot-setup.
 
-  (Note the keys are in 'lua style', without dashes or question marks.)
+(Note the keys are in 'lua style', without dashes or question marks.)
 
-  Glob patterns that begin with `fnl/` are automatically compiled to to `lua/`,
-  other patterns are compiled in place or should be constructing explicitly by a
-  function.
+Glob patterns that begin with `fnl/` are automatically compiled to to `lua/`,
+other patterns are compiled in place or should be constructing explicitly by a
+function.
 
-  Glob patterns are checked in the order they are given, so generally 'ignore' patterns
-  should be given first so things like 'macro modules' are not compiled to
-  their own files.
+Glob patterns are checked in the order they are given, so generally 'ignore' patterns
+should be given first so things like 'macro modules' are not compiled to
+their own files.
 
 
 
@@ -361,8 +361,8 @@ Tools to evaluate Fennel code in-editor. All functions return
 `(eval-buffer buf ?options)`
 
 Evaluate the given `buf`, returns `true result ...` or `false error`.
-  Accepts an optional `options` table as described by Fennels API
-  documentation.
+Accepts an optional `options` table as described by Fennels API
+documentation.
 
 
 
@@ -371,8 +371,8 @@ Evaluate the given `buf`, returns `true result ...` or `false error`.
 `(eval-file fnl-file ?options)`
 
 Read contents of `fnl-path` and evaluate the contents, returns `true
-  result ...` or `false error`. Accepts an optional `options` table as
-  described by Fennels API documentation.
+result ...` or `false error`. Accepts an optional `options` table as
+described by Fennels API documentation.
 
 
 
@@ -381,9 +381,9 @@ Read contents of `fnl-path` and evaluate the contents, returns `true
 `(eval-module modname ?options)`
 
 Use hotpots module searcher to find the file for `modname`, load and
-  evaluate its contents, returns `true result ...` or `false error`..
-  Accepts an optional `options` table as described by Fennels API
-  documentation.
+evaluate its contents, returns `true result ...` or `false error`..
+Accepts an optional `options` table as described by Fennels API
+documentation.
 
 
 
@@ -392,9 +392,9 @@ Use hotpots module searcher to find the file for `modname`, load and
 `(eval-range buf start-pos stop-pos ?options)`
 
 Evaluate `buf` from `start-pos` to `end-pos`, returns `true result
-  ...` or `false error`. Positions can be `line` or `line col`. Accepts
-  an optional `options` table as described by Fennels API
-  documentation.
+...` or `false error`. Positions can be `line` or `line col`. Accepts
+an optional `options` table as described by Fennels API
+documentation.
 
 
 
@@ -403,8 +403,8 @@ Evaluate `buf` from `start-pos` to `end-pos`, returns `true result
 `(eval-selection ?options)`
 
 Evaluate the current selection, returns `true result ...` or `false
-  error`. Accepts an optional `options` table as described by Fennels
-  API documentation.
+error`. Accepts an optional `options` table as described by Fennels
+API documentation.
 
 
 
@@ -413,8 +413,8 @@ Evaluate the current selection, returns `true result ...` or `false
 `(eval-string code ?options)`
 
 Evaluate given fennel `code`, returns `true result ...` or `false
-  error`. Accepts an optional `options` table as described by Fennels
-  API documentation.
+error`. Accepts an optional `options` table as described by Fennels
+API documentation.
 
 ## hotpot.api.compile
 
@@ -437,9 +437,9 @@ Evaluate given fennel `code`, returns `true result ...` or `false
 `(compile-buffer buf compiler-options)`
 
 Read the contents of `buf` and compile into lua, returns `true lua` or
-  `false error`.
+`false error`.
 
-  Accepts an options table as described by Fennels API documentation.
+Accepts an options table as described by Fennels API documentation.
 
 
 
@@ -448,9 +448,9 @@ Read the contents of `buf` and compile into lua, returns `true lua` or
 `(compile-file fnl-path compiler-options)`
 
 Read contents of `fnl-path` and compile into lua, returns `true lua` or
-  `false error`. Will raise if file does not exist.
+`false error`. Will raise if file does not exist.
 
-  Accepts an options table as described by Fennels API documentation.
+Accepts an options table as described by Fennels API documentation.
 
 
 
@@ -459,9 +459,9 @@ Read contents of `fnl-path` and compile into lua, returns `true lua` or
 `(compile-range buf start-pos stop-pos compiler-options)`
 
 Read `buf` from `start-pos` to `end-pos` and compile into lua, returns `true
-  lua` or `false error`. Positions can be `line-nr` or `[line-nr col]`.
+lua` or `false error`. Positions can be `line-nr` or `[line-nr col]`.
 
-  Accepts an options table as described by Fennels API documentation.
+Accepts an options table as described by Fennels API documentation.
 
 
 
@@ -470,9 +470,9 @@ Read `buf` from `start-pos` to `end-pos` and compile into lua, returns `true
 `(compile-selection compiler-options)`
 
 Read the current selection and compile into lua, returns `true lua` or
-  `false error`.
+`false error`.
 
-  Accepts an options table as described by Fennels API documentation.
+Accepts an options table as described by Fennels API documentation.
 
 
 

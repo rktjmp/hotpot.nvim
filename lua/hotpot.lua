@@ -9,7 +9,7 @@ local _let_3_ = require("hotpot.common")
 local set_lazy_proxy = _let_3_["set-lazy-proxy"]
 local neovim_runtime = require("hotpot.neovim.runtime")
 local _let_4_ = require("hotpot.api.make")
-local automake = _let_4_["automake"]
+local automake = _let_4_["auto"]
 make_path(compiled_cache_path)
 do end (vim.opt.runtimepath):prepend(join_path(compiled_cache_path, "*"))
 do end (package.loaders)[1] = make_searcher()

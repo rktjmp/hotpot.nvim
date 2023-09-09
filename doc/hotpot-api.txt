@@ -15,7 +15,7 @@ Reflect API................................................|hotpot.api.reflect|
   detach-input................................|hotpot.api.reflect.detach-input|
   set-mode........................................|hotpot.api.reflect.set-mode|
 Make API......................................................|hotpot.api.make|
-  automake.build...............................|hotpot.api.make.automake.build|
+  auto.build.......................................|hotpot.api.make.auto.build|
   build.................................................|hotpot.api.make.build|
   check.................................................|hotpot.api.make.check|
 Eval API......................................................|hotpot.api.eval|
@@ -275,21 +275,21 @@ Make API~
 
 Tools to compile Fennel code ahead of time.
 
----------------------------------------------- *hotpot.api.make.automake.build*
+-------------------------------------------------- *hotpot.api.make.auto.build*
 
-automake.build~
+auto.build~
 
-`(automake.build file-dir-or-dot-hotpot ?opts)`
+`(auto.build file-dir-or-dot-hotpot ?opts)`
 
 Finds any .hotpot.lua file nearest to given `file-dir-or-dot-hotpot`
-path and builds accordingly.
+        path and builds accordingly.
 
-If `build = false | nil` in the .hotpot.lua file, proceeds as if
-it were `build = true`.
+        If `build = false | nil` in the .hotpot.lua file, proceeds as if
+        it were `build = true`.
 
-Optionally accepts an options table which may contain the same keys as
-described for `api.make.build`. By default, `force = true` and
-`verbose = true`.
+        Optionally accepts an options table which may contain the same keys as
+        described for `api.make.build`. By default, `force = true` and
+        `verbose = true`.
 
 
 ------------------------------------------------------- *hotpot.api.make.build*
