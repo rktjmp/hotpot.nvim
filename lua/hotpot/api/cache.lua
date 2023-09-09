@@ -52,10 +52,12 @@ local function clear_cache()
   local options = "NO\nYes"
   local _8_ = vim.fn.confirm(message, options, 1, "Warning")
   if (_8_ == 1) then
-    print("Did NOT remove files.")
+    vim.notify("Did NOT remove files.")
     return false
   elseif (_8_ == 2) then
-    return clear_dir(prefix)
+    clear_dir(prefix)
+    vim.notify(string.format("Cleared %s", prefix))
+    return true
   else
     return nil
   end

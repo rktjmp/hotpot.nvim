@@ -39,9 +39,12 @@
         options "NO\nYes"]
     (match (vim.fn.confirm message options 1 "Warning")
       1 (do
-          (print "Did NOT remove files.")
+          (vim.notify "Did NOT remove files.")
           false)
-      2 (clear-dir prefix))))
+      2 (do
+          (clear-dir prefix)
+          (vim.notify (string.format "Cleared %s" prefix))
+          true))))
 
 (fn open-cache [?how ?opts]
   "Open the cache directory in a split
