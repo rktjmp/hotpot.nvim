@@ -80,6 +80,7 @@ neat("fennel") -- => "fennel is neat!"
 - [Cookbook - common questions and usage guides](COOKBOOK.md)
 - [Writing Plugins](COOKBOOK.md#writing-plugins)
 - [Setup](#setup)
+- [API](API.md)
 - [Change Log](CHANGELOG.md)
 
 <!-- panvimdoc-ignore-end -->
@@ -306,7 +307,17 @@ Hotpot provides a number of functions for evaluating and compiling Fennel code,
 including helpers to easily operate on strings, selections and buffers for
 example.
 
+<!-- panvimdoc-ignore-start -->
+
+See [`:h hotpot.api`](API.md).
+
+<!-- panvimdoc-ignore-end -->
+
+<!-- panvimdoc-include-comment
+
 See `:h hotpot.api`.
+
+-->
 
 # Commands
 
