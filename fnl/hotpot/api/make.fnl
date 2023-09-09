@@ -238,7 +238,7 @@
                   "Unfortunately it was not possible to support both options simultaneously :( sorry.")
               vim.log.levels.WARN))
 
-(set M.automake
+(set M.auto
      (do
        (fn build-spec-or-default [given-spec]
          (let [default-spec [[:fnl/**/*macro*.fnl false]

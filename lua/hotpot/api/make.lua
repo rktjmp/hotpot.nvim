@@ -722,6 +722,6 @@ do
       return nil
     end
   end
-  M.automake = {enable = enable, build = build}
+  M.auto = {enable = enable, build = build}
 end
 return M

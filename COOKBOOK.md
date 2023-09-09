@@ -119,7 +119,7 @@ This adds support for:
 `.hotpot.lua` wraps functionality exposed by
 [`hotpot.api.make`](API.md#hotpotapimake), you can also manually invoke the
 automake system by calling [`
-hotpot.api.make.automake.build`](API.md#hotpotapimakeautomakebuild).
+hotpot.api.make.auto.build`](API.md#hotpotapimakeautobuild).
 
 <!-- panvimdoc-ignore-end -->
 
@@ -127,7 +127,7 @@ hotpot.api.make.automake.build`](API.md#hotpotapimakeautomakebuild).
 
 `.hotpot.lua` wraps functionality exposed by `:h hotpot.api.make`, you can also
 manually invoke the automake system by calling `:h
-hotpot.api.make.automake.build`.
+hotpot.api.make.auto.build`.
 
 -->
 
@@ -172,7 +172,7 @@ See also [`:h hotpot.api.make.build`](API.md#htopotapimakebuild) for more
 details and the underlying API.
 
 See also [`:h
-hotpot.api.make.automake.build`](API.md#hotpotapimakeautomakebuild) to manually
+hotpot.api.make.auto.build`](API.md#hotpotapimakeautobuild) to manually
 invoke the build rules without opening and saving a file.
 
 <!-- panvimdoc-ignore-end -->
@@ -181,7 +181,7 @@ invoke the build rules without opening and saving a file.
 
 See also `:h hotpot.api.make.build` for more details and the underlying API.
 
-See also `:h hotpot.api.make.automake.build` to manually invoke the build rules
+See also `:h hotpot.api.make.auto.build` to manually invoke the build rules
 without opening and saving a file.
 
 -->
