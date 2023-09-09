@@ -292,7 +292,10 @@
 
           Optionally accepts an options table which may contain the same keys as
           described for `api.make.build`. By default, `force = true` and
-          `verbose = true`."
+          `verbose = true`.
+
+          Note: this function is under `(. (require :hotpot.api.make) :auto :build)`
+          NOT `(. (require :hotpot.api.make.auto) :build)`."
          (let [{: lookup-local-config : loadfile-local-config} (require :hotpot.runtime)
                query-path (-> (vim.fs.normalize file-dir-or-dot-hotpot)
                               (vim.fn.expand)
