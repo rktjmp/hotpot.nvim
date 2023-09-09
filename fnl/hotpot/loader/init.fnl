@@ -1,4 +1,4 @@
-(import-macros {: expect : dprint} :hotpot.macros)
+(import-macros {: expect : dprint : fmtdoc} :hotpot.macros)
 (local {:format fmt} string)
 (local {: file-exists? : file-missing?
         : file-stat
@@ -18,7 +18,18 @@
 (local {: make-module-record} (require :hotpot.lang.fennel))
 (local {:retarget-cache set-index-target-cache
         :retarget-colocation set-index-target-colocation} (require :hotpot.loader.record.module))
-(local {: wants-colocation?} (require :hotpot.loader.sigil))
+(local {:wants-colocation? raw-wants-colocation?} (require :hotpot.loader.sigil))
+
+(fn wants-colocation? [sigil-path]
+  (if (raw-wants-colocation? sigil-path)
+    (do
+      (vim.notify_once (fmtdoc "Colocation is deprecated, please swap "
+                               "to `build = true` which provides a more "
+                               "consistent experience, see `:h hotpot-dot-hotpot.` (%s)"
+                               sigil-path)
+                       vim.log.levels.WARN)
+      true)
+    false))
 
 (fn needs-cleanup []
   ;; We need to handle cases where a module has been renamed
@@ -107,6 +118,7 @@
               (set action #nil))
         n (set action (. actions n))))
     (vim.ui.select options {: prompt} on-choice)
+    (print "") ;; need to put a new line after the user input else next message will concat...
     (action)))
 
 (fn handle-cache-lua-path [modname lua-path-in-cache]
