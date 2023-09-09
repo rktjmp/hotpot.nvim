@@ -105,11 +105,31 @@ for manual control.
 
 ## Using Dot Hotpot
 
-Hotpot can optionally be configured per-project by a `.hotpot.lua` file. This
-allows for alternate compiler settings to be used for some projects instead of
-those passed to `setup()`.
+Hotpot can optionally be configured per-project/directory by a `.hotpot.lua`
+file.
 
-It also enables auto-build/clean functionality by wrapping `hotpot.api.make`.
+This adds support for:
+
+  - Defining fennel to lua build rules via glob patterns.
+  - Automatically building and cleaning lua targets on save.
+  - Alternative compiler settings per project than those passed to `setup()`.
+
+<!-- panvimdoc-ignore-start -->
+
+`.hotpot.lua` wraps functionality exposed by
+[`hotpot.api.make`](API.md#hotpotapimake), you can also manually invoke the
+automake system by calling [`
+hotpot.api.make.automake.build`](API.md#hotpotapimakeautomakebuild).
+
+<!-- panvimdoc-ignore-end -->
+
+<!-- panvimdoc-include-comment
+
+`.hotpot.lua` wraps functionality exposed by `:h hotpot.api.make`, you can also
+manually invoke the automake system by calling `:h
+hotpot.api.make.automake.build`.
+
+-->
 
 > `.hotpot.lua` is intended for plugin developers, but you can apply the same
 > practices to your main Neovim config if you want to generate `lua/` files
@@ -145,7 +165,26 @@ the auto-build feature to compile `.hotpot.fnl` to `.hotpot.lua` by adding a
 
 Specify auto-build instructions for the `.hotpot.lua` directory. When present,
 hotpot will build all fennel files in a project when a fennel file is saved.
-See also `:h hotpot.api.make.build` for more details.
+
+<!-- panvimdoc-ignore-start -->
+
+See also [`:h hotpot.api.make.build`](API.md#htopotapimakebuild) for more
+details and the underlying API.
+
+See also [`:h
+hotpot.api.make.automake.build`](API.md#hotpotapimakeautomakebuild) to manually
+invoke the build rules without opening and saving a file.
+
+<!-- panvimdoc-ignore-end -->
+
+<!-- panvimdoc-include-comment
+
+See also `:h hotpot.api.make.build` for more details and the underlying API.
+
+See also `:h hotpot.api.make.automake.build` to manually invoke the build rules
+without opening and saving a file.
+
+-->
 
 Supported values are:
 

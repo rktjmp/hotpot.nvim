@@ -6,6 +6,11 @@ to "core" code (things that effect loading and running your code/config) are
 avoided but breaking changes to the API (things that might effect your bindings
 and auto commands) are treated with less reverence.
 
+## 0.9.5
+
+- Add `api.make.automake.build(path, ?opts)` to manually trigger `.hotpot.lua`
+  saving a file.
+
 ## 0.9.4
 
 - Add support for plugin/* after/* indent/*
