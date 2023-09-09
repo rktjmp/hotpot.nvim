@@ -1,4 +1,4 @@
-(import-macros {: dprint} :hotpot.macros)
+(import-macros {: dprint : fmtdoc} :hotpot.macros)
 
 (local {: table? : function? : boolean? : string? : nil?
         : map : filter : any? : none?} (require :hotpot.common))
@@ -255,10 +255,13 @@
            true [["lua/**/*.lua" true]]
            (where t (table? t)) t))
 
-       (fn handle-config [config current-file root-dir]
+       (fn handle-config [config current-file root-dir ?manual-opts]
          (if config.build
            (case-try
              (build-spec-or-default config.build) {: build-spec : build-options}
+             (if ?manual-opts
+               (vim.tbl_extend :force build-options ?manual-opts)
+               build-options) build-options
              (validate-spec :build build-spec) true
              (set build-options.infer-force-for-file current-file) _
              (set build-options.compiler config.compiler) _
@@ -278,6 +281,33 @@
              (catch
                (nil e) (vim.notify e vim.log.levels.ERROR)))))
 
+       (fn build [file-dir-or-dot-hotpot ?opts]
+         "Finds any .hotpot.lua file nearest to given `file-dir-or-dot-hotpot`
+  path and builds accordingly.
+
+  If `build = false | nil` in the .hotpot.lua file, proceeds as if
+  it were `build = true`.
+
+  Optionally accepts an options table which may contain the same keys as
+  described for `api.make.build`. By default, `force = true` and
+  `verbose = true`."
+         (let [{: lookup-local-config : loadfile-local-config} (require :hotpot.runtime)
+               query-path (-> (vim.fs.normalize file-dir-or-dot-hotpot)
+                              (vim.fn.expand)
+                              (vim.loop.fs_realpath))
+               opts (vim.tbl_extend :keep (or ?opts {}) {:force true :verbose true})]
+           (if query-path
+             (case (lookup-local-config query-path)
+               config-path (case-try
+                             (loadfile-local-config config-path) config
+                             (if (not config.build)
+                               (set config.build true)) _
+                             (handle-config config query-path (vim.fs.dirname config-path) opts))
+               nil (vim.notify (fmtdoc "No .hotpot.lua file found near %s" query-path)
+                               vim.log.levels.ERROR))
+             (vim.notify (fmtdoc "Unable to build, no file or directory found at %s." file-dir-or-dot-hotpot)
+                         vim.log.levels.ERROR))))
+
        (fn attach [buf]
          (when (not (. automake-memo.attached-buffers buf))
            (tset automake-memo.attached-buffers buf true)
@@ -285,15 +315,22 @@
              :BufWritePost
              {:buffer buf
               :desc (.. :hotpot-check-dot-hotpot-dot-lua-for- buf)
-              :callback #(let [{: lookup-local-config : loadfile-local-config} (require :hotpot.runtime)
-                               full-path-current-file (vim.fs.normalize (vim.fn.expand "<afile>:p"))]
+              :callback #(let [{: lookup-local-config
+                                : loadfile-local-config} (require :hotpot.runtime)
+                               full-path-current-file (-> (vim.fn.expand "<afile>:p")
+                                                          (vim.fs.normalize))]
+                           ;; This *looks* the same as build(path) but we need
+                           ;; to fail silently here, where as the explicit
+                           ;; build call should issue a warning if the sigil
+                           ;; file doesn't exist.
                            (case-try
                              (lookup-local-config full-path-current-file) config-path
                              (loadfile-local-config config-path) config
                              (handle-config config full-path-current-file (vim.fs.dirname config-path)))
-              (values nil))})))
+                           (values nil))})))
 
        (fn enable []
+         "Enables .hotpot.lua automake functionality"
          (when (not automake-memo.augroup)
            (set automake-memo.augroup (vim.api.nvim_create_augroup :hotpot-automake-enabled {:clear true}))
            (vim.api.nvim_create_autocmd :FileType {:group automake-memo.augroup
@@ -303,6 +340,8 @@
                                                                (case event
                                                                  {:match :fennel : buf} (attach buf))
                                                                (values nil))})))
-       {: enable}))
+
+       {: enable
+        : build}))
 
 (values M)
