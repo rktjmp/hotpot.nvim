@@ -24,7 +24,15 @@ local _local_6_ = require("hotpot.loader.record.module")
 local set_index_target_cache = _local_6_["retarget-cache"]
 local set_index_target_colocation = _local_6_["retarget-colocation"]
 local _local_7_ = require("hotpot.loader.sigil")
-local wants_colocation_3f = _local_7_["wants-colocation?"]
+local raw_wants_colocation_3f = _local_7_["wants-colocation?"]
+local function wants_colocation_3f(sigil_path)
+  if raw_wants_colocation_3f(sigil_path) then
+    vim.notify_once(string.format(("Colocation is deprecated, please swap " .. "to `build = true` which provides a more " .. "consistent experience, see `:h hotpot-dot-hotpot.` (%s)"), sigil_path), vim.log.levels.WARN)
+    return true
+  else
+    return false
+  end
+end
 local function needs_cleanup()
   return "TODO"
 end
@@ -40,27 +48,27 @@ local function bust_vim_loader_index(record)
   return true
 end
 local function needs_compilation_3f(record)
-  local _let_10_ = record
-  local lua_path = _let_10_["lua-path"]
-  local files = _let_10_["files"]
+  local _let_11_ = record
+  local lua_path = _let_11_["lua-path"]
+  local files = _let_11_["files"]
   local function lua_missing_3f()
     return file_missing_3f(record["lua-path"])
   end
   local function files_changed_3f()
     local stale_3f = false
-    for _, _11_ in ipairs(files) do
-      local _each_12_ = _11_
-      local path = _each_12_["path"]
-      local historic_size = _each_12_["size"]
-      local _each_13_ = _each_12_["mtime"]
-      local hsec = _each_13_["sec"]
-      local hnsec = _each_13_["nsec"]
+    for _, _12_ in ipairs(files) do
+      local _each_13_ = _12_
+      local path = _each_13_["path"]
+      local historic_size = _each_13_["size"]
+      local _each_14_ = _each_13_["mtime"]
+      local hsec = _each_14_["sec"]
+      local hnsec = _each_14_["nsec"]
       if stale_3f then break end
-      local _let_14_ = file_stat(path)
-      local current_size = _let_14_["size"]
-      local _let_15_ = _let_14_["mtime"]
-      local csec = _let_15_["sec"]
-      local cnsec = _let_15_["nsec"]
+      local _let_15_ = file_stat(path)
+      local current_size = _let_15_["size"]
+      local _let_16_ = _let_15_["mtime"]
+      local csec = _let_16_["sec"]
+      local cnsec = _let_16_["nsec"]
       stale_3f = ((historic_size ~= current_size) or (hsec ~= csec) or (hnsec ~= cnsec))
     end
     return stale_3f
@@ -68,120 +76,120 @@ local function needs_compilation_3f(record)
   return (lua_missing_3f() or files_changed_3f() or false)
 end
 local function record_loadfile(record)
-  local _let_16_ = require("hotpot.lang.fennel.compiler")
-  local compile_record = _let_16_["compile-record"]
-  local _let_17_ = require("hotpot.runtime")
-  local config_for_context = _let_17_["config-for-context"]
-  local _let_18_ = config_for_context((record["sigil-path"] or record["src-path"]))
-  local compiler = _let_18_["compiler"]
-  local _let_19_ = compiler
-  local modules_options = _let_19_["modules"]
-  local macros_options = _let_19_["macros"]
-  local preprocessor = _let_19_["preprocessor"]
+  local _let_17_ = require("hotpot.lang.fennel.compiler")
+  local compile_record = _let_17_["compile-record"]
+  local _let_18_ = require("hotpot.runtime")
+  local config_for_context = _let_18_["config-for-context"]
+  local _let_19_ = config_for_context((record["sigil-path"] or record["src-path"]))
+  local compiler = _let_19_["compiler"]
+  local _let_20_ = compiler
+  local modules_options = _let_20_["modules"]
+  local macros_options = _let_20_["macros"]
+  local preprocessor = _let_20_["preprocessor"]
   if needs_compilation_3f(record) then
-    local function _20_(...)
-      local _21_, _22_ = ...
-      if ((_21_ == true) and (nil ~= _22_)) then
-        local deps = _22_
-        local function _23_(...)
-          local _24_, _25_ = ...
-          if (nil ~= _24_) then
-            local record0 = _24_
-            local function _26_(...)
-              local _27_, _28_ = ...
-              if (nil ~= _27_) then
-                local record1 = _27_
-                local function _29_(...)
-                  local _30_, _31_ = ...
+    local function _21_(...)
+      local _22_, _23_ = ...
+      if ((_22_ == true) and (nil ~= _23_)) then
+        local deps = _23_
+        local function _24_(...)
+          local _25_, _26_ = ...
+          if (nil ~= _25_) then
+            local record0 = _25_
+            local function _27_(...)
+              local _28_, _29_ = ...
+              if (nil ~= _28_) then
+                local record1 = _28_
+                local function _30_(...)
+                  local _31_, _32_ = ...
                   if true then
-                    local _ = _30_
-                    local function _32_(...)
-                      local _33_, _34_ = ...
-                      if (_33_ == "TODO") then
+                    local _ = _31_
+                    local function _33_(...)
+                      local _34_, _35_ = ...
+                      if (_34_ == "TODO") then
                         return loadfile(record1["lua-path"])
-                      elseif ((_33_ == false) and (nil ~= _34_)) then
-                        local e = _34_
+                      elseif ((_34_ == false) and (nil ~= _35_)) then
+                        local e = _35_
                         return e
                       elseif true then
-                        local _0 = _33_
+                        local _0 = _34_
                         return nil
                       else
                         return nil
                       end
                     end
-                    return _32_(needs_cleanup())
-                  elseif ((_30_ == false) and (nil ~= _31_)) then
-                    local e = _31_
+                    return _33_(needs_cleanup())
+                  elseif ((_31_ == false) and (nil ~= _32_)) then
+                    local e = _32_
                     return e
                   elseif true then
-                    local _ = _30_
+                    local _ = _31_
                     return nil
                   else
                     return nil
                   end
                 end
-                return _29_(bust_vim_loader_index(record1))
-              elseif ((_27_ == false) and (nil ~= _28_)) then
-                local e = _28_
+                return _30_(bust_vim_loader_index(record1))
+              elseif ((_28_ == false) and (nil ~= _29_)) then
+                local e = _29_
                 return e
               elseif true then
-                local _ = _27_
+                local _ = _28_
                 return nil
               else
                 return nil
               end
             end
-            return _26_(save_index(record0))
-          elseif ((_24_ == false) and (nil ~= _25_)) then
-            local e = _25_
+            return _27_(save_index(record0))
+          elseif ((_25_ == false) and (nil ~= _26_)) then
+            local e = _26_
             return e
           elseif true then
-            local _ = _24_
+            local _ = _25_
             return nil
           else
             return nil
           end
         end
-        return _23_(replace_index_files(record, deps))
-      elseif ((_21_ == false) and (nil ~= _22_)) then
-        local e = _22_
+        return _24_(replace_index_files(record, deps))
+      elseif ((_22_ == false) and (nil ~= _23_)) then
+        local e = _23_
         return e
       elseif true then
-        local _ = _21_
+        local _ = _22_
         return nil
       else
         return nil
       end
     end
-    return _20_(compile_record(record, modules_options, macros_options, preprocessor))
+    return _21_(compile_record(record, modules_options, macros_options, preprocessor))
   else
     return loadfile(record["lua-path"])
   end
 end
 local function query_user(prompt, ...)
-  local function _42_(...)
+  local function _43_(...)
     local l = {{}, {}}
-    for _, _43_ in ipairs({...}) do
-      local _each_44_ = _43_
-      local option = _each_44_[1]
-      local action = _each_44_[2]
+    for _, _44_ in ipairs({...}) do
+      local _each_45_ = _44_
+      local option = _each_45_[1]
+      local action = _each_45_[2]
       table.insert(l[1], option)
       table.insert(l[2], action)
       l = l
     end
     return l
   end
-  local _let_41_ = _42_(...)
-  local options = _let_41_[1]
-  local actions = _let_41_[2]
+  local _let_42_ = _43_(...)
+  local options = _let_42_[1]
+  local actions = _let_42_[2]
   local action = nil
   local function on_choice(item, index)
     if (index == nil) then
       vim.notify("\nNo response, doing nothing and passing on to the next lua loader.\n", vim.log.levels.WARN)
-      local function _45_()
+      local function _46_()
         return nil
       end
-      action = _45_
+      action = _46_
       return nil
     elseif (nil ~= index) then
       local n = index
@@ -192,70 +200,71 @@ local function query_user(prompt, ...)
     end
   end
   vim.ui.select(options, {prompt = prompt}, on_choice)
+  print("")
   return action()
 end
 local function handle_cache_lua_path(modname, lua_path_in_cache)
   local function has_overwrite_permission_3f(lua_path, src_path)
-    local function _47_()
+    local function _48_()
       return true
     end
-    local function _48_()
+    local function _49_()
       return false
     end
-    return query_user(fmt(("Should Hotpot overwrite the file %s with the contents of %s?\n" .. "Hotpot did not recently create this file, but if you have been toggling colocation on and off you may be seeing this warning.\n"), lua_path, src_path), {"Yes, replace the lua file.", _47_}, {"No, keep the lua file and dont ask again.", _48_})
+    return query_user(fmt(("Should Hotpot overwrite the file %s with the contents of %s?\n" .. "Hotpot did not recently create this file, but if you have been toggling colocation on and off you may be seeing this warning.\n"), lua_path, src_path), {"Yes, replace the lua file.", _48_}, {"No, keep the lua file and dont ask again.", _49_})
   end
   local function clean_cache_and_compile(lua_path_in_cache0, record)
-    local function _49_(...)
-      local _50_ = ...
-      if (_50_ == true) then
-        local function _51_(...)
-          local _52_ = ...
-          if (_52_ == true) then
-            local function _53_(...)
-              local _54_ = ...
-              if (nil ~= _54_) then
-                local record0 = _54_
-                local function _55_(...)
-                  local _56_ = ...
-                  if (nil ~= _56_) then
-                    local record1 = _56_
+    local function _50_(...)
+      local _51_ = ...
+      if (_51_ == true) then
+        local function _52_(...)
+          local _53_ = ...
+          if (_53_ == true) then
+            local function _54_(...)
+              local _55_ = ...
+              if (nil ~= _55_) then
+                local record0 = _55_
+                local function _56_(...)
+                  local _57_ = ...
+                  if (nil ~= _57_) then
+                    local record1 = _57_
                     return record_loadfile(record1)
                   elseif true then
-                    local __75_auto = _56_
+                    local __75_auto = _57_
                     return ...
                   else
                     return nil
                   end
                 end
-                return _55_(set_index_target_colocation(record0))
+                return _56_(set_index_target_colocation(record0))
               elseif true then
-                local __75_auto = _54_
+                local __75_auto = _55_
                 return ...
               else
                 return nil
               end
             end
-            return _53_(make_module_record(modname, record["src-path"]))
+            return _54_(make_module_record(modname, record["src-path"]))
           elseif true then
-            local __75_auto = _52_
+            local __75_auto = _53_
             return ...
           else
             return nil
           end
         end
-        return _51_(drop_index(record))
+        return _52_(drop_index(record))
       elseif true then
-        local __75_auto = _50_
+        local __75_auto = _51_
         return ...
       else
         return nil
       end
     end
-    return _49_(rm_file(lua_path_in_cache0))
+    return _50_(rm_file(lua_path_in_cache0))
   end
-  local _61_ = fetch_index(lua_path_in_cache)
-  if (nil ~= _61_) then
-    local record = _61_
+  local _62_ = fetch_index(lua_path_in_cache)
+  if (nil ~= _62_) then
+    local record = _62_
     if file_exists_3f(record["src-path"]) then
       if wants_colocation_3f(record["sigil-path"]) then
         if file_exists_3f(record["lua-colocation-path"]) then
@@ -277,40 +286,40 @@ local function handle_cache_lua_path(modname, lua_path_in_cache)
       drop_index(record)
       return REPEAT_SEARCH
     end
-  elseif (_61_ == nil) then
+  elseif (_62_ == nil) then
     rm_file(lua_path_in_cache)
     return REPEAT_SEARCH
   else
     return nil
   end
 end
-local function _68_(...)
+local function _69_(...)
   local function handler_for_missing_fnl(modname, lua_path, record)
     if file_missing_3f(record["src-path"]) then
       if lua_file_modified_3f(record) then
-        local function _69_()
+        local function _70_()
           rm_file(lua_path)
           drop_index(record)
-          local function _70_()
+          local function _71_()
             return REPEAT_SEARCH
           end
-          return _70_
+          return _71_
         end
-        local function _71_()
+        local function _72_()
           drop_index(record)
-          local function _72_()
+          local function _73_()
             return loadfile(lua_path)
           end
-          return _72_
+          return _73_
         end
-        return query_user(fmt(("The file %s was built by Hotpot, but the original fennel source file has been removed.\n" .. "Changes have been made to the file by something else.\n" .. "Do you want to remove the lua file?"), lua_path), {"Yes, remove the lua file.", _69_}, {"No, keep the lua file, dont ask again.", _71_})
+        return query_user(fmt(("The file %s was built by Hotpot, but the original fennel source file has been removed.\n" .. "Changes have been made to the file by something else.\n" .. "Do you want to remove the lua file?"), lua_path), {"Yes, remove the lua file.", _70_}, {"No, keep the lua file, dont ask again.", _72_})
       else
         rm_file(lua_path)
         drop_index(record)
-        local function _73_()
+        local function _74_()
           return REPEAT_SEARCH
         end
-        return _73_
+        return _74_
       end
     else
       return nil
@@ -319,29 +328,29 @@ local function _68_(...)
   local function handler_for_colocation_denied(modname, lua_path, record)
     if not wants_colocation_3f(record["sigil-path"]) then
       if lua_file_modified_3f(record) then
-        local function _76_()
+        local function _77_()
           rm_file(lua_path)
           drop_index(record)
-          local function _77_()
+          local function _78_()
             return REPEAT_SEARCH
           end
-          return _77_
+          return _78_
         end
-        local function _78_()
+        local function _79_()
           drop_index(record)
-          local function _79_()
+          local function _80_()
             return loadfile(lua_path)
           end
-          return _79_
+          return _80_
         end
-        return query_user(fmt(("The file %s was built by Hotpot, but colocation permission have been denied.\n" .. "Changes have been made to the file by something else.\n" .. "Do you want to remove the lua file?"), lua_path), {"Yes, remove the lua file and try to recompile into cache.", _76_}, {"No, keep the lua file, dont ask again.", _78_})
+        return query_user(fmt(("The file %s was built by Hotpot, but colocation permission have been denied.\n" .. "Changes have been made to the file by something else.\n" .. "Do you want to remove the lua file?"), lua_path), {"Yes, remove the lua file and try to recompile into cache.", _77_}, {"No, keep the lua file, dont ask again.", _79_})
       else
         rm_file(lua_path)
         drop_index(record)
-        local function _80_()
+        local function _81_()
           return REPEAT_SEARCH
         end
-        return _80_
+        return _81_
       end
     else
       return nil
@@ -349,141 +358,141 @@ local function _68_(...)
   end
   local function handler_for_changes_overwrite(modname, lua_path, record)
     if (needs_compilation_3f(record) and lua_file_modified_3f(record)) then
-      local function _83_()
-        local function _84_()
+      local function _84_()
+        local function _85_()
           return record_loadfile(record)
         end
-        return _84_
+        return _85_
       end
-      local function _85_()
-        local function _86_()
+      local function _86_()
+        local function _87_()
           return loadfile(lua_path)
         end
-        return _86_
+        return _87_
       end
-      return query_user(fmt(("The file %s was built by Hotpot but changes have been made to the file by something else.\n" .. "Continuing will overwrite those changes\n" .. "Overwrite lua with new code?"), lua_path), {"Yes, recompile the fennel source.", _83_}, {"No, keep the lua file for now.", _85_})
+      return query_user(fmt(("The file %s was built by Hotpot but changes have been made to the file by something else.\n" .. "Continuing will overwrite those changes\n" .. "Overwrite lua with new code?"), lua_path), {"Yes, recompile the fennel source.", _84_}, {"No, keep the lua file for now.", _86_})
     else
       return nil
     end
   end
   local function handler_for_known_colocation(modname, lua_path, record)
-    local function _88_(...)
-      local _89_ = ...
-      if (_89_ == nil) then
-        local function _90_(...)
-          local _91_ = ...
-          if (_91_ == nil) then
-            local function _92_(...)
-              local _93_ = ...
-              if (_93_ == nil) then
+    local function _89_(...)
+      local _90_ = ...
+      if (_90_ == nil) then
+        local function _91_(...)
+          local _92_ = ...
+          if (_92_ == nil) then
+            local function _93_(...)
+              local _94_ = ...
+              if (_94_ == nil) then
                 return record_loadfile(record)
-              elseif (nil ~= _93_) then
-                local func = _93_
+              elseif (nil ~= _94_) then
+                local func = _94_
                 return func()
               else
                 return nil
               end
             end
-            return _92_(handler_for_changes_overwrite(modname, lua_path, record))
-          elseif (nil ~= _91_) then
-            local func = _91_
+            return _93_(handler_for_changes_overwrite(modname, lua_path, record))
+          elseif (nil ~= _92_) then
+            local func = _92_
             return func()
           else
             return nil
           end
         end
-        return _90_(handler_for_colocation_denied(modname, lua_path, record))
-      elseif (nil ~= _89_) then
-        local func = _89_
+        return _91_(handler_for_colocation_denied(modname, lua_path, record))
+      elseif (nil ~= _90_) then
+        local func = _90_
         return func()
       else
         return nil
       end
     end
-    return _88_(handler_for_missing_fnl(modname, lua_path, record))
+    return _89_(handler_for_missing_fnl(modname, lua_path, record))
   end
   return {["handler-for-known-colocation"] = handler_for_known_colocation}
 end
-local _local_67_ = _68_(...)
-local handler_for_known_colocation = _local_67_["handler-for-known-colocation"]
-local function _98_(...)
+local _local_68_ = _69_(...)
+local handler_for_known_colocation = _local_68_["handler-for-known-colocation"]
+local function _99_(...)
   local function has_overwrite_permission_3f(lua_path, src_path)
-    local function _99_()
+    local function _100_()
       return true
     end
-    local function _100_()
+    local function _101_()
       return false
     end
-    return query_user(fmt(("Should Hotpot overwrite the file %s with the contents of %s?\n" .. "Hotpot did not recently create this file, but if you have been toggling colocation on and off you may be seeing this warning.\n"), lua_path, src_path), {"Yes, replace the lua file.", _99_}, {"No, keep the lua file for now.", _100_})
+    return query_user(fmt(("Should Hotpot overwrite the file %s with the contents of %s?\n" .. "Hotpot did not recently create this file, but if you have been toggling colocation on and off you may be seeing this warning.\n"), lua_path, src_path), {"Yes, replace the lua file.", _100_}, {"No, keep the lua file for now.", _101_})
   end
   local function handler_for_unknown_colocation(modname, lua_path)
-    local _let_101_ = make_module_record(modname, lua_path, {["unsafely?"] = true})
-    local sigil_path = _let_101_["sigil-path"]
-    local src_path = _let_101_["src-path"]
+    local _let_102_ = make_module_record(modname, lua_path, {["unsafely?"] = true})
+    local sigil_path = _let_102_["sigil-path"]
+    local src_path = _let_102_["src-path"]
     if (file_exists_3f(src_path) and wants_colocation_3f(sigil_path) and has_overwrite_permission_3f(lua_path, src_path)) then
-      local function _102_(...)
-        local _103_ = ...
-        if (nil ~= _103_) then
-          local record = _103_
-          local function _104_(...)
-            local _105_ = ...
-            if (nil ~= _105_) then
-              local record0 = _105_
-              local function _106_(...)
-                local _107_ = ...
-                if (nil ~= _107_) then
-                  local loader = _107_
-                  local function _108_(...)
-                    local _109_, _110_ = ...
-                    if ((_109_ == false) and (nil ~= _110_)) then
-                      local e = _110_
+      local function _103_(...)
+        local _104_ = ...
+        if (nil ~= _104_) then
+          local record = _104_
+          local function _105_(...)
+            local _106_ = ...
+            if (nil ~= _106_) then
+              local record0 = _106_
+              local function _107_(...)
+                local _108_ = ...
+                if (nil ~= _108_) then
+                  local loader = _108_
+                  local function _109_(...)
+                    local _110_, _111_ = ...
+                    if ((_110_ == false) and (nil ~= _111_)) then
+                      local e = _111_
                       return e
                     elseif true then
-                      local __75_auto = _109_
+                      local __75_auto = _110_
                       return ...
                     else
                       return nil
                     end
                   end
-                  return _108_(loader)
+                  return _109_(loader)
                 elseif true then
-                  local __75_auto = _107_
+                  local __75_auto = _108_
                   return ...
                 else
                   return nil
                 end
               end
-              return _106_(record_loadfile(record0))
+              return _107_(record_loadfile(record0))
             elseif true then
-              local __75_auto = _105_
+              local __75_auto = _106_
               return ...
             else
               return nil
             end
           end
-          return _104_(set_index_target_colocation(record))
+          return _105_(set_index_target_colocation(record))
         elseif true then
-          local __75_auto = _103_
+          local __75_auto = _104_
           return ...
         else
           return nil
         end
       end
-      return _102_(make_module_record(modname, src_path))
+      return _103_(make_module_record(modname, src_path))
     else
       return loadfile(lua_path)
     end
   end
   return {["handler-for-unknown-colocation"] = handler_for_unknown_colocation}
 end
-local _local_97_ = _98_(...)
-local handler_for_unknown_colocation = _local_97_["handler-for-unknown-colocation"]
+local _local_98_ = _99_(...)
+local handler_for_unknown_colocation = _local_98_["handler-for-unknown-colocation"]
 local function handle_colo_lua_path(modname, lua_path)
-  local _116_ = fetch_index(lua_path)
-  if (nil ~= _116_) then
-    local record = _116_
+  local _117_ = fetch_index(lua_path)
+  if (nil ~= _117_) then
+    local record = _117_
     return handler_for_known_colocation(modname, lua_path, record)
-  elseif (_116_ == nil) then
+  elseif (_117_ == nil) then
     return handler_for_unknown_colocation(modname, lua_path)
   else
     return nil
@@ -492,41 +501,41 @@ end
 local function find_module(modname)
   local function infer_lua_path_type(path)
     local cache_affix = fmt("^%s", vim.pesc(cache_path_for_compiled_artefact()))
-    local _118_ = path:find(cache_affix)
-    if (_118_ == 1) then
+    local _119_ = path:find(cache_affix)
+    if (_119_ == 1) then
       return "cache"
     elseif true then
-      local _ = _118_
+      local _ = _119_
       return "colocate"
     else
       return nil
     end
   end
   local function search_by_existing_lua(modname0)
-    local _120_ = vim.loader.find(modname0)
-    if ((_G.type(_120_) == "table") and ((_G.type((_120_)[1]) == "table") and (nil ~= ((_120_)[1]).modpath))) then
-      local found_lua_path = ((_120_)[1]).modpath
+    local _121_ = vim.loader.find(modname0)
+    if ((_G.type(_121_) == "table") and ((_G.type((_121_)[1]) == "table") and (nil ~= ((_121_)[1]).modpath))) then
+      local found_lua_path = ((_121_)[1]).modpath
       local f
       do
-        local _121_ = infer_lua_path_type(found_lua_path)
-        if (_121_ == "cache") then
+        local _122_ = infer_lua_path_type(found_lua_path)
+        if (_122_ == "cache") then
           f = handle_cache_lua_path
-        elseif (_121_ == "colocate") then
+        elseif (_122_ == "colocate") then
           f = handle_colo_lua_path
         else
           f = nil
         end
       end
-      local _123_, _124_ = f(modname0, found_lua_path)
-      if (_123_ == REPEAT_SEARCH) then
+      local _124_, _125_ = f(modname0, found_lua_path)
+      if (_124_ == REPEAT_SEARCH) then
         return find_module(modname0)
       elseif true then
-        local _3floader = _123_
+        local _3floader = _124_
         return _3floader
       else
         return nil
       end
-    elseif ((_G.type(_120_) == "table") and ((_120_)[1] == nil)) then
+    elseif ((_G.type(_121_) == "table") and ((_121_)[1] == nil)) then
       return false
     else
       return nil
@@ -535,74 +544,74 @@ local function find_module(modname)
   local function search_by_rtp_fnl(modname0)
     local search_runtime_path
     do
-      local _let_127_ = require("hotpot.searcher")
-      local mod_search = _let_127_["mod-search"]
-      local function _128_(modname1)
+      local _let_128_ = require("hotpot.searcher")
+      local mod_search = _let_128_["mod-search"]
+      local function _129_(modname1)
         return mod_search({prefix = "fnl", extension = "fnl", modnames = {(modname1 .. ".init"), modname1}, ["package-path?"] = false})
       end
-      search_runtime_path = _128_
+      search_runtime_path = _129_
     end
-    local _129_ = search_runtime_path(modname0)
-    if ((_G.type(_129_) == "table") and (nil ~= (_129_)[1])) then
-      local src_path = (_129_)[1]
-      local function _130_(...)
-        local _131_ = ...
-        if (nil ~= _131_) then
-          local index = _131_
-          local function _132_(...)
-            local _133_ = ...
-            if (nil ~= _133_) then
-              local index0 = _133_
-              local function _134_(...)
-                local _135_ = ...
-                if (nil ~= _135_) then
-                  local loader = _135_
-                  local function _136_(...)
-                    local _137_, _138_ = ...
-                    if ((_137_ == false) and (nil ~= _138_)) then
-                      local e = _138_
+    local _130_ = search_runtime_path(modname0)
+    if ((_G.type(_130_) == "table") and (nil ~= (_130_)[1])) then
+      local src_path = (_130_)[1]
+      local function _131_(...)
+        local _132_ = ...
+        if (nil ~= _132_) then
+          local index = _132_
+          local function _133_(...)
+            local _134_ = ...
+            if (nil ~= _134_) then
+              local index0 = _134_
+              local function _135_(...)
+                local _136_ = ...
+                if (nil ~= _136_) then
+                  local loader = _136_
+                  local function _137_(...)
+                    local _138_, _139_ = ...
+                    if ((_138_ == false) and (nil ~= _139_)) then
+                      local e = _139_
                       return e
                     elseif true then
-                      local __75_auto = _137_
+                      local __75_auto = _138_
                       return ...
                     else
                       return nil
                     end
                   end
-                  return _136_(loader)
+                  return _137_(loader)
                 elseif true then
-                  local __75_auto = _135_
+                  local __75_auto = _136_
                   return ...
                 else
                   return nil
                 end
               end
-              return _134_(record_loadfile(index0))
+              return _135_(record_loadfile(index0))
             elseif true then
-              local __75_auto = _133_
+              local __75_auto = _134_
               return ...
             else
               return nil
             end
           end
-          local function _142_(...)
+          local function _143_(...)
             if wants_colocation_3f(index["sigil-path"]) then
               return set_index_target_colocation(index)
             else
               return set_index_target_cache(index)
             end
           end
-          return _132_(_142_(...))
+          return _133_(_143_(...))
         elseif true then
-          local __75_auto = _131_
+          local __75_auto = _132_
           return ...
         else
           return nil
         end
       end
-      return _130_(make_module_record(modname0, src_path))
+      return _131_(make_module_record(modname0, src_path))
     elseif true then
-      local _ = _129_
+      local _ = _130_
       return false
     else
       return nil
@@ -611,71 +620,71 @@ local function find_module(modname)
   local function search_by_package_path(modname0)
     local search_package_path
     do
-      local _let_145_ = require("hotpot.searcher")
-      local mod_search = _let_145_["mod-search"]
-      local function _146_(modname1)
+      local _let_146_ = require("hotpot.searcher")
+      local mod_search = _let_146_["mod-search"]
+      local function _147_(modname1)
         return mod_search({prefix = "fnl", extension = "fnl", modnames = {(modname1 .. ".init"), modname1}, ["runtime-path?"] = false})
       end
-      search_package_path = _146_
+      search_package_path = _147_
     end
-    local _147_ = search_package_path(modname0)
-    if ((_G.type(_147_) == "table") and (nil ~= (_147_)[1])) then
-      local modpath = (_147_)[1]
-      local _let_148_ = require("hotpot.fennel")
-      local dofile = _let_148_["dofile"]
+    local _148_ = search_package_path(modname0)
+    if ((_G.type(_148_) == "table") and (nil ~= (_148_)[1])) then
+      local modpath = (_148_)[1]
+      local _let_149_ = require("hotpot.fennel")
+      local dofile = _let_149_["dofile"]
       vim.notify(fmt(("Found `%s` outside of Neovims RTP (at %s) by the package.path searcher.\n" .. "Hotpot will evaluate this file instead of compling it."), modname0, modpath), vim.log.levels.NOTICE)
-      local function _149_()
+      local function _150_()
         return dofile(modpath)
       end
-      return _149_
+      return _150_
     elseif true then
-      local _ = _147_
+      local _ = _148_
       return false
     else
       return nil
     end
   end
-  local function _151_(...)
-    local _152_ = ...
-    if (_152_ == false) then
-      local function _153_(...)
-        local _154_ = ...
-        if (_154_ == false) then
-          local function _155_(...)
-            local _156_ = ...
-            if (_156_ == false) then
+  local function _152_(...)
+    local _153_ = ...
+    if (_153_ == false) then
+      local function _154_(...)
+        local _155_ = ...
+        if (_155_ == false) then
+          local function _156_(...)
+            local _157_ = ...
+            if (_157_ == false) then
               return nil
             elseif true then
-              local _3floader = _156_
+              local _3floader = _157_
               return _3floader
             else
               return nil
             end
           end
-          return _155_(search_by_package_path(modname))
+          return _156_(search_by_package_path(modname))
         elseif true then
-          local _3floader = _154_
+          local _3floader = _155_
           return _3floader
         else
           return nil
         end
       end
-      return _153_(search_by_rtp_fnl(modname))
+      return _154_(search_by_rtp_fnl(modname))
     elseif true then
-      local _3floader = _152_
+      local _3floader = _153_
       return _3floader
     else
       return nil
     end
   end
-  return _151_(search_by_existing_lua(modname))
+  return _152_(search_by_existing_lua(modname))
 end
 local function make_searcher()
   local function searcher(modname, ...)
-    local _160_ = ("hotpot." == string.sub(modname, 1, 7))
-    if (_160_ == true) then
+    local _161_ = ("hotpot." == string.sub(modname, 1, 7))
+    if (_161_ == true) then
       return nil
-    elseif (_160_ == false) then
+    elseif (_161_ == false) then
       return (package.preload[modname] or find_module(modname))
     else
       return nil
@@ -684,7 +693,7 @@ local function make_searcher()
   return searcher
 end
 local function make_record_loader(record)
-  _G.assert((nil ~= record), "Missing argument record on fnl/hotpot/loader/init.fnl:366")
+  _G.assert((nil ~= record), "Missing argument record on fnl/hotpot/loader/init.fnl:378")
   return record_loadfile(record)
 end
 return {["make-searcher"] = make_searcher, ["compiled-cache-path"] = cache_path_for_compiled_artefact(), ["cache-path-for-compiled-artefact"] = cache_path_for_compiled_artefact, ["make-record-loader"] = make_record_loader}
