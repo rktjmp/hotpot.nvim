@@ -10,6 +10,7 @@ and auto commands) are treated with less reverence.
 
 - Add `api.make.auto.build(path, ?opts)` to manually trigger `.hotpot.lua`
   saving a file.
+- Add `colocation = true` deprecation message, recommend `build = true`.
 
 ## 0.9.4
 
