@@ -107,11 +107,18 @@ See both |hotpot-cookbook-using-a-`.hotpot.lua`-file| and
 ==============================================================================
 4. Using Dot Hotpot                         *hotpot-cookbook-using-dot-hotpot*
 
-Hotpot can optionally be configured per-project by a `.hotpot.lua` file. This
-allows for alternate compiler settings to be used for some projects instead of
-those passed to `setup()`.
+Hotpot can optionally be configured per-project/directory by a `.hotpot.lua`
+file.
 
-It also enables auto-build/clean functionality by wrapping `hotpot.api.make`.
+This adds support for:
+
+- Defining fennel to lua build rules via glob patterns.
+- Automatically building and cleaning lua targets on save.
+- Alternative compiler settings per project than those passed to `setup()`.
+
+`.hotpot.lua` wraps functionality exposed by |hotpot.api.make|, you can also
+manually invoke the automake system by calling
+|hotpot.api.make.automake.build|.
 
 
   `.hotpot.lua` is intended for plugin developers, but you can apply the same
@@ -149,7 +156,11 @@ BUILD ~
 
 Specify auto-build instructions for the `.hotpot.lua` directory. When present,
 hotpot will build all fennel files in a project when a fennel file is saved.
-See also |hotpot.api.make.build| for more details.
+
+See also |hotpot.api.make.build| for more details and the underlying API.
+
+See also |hotpot.api.make.automake.build| to manually invoke the build rules
+without opening and saving a file.
 
 Supported values are:
 
