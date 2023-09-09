@@ -57,6 +57,10 @@
   (let [{: eval-module} (require :hotpot.api.eval)
         (_ mod) (eval-module modname {:useMetadata true})]
     (-> mod
+        (#(if (= :hotpot.api.make modname)
+            (doto $1
+              (tset :automake.build mod.automake.build))
+            $1))
         (#(icollect [fname f (pairs $1)] [fname f]))
         (#(doto $1 (table.sort (fn [[a _] [b _]]
                                  (< a b)))))
