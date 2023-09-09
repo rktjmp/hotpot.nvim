@@ -17,7 +17,8 @@
   (let [n (- 79 (length text-a) (length text-b))]
     (.. text-a (string.rep fill n) text-b)))
 
-(fn dump-fn [modname fname f]
+
+(fn vimdoc-dump-fn [modname fname f]
   (let [fennel (require :fennel)
         sig (-> (. fennel.metadata f :fnl/arglist)
                 (#(accumulate [t (.. "(" fname) _ n (ipairs $1)]
@@ -53,6 +54,45 @@
       (table.insert doc 1 "")
       (table.concat doc "\n"))))
 
+(fn mddoc-dump-fn [modname fname f]
+  (let [fennel (require :fennel)
+        sig (-> (. fennel.metadata f :fnl/arglist)
+                (#(accumulate [t (.. "(" fname) _ n (ipairs $1)]
+                              (.. t " " n)))
+                (#(.. $1 ")")))
+        doc (-> (. fennel.metadata f :fnl/docstring)
+               (#(string.split (or $1 "undocumented") "\n"))
+               ;; 1. remove two leading spaces from each line due to in-code indentation.
+               (#(let [[l1 l2] $1
+                       strip-n (if l2
+                                 (let [strip (-> (string.match l2 "^([%s]*)")
+                                                 (length))]
+                                   0))]
+                   (icollect [i l (ipairs $1)]
+                     (if (= i 1)
+                       l
+                       (string.sub l strip-n -1)))))
+               ;; 2. turn ``` ... ``` into > ... <
+               ; (#(do
+               ;     (var in-code false)
+               ;     (icollect [_ l (ipairs $1)]
+               ;       (match [in-code (string.find l "^```")]
+               ;         [false not-nil] (do
+               ;                           (set in-code true)
+               ;                           (values ">"))
+               ;         [true not-nil] (do
+               ;                          (set in-code false)
+               ;                          (values "<"))
+               ;         [true nil] (values (.. "  " l))
+               ;         [false nil] (values l)))))
+               )]
+    (table.insert doc 1 (.. "`" sig "`\n"))
+    (table.insert doc 1 (.. "### " (.. "`" modname "." fname "`") "\n"))
+    (table.insert doc 1 "")
+    (table.insert doc 1 "")
+    (table.concat doc "\n")))
+
+
 (fn dump-mod [modname]
   (let [{: eval-module} (require :hotpot.api.eval)
         (_ mod) (eval-module modname {:useMetadata true})]
@@ -66,7 +106,10 @@
                                  (< a b)))))
         (#(icollect [_ [fname f] (ipairs $1)]
             (case (type f)
-              :function {:modname modname :fname fname :doc (dump-fn modname fname f)}))))))
+              :function {:modname modname
+                         :fname fname
+                         :vimdoc (vimdoc-dump-fn modname fname f)
+                         :mddoc (mddoc-dump-fn modname fname f)}))))))
 
 (local preamble-text "The Hotpot API~
 
@@ -84,7 +127,7 @@ The API is proxied and may be accessed in a few ways:
 
   (let [{: compile-string} (require :hotpot.api.compile)]
     (compile-string ...))
-
+<
 All position arguments are \"linewise\", starting at 1, 1 for line 1, column 1.
 Ranges are end-inclusive.")
 
@@ -192,7 +235,7 @@ could be condensed.
         ;; tell session to use new mode
         (reflect.set-mode reflect-session.id reflect-session.mode))))
   (vim.keymap.set :n :hx swap-reflect-mode)
-
+<
 "})
 
 (local mod-make
@@ -234,9 +277,9 @@ could be condensed.
    cache file is not enough to force recompilation in a running session. The
    loaded module must be removed from Lua's `package.loaded` table, then
    re-required.
-   >
+>
    (tset package.loaded :my_module nil) ;; Does NOT unload my_module.child
-
+<
    (Hint: You can iterate `package.loaded` and match the key for `\"^my_module\"`.)
 
    Note: Some of these functions are destructive, Hotpot bears no responsibility for
@@ -251,24 +294,54 @@ could be condensed.
       (table.insert index [(.. "  " fname) (.. "|" mod.modname "." fname "|")]))
     (tset mod :docs docs)))
 
-(#(with-open [fout (io.open "doc/hotpot-api.txt" :w)]
-    (fout:write "*hotpot-api*\n\n")
-    ;; write index
-    (fout:write (.. (text-with-lead-fill "=" " *hotpot-api-toc*") "\n\n"))
-    (each [_ [name tag] (ipairs index)]
-      (fout:write (.. (text-with-mid-fill name "." tag) "\n")))
-    (fout:write "\n")
-    ;; write lead text
-    (fout:write (.. (text-with-lead-fill "=" " *hotpot.api*") "\n\n"))
-    (fout:write preamble-text)
-    (fout:write "\n")
-    (fout:write "\n")
-    ;; write docstrings
-    (each [_ {: modname : title : desc : docs} (ipairs mods)]
-      (fout:write (.. (text-with-lead-fill "=" (.. " *" modname "*") "\n\n")))
-      (fout:write (.. "\n\n" title  "~\n\n"))
-      (fout:write (.. desc "\n"))
-      (each [_ {: modname : fname : doc} (ipairs docs)]
-        (fout:write doc)
-        (fout:write "\n")
-        (fout:write "\n")))))
+(with-open [fout (io.open "doc/hotpot-api.txt" :w)]
+  (fout:write "*hotpot-api*\n\n")
+  ;; write index
+  (fout:write (.. (text-with-lead-fill "=" " *hotpot-api-toc*") "\n\n"))
+  (each [_ [name tag] (ipairs index)]
+    (fout:write (.. (text-with-mid-fill name "." tag) "\n")))
+  (fout:write "\n")
+  ;; write lead text
+  (fout:write (.. (text-with-lead-fill "=" " *hotpot.api*") "\n\n"))
+  (fout:write preamble-text)
+  (fout:write "\n")
+  (fout:write "\n")
+  ;; write docstrings
+  (each [_ {: modname : title : desc : docs} (ipairs mods)]
+    (fout:write (.. (text-with-lead-fill "=" (.. " *" modname "*") "\n\n")))
+    (fout:write (.. "\n\n" title  "~\n\n"))
+    (fout:write (.. desc "\n"))
+    (each [_ {: modname : fname : vimdoc} (ipairs docs)]
+      (fout:write vimdoc)
+      (fout:write "\n")
+      (fout:write "\n"))))
+
+(with-open [fout (io.open "API.md" :w)]
+  (fout:write "# hotpot-api\n\n")
+  ;; write index
+  (fout:write (.. "## Table of Contents" "\n\n"))
+  (each [_ [name tag] (ipairs index)]
+    (let [(pre name) (name:match "^([%s]*)(.+)")
+          link (tag:match "|(.+)|")]
+      (fout:write (.. pre "- [" name "](#" (if (= :hotpot.api link)
+                                             "the-hotpot-api"
+                                             (link:gsub "%." "")) ")") "\n")))
+  (fout:write "\n")
+  ;; write lead text
+  (let [text (-> (string.gsub preamble-text ">" "```fennel")
+                 (string.gsub "<" "```")
+                 (string.gsub "~\n" "")
+                 )]
+    (fout:write (.. "## " text)))
+  (fout:write "\n")
+  (fout:write "\n")
+  ;; write docstrings
+  (each [_ {: modname : title : desc : docs} (ipairs mods)]
+    (fout:write (.. "## " modname "\n\n"))
+    (fout:write (.. "\n\n" "### " title  "\n\n"))
+    (fout:write (.. (-> (string.gsub desc ">" "```fennel")
+                        (string.gsub "<" "```")) "\n"))
+    (each [_ {: modname : fname : mddoc} (ipairs docs)]
+      (fout:write mddoc)
+      (fout:write "\n")
+      (fout:write "\n"))))
