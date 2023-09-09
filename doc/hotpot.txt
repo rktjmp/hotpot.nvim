@@ -9,13 +9,14 @@ Table of Contents                                   *hotpot*
   - Install                                   |hotpot-getting-started-install|
   - Usage                                       |hotpot-getting-started-usage|
 4. Setup                                                        |hotpot-setup|
-5. Diagnostics                                            |hotpot-diagnostics|
-6. The API                                                    |hotpot-the-api|
-7. Commands                                                  |hotpot-commands|
-8. Keymaps                                                    |hotpot-keymaps|
-9. Module preference                                |hotpot-module-preference|
-10. Quirks                                                     |hotpot-quirks|
-11. Licenses                                                 |hotpot-licenses|
+5. dot-hotpot                                              |hotpot-dot-hotpot|
+6. Diagnostics                                            |hotpot-diagnostics|
+7. The API                                                    |hotpot-the-api|
+8. Commands                                                  |hotpot-commands|
+9. Keymaps                                                    |hotpot-keymaps|
+10. Module preference                               |hotpot-module-preference|
+11. Quirks                                                     |hotpot-quirks|
+12. Licenses                                                 |hotpot-licenses|
 
 
 ==============================================================================
@@ -201,9 +202,8 @@ Fennels configuration options as described on fennel-lang.org
     module files.
 - `compiler.macros` is passed to the Fennel compiler when compiling macro files.
     **Be sure to include env = "_COMPILER"** unless you have a good reason not to.
-
-- `compiler.preprocessor` is a function that accepts the fennel source code as a string,
-    and an table, `{: path : modname : macro}`.
+- `compiler.preprocessor` is a function that accepts the fennel source code as a
+    string, and a table, `{: path : modname : macro}`.
 
 Fennel compiler plugins are supported in two forms, as a table (ie. as
 described by Fennels documentation) and as a string which should be a module
@@ -227,7 +227,16 @@ For a complete list of compiler options, see Fennels documentation
 
 
 ==============================================================================
-5. Diagnostics                                            *hotpot-diagnostics*
+5. dot-hotpot                                              *hotpot-dot-hotpot*
+
+Hotpot can optionally be configured to build `lua/` directories on-save with
+per-project settings by using a `.hotpot.lua` file.
+
+See |hotpot-cookbook-using-dot-hotpot| for a usage guide.
+
+
+==============================================================================
+6. Diagnostics                                            *hotpot-diagnostics*
 
 Hotpot ships with built in diagnostics feature to show fennel compilation
 errors via Neovim diagnostics.
@@ -242,7 +251,7 @@ the macro environment in other contexts (please open an issue).
 
 
 ==============================================================================
-6. The API                                                    *hotpot-the-api*
+7. The API                                                    *hotpot-the-api*
 
 Hotpot provides a number of functions for evaluating and compiling Fennel code,
 including helpers to easily operate on strings, selections and buffers for
@@ -252,7 +261,7 @@ See |hotpot.api|.
 
 
 ==============================================================================
-7. Commands                                                  *hotpot-commands*
+8. Commands                                                  *hotpot-commands*
 
 Hotpot provides 3 commands which behave similarly but not exactly like Neovims
 Lua commands (see |lua-commands|).
@@ -327,7 +336,7 @@ available inside {expression}, `line` and `linenr`.
 
 
 ==============================================================================
-8. Keymaps                                                    *hotpot-keymaps*
+9. Keymaps                                                    *hotpot-keymaps*
 
 Hotpot expects the user to specify most maps themselves via the API functions
 (see |hotpot.api|). It does provide one `<Plug>` mapping for operator-pending
@@ -346,7 +355,7 @@ proceeding motion.
 
 
 ==============================================================================
-9. Module preference                                *hotpot-module-preference*
+10. Module preference                               *hotpot-module-preference*
 
 Given the directory structure,
 
@@ -368,7 +377,7 @@ plugin in fennel.
 
 
 ==============================================================================
-10. Quirks                                                     *hotpot-quirks*
+11. Quirks                                                     *hotpot-quirks*
 
 - Hotpot will only _compile_ fennel files that are found in Neovims RTP. It
     will _evaluate_ files that are found in luas `package.path`. This is for safety
@@ -379,7 +388,7 @@ plugin in fennel.
 
 
 ==============================================================================
-11. Licenses                                                 *hotpot-licenses*
+12. Licenses                                                 *hotpot-licenses*
 
 Hotpot embeds `fennel.lua`, see `lua/hotpot/fennel.lua` for licensing
 information.

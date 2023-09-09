@@ -152,18 +152,6 @@ The `say-hello` module would be put in `~/.config/nvim/fnl/say-hello.fnl`:
 (print :hello!)
 ```
 
-<!-- panvimdoc-ignore-start -->
-
-<details>
-<summary>Windows</summary>
-
-Windows installations may [require additional setup](#windows) depending on
-your account privileges.
-
-</details>
-
-<!-- panvimdoc-ignore-end -->
-
 ## Usage
 
 Place all your fennel files under a `fnl` dir, as you would place lua files
@@ -252,19 +240,8 @@ require("hotpot").setup({
 - `compiler.macros` is passed to the Fennel compiler when compiling macro files.
   **Be sure to include `env = "_COMPILER"`** unless you have a good reason not to.
 
-<!-- panvimdoc-include-comment
-
 - `compiler.preprocessor` is a function that accepts the fennel source code as a string,
-and an table, `{: path : modname : macro}`.
-
--->
-
-<!-- panvimdoc-ignore-start -->
-
-- `compiler.preprocessor` is a function that accepts the fennel source code as a string,
-and an table, `{: path : modname : macro}`.
-
-<!-- panvimdoc-ignore-end -->
+  and a table, `{: path : modname : macro}`.
 
 Fennel compiler plugins are supported in two forms, as a table (ie. as
 described by Fennels documentation) and as a string which should be a module
@@ -289,6 +266,24 @@ Note:
 
 For a complete list of compiler options, see [Fennels
 documentation](http://fennel-lang.org), specifically the API usage section.
+
+# dot-hotpot
+
+Hotpot can optionally be configured to build `lua/` directories on-save with
+per-project settings by using a `.hotpot.lua` file.
+
+<!-- panvimdoc-ignore-start -->
+
+See [`:h hotpot-cookbook-using-dot-hotpot`](COOKBOOK.md#using-dot-hotpot) in
+the COOKBOOK.
+
+<!-- panvimdoc-ignore-end -->
+
+<!-- panvimdoc-include-comment
+
+See `:h hotpot-cookbook-using-dot-hotpot` for a usage guide.
+
+-->
 
 # Diagnostics
 
