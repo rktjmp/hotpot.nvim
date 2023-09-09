@@ -78,11 +78,11 @@ diagnostic, or via `error-for-buf`.
 
 Attach handler to buffer which will render compilation errors as diagnostics.
 
-  Buf can be 0 for current buffer, or any valid buffer number.
+Buf can be 0 for current buffer, or any valid buffer number.
 
-  Returns the buffer-id which can be used to `detach` or get `error-for-buf`,
-  when given 0, this id will be the 'real' buffer id, otherwise it will match
-  the original `buf` argument.
+Returns the buffer-id which can be used to `detach` or get `error-for-buf`,
+when given 0, this id will be the 'real' buffer id, otherwise it will match
+the original `buf` argument.
 
 
 
@@ -220,13 +220,13 @@ could be condensed.
 
 Attach given buffer to session. This will detach any existing attachment first.
 
-  Accepts session-id buffer-id and optional compiler options as you would
-  define in hotpot.setup If no compiler-options are given, the appropriate
-  compiler-options are resolved from any local .hotpot.lua file, or those given
-  to setup(). Whe providing custom options you must provide a modules and
-  macros table and a preprocessor function.
+Accepts session-id buffer-id and optional compiler options as you would
+define in hotpot.setup If no compiler-options are given, the appropriate
+compiler-options are resolved from any local .hotpot.lua file, or those given
+to setup(). Whe providing custom options you must provide a modules and
+macros table and a preprocessor function.
 
-  Returns session-id
+Returns session-id
 
 
 
@@ -251,7 +251,7 @@ argument already filled.
 
 Detach buffer from session, which removes marks and autocmds.
 
-  Returns session-id
+Returns session-id
 
 
 
@@ -349,11 +349,11 @@ Deprecated, see dryrun option for build
 ### Eval API
 
 Tools to evaluate Fennel code in-editor. All functions return
-   `true result ...` or `false err`.
+`true result ...` or `false err`.
 
-   Note: If your Fennel code does not output anything, running these functions by
-   themselves will not show any output! You may wish to wrap them in a
-   `(print (eval-* ...))` expression for a simple REPL.
+Note: If your Fennel code does not output anything, running these functions by
+themselves will not show any output! You may wish to wrap them in a
+`(print (eval-* ...))` expression for a simple REPL.
 
 
 ### `hotpot.api.eval.eval-buffer`
@@ -423,13 +423,13 @@ API documentation.
 ### Compile API
 
 
-   Tools to compile Fennel code in-editor. All functions return `true code` or
-   `false err`. To compile fennel code to disk, see |hotpot.api.make|.
+Tools to compile Fennel code in-editor. All functions return `true code` or
+`false err`. To compile fennel code to disk, see |hotpot.api.make|.
 
-   Every `compile-*` function returns `true, luacode` or `false, errors` .
+Every `compile-*` function returns `true, luacode` or `false, errors` .
 
-   Note: The compiled code is _not_ saved anywhere, nor is it placed in Hotp
-   cache. To compile into cache, use `require("modname")`.
+Note: The compiled code is _not_ saved anywhere, nor is it placed in Hotp
+cache. To compile into cache, use `require("modname")`.
 
 
 ### `hotpot.api.compile.compile-buffer`
@@ -482,7 +482,7 @@ Accepts an options table as described by Fennels API documentation.
 
 Compile given `str` into lua, returns `true lua` or `false error`.
 
-  Accepts an options table as described by Fennels API documentation.
+Accepts an options table as described by Fennels API documentation.
 
 ## hotpot.api.cache
 
@@ -491,21 +491,21 @@ Compile given `str` into lua, returns `true lua` or `false error`.
 ### Cache API
 
 Tools to interact with Hotpots cache and index, such as
-   getting paths to cached lua files or clearing index entries.
+getting paths to cached lua files or clearing index entries.
 
-   You can manually interact with the cache at `~/.cache/nvim/hotpot`.
+You can manually interact with the cache at `~/.cache/nvim/hotpot`.
 
-   The cache will automatically refresh when required, but note: removing the
-   cache file is not enough to force recompilation in a running session. The
-   loaded module must be removed from Lua's `package.loaded` table, then
-   re-required.
-```fennel
-   (tset package.loaded :my_module nil) ;; Does NOT unload my_module.child
-```
-   (Hint: You can iterate `package.loaded` and match the key for `"^my_module"`.)
+The cache will automatically refresh when required, but note: removing the
+cache file is not enough to force recompilation in a running session. The
+loaded module must be removed from Lua's `package.loaded` table, then
+re-required.
 
-   Note: Some of these functions are destructive, Hotpot bears no responsibility for
-   any unfortunate events.
+(tset package.loaded :my_module nil) ;; Does NOT unload my_module.child
+
+(Hint: You can iterate `package.loaded` and match the key for `"^my_module"`.)
+
+Note: Some of these functions are destructive, Hotpot bears no responsibility for
+any unfortunate events.
 
 
 ### `hotpot.api.cache.cache-prefix`
@@ -530,6 +530,6 @@ Clear all lua cache files
 
 Open the cache directory in a split
 
-  Accepts an optional `how` and `opts` arguments which
-  are translated to `(vim.cmd.<how> (cache-path) <opts>)`
+Accepts an optional `how` and `opts` arguments which
+are translated to `(vim.cmd.<how> (cache-path) <opts>)`
 
