@@ -54,6 +54,20 @@
       (table.insert doc 1 "")
       (table.concat doc "\n"))))
 
+(fn align-lines [lines]
+  (let [offset (or (accumulate [n nil i s (ipairs lines) &until n]
+                     (case [i s]
+                       [1 _] nil
+                       [_ ""] nil
+                       [_ s] (-> (string.match s "^([%s]*)")
+                                 (length))))
+                   1)]
+    (icollect [i l (ipairs lines)]
+      (do
+      (if (= i 1)
+        l
+        (string.sub l (+ offset 1) -1))))))
+
 (fn mddoc-dump-fn [modname fname f]
   (let [fennel (require :fennel)
         sig (-> (. fennel.metadata f :fnl/arglist)
@@ -61,31 +75,8 @@
                               (.. t " " n)))
                 (#(.. $1 ")")))
         doc (-> (. fennel.metadata f :fnl/docstring)
-               (#(string.split (or $1 "undocumented") "\n"))
-               ;; 1. remove two leading spaces from each line due to in-code indentation.
-               (#(let [[l1 l2] $1
-                       strip-n (if l2
-                                 (let [strip (-> (string.match l2 "^([%s]*)")
-                                                 (length))]
-                                   0))]
-                   (icollect [i l (ipairs $1)]
-                     (if (= i 1)
-                       l
-                       (string.sub l strip-n -1)))))
-               ;; 2. turn ``` ... ``` into > ... <
-               ; (#(do
-               ;     (var in-code false)
-               ;     (icollect [_ l (ipairs $1)]
-               ;       (match [in-code (string.find l "^```")]
-               ;         [false not-nil] (do
-               ;                           (set in-code true)
-               ;                           (values ">"))
-               ;         [true not-nil] (do
-               ;                          (set in-code false)
-               ;                          (values "<"))
-               ;         [true nil] (values (.. "  " l))
-               ;         [false nil] (values l)))))
-               )]
+                (#(string.split (or $1 "undocumented") "\n"))
+                (align-lines))]
     (table.insert doc 1 (.. "`" sig "`\n"))
     (table.insert doc 1 (.. "### " (.. "`" modname "." fname "`") "\n"))
     (table.insert doc 1 "")
@@ -99,7 +90,7 @@
     (-> mod
         (#(if (= :hotpot.api.make modname)
             (doto $1
-              (tset :automake.build mod.automake.build))
+              (tset :auto.build mod.auto.build))
             $1))
         (#(icollect [fname f (pairs $1)] [fname f]))
         (#(doto $1 (table.sort (fn [[a _] [b _]]
@@ -339,7 +330,10 @@ could be condensed.
   (each [_ {: modname : title : desc : docs} (ipairs mods)]
     (fout:write (.. "## " modname "\n\n"))
     (fout:write (.. "\n\n" "### " title  "\n\n"))
-    (fout:write (.. (-> (string.gsub desc ">" "```fennel")
+    (fout:write (.. (-> (string.split desc "\n")
+                        (align-lines)
+                        (table.concat "\n")
+                        (string.gsub ">" "```fennel")
                         (string.gsub "<" "```")) "\n"))
     (each [_ {: modname : fname : mddoc} (ipairs docs)]
       (fout:write mddoc)
