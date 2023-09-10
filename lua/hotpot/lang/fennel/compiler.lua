@@ -17,7 +17,7 @@ local function spooky_prepare_plugins_21(options)
           local _4_ = mod_search({prefix = "fnl", extension = "fnl", modnames = {plug}})
           if ((_G.type(_4_) == "table") and (nil ~= (_4_)[1])) then
             local path = (_4_)[1]
-            val_19_auto = fennel.dofile(path, {env = "_COMPILER"})
+            val_19_auto = fennel.dofile(path, {env = "_COMPILER"}, plug, path)
           elseif true then
             local _ = _4_
             val_19_auto = error(string.format("Could not find fennel compiler plugin %q", plug))

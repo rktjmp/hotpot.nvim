@@ -17,7 +17,7 @@
     (set options.plugins (icollect [_i plug (ipairs (or options.plugins []))]
                            (match (type plug)
                              :string (case (mod-search {:prefix :fnl :extension :fnl :modnames [plug]})
-                                       [path] (fennel.dofile path {:env :_COMPILER})
+                                       [path] (fennel.dofile path {:env :_COMPILER} plug path)
                                        _ (error (string.format "Could not find fennel compiler plugin %q" plug)))
                              _ plug)))))
 
