@@ -20,7 +20,7 @@ local function new(modname, src_path, _2_)
   local extension_length = #extension
   local true_modname
   do
-    local src_init_3f = (nil ~= string.find(src_path0, "init%....$"))
+    local src_init_3f = (nil ~= string.find(src_path0, "/init%....$"))
     local mod_init_3f = (nil ~= string.find(modname, "%.init$"))
     if (src_init_3f and not mod_init_3f) then
       true_modname = (modname .. ".init")

@@ -25,5 +25,6 @@
 (test-path :def :def/init)
 (test-path :xyz.init "xyz/init")
 (test-path :abc.xyz.p-q-r :abc/xyz/p-q-r) ;; user issue 53, kebab files
+(test-path :xc-init :xc-init) ;; user issue 53, kebab files
 
 (exit)
