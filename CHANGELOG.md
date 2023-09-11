@@ -6,6 +6,12 @@ to "core" code (things that effect loading and running your code/config) are
 avoided but breaking changes to the API (things that might effect your bindings
 and auto commands) are treated with less reverence.
 
+## 0.9.6
+
+- Fix detecting mod/init.fnl vs mod-init.fnl.
+- Pass modname, modpath to compiler plugins, available under ... as per
+  normal lua requires.
+
 ## 0.9.5
 
 - Add `api.make.auto.build(path, ?opts)` to manually trigger `.hotpot.lua`
