@@ -6,6 +6,10 @@ to "core" code (things that effect loading and running your code/config) are
 avoided but breaking changes to the API (things that might effect your bindings
 and auto commands) are treated with less reverence.
 
+## 0.9.7 (unreleased)
+
+- Fix diagnostics message match pattern to include "column -1".
+
 ## 0.9.6
 
 - Fix detecting mod/init.fnl vs mod-init.fnl.
