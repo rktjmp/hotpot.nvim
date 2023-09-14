@@ -46,12 +46,12 @@
                                    :severity vim.diagnostic.severity.ERROR
                                    :source :hotpot-diagnostic
                                    :user_data err}])))
-  (match (string.match err "([^:]-):([%d:?]+) ([%w]+) error: (.-)\n")
+  (case (string.match err "([^:]-):([-%d:?]+) ([%w]+) error: (.-)\n")
     ("unknown" "?:?" kind msg) (set-diagnostic kind "unknown" 0 (.. "(error had no line number)" msg) err)
-    (file line-col kind msg) (match (string.match line-col "([%d?]+)")
+    (file line-col kind msg) (case (string.match line-col "([%d?]+)")
                                "?" (set-diagnostic kind file 0 (.. "(error had no line number)" msg) err)
                                line (set-diagnostic kind file (- (tonumber line) 1) msg err))
-    _ nil)) ;; TODO write this without "press enter" prompt
+    _ nil))
 
 (fn make-handler [buf ns]
   "Create the autocmd callback"

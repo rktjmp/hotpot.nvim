@@ -34,7 +34,7 @@ local function render_error_diagnostic(buf, ns, err)
     local msg0 = string.gsub(msg, " in strict mode", "")
     return vim.diagnostic.set(ns, buf, {{lnum = line, col = 0, message = msg0, severity = vim.diagnostic.severity.ERROR, source = "hotpot-diagnostic", user_data = err0}})
   end
-  local _3_, _4_, _5_, _6_ = string.match(err, "([^:]-):([%d:?]+) ([%w]+) error: (.-)\n")
+  local _3_, _4_, _5_, _6_ = string.match(err, "([^:]-):([-%d:?]+) ([%w]+) error: (.-)\n")
   if ((_3_ == "unknown") and (_4_ == "?:?") and (nil ~= _5_) and (nil ~= _6_)) then
     local kind = _5_
     local msg = _6_
