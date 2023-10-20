@@ -7,32 +7,32 @@ local file_stat = _local_2_["file-stat"]
 local rm_file = _local_2_["rm-file"]
 local SIGIL_FILE = ".hotpot.lua"
 local function load(path)
-  local defaults = {schema = "hotpot/1", compiler = {}, build = false, colocate = false}
+  local defaults = {schema = "hotpot/1", compiler = {}, build = false, clean = false, colocate = false}
   local valid_3f
   local function _3_(sigil)
     local _4_
     do
-      local tbl_17_auto = {}
-      local i_18_auto = #tbl_17_auto
+      local tbl_18_auto = {}
+      local i_19_auto = 0
       for key, _val in pairs(sigil) do
-        local val_19_auto
+        local val_20_auto
         do
           local _5_ = defaults[key]
           if (_5_ == nil) then
-            val_19_auto = key
+            val_20_auto = key
           else
-            val_19_auto = nil
+            val_20_auto = nil
           end
         end
-        if (nil ~= val_19_auto) then
-          i_18_auto = (i_18_auto + 1)
-          do end (tbl_17_auto)[i_18_auto] = val_19_auto
+        if (nil ~= val_20_auto) then
+          i_19_auto = (i_19_auto + 1)
+          do end (tbl_18_auto)[i_19_auto] = val_20_auto
         else
         end
       end
-      _4_ = tbl_17_auto
+      _4_ = tbl_18_auto
     end
-    if ((_G.type(_4_) == "table") and ((_4_)[1] == nil)) then
+    if ((_G.type(_4_) == "table") and (_4_[1] == nil)) then
       return true
     elseif (nil ~= _4_) then
       local keys = _4_
@@ -122,14 +122,12 @@ end
 local function wants_colocation_3f(sigil_path)
   if (sigil_path and file_exists_3f(sigil_path)) then
     local _22_ = load(sigil_path)
-    if ((_G.type(_22_) == "table") and (nil ~= (_22_).colocate)) then
-      local colocate = (_22_).colocate
+    if ((_G.type(_22_) == "table") and (nil ~= _22_.colocate)) then
+      local colocate = _22_.colocate
       return colocate
-    elseif true then
+    else
       local _ = _22_
       return false
-    else
-      return nil
     end
   else
     return false

@@ -8,6 +8,7 @@
   (let [defaults {:schema "hotpot/1"
                   :colocate false
                   :build false
+                  :clean false
                   :compiler {}}
         valid? (fn [sigil]
                  (case (icollect [key _val (pairs sigil)]
