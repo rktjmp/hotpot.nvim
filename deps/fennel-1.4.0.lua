@@ -2121,6 +2121,7 @@ package.preload["fennel.specials"] = package.preload["fennel.specials"] or funct
       compiler.assert(loader, (modname .. " module not found."), ast)
       macro_loaded[modname] = compiler.assert(utils["table?"](loader(modname, filename)), "expected macros to be table", (_3freal_ast or ast))
     end
+    utils.hook("require-macros", ast, scope)
     if ("import-macros" == tostring(ast[1])) then
       return macro_loaded[modname]
     else
