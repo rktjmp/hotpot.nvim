@@ -6,6 +6,11 @@ to "core" code (things that effect loading and running your code/config) are
 avoided but breaking changes to the API (things that might effect your bindings
 and auto commands) are treated with less reverence.
 
+## 0.10.0
+
+- **Updated to Fennel 1.4.0**, may contain unintended breaking changes from
+  upstream, see Fennels own changelog.
+
 ## 0.9.7
 
 - Fix diagnostics message match pattern to include "column -1".
@@ -76,12 +81,12 @@ and auto commands) are treated with less reverence.
 
 ## 0.7.0
 
-- **Updated to Fennel 1.3.1**, may contain un-intended breaking changes from
+- **Updated to Fennel 1.3.1**, may contain unintended breaking changes from
   upstream, see Fennels own changelog.
 
 ## 0.6.0
 
-- **Updated to Fennel 1.3.0**, may contain un-intended breaking changes from
+- **Updated to Fennel 1.3.0**, may contain unintended breaking changes from
   upstream, see Fennels own changelog.
 - Adjusted "file changed" tracking to use mtime + size for cache invalidation.
 
@@ -104,7 +109,7 @@ and auto commands) are treated with less reverence.
 
 ## 0.5.0
 
-- **Updated to Fennel 1.2.1**, may contain un-intended breaking changes from
+- **Updated to Fennel 1.2.1**, may contain unintended breaking changes from
   upstream, see Fennels own changelog.
 
 ## 0.4.1
@@ -114,7 +119,7 @@ and auto commands) are treated with less reverence.
 
 ## 0.4.0
 
-- **Updated to Fennel 1.2.0**, may contain un-intended breaking changes from
+- **Updated to Fennel 1.2.0**, may contain unintended breaking changes from
   upstream, see Fennels own changelog.
 
 ## 0.3.2
