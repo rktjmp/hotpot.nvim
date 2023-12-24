@@ -44,6 +44,9 @@
   (let [files {}
         begin-search-at (uv.hrtime)
         split {:build [] :ignore [] :time-ns nil}]
+    ;; fnl/**/dont/*.fnl should be ignored, but we do want to permit any fnl/**/*.fnl files.
+    ;; By default fnl/**/*.fnl would include the dont dir, so we need run both
+    ;; patterns to build an explicit ignore list.
     (each [_ [glob action] (ipairs spec)]
       (assert (string.match glob "%.fnl$") (string.format "build glob patterns must end in .fnl, got %s" glob))
       (each [_ path (ipairs (vim.fn.globpath root-dir glob true true))]
@@ -140,10 +143,11 @@
                                   ["☒  " :DiagnosticWarn])]
                (table.insert report [(string.format "%s%s\n" char src) level])
                (table.insert report [(string.format "-> %s (%sms)\n" dest (ns->ms time-ns)) level]))))
-  (table.insert report [(string.format "Disk: %sms Compile: %sms\n"
-                                       (ns->ms find-time-ns)
-                                       (ns->ms (->> (filter (fn [{: compiled?}] compiled?) compile-results)
-                                                    (reduce (fn [sum {: time-ns}] (+ sum time-ns)) 0)))) :DiagnosticInfo])
+  (when verbose?
+    (table.insert report [(string.format "Disk: %sms Compile: %sms\n"
+                                         (ns->ms find-time-ns)
+                                         (ns->ms (->> (filter (fn [{: compiled?}] compiled?) compile-results)
+                                                      (reduce (fn [sum {: time-ns}] (+ sum time-ns)) 0)))) :DiagnosticInfo]))
   (map #(case $1
           ;; WARN instead of ERROR so we dont get nvim prepending
           ;; autocommand failure message
