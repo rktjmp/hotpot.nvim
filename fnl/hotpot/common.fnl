@@ -36,6 +36,10 @@
   (icollect [_ v (ipairs seq)]
     (f v)))
 
+(fn reduce [f acc seq]
+  (accumulate [acc acc _ v (ipairs seq)]
+    (f acc v)))
+
 (fn filter [f seq]
   (map #(if (f $1) $1) seq))
 
@@ -50,6 +54,7 @@
  : set-lazy-proxy
  : put-new
  : map
+ : reduce
  : filter
  : any?
  : none?

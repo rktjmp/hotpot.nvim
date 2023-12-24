@@ -1,12 +1,14 @@
 (import-macros {: dprint : fmtdoc} :hotpot.macros)
 
 (local {: table? : function? : boolean? : string? : nil?
-        : map : filter : any? : none?} (require :hotpot.common))
+        : map : reduce : filter : any? : none?} (require :hotpot.common))
 (local uv vim.loop)
 
 (local M {})
 (local automake-memo {:augroup nil
                       :attached-buffers {}})
+
+(fn ns->ms [ns] (math.floor (/ ns 1_000_000)))
 
 (λ merge-with-default-options [opts]
   (let [{: default-config} (require :hotpot.runtime)
@@ -40,7 +42,8 @@
 
 (fn find-compile-targets [root-dir spec]
   (let [files {}
-        split {:build [] :ignore []}]
+        begin-search-at (uv.hrtime)
+        split {:build [] :ignore [] :time-ns nil}]
     (each [_ [glob action] (ipairs spec)]
       (assert (string.match glob "%.fnl$") (string.format "build glob patterns must end in .fnl, got %s" glob))
       (each [_ path (ipairs (vim.fn.globpath root-dir glob true true))]
@@ -64,6 +67,7 @@
         (table.insert split.build {:src path
                                    :dest (vim.fs.normalize action)})
         (table.insert split.ignore {:src path})))
+    (set split.time-ns (- (uv.hrtime) begin-search-at))
     split))
 
 (fn find-clean-targets [root-dir spec compile-targets]
@@ -94,17 +98,26 @@
                  ;; We compile via absolute paths since the cwd might not be
                  ;; the root dir, but we want to try and provide relative filenames
                  ;; in error messages otherwise we leak some user information.
-                 relative-filename (string.sub src (+ 2 (length root-dir)))]
+                 relative-filename (string.sub src (+ 2 (length root-dir)))
+                 begin-compile-at (uv.hrtime)]
              (case (compile-file src tmp-path
                                  (doto compiler-options.modules
                                        (tset :filename relative-filename))
                                  compiler-options.macros
                                  compiler-options.preprocessor)
-               true {: src : dest : tmp-path :compiled? true}
-               (false e) {: src : dest :compiled? false :err e})))
+               true {: src
+                     : dest
+                     : tmp-path
+                     :compiled? true
+                     :time-ns (- (uv.hrtime) begin-compile-at)}
+               (false e) {: src
+                          : dest
+                          :compiled? false
+                          :time-ns (- (uv.hrtime) begin-compile-at)
+                          :err e})))
          compile-targets)))
 
-(fn report-compile-results [compile-results {: any-errors? : verbose? : atomic? : dry-run?}]
+(fn report-compile-results [compile-results {: any-errors? : verbose? : atomic? : dry-run? : find-time-ns}]
   ;; Seems, in some cases, sometimes, we must "enter" through messages to view
   ;; them. You may impulsively "escape" the prompt and not see anything, so we'll
   ;; push all messages out in one go.
@@ -121,12 +134,16 @@
   (when (and any-errors? atomic?)
     (table.insert report ["No changes were written to disk! Compiled with atomic = true and some files had compilation errors!\n" :DiagnosticWarn]))
   (->> (filter (fn [{: compiled?}] (or verbose? (not compiled?))) compile-results)
-       (map #(let [{: compiled? : src : dest} $1
+       (map #(let [{: compiled? : src : dest : time-ns} $1
                    [char level] (if (. $1 :compiled?)
                                   ["☑  " :DiagnosticOK]
                                   ["☒  " :DiagnosticWarn])]
                (table.insert report [(string.format "%s%s\n" char src) level])
-               (table.insert report [(string.format "-> %s\n" dest) level]))))
+               (table.insert report [(string.format "-> %s (%sms)\n" dest (ns->ms time-ns)) level]))))
+  (table.insert report [(string.format "Disk: %sms Compile: %sms\n"
+                                       (ns->ms find-time-ns)
+                                       (ns->ms (->> (filter (fn [{: compiled?}] compiled?) compile-results)
+                                                    (reduce (fn [sum {: time-ns}] (+ sum time-ns)) 0)))) :DiagnosticInfo])
   (map #(case $1
           ;; WARN instead of ERROR so we dont get nvim prepending
           ;; autocommand failure message
@@ -143,7 +160,7 @@
         {:force force? :verbose verbose? :dryrun dry-run? :atomic atomic?} opts
         {: rm-file : copy-file} (require :hotpot.fs)
         compiler-options opts.compiler
-        {:build all-compile-targets :ignore all-ignore-targets} (find-compile-targets root-dir build-spec)
+        {:build all-compile-targets :ignore all-ignore-targets :time-ns find-time-ns} (find-compile-targets root-dir build-spec)
         force? (or force? (case opts.infer-force-for-file
                             file (any? #(= $1.src file) all-ignore-targets)
                             _ false))
@@ -158,7 +175,7 @@
                (copy-file tmp-path dest))
              (rm-file tmp-path)))
          compile-results)
-    (report-compile-results compile-results {: any-errors? : dry-run? : verbose? : atomic?})
+    (report-compile-results compile-results {: any-errors? : dry-run? : verbose? : atomic? : find-time-ns})
     (let [return (collect [_ {: src : dest} (ipairs all-compile-targets)]
                    (values src {: src : dest}))
           return (collect [_ {: src : compiled? : err} (ipairs compile-results) &into return]
