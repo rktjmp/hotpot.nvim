@@ -52,17 +52,24 @@ local function none_3f(f, seq)
   return not any_3f(f, seq)
 end
 local function map(f, seq)
-  local tbl_17_auto = {}
-  local i_18_auto = #tbl_17_auto
+  local tbl_18_auto = {}
+  local i_19_auto = 0
   for _, v in ipairs(seq) do
-    local val_19_auto = f(v)
-    if (nil ~= val_19_auto) then
-      i_18_auto = (i_18_auto + 1)
-      do end (tbl_17_auto)[i_18_auto] = val_19_auto
+    local val_20_auto = f(v)
+    if (nil ~= val_20_auto) then
+      i_19_auto = (i_19_auto + 1)
+      do end (tbl_18_auto)[i_19_auto] = val_20_auto
     else
     end
   end
-  return tbl_17_auto
+  return tbl_18_auto
+end
+local function reduce(f, acc, seq)
+  local acc0 = acc
+  for _, v in ipairs(seq) do
+    acc0 = f(acc0, v)
+  end
+  return acc0
 end
 local function filter(f, seq)
   local function _8_(_241)
@@ -89,4 +96,4 @@ end
 local function function_3f(x)
   return ("function" == type(x))
 end
-return {fmt = string.format, inspect = inspect, ["set-lazy-proxy"] = set_lazy_proxy, ["put-new"] = put_new, map = map, filter = filter, ["any?"] = any_3f, ["none?"] = none_3f, ["string?"] = string_3f, ["boolean?"] = boolean_3f, ["function?"] = function_3f, ["table?"] = table_3f, ["nil?"] = nil_3f}
+return {fmt = string.format, inspect = inspect, ["set-lazy-proxy"] = set_lazy_proxy, ["put-new"] = put_new, map = map, reduce = reduce, filter = filter, ["any?"] = any_3f, ["none?"] = none_3f, ["string?"] = string_3f, ["boolean?"] = boolean_3f, ["function?"] = function_3f, ["table?"] = table_3f, ["nil?"] = nil_3f}
