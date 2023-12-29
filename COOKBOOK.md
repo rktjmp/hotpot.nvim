@@ -75,7 +75,7 @@ return {
 }
 ```
 
-By default, Fennels compiler wont show an error if you try to reference unknown
+By default, Fennels compiler won't show an error if you try to reference unknown
 symbols. You may prefer to enforce a known list so your builds get "hard
 errors":
 

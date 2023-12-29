@@ -18,7 +18,7 @@ command! -nargs=1 -complete=file Fnlsource
 
 augroup hotpot_nvim
   autocmd!
-  " need a command so we can actually use <afile>, :lua wont expand
+  " need a command so we can actually use <afile>, :lua won't expand
   autocmd! SourceCmd *.fnl :Fnlsource <afile>:p
 augroup END
 

@@ -175,7 +175,7 @@ local neat = require('is_neat')
 neat("fennel") -- => "fennel is neat!"
 ```
 
-Hotpot will keep an internal cache of lua code, so you wont see files
+Hotpot will keep an internal cache of lua code, so you won't see files
 cluttering the `lua/` directory.
 
 <!-- panvimdoc-ignore-start -->
@@ -408,8 +408,8 @@ This behaviour exists in case a plugin ships with both code in both the `lua`
 and `fnl` directories, but the plugin author has post-processed the compiled
 lua code, or is using an incompatible fennel version, etc.
 
-In most cases, such as your config, Hotpot wont create `mod/lua/code.lua` and
-you wont run into any issues but it may encounter friction when writing a
+In most cases, such as your config, Hotpot won't create `mod/lua/code.lua` and
+you won't run into any issues but it may encounter friction when writing a
 plugin in fennel.
 
 # Quirks
@@ -417,7 +417,7 @@ plugin in fennel.
 - Hotpot will only *compile* fennel files that are found in Neovims RTP. It
 will *evaluate* files that are found in luas `package.path`. This is for safety
 purposes because it can be unclear where and when its safe to compile or
-overwrite `.lua` files. In most usage this wont occur -- files will be found in
+overwrite `.lua` files. In most usage this won't occur -- files will be found in
 the RTP first but it can occur when executing in scratch buffers with the
 [api](#api) or via [commands](#commands).
 

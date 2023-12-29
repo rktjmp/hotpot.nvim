@@ -6,8 +6,8 @@
       neovim-runtime (require :hotpot.neovim.runtime)
       {:auto automake} (require :hotpot.api.make)]
 
-  ;; We must ensure the rtp dir exists now otherwise vim.loader wont see
-  ;; it, and wont setup some internal mechanisms for the directory.
+  ;; We must ensure the rtp dir exists now otherwise vim.loader won't
+  ;; see it, and won't setup some internal mechanisms for the directory.
   (make-path compiled-cache-path)
   (vim.opt.runtimepath:prepend (join-path compiled-cache-path "*"))
   (tset package.loaders 1 (make-searcher))
