@@ -266,7 +266,7 @@
           ;; If the lua file was found colocated, but we did not know about it,
           ;; we should ask the user they're sure they want us to overwrite it.
           ;; If we do overwrite it, we'll then know about it in future compiles
-          ;; and wont have to ask.
+          ;; and won't have to ask.
           (case-try
             (make-module-record modname src-path) record
             (set-index-target-colocation record) record
