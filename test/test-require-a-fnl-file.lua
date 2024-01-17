@@ -56,11 +56,9 @@ local function test_path(modname, path)
             local _9_ = ...
             if (_9_ == true) then
               return true
-            elseif true then
-              local __75_auto = _9_
-              return ...
             else
-              return nil
+              local __84_auto = _9_
+              return ...
             end
           end
           local function _12_(...)
@@ -68,20 +66,16 @@ local function test_path(modname, path)
             if (_11_ == "return {works = true}") then
               OK(string.format(("Outputs correct lua code" or "")))
               return true
-            elseif true then
+            else
               local __1_auto = _11_
               FAIL(string.format(("Outputs correct lua code" or "")))
               return false
-            else
-              return nil
             end
           end
           return _8_(_12_(...))
-        elseif true then
-          local __75_auto = _7_
-          return ...
         else
-          return nil
+          local __84_auto = _7_
+          return ...
         end
       end
       local function _16_(...)
@@ -89,40 +83,39 @@ local function test_path(modname, path)
         if (_15_ == true) then
           OK(string.format(("Creates a lua file at %s" or ""), lua_path))
           return true
-        elseif true then
+        else
           local __1_auto = _15_
           FAIL(string.format(("Creates a lua file at %s" or ""), lua_path))
           return false
-        else
-          return nil
         end
       end
       return _6_(_16_(...))
-    elseif true then
-      local __75_auto = _5_
-      return ...
     else
-      return nil
+      local __84_auto = _5_
+      return ...
     end
   end
   local function _21_()
     local _19_, _20_ = pcall(require, modname)
-    if ((_19_ == true) and ((_G.type(_20_) == "table") and ((_20_).works == true))) then
+    if ((_19_ == true) and ((_G.type(_20_) == "table") and (_20_.works == true))) then
       OK(string.format(("Can require module %s %s" or ""), modname, fnl_path))
       return true
-    elseif true then
+    else
       local __1_auto = _19_
       FAIL(string.format(("Can require module %s %s" or ""), modname, fnl_path))
       return false
-    else
-      return nil
     end
   end
   return _4_(_21_())
 end
 test_path("abc", "abc")
 test_path("def", "def/init")
+test_path("def.init", "def/init")
 test_path("xyz.init", "xyz/init")
 test_path("abc.xyz.p-q-r", "abc/xyz/p-q-r")
 test_path("xc-init", "xc-init")
+test_path("init", "init")
+test_path("fnl", "fnl/init")
+test_path("some.code.fnl", "some/code/fnl/init")
+test_path("some.code.fnl.init", "some/code/fnl/init")
 return exit()

@@ -23,8 +23,15 @@
 
 (test-path :abc :abc) ;; basic
 (test-path :def :def/init)
+(test-path :def.init :def/init)
 (test-path :xyz.init "xyz/init")
-(test-path :abc.xyz.p-q-r :abc/xyz/p-q-r) ;; user issue 53, kebab files
-(test-path :xc-init :xc-init) ;; user issue 53, kebab files
+ ;; user issue 53, kebab files
+(test-path :abc.xyz.p-q-r :abc/xyz/p-q-r)
+(test-path :xc-init :xc-init)
+;; issues/129
+(test-path :init :init)
+(test-path :fnl :fnl/init)
+(test-path :some.code.fnl :some/code/fnl/init)
+(test-path :some.code.fnl.init :some/code/fnl/init)
 
 (exit)

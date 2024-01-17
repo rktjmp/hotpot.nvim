@@ -15,8 +15,10 @@
         src-path (vim.fs.normalize src-path)
         prefix-length (length prefix)
         extension-length (length extension)
-        true-modname (let [src-init? (not= nil (string.find src-path "/init%....$")) ;; TODO: x.tl will fail here
-                           mod-init? (not= nil (string.find modname "%.init$"))]
+        ;; Expand `mod` into `mod.init` to match the source file if needed.
+        true-modname (let [src-init? (not= nil (string.find src-path (.. "/init%." extension "$")))
+                           mod-init? (or (= :init modname)
+                                         (not= nil (string.find modname "%.init$")))]
                        (if (and src-init? (not mod-init?))
                          (.. modname ".init")
                          modname))

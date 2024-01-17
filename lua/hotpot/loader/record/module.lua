@@ -20,8 +20,8 @@ local function new(modname, src_path, _2_)
   local extension_length = #extension
   local true_modname
   do
-    local src_init_3f = (nil ~= string.find(src_path0, "/init%....$"))
-    local mod_init_3f = (nil ~= string.find(modname, "%.init$"))
+    local src_init_3f = (nil ~= string.find(src_path0, ("/init%." .. extension .. "$")))
+    local mod_init_3f = (("init" == modname) or (nil ~= string.find(modname, "%.init$")))
     if (src_init_3f and not mod_init_3f) then
       true_modname = (modname .. ".init")
     else
@@ -67,11 +67,9 @@ local function retarget(record, target)
   elseif (target == "cache") then
     record["lua-path"] = record["lua-cache-path"]
     return record
-  elseif true then
+  else
     local _ = target
     return error("target must be colocate or cache")
-  else
-    return nil
   end
 end
 local function _11_(_241)
