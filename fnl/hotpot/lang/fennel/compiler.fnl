@@ -10,16 +10,19 @@
 
 (fn spooky-prepare-plugins! [options]
   (let [{: mod-search} (require :hotpot.searcher)
-        fennel (require :hotpot.fennel)]
-    ;; to allow for runtime adjustments of plugins, we'll always do
-    ;; this when creating a loader, and just peek for strings
-    ;; to replace with real values
-    (set options.plugins (icollect [_i plug (ipairs (or options.plugins []))]
-                           (match (type plug)
-                             :string (case (mod-search {:prefix :fnl :extension :fnl :modnames [plug]})
-                                       [path] (fennel.dofile path {:env :_COMPILER} plug path)
-                                       _ (error (string.format "Could not find fennel compiler plugin %q" plug)))
-                             _ plug)))))
+        fennel (require :hotpot.fennel)
+        ;; Always rebuild plugin list when creating a loader so plugins can
+        ;; reloaded or adjusted at runtime.
+        plugins (icollect [_i plug (ipairs (or options.plugins []))]
+                  (match (type plug)
+                    :string (case (mod-search {:prefix :fnl :extension :fnl :modnames [plug]})
+                              [path] (fennel.dofile path {:env :_COMPILER
+                                                          :useMetadata true
+                                                          :compiler-env _G}
+                                                    plug path)
+                              _ (error (string.format "Could not find fennel compiler plugin %q" plug)))
+                    _ plug))]
+    (set options.plugins plugins)))
 
 (fn make-macro-loader [modname fnl-path]
   (let [fennel (require :hotpot.fennel)
