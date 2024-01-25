@@ -110,10 +110,8 @@ local function record_loadfile(record)
                       elseif ((_34_ == false) and (nil ~= _35_)) then
                         local e = _35_
                         return e
-                      elseif true then
-                        local _0 = _34_
-                        return nil
                       else
+                        local _0 = _34_
                         return nil
                       end
                     end
@@ -121,10 +119,8 @@ local function record_loadfile(record)
                   elseif ((_31_ == false) and (nil ~= _32_)) then
                     local e = _32_
                     return e
-                  elseif true then
-                    local _ = _31_
-                    return nil
                   else
+                    local _ = _31_
                     return nil
                   end
                 end
@@ -132,10 +128,8 @@ local function record_loadfile(record)
               elseif ((_28_ == false) and (nil ~= _29_)) then
                 local e = _29_
                 return e
-              elseif true then
-                local _ = _28_
-                return nil
               else
+                local _ = _28_
                 return nil
               end
             end
@@ -143,10 +137,8 @@ local function record_loadfile(record)
           elseif ((_25_ == false) and (nil ~= _26_)) then
             local e = _26_
             return e
-          elseif true then
-            local _ = _25_
-            return nil
           else
+            local _ = _25_
             return nil
           end
         end
@@ -154,10 +146,8 @@ local function record_loadfile(record)
       elseif ((_22_ == false) and (nil ~= _23_)) then
         local e = _23_
         return e
-      elseif true then
-        local _ = _22_
-        return nil
       else
+        local _ = _22_
         return nil
       end
     end
@@ -229,35 +219,27 @@ local function handle_cache_lua_path(modname, lua_path_in_cache)
                   if (nil ~= _57_) then
                     local record1 = _57_
                     return record_loadfile(record1)
-                  elseif true then
-                    local __75_auto = _57_
-                    return ...
                   else
-                    return nil
+                    local __84_auto = _57_
+                    return ...
                   end
                 end
                 return _56_(set_index_target_colocation(record0))
-              elseif true then
-                local __75_auto = _55_
-                return ...
               else
-                return nil
+                local __84_auto = _55_
+                return ...
               end
             end
             return _54_(make_module_record(modname, record["src-path"]))
-          elseif true then
-            local __75_auto = _53_
-            return ...
           else
-            return nil
+            local __84_auto = _53_
+            return ...
           end
         end
         return _52_(drop_index(record))
-      elseif true then
-        local __75_auto = _51_
-        return ...
       else
-        return nil
+        local __84_auto = _51_
+        return ...
       end
     end
     return _50_(rm_file(lua_path_in_cache0))
@@ -447,35 +429,27 @@ local function _99_(...)
                     if ((_110_ == false) and (nil ~= _111_)) then
                       local e = _111_
                       return e
-                    elseif true then
-                      local __75_auto = _110_
-                      return ...
                     else
-                      return nil
+                      local __84_auto = _110_
+                      return ...
                     end
                   end
                   return _109_(loader)
-                elseif true then
-                  local __75_auto = _108_
-                  return ...
                 else
-                  return nil
+                  local __84_auto = _108_
+                  return ...
                 end
               end
               return _107_(record_loadfile(record0))
-            elseif true then
-              local __75_auto = _106_
-              return ...
             else
-              return nil
+              local __84_auto = _106_
+              return ...
             end
           end
           return _105_(set_index_target_colocation(record))
-        elseif true then
-          local __75_auto = _104_
-          return ...
         else
-          return nil
+          local __84_auto = _104_
+          return ...
         end
       end
       return _103_(make_module_record(modname, src_path))
@@ -504,17 +478,15 @@ local function find_module(modname)
     local _119_ = path:find(cache_affix)
     if (_119_ == 1) then
       return "cache"
-    elseif true then
+    else
       local _ = _119_
       return "colocate"
-    else
-      return nil
     end
   end
   local function search_by_existing_lua(modname0)
     local _121_ = vim.loader.find(modname0)
-    if ((_G.type(_121_) == "table") and ((_G.type((_121_)[1]) == "table") and (nil ~= ((_121_)[1]).modpath))) then
-      local found_lua_path = ((_121_)[1]).modpath
+    if ((_G.type(_121_) == "table") and ((_G.type(_121_[1]) == "table") and (nil ~= _121_[1].modpath))) then
+      local found_lua_path = _121_[1].modpath
       local f
       do
         local _122_ = infer_lua_path_type(found_lua_path)
@@ -529,13 +501,11 @@ local function find_module(modname)
       local _124_, _125_ = f(modname0, found_lua_path)
       if (_124_ == REPEAT_SEARCH) then
         return find_module(modname0)
-      elseif true then
+      else
         local _3floader = _124_
         return _3floader
-      else
-        return nil
       end
-    elseif ((_G.type(_121_) == "table") and ((_121_)[1] == nil)) then
+    elseif ((_G.type(_121_) == "table") and (_121_[1] == nil)) then
       return false
     else
       return nil
@@ -552,8 +522,8 @@ local function find_module(modname)
       search_runtime_path = _129_
     end
     local _130_ = search_runtime_path(modname0)
-    if ((_G.type(_130_) == "table") and (nil ~= (_130_)[1])) then
-      local src_path = (_130_)[1]
+    if ((_G.type(_130_) == "table") and (nil ~= _130_[1])) then
+      local src_path = _130_[1]
       local function _131_(...)
         local _132_ = ...
         if (nil ~= _132_) then
@@ -571,27 +541,21 @@ local function find_module(modname)
                     if ((_138_ == false) and (nil ~= _139_)) then
                       local e = _139_
                       return e
-                    elseif true then
-                      local __75_auto = _138_
-                      return ...
                     else
-                      return nil
+                      local __84_auto = _138_
+                      return ...
                     end
                   end
                   return _137_(loader)
-                elseif true then
-                  local __75_auto = _136_
-                  return ...
                 else
-                  return nil
+                  local __84_auto = _136_
+                  return ...
                 end
               end
               return _135_(record_loadfile(index0))
-            elseif true then
-              local __75_auto = _134_
-              return ...
             else
-              return nil
+              local __84_auto = _134_
+              return ...
             end
           end
           local function _143_(...)
@@ -602,19 +566,15 @@ local function find_module(modname)
             end
           end
           return _133_(_143_(...))
-        elseif true then
-          local __75_auto = _132_
-          return ...
         else
-          return nil
+          local __84_auto = _132_
+          return ...
         end
       end
       return _131_(make_module_record(modname0, src_path))
-    elseif true then
+    else
       local _ = _130_
       return false
-    else
-      return nil
     end
   end
   local function search_by_package_path(modname0)
@@ -628,8 +588,8 @@ local function find_module(modname)
       search_package_path = _147_
     end
     local _148_ = search_package_path(modname0)
-    if ((_G.type(_148_) == "table") and (nil ~= (_148_)[1])) then
-      local modpath = (_148_)[1]
+    if ((_G.type(_148_) == "table") and (nil ~= _148_[1])) then
+      local modpath = _148_[1]
       local _let_149_ = require("hotpot.fennel")
       local dofile = _let_149_["dofile"]
       vim.notify(fmt(("Found `%s` outside of Neovims RTP (at %s) by the package.path searcher.\n" .. "Hotpot will evaluate this file instead of compling it."), modname0, modpath), vim.log.levels.NOTICE)
@@ -637,11 +597,9 @@ local function find_module(modname)
         return dofile(modpath)
       end
       return _150_
-    elseif true then
+    else
       local _ = _148_
       return false
-    else
-      return nil
     end
   end
   local function _152_(...)
@@ -654,27 +612,21 @@ local function find_module(modname)
             local _157_ = ...
             if (_157_ == false) then
               return nil
-            elseif true then
+            else
               local _3floader = _157_
               return _3floader
-            else
-              return nil
             end
           end
           return _156_(search_by_package_path(modname))
-        elseif true then
+        else
           local _3floader = _155_
           return _3floader
-        else
-          return nil
         end
       end
       return _154_(search_by_rtp_fnl(modname))
-    elseif true then
+    else
       local _3floader = _153_
       return _3floader
-    else
-      return nil
     end
   end
   return _152_(search_by_existing_lua(modname))
