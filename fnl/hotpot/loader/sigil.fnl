@@ -6,7 +6,6 @@
 ;; flags. In this case they alter how or where we compile to.
 (fn load [path]
   (let [defaults {:schema "hotpot/1"
-                  :colocate false
                   :build false
                   :clean false
                   :compiler {}}
@@ -52,14 +51,4 @@
                                      vim.log.levels.ERROR)
                     (error "hotpot refusing to continue to avoid unintentional side effects." 0))))))
 
-(fn wants-colocation? [sigil-path]
-  "Does the given record have a sigil file and does it request colocation?
-  Returns true | false | nil error when the sigil was unparseable"
-  (if (and sigil-path (file-exists? sigil-path))
-    (case (load sigil-path)
-      {: colocate} colocate
-      _ false)
-    ;; We implicity deny colocation to "prefer lua" when present
-    (values false)))
-
-{: load : wants-colocation? : SIGIL_FILE}
+{: load : SIGIL_FILE}

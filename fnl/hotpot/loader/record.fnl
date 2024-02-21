@@ -25,7 +25,7 @@
 
 (local INDEX_ROOT_PATH (join-path (cache-root-path) :index))
 
-(local INDEX_VERSION 2)
+(local INDEX_VERSION 3)
 (local RECORD_TYPE_MODULE 1)
 (local RECORD_TYPE_RUNTIME 2)
 
@@ -132,7 +132,7 @@
                      ;; Include the source file with invalid data so the compiler runs.
                      :files  [{:path src-path :mtime {:sec 0 :nsec 0} :size 0}]})))
 
-(λ set-record-files [record files]
+(λ set-files [record files]
   "Replace records file list with new list, automatically adds records own source file"
   (let [files (doto files (table.insert 1 record.src-path))
         file-stats (icollect [_ path (ipairs files)]
@@ -140,15 +140,7 @@
                        {: path : mtime : size}))]
     (doto record (tset :files file-stats))))
 
-(fn lua-file-modified? [record]
-  (let [{: lua-path} record
-        {:mtime {: sec : nsec } :size size} (file-stat lua-path)]
-    (not (and (= size record.lua-path-size-at-save)
-              (= sec record.lua-path-mtime-at-save.sec)
-              (= nsec record.lua-path-mtime-at-save.nsec)))))
-
 {: save : fetch : drop
  :new-module #(new RECORD_TYPE_MODULE $...)
  :new-runtime #(new RECORD_TYPE_RUNTIME $...)
- : set-record-files
- : lua-file-modified?}
+ : set-files}

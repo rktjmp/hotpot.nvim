@@ -61,12 +61,4 @@
                 (fmt "could not generate required key: %s from src-path: %s" key src-path))))
     (values record)))
 
-(fn retarget [record target]
-  (case target
-    :colocate (doto record (tset :lua-path record.lua-colocation-path))
-    :cache (doto record (tset :lua-path record.lua-cache-path))
-    _ (error "target must be colocate or cache")))
-
-{: new
- :retarget-cache #(retarget $1 :cache)
- :retarget-colocation #(retarget $1 :colocate)}
+{: new}
