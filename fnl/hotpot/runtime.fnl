@@ -105,7 +105,8 @@
           ;; and could be pretty frustrating.
           ;; So we'll opt to error on nil and users can use `return {}` if
           ;; they *really* want a blank config file.
-          (vim.notify (fmt (.. "Hotpot found local config but it return nil, update it to return a table insead.\n"
+          (vim.notify (fmt (.. "Hotpot found local config but it return nil. "
+                               "Please update it to return a table instead of nil.\n"
                                "Path: %s\n") config-path)
                       vim.log.levels.WARN)
           (values nil))))
@@ -113,7 +114,7 @@
 (fn M.config-for-context [file]
   "Lookup the config for given file.
 
-  If file is nil, or there is no .hotpot.lua for the give file the user-config
+  If file is nil, or there is no .hotpot.lua for the given file the user-config
   is returned.
 
   If the file does have a .hotpot.lua config, but it fails to load, the

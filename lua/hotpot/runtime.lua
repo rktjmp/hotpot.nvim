@@ -17,10 +17,10 @@ local function lookup_local_config(file)
     end
   else
     local _4_ = vim.fs.find(LOCAL_CONFIG_FILE, {path = file, upward = true, kind = "file"})
-    if ((_G.type(_4_) == "table") and (nil ~= (_4_)[1])) then
-      local path = (_4_)[1]
+    if ((_G.type(_4_) == "table") and (nil ~= _4_[1])) then
+      local path = _4_[1]
       return vim.fs.normalize(vim.loop.fs_realpath(path))
-    elseif ((_G.type(_4_) == "table") and ((_4_)[1] == nil)) then
+    elseif ((_G.type(_4_) == "table") and (_4_[1] == nil)) then
       return nil
     else
       return nil
@@ -91,11 +91,11 @@ M["set-user-config"] = function(given_config)
     do
       local t_19_ = given_config
       if (nil ~= t_19_) then
-        t_19_ = (t_19_).compiler
+        t_19_ = t_19_.compiler
       else
       end
       if (nil ~= t_19_) then
-        t_19_ = (t_19_)[k]
+        t_19_ = t_19_[k]
       else
       end
       _18_ = t_19_
@@ -111,7 +111,7 @@ M["set-user-config"] = function(given_config)
     do
       local t_24_ = given_config
       if (nil ~= t_24_) then
-        t_24_ = (t_24_).provide_require_fennel
+        t_24_ = t_24_.provide_require_fennel
       else
       end
       _23_ = t_24_
@@ -127,7 +127,7 @@ M["set-user-config"] = function(given_config)
     do
       local t_28_ = given_config
       if (nil ~= t_28_) then
-        t_28_ = (t_28_).enable_hotpot_diagnostics
+        t_28_ = t_28_.enable_hotpot_diagnostics
       else
       end
       _27_ = t_28_
@@ -142,10 +142,9 @@ M["set-user-config"] = function(given_config)
     local _31_ = new_config.compiler.traceback
     if (_31_ == "hotpot") then
     elseif (_31_ == "fennel") then
-    elseif true then
+    else
       local _ = _31_
       error("invalid config.compiler.traceback value, must be 'hotpot' or 'fennel'")
-    else
     end
   end
   user_config = new_config
@@ -164,7 +163,7 @@ M["loadfile-local-config"] = function(config_path)
     vim.notify(fmt(("Hotpot could not load local config due to lua error.\n" .. "Path: %s\n" .. "Error: %s"), config_path, err), vim.log.levels.WARN)
     return nil
   elseif (_33_ == nil) then
-    vim.notify(fmt(("Hotpot found local config but it return nil, update it to return a table insead.\n" .. "Path: %s\n"), config_path), vim.log.levels.WARN)
+    vim.notify(fmt(("Hotpot found local config but it return nil. " .. "Please update it to return a table instead of nil.\n" .. "Path: %s\n"), config_path), vim.log.levels.WARN)
     return nil
   else
     return nil
