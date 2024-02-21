@@ -43,7 +43,7 @@
         src-path (.. context-dir fnl-code-path)
         lua-path (.. context-dir lua-code-path)
         lua-cache-path (cache-path-for-compiled-artefact namespace lua-code-path)
-        lua-colocation-path (.. context-dir lua-code-path)
+        lua-colocation-path (.. context-dir lua-code-path) ;; TODO: rename this from colocation to ...?
         sigil-path (.. context-dir SIGIL_FILE)
         record {: sigil-path
                 : src-path
