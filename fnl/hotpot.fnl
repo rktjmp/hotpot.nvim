@@ -10,7 +10,7 @@
   ;; see it, and won't setup some internal mechanisms for the directory.
   (make-path compiled-cache-path)
   (vim.opt.runtimepath:prepend (join-path compiled-cache-path "*"))
-  (tset package.loaders 1 (make-searcher))
+  (table.insert package.loaders 2 (make-searcher))
 
   ;; User may not call setup, we always want these enabled
   (neovim-runtime.enable)
