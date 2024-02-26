@@ -153,16 +153,15 @@
     (values nil)
     (catch ?loader ?loader)))
 
-(fn make-searcher []
-  (fn searcher [modname ...]
-    ;; Circuit break our own modules, otherwise we will infinitely recurse.
-    (when (not (= :hotpot. (string.sub modname 1 7)))
-      (find-module modname))))
+(fn searcher [modname ...]
+  ;; Circuit break our own modules, otherwise we will infinitely recurse.
+  (when (not (= :hotpot. (string.sub modname 1 7)))
+    (find-module modname)))
 
 (λ make-record-loader [record]
   (record-loadfile record))
 
-{: make-searcher
+{: searcher
  :compiled-cache-path (cache-path-for-compiled-artefact)
  : cache-path-for-compiled-artefact
  : make-record-loader}
