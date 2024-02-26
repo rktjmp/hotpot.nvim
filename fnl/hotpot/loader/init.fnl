@@ -62,7 +62,8 @@
 
 (fn handle-cache-lua-path [lua-path-in-cache]
   (case (fetch-record lua-path-in-cache)
-    record (if (file-exists? record.src-path)
+    record (if (and (file-exists? record.src-path)
+                    (file-missing? record.lua-colocation-path))
              (record-loadfile record)
              (do
                ;; Original source file was removed, or a lua/* file now exists
