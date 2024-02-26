@@ -1,13 +1,14 @@
 (import-macros {: expect : dprint : fmtdoc} :hotpot.macros)
+
 (local {:format fmt} string)
 (local {: file-exists? : file-missing?
         : file-stat
         : rm-file : join-path} (require :hotpot.fs))
-
-(macro log-info [...]
-  `(when (?. _G :hotpot :__debug)
-     (let [{:info info#} (require :hotpot.logger)]
-       (info# ,...))))
+(local {:fetch fetch-record
+        :save save-record
+        :drop drop-record
+        :set-files set-record-files} (require :hotpot.loader.record))
+(local {: make-module-record} (require :hotpot.lang.fennel))
 
 ;; When a search finds a module but considers the disk state unreliable or
 ;; incomplete, we may wish to adjust the disk then repeat the same search.
@@ -17,12 +18,6 @@
 (fn cache-path-for-compiled-artefact [...]
   (let [{: cache-root-path} (require :hotpot.runtime)]
     (join-path (cache-root-path) :compiled ...)))
-
-(local {:fetch fetch-record
-        :save save-record
-        :drop drop-record
-        :set-files set-record-files} (require :hotpot.loader.record))
-(local {: make-module-record} (require :hotpot.lang.fennel))
 
 (fn needs-compilation? [record]
   (let [{: lua-path : files} record]
@@ -56,14 +51,10 @@
           (false e) (let [msg (fmt "\nHotpot could not compile the file `%s`:\n\n%s"
                                    record.src-path
                                    e)]
-                      ;; TODO: cant decide whether to do this or not. The lua
-                      ;; file is essentially out of sync with the unbuilding
-                      ;; source file, but is it also sort of weird to only
-                      ;; remove it when its in cache, and does no harm
-                      ;; otherwise?
-                      ; (if (and (= record.lua-path record.lua-cache-path)
-                      ;          (file-exists? record.lua-cache-path))
-                      ;   (rm-file record.lua-cache-path))
+                      ;; TODO: unsure if I prefer this behaviour or not.
+                      ; (when (file-exists? record.lua-cache-path)
+                      ;   (rm-file record.lua-cache-path)
+                      ;   (drop-record record))
                       (error msg 0))
           _ nil))
       ;; Lua is up to date so we can return that as is
@@ -74,8 +65,10 @@
     record (if (file-exists? record.src-path)
              (record-loadfile record)
              (do
-               ;; The original source file has been removed, remove the cached
-               ;; file and pretend we found nothing.
+               ;; Original source file was removed, or a lua/* file now exists
+               ;; and should take precedence over the cache.
+               ; (log-info "Removing %q and index record: original source was removed, or lua/* file now exists"
+               ;           lua-path-in-cache)
                (rm-file lua-path-in-cache)
                (drop-record record)
                (values REPEAT_SEARCH)))
@@ -89,28 +82,26 @@
   "Find module for modname, may find fnl files, lua files or nothing. Most
   search work is given over to vim.loader.find."
 
-  ;; Search quickly with vim.loader. This will find lua modules fast and we can
-  ;; map those back to fennel files for recompilation as needed.
+  ;; Search for existing lua files via vim.loader, this includes lua files in
+  ;; the cache. If a lua file is found, try to match it back to a known source
+  ;; index record and if we can, use that index to check if the original source
+  ;; has changed. If there is no index, just return a normal loader.
   (fn search-by-existing-lua [modname]
     (case (vim.loader.find modname)
-      [{:modpath found-lua-path}] (let [cache-affix (fmt "^%s" (-> (cache-path-for-compiled-artefact)
-                                                                   (vim.pesc)))
-                                        make-loader (case (string.find found-lua-path cache-affix)
+      [{:modpath found-lua-path}] (let [cache-affix (cache-path-for-compiled-artefact)
+                                        make-loader (case (string.find found-lua-path cache-affix 1 true)
                                                       1 handle-cache-lua-path
                                                       _ loadfile)]
                                     (case (make-loader found-lua-path)
-                                      ;; We explicitly allow for a "try again" case where
-                                      ;; colocation has changed or the cache needed repairs
-                                      ;; and passing off to the next loader might be
-                                      ;; premature.
+                                      ;; When the cache required changes or the
+                                      ;; found path was in some way no longer
+                                      ;; usable, try again for the next match.
                                       (where (= REPEAT_SEARCH)) (search-by-existing-lua modname)
-                                      ;; Either return the loader function or nil for the
-                                      ;; next loader.
+                                      ;; Return the loader function or nil.
                                       ?loader ?loader))
       [nil] false))
 
-  ;; Search slowly-ish through neovims RTP. This does not use vim.loader's
-  ;; internal cache so its a disk sweep.
+  ;; Search slowly-ish through neovims RTP for non-lua files.
   (fn search-by-rtp-fnl [modname]
     (let [search-runtime-path (let [{: mod-search} (require :hotpot.searcher)]
                                 (fn [modname]
@@ -137,9 +128,9 @@
     (let [search-package-path (let [{: mod-search} (require :hotpot.searcher)]
                                 (fn [modname]
                                   (mod-search {:prefix :fnl
-                                           :extension :fnl
-                                           :modnames [(.. modname ".init") modname]
-                                           :runtime-path? false})))]
+                                               :extension :fnl
+                                               :modnames [(.. modname ".init") modname]
+                                               :runtime-path? false})))]
       (case (search-package-path modname)
         [modpath] (let [{: dofile} (require :hotpot.fennel)]
                     (vim.notify (fmt (.. "Found `%s` outside of Neovims RTP (at %s) by the package.path searcher.\n"
