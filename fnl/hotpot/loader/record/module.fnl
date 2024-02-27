@@ -8,53 +8,41 @@
 
 (λ new [modname src-path {: prefix : extension &as opts}]
   "Examine modname and fnl path, generate lua paths, colocations, etc"
-  ;; Extract some know facts about the module and path, which we will use for
-  ;; multiple operations.
   (let [{: SIGIL_FILE} (require :hotpot.loader.sigil)
         {: cache-path-for-compiled-artefact} (require :hotpot.loader)
         src-path (vim.fs.normalize src-path)
-        prefix-length (length prefix)
-        extension-length (length extension)
-        ;; Expand `mod` into `mod.init` to match the source file if needed.
-        true-modname (let [src-init? (not= nil (string.find src-path (.. "/init%." extension "$")))
-                           mod-init? (or (= :init modname)
-                                         (not= nil (string.find modname "%.init$")))]
-                       (if (and src-init? (not mod-init?))
-                         (.. modname ".init")
-                         modname))
-        ;; Note must retain the final path separator
-        ;; #"fnl/" + #"my.mod.init" + #".fnl"
-        context-dir-end-position (- (length src-path) (+ prefix-length 1
-                                                         (length true-modname)
-                                                         1 extension-length))
-        context-dir (string.sub src-path 1 context-dir-end-position)
-        code-path (string.sub src-path (+ context-dir-end-position 1))
+        ;; Given /abc/cde/x/fnl/my/mod/init.fnl
+        ;; context-dir: dir containing fnl/*, retains trailing /, eg /abc/cde/x/
+        ;; code-path: fnl dir inside context dir, eg fnl/my/mod/init.fnl
+        ;; namespace: /abc/cde/(namespace)/fnl or ~.config/(nvim-app-name)/init.fnl
+        ;; true-modname: appended .init if required, eg: mod -> mod.init
+        ;; sigil-path: /abc/cde/x/.hotpot.lua, may not exist
+        (context-dir code-path) (let [slashed-modname (-> (string.gsub modname "%." "/") (vim.pesc))
+                                      pattern (fmt "(.+/)(%s/%s(.*)%%.%s)" prefix slashed-modname extension)]
+                                  (case ((string.gmatch src-path pattern))
+                                    (context-dir code-dir "") (values context-dir code-dir modname)
+                                    (context-dir code-dir "/init") (values context-dir code-dir (.. modname ".init"))
+                                    _ (error (fmt "Hotpot could not extract context-dir and code-path from %s" src-path))))
         ;; small edgecase for relative paths such as in `VIMRUNTIME=runtime nvim`
         namespace (case (string.match context-dir ".+/(.-)/$")
                     namespace namespace
                     nil (string.match context-dir "([^/]-)/$"))
-        ;; Replace containing dir and extension
-        fnl-code-path (.. prefix
-                          (string.sub code-path (+ prefix-length 1) (* -1 (+ 1 extension-length)))
-                          extension)
-        lua-code-path (.. "lua"
-                          (string.sub code-path (+ prefix-length 1) (* -1 (+ 1 extension-length)))
-                          "lua")
-        src-path (.. context-dir fnl-code-path)
-        lua-path (.. context-dir lua-code-path)
+        sigil-path (.. context-dir SIGIL_FILE)
+        lua-code-path (let [pattern (fmt "(%s)(/.+%%.)(%s)$" prefix extension)]
+                        (string.gsub code-path pattern "lua%2lua"))
         lua-cache-path (cache-path-for-compiled-artefact namespace lua-code-path)
         lua-colocation-path (.. context-dir lua-code-path) ;; TODO: rename this from colocation to ...?
-        sigil-path (.. context-dir SIGIL_FILE)
         record {: sigil-path
                 : src-path
                 :lua-path lua-cache-path ;; defaults to cache!
                 : lua-cache-path
                 : lua-colocation-path
-                :colocation-root-path context-dir
-                :cache-root-path (cache-path-for-compiled-artefact namespace)
+                :colocation-root-path context-dir ;; TODO: unused anywhere, probably keep as context-root-dir or root-context
+                :cache-root-path (cache-path-for-compiled-artefact namespace) ;; TODO: unused anywhere, drop?
                 : namespace
                 : modname}
         unsafely? (or opts.unsafely? false)]
+    (print (vim.inspect record))
     (when (= true (not unsafely?))
       (each [_ key (ipairs REQUIRED_KEYS)]
         (assert (. record key)

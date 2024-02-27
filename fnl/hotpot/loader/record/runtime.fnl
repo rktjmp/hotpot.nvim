@@ -38,7 +38,7 @@
         lua-path (cache-path-for-compiled-artefact namespace lua-code-path)
         record {: src-path
                 : lua-path
-                :cache-root-path (cache-path-for-compiled-artefact namespace)
+                :cache-root-path (cache-path-for-compiled-artefact namespace) ;; TODO: unused anywhere, drop?
                 : namespace
                 : modname}
         unsafely? (or opts.unsafely? false)]
