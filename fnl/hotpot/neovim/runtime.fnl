@@ -1,5 +1,6 @@
 (import-macros {: dprint} :hotpot.macros)
 (local {:format fmt} string)
+(local {: nvim_create_autocmd : nvim_create_augroup : nvim_del_augroup_by_id} vim.api)
 
 ;; A note on ordering.
 ;;
@@ -77,30 +78,31 @@
     (values nil)))
 
 (var enabled? false)
+(var augroup-id nil)
 (fn enable []
-  (let [{: nvim_create_autocmd : nvim_create_augroup} vim.api
-        au-group (nvim_create_augroup :hotpot-nvim-runtime-loaders {})]
+  (when (and vim.go.loadplugins (not enabled?))
+    (set augroup-id (nvim_create_augroup :hotpot-nvim-runtime-loaders {}))
     ;; As of 0.9.1,
     ;; --noplugin sets loadplugins = false
     ;; --clean should already disable us, as it skips all user dirs
     ;; Per :h --noplugin, -u NONE should not load plugins, -u NORC should.
     ;; -u NONE, sets loadplugins = false
     ;; -u NORC, sets loadplugins = true
-    (when (and vim.go.loadplugins (not enabled?))
-      (set enabled? true)
-      (nvim_create_autocmd :FileType {:callback find-ftplugins
-                                      :desc "Execute ftplugin/*.fnl files"
-                                      :group au-group})
-      (if (= 1 vim.v.vim_did_enter)
-        (find-runtime-plugins :plugin "plugin/**/*.fnl")
-        (nvim_create_autocmd :VimEnter {:callback #(find-runtime-plugins :plugin "plugin/**/*.fnl")
-                                        :desc "Execute plugin/**/*.fnl files"
-                                        :once true
-                                        :group au-group})))))
+    (set enabled? true)
+    (nvim_create_autocmd :FileType {:callback find-ftplugins
+                                    :desc "Execute ftplugin/*.fnl files"
+                                    :group augroup-id})
+    (if (= 1 vim.v.vim_did_enter)
+      (find-runtime-plugins :plugin "plugin/**/*.fnl")
+      (nvim_create_autocmd :VimEnter {:callback #(find-runtime-plugins :plugin "plugin/**/*.fnl")
+                                      :desc "Execute plugin/**/*.fnl files"
+                                      :once true
+                                      :group augroup-id}))))
 
 (fn disable []
-  (when enabled?
-    (set enabled? false)
-    (vim.api.nvim_del_autocmd_by_name :hotpot-nvim-runtime-loaders)))
+  (when augroup-id
+    (nvim_del_augroup_by_id augroup-id)
+    (set augroup-id nil)
+    (set enabled? false)))
 
 {: enable : disable}
