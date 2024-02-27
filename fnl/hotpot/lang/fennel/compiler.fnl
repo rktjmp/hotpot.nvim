@@ -48,11 +48,11 @@
       ;; to avoid circular dependencies.
       ;; By putting it here we can be sure that the dep map module is already
       ;; in memory before hotpot took over macro module searching.
-      (let [dep-map (require :hotpot.dependency-map)]
+      (let [{: set-macro-modname-path} (require :hotpot.lang.fennel.dependency-tracker)]
         ;; later, when a module needs a macro, we will know what file the
         ;; macro came from and can then track the macro file for changes
         ;; when refreshing the cache.
-        (dep-map.set-macro-modname-path modname fnl-path)
+        (set-macro-modname-path modname fnl-path)
         ;; eval macro as per fennel's implementation.
         (fennel.eval fnl-code options modname)))))
 
@@ -145,9 +145,9 @@
 
 (λ compile-record [record modules-options macros-options preprocessor]
   "Compile fnl-path to lua-path, returns true or false compilation-errors"
-  (let [{: deps-for-fnl-path} (require :hotpot.dependency-map)
-        {: lua-path : src-path : modname} record
-        {:new new-macro-dep-tracking-plugin} (require :hotpot.lang.fennel.dependency-tracker)
+  (let [{: lua-path : src-path : modname} record
+        {:new new-macro-dep-tracking-plugin
+         : deps-for-fnl-path} (require :hotpot.lang.fennel.dependency-tracker)
         modules-options (doto modules-options
                               (tset :module-name modname)
                               (tset :filename src-path)

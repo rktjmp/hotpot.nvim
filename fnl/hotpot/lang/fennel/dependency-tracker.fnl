@@ -1,3 +1,43 @@
+;; NOTE: This is used in the macro loader, so you may not use any
+;; macros in here, or probably any requires either to avoid
+;; circular compile chains.
+
+;; to track macro-file dependencies, we have two steps:
+;;
+;; 1. when a macro is found by the macro searcher, record the [modname, path]
+;;    pair. (set-macro-modname-path)
+;; 2. when a macro is required by a regular module, record that module and the
+;;    macro modname. (fnl-path-depends-on-macro-module)
+
+(var macro-mods-paths {})
+(var fnl-file-macro-mods {})
+
+(fn set-macro-modname-path [mod path]
+  (let [existing-path (. macro-mods-paths mod)
+        fmt string.format]
+    (assert (or (= existing-path path)
+                (= existing-path nil))
+            (fmt "already have mod-path for %s, current: %s, new: %s" mod existing-path path))
+    (tset macro-mods-paths mod path)))
+
+(fn fnl-path-depends-on-macro-module [fnl-path macro-module]
+  (let [list (or (. fnl-file-macro-mods fnl-path) [])]
+    ;; guard nil inserts because they will effectively truncate the list also
+    ;; we will raise a hard error because it's likely a pretty ununsual case
+    ;; but one that we want to reproduce and fix if possible.
+    (if macro-module
+      (do
+        (table.insert list macro-module)
+        (tset fnl-file-macro-mods fnl-path list))
+      (error (.. "tried to insert nil macro dependencies for "
+                 fnl-path ", please report this issue")))))
+
+(fn deps-for-fnl-path [fnl-path]
+  (match (. fnl-file-macro-mods fnl-path)
+    ; list may contain duplicates, so we can dedup via keys
+    deps (icollect [_ mod (ipairs deps)]
+                   (. macro-mods-paths mod))))
+
 (fn new [fnl-path required-from-modname]
   {:versions [:1.1.0 :1.1.1 :1.2.0 :1.2.1 :1.3.0 :1.3.1 :1.4.0 :1.4.1 :1.4.2]
    :name (.. :hotpot-macro-dep-tracking-for- required-from-modname)
@@ -44,8 +84,7 @@
            macro-modname (fennel.eval (fennel.view second)
                                       {:module-name required-from-modname}
                                       required-from-modname
-                                      fnl-path)
-           dep-map (require :hotpot.dependency-map)]
+                                      fnl-path)]
        (assert macro-modname (.. "congratulations, you're doing something weird, "
                                  "probably with recursive relative macro requires, "
                                  "please open a bug with an example of your setup"))
@@ -53,8 +92,10 @@
        ; (vim.pretty_print {:fnl-path fnl-path
        ;                    :required-from-modname required-from-modname
        ;                    :macro-modname macro-modname})
-       (dep-map.fnl-path-depends-on-macro-module fnl-path macro-modname))
+       (fnl-path-depends-on-macro-module fnl-path macro-modname))
      ;; dont halt other plugins
      (values nil))})
 
-{: new}
+{: deps-for-fnl-path
+ : set-macro-modname-path
+ : new}
