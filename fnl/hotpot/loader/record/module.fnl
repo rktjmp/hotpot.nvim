@@ -42,7 +42,6 @@
                 : namespace
                 : modname}
         unsafely? (or opts.unsafely? false)]
-    (print (vim.inspect record))
     (when (= true (not unsafely?))
       (each [_ key (ipairs REQUIRED_KEYS)]
         (assert (. record key)

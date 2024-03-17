@@ -14,7 +14,7 @@
       [size unit] (fmt unit size))))
 
 (fn disk-info []
-  (report_start "Hotpot Data")
+  (report_start "Hotpot Cache Data")
   (let [runtime (require :hotpot.runtime)
         config (runtime.user-config)
         cache-root (runtime.cache-root-path)
@@ -37,14 +37,17 @@
     (report_info (fmt "Log size: %s" size))))
 
 (fn searcher-info []
-  (report_start "Hotpot Searcher")
+  (report_start "Hotpot Module Searcher")
   (let [{: searcher} (require :hotpot.loader)
         expected-index 2
         actual-index (accumulate [x nil i v (ipairs package.loaders) &until x]
                        (if (= searcher v) i))]
     (if (= expected-index actual-index)
       (report_ok (fmt "package.loader index: %s" actual-index))
-      (report_error (fmt "package.loader index: %s, requires: %s" actual-index expected-index)))))
+      (do
+        (report_error (fmt "package.loader index: %s, requires: %s" actual-index expected-index))
+        (if vim.loader.enabled
+          (report_info (fmt "Ensure you are calling `vim.loader.enable()` before `require('hotpot')`")))))))
 
 (fn check []
   (disk-info)
