@@ -6,6 +6,15 @@ to "core" code (things that effect loading and running your code/config) are
 avoided but breaking changes to the API (things that might effect your bindings
 and auto commands) are treated with less reverence.
 
+## 0.12.0
+
+- **`vim.loader.enable()` must be called before requiring hotpot *if you are using `vim.loader`*.**
+- Added `:checkhealth hotpot`.
+- Added `{silent=true}` option to `api.cache.clear-cache`
+- **Changed `api.cache.open-cache` to accept a callback which should accept the
+  cache path as its first argument. If no callback is given, the cache path is
+  opened in a `vsplit`.**
+
 ## 0.11.1
 
 - Updated to Fennel 1.4.2, may contain unintended breaking changes from
