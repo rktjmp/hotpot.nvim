@@ -1,5 +1,4 @@
 (local {:format fmt} string)
-(local {: file-exists? : file-missing? : file-stat : rm-file } (require :hotpot.fs))
 (local SIGIL_FILE :.hotpot.lua)
 
 ;; Sigils are special configuration files written in lua to adjust some runtime
@@ -14,11 +13,12 @@
                          (case (. defaults key)
                            nil key))
                    [nil] true
-                   keys (values false (fmt "invalid keys in sigil %s: %s. The valid keys are: %s."
-                                           path
-                                           (table.concat keys ", ")
-                                           (-> (vim.tbl_keys defaults) (table.concat ", "))))))]
-    ;; TODO: Should be disable require or are users at fault if they create a loop?
+                   invalid-keys (let [e (fmt "invalid keys in sigil %s: %s. The valid keys are: %s."
+                                             path
+                                             (table.concat invalid-keys ", ")
+                                             (-> (vim.tbl_keys defaults) (table.concat ", ")))]
+                                  (values false e))))]
+    ;; TODO: Should we disable require in env or are users at fault if they create a loop?
     (case-try
       (loadfile path) sigil-fn
       (pcall sigil-fn) (where (true sigil) (= :table (type sigil)))
