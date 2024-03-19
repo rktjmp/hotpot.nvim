@@ -284,6 +284,9 @@ Optionally accepts an options table which may contain the same keys as
 described for `api.make.build`. By default, `force = true` and
 `verbose = true`.
 
+Note: this function is under `(. (require :hotpot.api.make) :auto :build)`
+NOT `(. (require :hotpot.api.make.auto) :build)`.
+
 
 
 ### `hotpot.api.make.build`
@@ -518,18 +521,17 @@ Returns the path to Hotpots lua cache
 
 ### `hotpot.api.cache.clear-cache`
 
-`(clear-cache)`
+`(clear-cache ?opts)`
 
-Clear all lua cache files
+Clear all lua cache files.
+
+Accepts an optional table of options which may specify {silent=true} to disable prompt.
 
 
 
 ### `hotpot.api.cache.open-cache`
 
-`(open-cache ?how ?opts)`
+`(open-cache ?cb)`
 
-Open the cache directory in a split
-
-Accepts an optional `how` and `opts` arguments which
-are translated to `(vim.cmd.<how> (cache-path) <opts>)`
+Open the cache directory in a vsplit or calls `cb` function with cache path
 
