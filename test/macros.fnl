@@ -22,6 +22,9 @@
                          (.. "vim.opt.runtimepath:prepend(vim.loop.cwd())
                              require('hotpot')
                              " ,code) ,...))
+     ;; "should" be able to do --cmd 'set loadplugins' -l x.lua 
+     ;; but that does not seem to run ftplugins, so we seem stuck with 
+     ;; the column hack and -S session.lua
      (vim.cmd (string.format "!%s +'set columns=1000' --headless -S %s" (or vim.env.NVIM_BIN :nvim) fname))
      (values vim.v.shell_error)))
 
