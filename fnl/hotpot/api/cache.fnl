@@ -46,12 +46,12 @@
           (vim.notify (string.format "Cleared %s" prefix))
           true))))
 
-(fn open-cache [?how ?opts]
-  "Open the cache directory in a split
-
-  Accepts an optional `how` and `opts` arguments which
-  are translated to `(vim.cmd.<how> (cache-path) <opts>)`"
-  (vim.cmd.vsplit (cache-prefix)))
+(fn open-cache [?cb]
+  "Open the cache directory in a vsplit or calls `cb` function with cache path"
+  (case (type ?cb)
+    :nil (vim.cmd.vsplit (cache-prefix))
+    :function (?cb (cache-prefix))
+    _ (error "open-cache argument must be a function (or nil)")))
 
 {: open-cache
  : clear-cache
