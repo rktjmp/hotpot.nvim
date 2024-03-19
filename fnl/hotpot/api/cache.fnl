@@ -19,8 +19,10 @@
           false)
       2 (uv.fs_unlink path))))
 
-(fn clear-cache []
-  "Clear all lua cache files"
+(fn clear-cache [?opts]
+  "Clear all lua cache files.
+
+  Accepts an optional table of options which may specify {silent=true} to disable prompt."
   (fn clear-dir [dir]
     (let [scanner (uv.fs_scandir dir)
           {: join-path} (require :hotpot.fs)]
@@ -35,16 +37,14 @@
   (let [prefix (cache-prefix)
         _ (expect (and prefix (not (= "" prefix)))
                   "cache-prefix was nil or blank, refusing to continue")
-        message (.. "Remove all files under: " prefix)
-        options "NO\nYes"]
-    (match (vim.fn.confirm message options 1 "Warning")
-      1 (do
-          (vim.notify "Did NOT remove files.")
-          false)
-      2 (do
+        silent? (= true (?. ?opts :silent))]
+    (if silent?
+      (clear-dir prefix) ;; TODO: does not clear index records
+      (if (= 2 (vim.fn.confirm (.. "Remove all files under: " prefix) "NO\nYes" 1 "Warning"))
+        (do
           (clear-dir prefix)
-          (vim.notify (string.format "Cleared %s" prefix))
-          true))))
+          (vim.notify (string.format "Cleared %s" prefix)))
+        (vim.notify "Did NOT remove files.")))))
 
 (fn open-cache [?cb]
   "Open the cache directory in a vsplit or calls `cb` function with cache path"
