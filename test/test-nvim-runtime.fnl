@@ -4,57 +4,56 @@
 (fn p [x] (.. (vim.fn.stdpath :config) x))
 (local {: cache-prefix} (require :hotpot.api.cache))
 
-(local plugin-path-1 (p :/plugin/my_plugin_1.fnl))
-(local lua-path-1 (.. (cache-prefix)
+(fn make-plugin [file]
+  (let [config-dir (vim.fn.stdpath :config)
+        fnl-path (.. config-dir :/plugin/ file :.fnl)
+        lua-path (.. (cache-prefix)
                     :/hotpot-runtime- NVIM_APPNAME
-                    :/lua/hotpot-runtime-plugin/my_plugin_1.lua))
+                    :/lua/hotpot-runtime-plugin/ file :.lua)]
+    (write-file fnl-path "(set _G.exit (+ 1 (or _G.exit 100)))")
+    (values fnl-path lua-path)))
 
-(local plugin-path-2 (p :/plugin/nested/deeply/my_plugin_2.fnl))
-(local lua-path-2 (.. (cache-prefix)
-                    :/hotpot-runtime- NVIM_APPNAME
-                    :/lua/hotpot-runtime-plugin/nested/deeply/my_plugin_2.lua))
+(local (plugin-path-1 lua-path-1) (make-plugin :my_plugin_1))
+(local (plugin-path-2 lua-path-2) (make-plugin :nested/deeply/my_plugin_2))
+(local (plugin-path-3 lua-path-3) (make-plugin :init))
+(local (plugin-path-4 lua-path-4) (make-plugin :init/init.fnl))
+(local lua-paths [lua-path-1 lua-path-2 lua-path-3 lua-path-4])
 
-(write-file plugin-path-1 "(set _G.exit_1 11)")
-(write-file plugin-path-2 "(set _G.exit_2 22)")
-
-;; defer exit so VimEnter can trigger
-(expect 33 (in-sub-nvim "_G.exit_1 = 0
-                        _G.exit_2 = 0
-                        vim.defer_fn(function()
-                                      os.exit(_G.exit_1 + _G.exit_2)
-                         end, 50)")
+;; Test that plugin/ files are compiled
+(expect 104
+        ;; defer exit so VimEnter can trigger
+        (in-sub-nvim "vim.defer_fn(function() os.exit(_G.exit) end, 50)")
         "plugin/*.fnl executed automatically")
+(expect true
+        (accumulate [exists? true _ path (ipairs lua-paths)]
+          (and exists? (vim.loop.fs_access path :R)))
+        "plugin lua files exists")
 
-(expect true (and (vim.loop.fs_access lua-path-1 :R) (vim.loop.fs_access lua-path-2 :R))
-                  "plugin lua files exists")
-
-(local stats_a_1 (vim.loop.fs_stat lua-path-1))
-(local stats_a_2 (vim.loop.fs_stat lua-path-2))
-
-(expect 33 (in-sub-nvim "_G.exit_1 = 0
-                        _G.exit_2 = 0
-                        vim.defer_fn(function()
-                                      os.exit(_G.exit_1 + _G.exit_2)
-                         end, 50)")
+;; Test that plugin/ files are not recompiled when unchanged
+(local stats-before (icollect [_ path (ipairs lua-paths)] (vim.loop.fs_stat path)))
+(expect 104
+        (in-sub-nvim "vim.defer_fn(function() os.exit(_G.exit) end, 50)")
         "plugin/*.fnl executed automatically second time")
-(local stats_b_1 (vim.loop.fs_stat lua-path-1))
-(local stats_b_2 (vim.loop.fs_stat lua-path-2))
-
-(expect true (and (= stats_a_1.mtime.sec stats_b_1.mtime.sec)
-                  (= stats_a_1.mtime.nsec stats_b_1.mtime.nsec)
-                  (= stats_a_2.mtime.sec stats_b_2.mtime.sec)
-                  (= stats_a_2.mtime.nsec stats_b_2.mtime.nsec))
+(local stats-after (icollect [_ path (ipairs lua-paths)] (vim.loop.fs_stat path)))
+(expect true
+        (faccumulate [same? true i 1 (length lua-paths)]
+          (let [before (. stats-before i)
+                after (. stats-after i)]
+            (and (= before.mtime.sec after.mtime.sec)
+                 (= before.mtime.nsec after.mtime.nsec))))
         "plugin lua files were not recompiled")
 
+;; Test that files removed from plugin/ are removed from the cache
 (vim.loop.fs_unlink plugin-path-1)
-(expect 22 (in-sub-nvim "_G.exit_1 = 0
-                        _G.exit_2 = 0
-                        vim.defer_fn(function() os.exit(_G.exit_1 + _G.exit_2) end, 50)")
-        "plugin did not zombie")
-
+(expect 103
+        (in-sub-nvim "vim.defer_fn(function() os.exit(_G.exit) end, 50)")
+        "removed plugin/ file is removed from cache")
+;; urk, some kind of windows-platform bug.
+;; who knows, low impact, stale cache plugins aren't run without the matching lua anyway.
+;; normalizing path does not fix.
 (if (not= 1 (vim.fn.has :win32))
-  ;; urk, some kind of bug, normalizing path does not fix removal
-  ;; who knows, low impact. another day.
-  (expect false (vim.loop.fs_access lua-path-1 :R) "plugin lua file removed"))
+  (expect false
+          (vim.loop.fs_access lua-path-1 :R)
+          "plugin lua file removed"))
 
 (exit)

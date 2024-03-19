@@ -32,7 +32,7 @@
 
 ;; issues/129
 ;; unusual 'init' module name setups
-(test-path :init :init/init) ;; TODO: also test runtime with same naughty layout
+(test-path :init :init/init)
 (set package.loaded.init nil)
 (test-path :init :init)
 (test-path :fnl :fnl/init)
