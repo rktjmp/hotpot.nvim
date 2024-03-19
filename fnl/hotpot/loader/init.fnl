@@ -120,7 +120,7 @@
         _ false)))
 
   ;; Mostly to handle relative requires that are messy in the other branches.
-  ;; These files are never compiled (!!!) and only intepreted because its too
+  ;; These files are never compiled (!!!) and only interpreted because its too
   ;; fraught to misplace these when colocating, or when they're not under fnl/
   ;; dirs.
   ;;
@@ -135,7 +135,7 @@
       (case (search-package-path modname)
         [modpath] (let [{: dofile} (require :hotpot.fennel)]
                     (vim.notify (fmt (.. "Found `%s` outside of Neovims RTP (at %s) by the package.path searcher.\n"
-                                         "Hotpot will evaluate this file instead of compling it.")
+                                         "Hotpot will evaluate this file instead of compiling it.")
                                      modname modpath)
                                 vim.log.levels.NOTICE)
                     #(dofile modpath))
@@ -162,6 +162,6 @@
   (record-loadfile record))
 
 {: searcher
- :compiled-cache-path (cache-path-for-compiled-artefact)
- : cache-path-for-compiled-artefact
+ :compiled-cache-path (cache-path-for-compiled-artefact) ;; TODO: rename compiled-cache-root-path or similar
+ : cache-path-for-compiled-artefact ;; TODO: rename?
  : make-record-loader}
