@@ -152,22 +152,22 @@ local function find_clean_targets(root_dir, spec, compile_targets)
     local dest = _each_26_["dest"]
     files[dest] = false
   end
-  local tbl_18_auto = {}
-  local i_19_auto = 0
+  local tbl_19_auto = {}
+  local i_20_auto = 0
   for path, action in pairs(files) do
-    local val_20_auto
+    local val_21_auto
     if action then
-      val_20_auto = path
+      val_21_auto = path
     else
-      val_20_auto = nil
+      val_21_auto = nil
     end
-    if (nil ~= val_20_auto) then
-      i_19_auto = (i_19_auto + 1)
-      do end (tbl_18_auto)[i_19_auto] = val_20_auto
+    if (nil ~= val_21_auto) then
+      i_20_auto = (i_20_auto + 1)
+      do end (tbl_19_auto)[i_20_auto] = val_21_auto
     else
     end
   end
-  return tbl_18_auto
+  return tbl_19_auto
 end
 local function do_compile(compile_targets, compiler_options, root_dir)
   local _let_29_ = require("hotpot.lang.fennel.compiler")
@@ -377,17 +377,17 @@ local function do_build(opts, root_dir, build_spec)
     end
     _return0 = tbl_14_auto
   end
-  local tbl_18_auto = {}
-  local i_19_auto = 0
+  local tbl_19_auto = {}
+  local i_20_auto = 0
   for _, v in pairs(_return0) do
-    local val_20_auto = v
-    if (nil ~= val_20_auto) then
-      i_19_auto = (i_19_auto + 1)
-      do end (tbl_18_auto)[i_19_auto] = val_20_auto
+    local val_21_auto = v
+    if (nil ~= val_21_auto) then
+      i_20_auto = (i_20_auto + 1)
+      do end (tbl_19_auto)[i_20_auto] = val_21_auto
     else
     end
   end
-  return tbl_18_auto
+  return tbl_19_auto
 end
 local function do_clean(clean_targets, opts)
   local _let_86_ = require("hotpot.fs")
@@ -651,7 +651,7 @@ do
                 local _ = _151_
                 return handle_config(config, query_path, vim.fs.dirname(config_path), opts)
               else
-                local __84_auto = _151_
+                local __85_auto = _151_
                 return ...
               end
             end
@@ -665,7 +665,7 @@ do
             end
             return _150_(_153_(...))
           else
-            local __84_auto = _149_
+            local __85_auto = _149_
             return ...
           end
         end
@@ -697,13 +697,13 @@ do
                 local config = _162_
                 return handle_config(config, full_path_current_file, vim.fs.dirname(config_path))
               else
-                local __84_auto = _162_
+                local __85_auto = _162_
                 return ...
               end
             end
             return _161_(loadfile_local_config(config_path))
           else
-            local __84_auto = _160_
+            local __85_auto = _160_
             return ...
           end
         end

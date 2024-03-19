@@ -53,10 +53,8 @@ local function render_error_diagnostic(buf, ns, err)
     else
       return nil
     end
-  elseif true then
-    local _ = _3_
-    return nil
   else
+    local _ = _3_
     return nil
   end
 end
@@ -67,17 +65,17 @@ local function make_handler(buf, ns)
   local compile_string = _let_11_["compile-string"]
   local allowed_globals
   do
-    local tbl_17_auto = {}
-    local i_18_auto = #tbl_17_auto
+    local tbl_19_auto = {}
+    local i_20_auto = 0
     for n, _ in pairs(_G) do
-      local val_19_auto = n
-      if (nil ~= val_19_auto) then
-        i_18_auto = (i_18_auto + 1)
-        do end (tbl_17_auto)[i_18_auto] = val_19_auto
+      local val_21_auto = n
+      if (nil ~= val_21_auto) then
+        i_20_auto = (i_20_auto + 1)
+        do end (tbl_19_auto)[i_20_auto] = val_21_auto
       else
       end
     end
-    allowed_globals = tbl_17_auto
+    allowed_globals = tbl_19_auto
   end
   local fname
   do
@@ -165,13 +163,11 @@ local function do_attach(buf)
   local au_group = api.nvim_create_augroup(("hotpot-diagnostics-for-buf-" .. buf), {clear = true})
   api.nvim_create_autocmd({"TextChanged", "InsertLeave"}, {buffer = buf, group = au_group, desc = ("Hotpot diagnostics update autocmd for buf#" .. buf), callback = handler})
   local function _27_(_241)
-    if ((_G.type(_241) == "table") and ((_241).match == "fennel")) then
+    if ((_G.type(_241) == "table") and (_241.match == "fennel")) then
       return nil
-    elseif true then
+    else
       local _ = _241
       return M.detach(buf)
-    else
-      return nil
     end
   end
   api.nvim_create_autocmd("FileType", {buffer = buf, group = au_group, desc = ("Hotpot diagnostics auto-detach on filetype change for buf#" .. buf), callback = _27_})
@@ -193,9 +189,9 @@ end
 M.detach = function(user_buf, _3fopts)
   local buf = resolve_buf_id(user_buf)
   local _31_ = data_for_buf(buf)
-  if ((_G.type(_31_) == "table") and (nil ~= (_31_).ns) and (nil ~= (_31_)["au-group"])) then
-    local ns = (_31_).ns
-    local au_group = (_31_)["au-group"]
+  if ((_G.type(_31_) == "table") and (nil ~= _31_.ns) and (nil ~= _31_["au-group"])) then
+    local ns = _31_.ns
+    local au_group = _31_["au-group"]
     api.nvim_clear_autocmds({group = au_group, buffer = buf})
     reset_diagnostic(ns)
     record_detachment(buf)
@@ -210,10 +206,10 @@ M["error-for-buf"] = function(user_buf)
   if (_33_ == nil) then
     api.nvim_echo({{"Hotpot diagnostics not attached to buffer, could not get error", "DiagnosticWarn"}}, false, {})
     return nil
-  elseif ((_G.type(_33_) == "table") and (nil ~= (_33_).err)) then
-    local err = (_33_).err
+  elseif ((_G.type(_33_) == "table") and (nil ~= _33_.err)) then
+    local err = _33_.err
     return err
-  elseif ((_G.type(_33_) == "table") and ((_33_).err == nil)) then
+  elseif ((_G.type(_33_) == "table") and (_33_.err == nil)) then
     return nil
   else
     return nil

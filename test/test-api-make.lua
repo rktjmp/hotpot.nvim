@@ -62,11 +62,9 @@ local function _5_(...)
           local _10_ = ...
           if (_10_ == true) then
             return vim.loop.fs_unlink(lua_path)
-          elseif true then
-            local __75_auto = _10_
-            return ...
           else
-            return nil
+            local __85_auto = _10_
+            return ...
           end
         end
         local function _13_(...)
@@ -74,20 +72,16 @@ local function _5_(...)
           if (_12_ == false) then
             OK(string.format(("Did not compile macro" or ""), p("/lua/a/macro.lua")))
             return true
-          elseif true then
+          else
             local __1_auto = _12_
             FAIL(string.format(("Did not compile macro" or ""), p("/lua/a/macro.lua")))
             return false
-          else
-            return nil
           end
         end
         return _9_(_13_(...))
-      elseif true then
-        local __75_auto = _8_
-        return ...
       else
-        return nil
+        local __85_auto = _8_
+        return ...
       end
     end
     local function _17_(...)
@@ -95,20 +89,16 @@ local function _5_(...)
       if (_16_ == "local function x()\\n  return nil\\nend\\nreturn x") then
         OK(string.format(("Outputs correct lua code" or "")))
         return true
-      elseif true then
+      else
         local __1_auto = _16_
         FAIL(string.format(("Outputs correct lua code" or "")))
         return false
-      else
-        return nil
       end
     end
     return _7_(_17_(...))
-  elseif true then
-    local __75_auto = _6_
-    return ...
   else
-    return nil
+    local __85_auto = _6_
+    return ...
   end
 end
 local function _21_(...)
@@ -116,12 +106,10 @@ local function _21_(...)
   if (_20_ == true) then
     OK(string.format(("Creates a lua file at %s" or ""), lua_path))
     return true
-  elseif true then
+  else
     local __1_auto = _20_
     FAIL(string.format(("Creates a lua file at %s" or ""), lua_path))
     return false
-  else
-    return nil
   end
 end
 _5_(_21_(...))
@@ -144,11 +132,9 @@ local function _25_(...)
           local _30_ = ...
           if (_30_ == true) then
             return true
-          elseif true then
-            local __75_auto = _30_
-            return ...
           else
-            return nil
+            local __85_auto = _30_
+            return ...
           end
         end
         local function _33_(...)
@@ -156,20 +142,16 @@ local function _25_(...)
           if (_32_ == false) then
             OK(string.format(("Did not compile macro" or ""), p("/lua/a/macro.lua")))
             return true
-          elseif true then
+          else
             local __1_auto = _32_
             FAIL(string.format(("Did not compile macro" or ""), p("/lua/a/macro.lua")))
             return false
-          else
-            return nil
           end
         end
         return _29_(_33_(...))
-      elseif true then
-        local __75_auto = _28_
-        return ...
       else
-        return nil
+        local __85_auto = _28_
+        return ...
       end
     end
     local function _37_(...)
@@ -177,20 +159,16 @@ local function _25_(...)
       if (_36_ == "local function x()\\n  return nil\\nend\\nreturn x") then
         OK(string.format(("Outputs correct lua code" or "")))
         return true
-      elseif true then
+      else
         local __1_auto = _36_
         FAIL(string.format(("Outputs correct lua code" or "")))
         return false
-      else
-        return nil
       end
     end
     return _27_(_37_(...))
-  elseif true then
-    local __75_auto = _26_
-    return ...
   else
-    return nil
+    local __85_auto = _26_
+    return ...
   end
 end
 local function _41_(...)
@@ -198,12 +176,10 @@ local function _41_(...)
   if (_40_ == true) then
     OK(string.format(("Creates a lua file at %s" or ""), lua_path0))
     return true
-  elseif true then
+  else
     local __1_auto = _40_
     FAIL(string.format(("Creates a lua file at %s" or ""), lua_path0))
     return false
-  else
-    return nil
   end
 end
 _25_(_41_(...))

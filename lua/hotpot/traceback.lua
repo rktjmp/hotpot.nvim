@@ -12,22 +12,22 @@ local function brain_traceback(msg)
   local error_tail = ("*** Hotpot thinks you were requiring a module, you will   ***\n" .. "*** likely see an additional error below because lua was  ***\n" .. "*** unable to load the module.                            ***")
   local lines
   do
-    local tbl_17_auto = {}
-    local i_18_auto = #tbl_17_auto
+    local tbl_19_auto = {}
+    local i_20_auto = 0
     for line in string.gmatch(semi, "[^\13\n]+") do
-      local val_19_auto
+      local val_21_auto
       if not string.match(line, hotpot_internals_pattern) then
-        val_19_auto = line
+        val_21_auto = line
       else
-        val_19_auto = nil
+        val_21_auto = nil
       end
-      if (nil ~= val_19_auto) then
-        i_18_auto = (i_18_auto + 1)
-        do end (tbl_17_auto)[i_18_auto] = val_19_auto
+      if (nil ~= val_21_auto) then
+        i_20_auto = (i_20_auto + 1)
+        do end (tbl_19_auto)[i_20_auto] = val_21_auto
       else
       end
     end
-    lines = tbl_17_auto
+    lines = tbl_19_auto
   end
   local function _5_()
     local state = {stack = {}, message = {}}

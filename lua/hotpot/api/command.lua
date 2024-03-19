@@ -25,17 +25,17 @@ local function fnl(start, stop, code, range_count)
   local function _7_(_241)
     local _8_
     do
-      local tbl_17_auto = {}
-      local i_18_auto = #tbl_17_auto
+      local tbl_19_auto = {}
+      local i_20_auto = 0
       for _, v in ipairs(_241) do
-        local val_19_auto = view(v)
-        if (nil ~= val_19_auto) then
-          i_18_auto = (i_18_auto + 1)
-          do end (tbl_17_auto)[i_18_auto] = val_19_auto
+        local val_21_auto = view(v)
+        if (nil ~= val_21_auto) then
+          i_20_auto = (i_20_auto + 1)
+          do end (tbl_19_auto)[i_20_auto] = val_21_auto
         else
         end
       end
-      _8_ = tbl_17_auto
+      _8_ = tbl_19_auto
     end
     return print(table.concat(_8_, ", "))
   end
@@ -43,47 +43,47 @@ local function fnl(start, stop, code, range_count)
   local eval
   do
     local _10_ = {(2 == range_count), code}
-    if ((_G.type(_10_) == "table") and ((_10_)[1] == true) and ((_10_)[2] == "=")) then
+    if ((_G.type(_10_) == "table") and (_10_[1] == true) and (_10_[2] == "=")) then
       local function _11_()
         local _12_ = {eval_range(0, start, stop)}
-        if ((_G.type(_12_) == "table") and ((_12_)[1] == true)) then
+        if ((_G.type(_12_) == "table") and (_12_[1] == true)) then
           local rest = {select(2, (table.unpack or _G.unpack)(_12_))}
           return print_result(rest)
-        elseif ((_G.type(_12_) == "table") and ((_12_)[1] == false) and (nil ~= (_12_)[2])) then
-          local e = (_12_)[2]
+        elseif ((_G.type(_12_) == "table") and (_12_[1] == false) and (nil ~= _12_[2])) then
+          local e = _12_[2]
           return false, e
         else
           return nil
         end
       end
       eval = _11_
-    elseif ((_G.type(_10_) == "table") and ((_10_)[1] == true) and ((_10_)[2] == "")) then
+    elseif ((_G.type(_10_) == "table") and (_10_[1] == true) and (_10_[2] == "")) then
       local function _14_()
         return eval_range(0, start, stop)
       end
       eval = _14_
     else
       local function _15_()
-        local _ = (_10_)[1]
+        local _ = _10_[1]
         return ("=" == string.sub(code, 1, 1))
       end
-      if (((_G.type(_10_) == "table") and true and ((_10_)[2] == code)) and _15_()) then
-        local _ = (_10_)[1]
+      if (((_G.type(_10_) == "table") and true and (_10_[2] == code)) and _15_()) then
+        local _ = _10_[1]
         local function _16_()
           local _17_ = {eval_string(string.sub(code, 2, -1))}
-          if ((_G.type(_17_) == "table") and ((_17_)[1] == true)) then
+          if ((_G.type(_17_) == "table") and (_17_[1] == true)) then
             local rest = {select(2, (table.unpack or _G.unpack)(_17_))}
             return print_result(rest)
-          elseif ((_G.type(_17_) == "table") and ((_17_)[1] == false) and (nil ~= (_17_)[2])) then
-            local e = (_17_)[2]
+          elseif ((_G.type(_17_) == "table") and (_17_[1] == false) and (nil ~= _17_[2])) then
+            local e = _17_[2]
             return false, e
           else
             return nil
           end
         end
         eval = _16_
-      elseif ((_G.type(_10_) == "table") and true and ((_10_)[2] == code)) then
-        local _ = (_10_)[1]
+      elseif ((_G.type(_10_) == "table") and true and (_10_[2] == code)) then
+        local _ = _10_[1]
         local function _19_()
           return eval_string(code)
         end
@@ -137,7 +137,7 @@ local function fnldo(start, stop, code)
     end
   end
   for i = start, stop do
-    local line = (vim.api.nvim_buf_get_lines(0, (i - 1), i, false))[1]
+    local line = vim.api.nvim_buf_get_lines(0, (i - 1), i, false)[1]
     vim.api.nvim_buf_set_lines(0, (i - 1), i, false, {func((line or ""), i)})
   end
   return nil

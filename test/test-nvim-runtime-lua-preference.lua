@@ -62,20 +62,18 @@ do
   end
   if (_5_ == 1) then
     OK(string.format(("plugin/*.lua executed" or "")))
-  elseif true then
+  else
     local __1_auto = _5_
     FAIL(string.format(("plugin/*.lua executed" or "")))
-  else
   end
 end
 do
   local _7_ = vim.loop.fs_access(fnl_lua_path, "R")
   if (_7_ == false) then
     OK(string.format(("fnl never compiled" or "")))
-  elseif true then
+  else
     local __1_auto = _7_
     FAIL(string.format(("fnl never compiled" or "")))
-  else
   end
 end
 return exit()

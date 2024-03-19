@@ -56,10 +56,9 @@ do
   local _4_ = read_file(lua_path)
   if (_4_ == "return (1 + 1 + 1)") then
     OK(string.format(("returns first version of macro" or "")))
-  elseif true then
+  else
     local __1_auto = _4_
     FAIL(string.format(("returns first version of macro" or "")))
-  else
   end
 end
 write_file(macro_path, "(fn dbl [a] `(+ ,a ,a)) {: dbl}")
@@ -70,10 +69,9 @@ do
   local _6_ = read_file(lua_path)
   if (_6_ == "return (1 + 1)") then
     OK(string.format(("returns second version of macro" or "")))
-  elseif true then
+  else
     local __1_auto = _6_
     FAIL(string.format(("returns second version of macro" or "")))
-  else
   end
 end
 return exit()

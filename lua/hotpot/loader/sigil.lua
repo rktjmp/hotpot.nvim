@@ -1,136 +1,118 @@
 local _local_1_ = string
 local fmt = _local_1_["format"]
-local _local_2_ = require("hotpot.fs")
-local file_exists_3f = _local_2_["file-exists?"]
-local file_missing_3f = _local_2_["file-missing?"]
-local file_stat = _local_2_["file-stat"]
-local rm_file = _local_2_["rm-file"]
 local SIGIL_FILE = ".hotpot.lua"
 local function load(path)
-  local defaults = {schema = "hotpot/1", compiler = {}, build = false, clean = false, colocate = false}
+  local defaults = {schema = "hotpot/1", compiler = {}, build = false, clean = false}
   local valid_3f
-  local function _3_(sigil)
-    local _4_
+  local function _2_(sigil)
+    local _3_
     do
-      local tbl_18_auto = {}
-      local i_19_auto = 0
+      local tbl_19_auto = {}
+      local i_20_auto = 0
       for key, _val in pairs(sigil) do
-        local val_20_auto
+        local val_21_auto
         do
-          local _5_ = defaults[key]
-          if (_5_ == nil) then
-            val_20_auto = key
+          local _4_ = defaults[key]
+          if (_4_ == nil) then
+            val_21_auto = key
           else
-            val_20_auto = nil
+            val_21_auto = nil
           end
         end
-        if (nil ~= val_20_auto) then
-          i_19_auto = (i_19_auto + 1)
-          do end (tbl_18_auto)[i_19_auto] = val_20_auto
+        if (nil ~= val_21_auto) then
+          i_20_auto = (i_20_auto + 1)
+          do end (tbl_19_auto)[i_20_auto] = val_21_auto
         else
         end
       end
-      _4_ = tbl_18_auto
+      _3_ = tbl_19_auto
     end
-    if ((_G.type(_4_) == "table") and (_4_[1] == nil)) then
+    if ((_G.type(_3_) == "table") and (_3_[1] == nil)) then
       return true
-    elseif (nil ~= _4_) then
-      local keys = _4_
-      return false, fmt("invalid keys in sigil %s: %s. The valid keys are: %s.", path, table.concat(keys, ", "), table.concat(vim.tbl_keys(defaults), ", "))
+    elseif (nil ~= _3_) then
+      local invalid_keys = _3_
+      local e = fmt("invalid keys in sigil %s: %s. The valid keys are: %s.", path, table.concat(invalid_keys, ", "), table.concat(vim.tbl_keys(defaults), ", "))
+      return false, e
     else
       return nil
     end
   end
-  valid_3f = _3_
-  local function _9_(...)
-    local _10_, _11_ = ...
-    if (nil ~= _10_) then
-      local sigil_fn = _10_
-      local function _12_(...)
-        local _13_, _14_ = ...
-        local function _15_(...)
-          local sigil = _14_
+  valid_3f = _2_
+  local function _8_(...)
+    local _9_, _10_ = ...
+    if (nil ~= _9_) then
+      local sigil_fn = _9_
+      local function _11_(...)
+        local _12_, _13_ = ...
+        local function _14_(...)
+          local sigil = _13_
           return ("table" == type(sigil))
         end
-        if (((_13_ == true) and (nil ~= _14_)) and _15_(...)) then
-          local sigil = _14_
-          local function _16_(...)
-            local _17_, _18_ = ...
-            if (_17_ == true) then
+        if (((_12_ == true) and (nil ~= _13_)) and _14_(...)) then
+          local sigil = _13_
+          local function _15_(...)
+            local _16_, _17_ = ...
+            if (_16_ == true) then
               return sigil
-            elseif ((_17_ == true) and (_18_ == nil)) then
+            elseif ((_16_ == true) and (_17_ == nil)) then
               vim.notify_once(fmt("Hotpot sigil was exists but returned nil, %s", path), vim.log.levels.WARN)
               return nil
-            elseif ((_17_ == true) and (nil ~= _18_)) then
-              local x = _18_
+            elseif ((_16_ == true) and (nil ~= _17_)) then
+              local x = _17_
               vim.notify(table.concat({"Hotpot sigil failed to load due to an input error.", fmt("Sigil path: %s", path), fmt("Sigil returned %s instead of table", type(x))}, "\n"), vim.log.levels.ERROR)
               return error("Hotpot refusing to continue to avoid unintentional side effects.", 0)
-            elseif ((_17_ == nil) and (nil ~= _18_)) then
-              local e = _18_
+            elseif ((_16_ == nil) and (nil ~= _17_)) then
+              local e = _17_
               vim.notify(table.concat({"Hotpot sigil failed to load due to a syntax error.", fmt("Sigil path: %s", path), e}, "\n"), vim.log.levels.ERROR)
               return error("Hotpot refusing to continue to avoid unintentional side effects.", 0)
-            elseif ((_17_ == false) and (nil ~= _18_)) then
-              local e = _18_
+            elseif ((_16_ == false) and (nil ~= _17_)) then
+              local e = _17_
               vim.notify_once(fmt("hotpot sigil was invalid, %s\n%s", path, e), vim.log.levels.ERROR)
               return error("hotpot refusing to continue to avoid unintentional side effects.", 0)
             else
               return nil
             end
           end
-          return _16_(valid_3f(sigil))
-        elseif ((_13_ == true) and (_14_ == nil)) then
+          return _15_(valid_3f(sigil))
+        elseif ((_12_ == true) and (_13_ == nil)) then
           vim.notify_once(fmt("Hotpot sigil was exists but returned nil, %s", path), vim.log.levels.WARN)
           return nil
-        elseif ((_13_ == true) and (nil ~= _14_)) then
-          local x = _14_
+        elseif ((_12_ == true) and (nil ~= _13_)) then
+          local x = _13_
           vim.notify(table.concat({"Hotpot sigil failed to load due to an input error.", fmt("Sigil path: %s", path), fmt("Sigil returned %s instead of table", type(x))}, "\n"), vim.log.levels.ERROR)
           return error("Hotpot refusing to continue to avoid unintentional side effects.", 0)
-        elseif ((_13_ == nil) and (nil ~= _14_)) then
-          local e = _14_
+        elseif ((_12_ == nil) and (nil ~= _13_)) then
+          local e = _13_
           vim.notify(table.concat({"Hotpot sigil failed to load due to a syntax error.", fmt("Sigil path: %s", path), e}, "\n"), vim.log.levels.ERROR)
           return error("Hotpot refusing to continue to avoid unintentional side effects.", 0)
-        elseif ((_13_ == false) and (nil ~= _14_)) then
-          local e = _14_
+        elseif ((_12_ == false) and (nil ~= _13_)) then
+          local e = _13_
           vim.notify_once(fmt("hotpot sigil was invalid, %s\n%s", path, e), vim.log.levels.ERROR)
           return error("hotpot refusing to continue to avoid unintentional side effects.", 0)
         else
           return nil
         end
       end
-      return _12_(pcall(sigil_fn))
-    elseif ((_10_ == true) and (_11_ == nil)) then
+      return _11_(pcall(sigil_fn))
+    elseif ((_9_ == true) and (_10_ == nil)) then
       vim.notify_once(fmt("Hotpot sigil was exists but returned nil, %s", path), vim.log.levels.WARN)
       return nil
-    elseif ((_10_ == true) and (nil ~= _11_)) then
-      local x = _11_
+    elseif ((_9_ == true) and (nil ~= _10_)) then
+      local x = _10_
       vim.notify(table.concat({"Hotpot sigil failed to load due to an input error.", fmt("Sigil path: %s", path), fmt("Sigil returned %s instead of table", type(x))}, "\n"), vim.log.levels.ERROR)
       return error("Hotpot refusing to continue to avoid unintentional side effects.", 0)
-    elseif ((_10_ == nil) and (nil ~= _11_)) then
-      local e = _11_
+    elseif ((_9_ == nil) and (nil ~= _10_)) then
+      local e = _10_
       vim.notify(table.concat({"Hotpot sigil failed to load due to a syntax error.", fmt("Sigil path: %s", path), e}, "\n"), vim.log.levels.ERROR)
       return error("Hotpot refusing to continue to avoid unintentional side effects.", 0)
-    elseif ((_10_ == false) and (nil ~= _11_)) then
-      local e = _11_
+    elseif ((_9_ == false) and (nil ~= _10_)) then
+      local e = _10_
       vim.notify_once(fmt("hotpot sigil was invalid, %s\n%s", path, e), vim.log.levels.ERROR)
       return error("hotpot refusing to continue to avoid unintentional side effects.", 0)
     else
       return nil
     end
   end
-  return _9_(loadfile(path))
+  return _8_(loadfile(path))
 end
-local function wants_colocation_3f(sigil_path)
-  if (sigil_path and file_exists_3f(sigil_path)) then
-    local _22_ = load(sigil_path)
-    if ((_G.type(_22_) == "table") and (nil ~= _22_.colocate)) then
-      local colocate = _22_.colocate
-      return colocate
-    else
-      local _ = _22_
-      return false
-    end
-  else
-    return false
-  end
-end
-return {load = load, ["wants-colocation?"] = wants_colocation_3f, SIGIL_FILE = SIGIL_FILE}
+return {load = load, SIGIL_FILE = SIGIL_FILE}

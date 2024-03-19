@@ -113,11 +113,9 @@ local function _get_extmarks(session)
     else
       ok_3f, positions0 = nil
     end
-  elseif true then
+  else
     local _ = positions
     ok_3f, positions0 = true, positions
-  else
-    ok_3f, positions0 = nil
   end
   if ok_3f then
     session["extmark-memory"] = positions0
@@ -152,17 +150,17 @@ local function autocmd_handler(session)
     end
     local _27_
     do
-      local tbl_17_auto = {}
-      local i_18_auto = #tbl_17_auto
+      local tbl_19_auto = {}
+      local i_20_auto = 0
       for i, p in ipairs((printed or {})) do
-        local val_19_auto = (";;=> " .. p)
-        if (nil ~= val_19_auto) then
-          i_18_auto = (i_18_auto + 1)
-          do end (tbl_17_auto)[i_18_auto] = val_19_auto
+        local val_21_auto = (";;=> " .. p)
+        if (nil ~= val_21_auto) then
+          i_20_auto = (i_20_auto + 1)
+          do end (tbl_19_auto)[i_20_auto] = val_21_auto
         else
         end
       end
-      _27_ = tbl_17_auto
+      _27_ = tbl_19_auto
     end
     output = _25_(table.concat(_27_, "\n"))
     return ok_3f, output

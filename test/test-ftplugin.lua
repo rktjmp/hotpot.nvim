@@ -68,20 +68,18 @@ do
   end
   if (_5_ == 111) then
     OK(string.format(("ftplugin ran" or "")))
-  elseif true then
+  else
     local __1_auto = _5_
     FAIL(string.format(("ftplugin ran" or "")))
-  else
   end
 end
 do
   local _7_ = (vim.loop.fs_access(lua_path_1, "R") and vim.loop.fs_access(lua_path_2, "R") and vim.loop.fs_access(lua_path_3, "R"))
   if (_7_ == true) then
     OK(string.format(("ftplugin lua file exists" or "")))
-  elseif true then
+  else
     local __1_auto = _7_
     FAIL(string.format(("ftplugin lua file exists" or "")))
-  else
   end
 end
 local stats_a = {x = vim.loop.fs_stat(lua_path_1), y = vim.loop.fs_stat(lua_path_2), z = vim.loop.fs_stat(lua_path_3)}
@@ -95,10 +93,9 @@ do
   end
   if (_9_ == 111) then
     OK(string.format(("ftplugin ran second time" or "")))
-  elseif true then
+  else
     local __1_auto = _9_
     FAIL(string.format(("ftplugin ran second time" or "")))
-  else
   end
 end
 local stats_b = {x = vim.loop.fs_stat(lua_path_1), y = vim.loop.fs_stat(lua_path_2), z = vim.loop.fs_stat(lua_path_3)}
@@ -106,10 +103,9 @@ do
   local _11_ = ((stats_a.x.mtime.sec == stats_b.x.mtime.sec) and (stats_a.x.mtime.nsec == stats_b.x.mtime.nsec) and (stats_a.y.mtime.sec == stats_b.y.mtime.sec) and (stats_a.y.mtime.nsec == stats_b.y.mtime.nsec) and (stats_a.z.mtime.sec == stats_b.z.mtime.sec) and (stats_a.z.mtime.nsec == stats_b.z.mtime.nsec))
   if (_11_ == true) then
     OK(string.format(("ftplugin lua file was not recompiled" or "")))
-  elseif true then
+  else
     local __1_auto = _11_
     FAIL(string.format(("ftplugin lua file was not recompiled" or "")))
-  else
   end
 end
 vim.loop.fs_unlink(fnl_path_1)
@@ -123,20 +119,18 @@ do
   end
   if (_13_ == 110) then
     OK(string.format(("ftplugin ran second time" or "")))
-  elseif true then
+  else
     local __1_auto = _13_
     FAIL(string.format(("ftplugin ran second time" or "")))
-  else
   end
 end
 if (1 ~= vim.fn.has("win32")) then
   local _15_ = vim.loop.fs_access(lua_path_1, "R")
   if (_15_ == false) then
     OK(string.format(("ftplugin lua file removed" or "")))
-  elseif true then
+  else
     local __1_auto = _15_
     FAIL(string.format(("ftplugin lua file removed" or "")))
-  else
   end
 else
 end

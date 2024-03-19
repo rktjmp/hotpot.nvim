@@ -16,66 +16,52 @@ local function new(modname, src_path, _2_)
   local _let_5_ = require("hotpot.loader")
   local cache_path_for_compiled_artefact = _let_5_["cache-path-for-compiled-artefact"]
   local src_path0 = vim.fs.normalize(src_path)
-  local prefix_length = #prefix
-  local extension_length = #extension
-  local true_modname
+  local context_dir, code_path = nil, nil
   do
-    local src_init_3f = (nil ~= string.find(src_path0, ("/init%." .. extension .. "$")))
-    local mod_init_3f = (("init" == modname) or (nil ~= string.find(modname, "%.init$")))
-    if (src_init_3f and not mod_init_3f) then
-      true_modname = (modname .. ".init")
+    local slashed_modname = vim.pesc(string.gsub(modname, "%.", "/"))
+    local pattern = fmt("(.+/)(%s/%s(.*)%%.%s)", prefix, slashed_modname, extension)
+    local _6_, _7_, _8_ = string.gmatch(src_path0, pattern)()
+    if ((nil ~= _6_) and (nil ~= _7_) and (_8_ == "")) then
+      local context_dir0 = _6_
+      local code_dir = _7_
+      context_dir, code_path = context_dir0, code_dir, modname
+    elseif ((nil ~= _6_) and (nil ~= _7_) and (_8_ == "/init")) then
+      local context_dir0 = _6_
+      local code_dir = _7_
+      context_dir, code_path = context_dir0, code_dir, (modname .. ".init")
     else
-      true_modname = modname
+      local _ = _6_
+      context_dir, code_path = error(fmt("Hotpot could not extract context-dir and code-path from %s", src_path0))
     end
   end
-  local context_dir_end_position = (#src_path0 - (prefix_length + 1 + #true_modname + 1 + extension_length))
-  local context_dir = string.sub(src_path0, 1, context_dir_end_position)
-  local code_path = string.sub(src_path0, (context_dir_end_position + 1))
   local namespace
   do
-    local _7_ = string.match(context_dir, ".+/(.-)/$")
-    if (nil ~= _7_) then
-      local namespace0 = _7_
+    local _10_ = string.match(context_dir, ".+/(.-)/$")
+    if (nil ~= _10_) then
+      local namespace0 = _10_
       namespace = namespace0
-    elseif (_7_ == nil) then
+    elseif (_10_ == nil) then
       namespace = string.match(context_dir, "([^/]-)/$")
     else
       namespace = nil
     end
   end
-  local fnl_code_path = (prefix .. string.sub(code_path, (prefix_length + 1), (-1 * (1 + extension_length))) .. extension)
-  local lua_code_path = ("lua" .. string.sub(code_path, (prefix_length + 1), (-1 * (1 + extension_length))) .. "lua")
-  local src_path1 = (context_dir .. fnl_code_path)
-  local lua_path = (context_dir .. lua_code_path)
+  local sigil_path = (context_dir .. SIGIL_FILE)
+  local lua_code_path
+  do
+    local pattern = fmt("(%s)(/.+%%.)(%s)$", prefix, extension)
+    lua_code_path = string.gsub(code_path, pattern, "lua%2lua")
+  end
   local lua_cache_path = cache_path_for_compiled_artefact(namespace, lua_code_path)
   local lua_colocation_path = (context_dir .. lua_code_path)
-  local sigil_path = (context_dir .. SIGIL_FILE)
-  local record = {["sigil-path"] = sigil_path, ["src-path"] = src_path1, ["lua-path"] = lua_cache_path, ["lua-cache-path"] = lua_cache_path, ["lua-colocation-path"] = lua_colocation_path, ["colocation-root-path"] = context_dir, ["cache-root-path"] = cache_path_for_compiled_artefact(namespace), namespace = namespace, modname = modname}
+  local record = {["sigil-path"] = sigil_path, ["src-path"] = src_path0, ["lua-path"] = lua_cache_path, ["lua-cache-path"] = lua_cache_path, ["lua-colocation-path"] = lua_colocation_path, ["colocation-root-path"] = context_dir, ["cache-root-path"] = cache_path_for_compiled_artefact(namespace), namespace = namespace, modname = modname}
   local unsafely_3f = (opts["unsafely?"] or false)
   if (true == not unsafely_3f) then
     for _, key in ipairs(REQUIRED_KEYS) do
-      assert(record[key], fmt("could not generate required key: %s from src-path: %s", key, src_path1))
+      assert(record[key], fmt("could not generate required key: %s from src-path: %s", key, src_path0))
     end
   else
   end
   return record
 end
-local function retarget(record, target)
-  if (target == "colocate") then
-    record["lua-path"] = record["lua-colocation-path"]
-    return record
-  elseif (target == "cache") then
-    record["lua-path"] = record["lua-cache-path"]
-    return record
-  else
-    local _ = target
-    return error("target must be colocate or cache")
-  end
-end
-local function _11_(_241)
-  return retarget(_241, "cache")
-end
-local function _12_(_241)
-  return retarget(_241, "colocate")
-end
-return {new = new, ["retarget-cache"] = _11_, ["retarget-colocation"] = _12_}
+return {new = new}

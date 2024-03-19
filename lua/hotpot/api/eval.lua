@@ -71,8 +71,8 @@ local function eval_module(modname, _3foptions)
   local _let_17_ = require("hotpot.common")
   local put_new = _let_17_["put-new"]
   local _18_ = mod_search({prefix = "fnl", extension = "fnl", modnames = {(modname .. ".init"), modname}})
-  if ((_G.type(_18_) == "table") and (nil ~= (_18_)[1])) then
-    local path = (_18_)[1]
+  if ((_G.type(_18_) == "table") and (nil ~= _18_[1])) then
+    local path = _18_[1]
     local options
     do
       local _19_ = vim.deepcopy((_3foptions or {}))
@@ -81,11 +81,9 @@ local function eval_module(modname, _3foptions)
       options = _19_
     end
     return eval_file(path, options)
-  elseif true then
+  else
     local _ = _18_
     return error(string.format("compile-modname: could not find file for %s", modname))
-  else
-    return nil
   end
 end
 return {["eval-string"] = eval_string, ["eval-range"] = eval_range, ["eval-selection"] = eval_selection, ["eval-buffer"] = eval_buffer, ["eval-file"] = eval_file, ["eval-module"] = eval_module}

@@ -75,8 +75,8 @@ local function join_path(head, ...)
 end
 local function what_is_at(path)
   local _9_, _10_, _11_ = uv.fs_stat(path)
-  if ((_G.type(_9_) == "table") and (nil ~= (_9_).type)) then
-    local type = (_9_).type
+  if ((_G.type(_9_) == "table") and (nil ~= _9_.type)) then
+    local type = _9_.type
     return type
   elseif ((_9_ == nil) and true and (_11_ == "ENOENT")) then
     local _ = _10_

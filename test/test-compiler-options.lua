@@ -61,10 +61,9 @@ do
   end
   if (_4_ == 180) then
     OK(string.format(("preprocessor applies in macros and modules independently" or "")))
-  elseif true then
+  else
     local __1_auto = _4_
     FAIL(string.format(("preprocessor applies in macros and modules independently" or "")))
-  else
   end
 end
 return exit()

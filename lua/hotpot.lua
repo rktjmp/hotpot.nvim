@@ -1,6 +1,6 @@
 assert((1 == vim.fn.has("nvim-0.9.1")), "Hotpot requires neovim 0.9.1+")
 local _let_1_ = require("hotpot.loader")
-local make_searcher = _let_1_["make-searcher"]
+local searcher = _let_1_["searcher"]
 local compiled_cache_path = _let_1_["compiled-cache-path"]
 local _let_2_ = require("hotpot.fs")
 local join_path = _let_2_["join-path"]
@@ -12,7 +12,7 @@ local _let_4_ = require("hotpot.api.make")
 local automake = _let_4_["auto"]
 make_path(compiled_cache_path)
 do end (vim.opt.runtimepath):prepend(join_path(compiled_cache_path, "*"))
-do end (package.loaders)[1] = make_searcher()
+table.insert(package.loaders, 2, searcher)
 neovim_runtime.enable()
 automake.enable()
 local function setup(options)

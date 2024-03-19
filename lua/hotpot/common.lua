@@ -52,17 +52,17 @@ local function none_3f(f, seq)
   return not any_3f(f, seq)
 end
 local function map(f, seq)
-  local tbl_18_auto = {}
-  local i_19_auto = 0
+  local tbl_19_auto = {}
+  local i_20_auto = 0
   for _, v in ipairs(seq) do
-    local val_20_auto = f(v)
-    if (nil ~= val_20_auto) then
-      i_19_auto = (i_19_auto + 1)
-      do end (tbl_18_auto)[i_19_auto] = val_20_auto
+    local val_21_auto = f(v)
+    if (nil ~= val_21_auto) then
+      i_20_auto = (i_20_auto + 1)
+      do end (tbl_19_auto)[i_20_auto] = val_21_auto
     else
     end
   end
-  return tbl_18_auto
+  return tbl_19_auto
 end
 local function reduce(f, acc, seq)
   local acc0 = acc

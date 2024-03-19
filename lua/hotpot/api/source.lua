@@ -1,32 +1,32 @@
 local function split_path(path)
   local sep = string.sub(package.config, 1, 1)
-  local tbl_17_auto = {}
-  local i_18_auto = #tbl_17_auto
+  local tbl_19_auto = {}
+  local i_20_auto = 0
   for v in string.gmatch(path, ("[^" .. sep .. "]+")) do
-    local val_19_auto = v
-    if (nil ~= val_19_auto) then
-      i_18_auto = (i_18_auto + 1)
-      do end (tbl_17_auto)[i_18_auto] = val_19_auto
+    local val_21_auto = v
+    if (nil ~= val_21_auto) then
+      i_20_auto = (i_20_auto + 1)
+      do end (tbl_19_auto)[i_20_auto] = val_21_auto
     else
     end
   end
-  return tbl_17_auto
+  return tbl_19_auto
 end
 local function find_module_name_parts(path_parts, acc)
   local _let_2_ = path_parts
   local head = _let_2_[1]
   local rest = (function (t, k, e) local mt = getmetatable(t) if 'table' == type(mt) and mt.__fennelrest then return mt.__fennelrest(t, k) elseif e then local rest = {} for k, v in pairs(t) do if not e[k] then rest[k] = v end end return rest else return {(table.unpack or unpack)(t, k)} end end)(_let_2_, 2)
   local _3_ = {head, #rest}
-  if ((_G.type(_3_) == "table") and ((_3_)[1] == "init.fnl") and ((_3_)[2] == 0)) then
+  if ((_G.type(_3_) == "table") and (_3_[1] == "init.fnl") and (_3_[2] == 0)) then
     return acc
-  elseif ((_G.type(_3_) == "table") and (nil ~= (_3_)[1]) and ((_3_)[2] == 0)) then
-    local file = (_3_)[1]
+  elseif ((_G.type(_3_) == "table") and (nil ~= _3_[1]) and (_3_[2] == 0)) then
+    local file = _3_[1]
     local last = string.gsub(file, "%.fnl$", "")
     table.insert(acc, last)
     return acc
-  elseif ((_G.type(_3_) == "table") and (nil ~= (_3_)[1]) and true) then
-    local dir = (_3_)[1]
-    local _ = (_3_)[2]
+  elseif ((_G.type(_3_) == "table") and (nil ~= _3_[1]) and true) then
+    local dir = _3_[1]
+    local _ = _3_[2]
     table.insert(acc, dir)
     return find_module_name_parts(rest, acc)
   else

@@ -62,20 +62,18 @@ do
   end
   if (_5_ == 100) then
     OK(string.format(("after/**/*.fnl executed automatically" or "")))
-  elseif true then
+  else
     local __1_auto = _5_
     FAIL(string.format(("after/**/*.fnl executed automatically" or "")))
-  else
   end
 end
 do
   local _7_ = vim.loop.fs_access(lua_path, "R")
   if (_7_ == true) then
     OK(string.format(("lua files exists" or "")))
-  elseif true then
+  else
     local __1_auto = _7_
     FAIL(string.format(("lua files exists" or "")))
-  else
   end
 end
 local stats_a = vim.loop.fs_stat(lua_path)
@@ -89,10 +87,9 @@ do
   end
   if (_9_ == 100) then
     OK(string.format(("after/**/*.fnl executed automatically" or "")))
-  elseif true then
+  else
     local __1_auto = _9_
     FAIL(string.format(("after/**/*.fnl executed automatically" or "")))
-  else
   end
 end
 local stats_b = vim.loop.fs_stat(lua_path)
@@ -100,10 +97,9 @@ do
   local _11_ = ((stats_a.mtime.sec == stats_b.mtime.sec) and (stats_a.mtime.nsec == stats_b.mtime.nsec))
   if (_11_ == true) then
     OK(string.format(("lua files were not recompiled" or "")))
-  elseif true then
+  else
     local __1_auto = _11_
     FAIL(string.format(("lua files were not recompiled" or "")))
-  else
   end
 end
 vim.loop.fs_unlink(after_path)
@@ -117,20 +113,18 @@ do
   end
   if (_13_ == 100) then
     OK(string.format(("after/**/*.fnl executed automatically" or "")))
-  elseif true then
+  else
     local __1_auto = _13_
     FAIL(string.format(("after/**/*.fnl executed automatically" or "")))
-  else
   end
 end
 if (1 ~= vim.fn.has("win32")) then
   local _15_ = vim.loop.fs_access(lua_path, "R")
   if (_15_ == false) then
     OK(string.format(("after plugin lua file removed" or "")))
-  elseif true then
+  else
     local __1_auto = _15_
     FAIL(string.format(("after plugin lua file removed" or "")))
-  else
   end
 else
 end

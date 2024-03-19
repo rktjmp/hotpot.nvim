@@ -47,93 +47,133 @@ local function p(x)
 end
 local _local_4_ = require("hotpot.api.cache")
 local cache_prefix = _local_4_["cache-prefix"]
-local plugin_path_1 = p("/plugin/my_plugin_1.fnl")
-local lua_path_1 = (cache_prefix() .. "/hotpot-runtime-" .. NVIM_APPNAME .. "/lua/hotpot-runtime-plugin/my_plugin_1.lua")
-local plugin_path_2 = p("/plugin/nested/deeply/my_plugin_2.fnl")
-local lua_path_2 = (cache_prefix() .. "/hotpot-runtime-" .. NVIM_APPNAME .. "/lua/hotpot-runtime-plugin/nested/deeply/my_plugin_2.lua")
-write_file(plugin_path_1, "(set _G.exit_1 11)")
-write_file(plugin_path_2, "(set _G.exit_2 22)")
+local function make_plugin(file)
+  local config_dir = vim.fn.stdpath("config")
+  local fnl_path = (config_dir .. "/plugin/" .. file .. ".fnl")
+  local lua_path = (cache_prefix() .. "/hotpot-runtime-" .. NVIM_APPNAME .. "/lua/hotpot-runtime-plugin/" .. file .. ".lua")
+  write_file(fnl_path, "(set _G.exit (+ 1 (or _G.exit 100)))")
+  return fnl_path, lua_path
+end
+local plugin_path_1, lua_path_1 = make_plugin("my_plugin_1")
+local plugin_path_2, lua_path_2 = make_plugin("nested/deeply/my_plugin_2")
+local plugin_path_3, lua_path_3 = make_plugin("init")
+local plugin_path_4, lua_path_4 = make_plugin("init/init.fnl")
+local lua_paths = {lua_path_1, lua_path_2, lua_path_3, lua_path_4}
 do
   local _5_
   do
     local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
-    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "_G.exit_1 = 0\n                        _G.exit_2 = 0\n                        vim.defer_fn(function()\n                                      os.exit(_G.exit_1 + _G.exit_2)\n                         end, 50)")))
+    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "vim.defer_fn(function() os.exit(_G.exit) end, 50)")))
     vim.cmd(string.format("!%s +'set columns=1000' --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
     _5_ = vim.v.shell_error
   end
-  if (_5_ == 33) then
+  if (_5_ == 104) then
     OK(string.format(("plugin/*.fnl executed automatically" or "")))
-  elseif true then
+  else
     local __1_auto = _5_
     FAIL(string.format(("plugin/*.fnl executed automatically" or "")))
-  else
   end
 end
 do
-  local _7_ = (vim.loop.fs_access(lua_path_1, "R") and vim.loop.fs_access(lua_path_2, "R"))
+  local _7_
+  do
+    local exists_3f = true
+    for _, path in ipairs(lua_paths) do
+      exists_3f = (exists_3f and vim.loop.fs_access(path, "R"))
+    end
+    _7_ = exists_3f
+  end
   if (_7_ == true) then
     OK(string.format(("plugin lua files exists" or "")))
-  elseif true then
+  else
     local __1_auto = _7_
     FAIL(string.format(("plugin lua files exists" or "")))
-  else
   end
 end
-local stats_a_1 = vim.loop.fs_stat(lua_path_1)
-local stats_a_2 = vim.loop.fs_stat(lua_path_2)
+local stats_before
 do
-  local _9_
+  local tbl_19_auto = {}
+  local i_20_auto = 0
+  for _, path in ipairs(lua_paths) do
+    local val_21_auto = vim.loop.fs_stat(path)
+    if (nil ~= val_21_auto) then
+      i_20_auto = (i_20_auto + 1)
+      do end (tbl_19_auto)[i_20_auto] = val_21_auto
+    else
+    end
+  end
+  stats_before = tbl_19_auto
+end
+do
+  local _10_
   do
     local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
-    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "_G.exit_1 = 0\n                        _G.exit_2 = 0\n                        vim.defer_fn(function()\n                                      os.exit(_G.exit_1 + _G.exit_2)\n                         end, 50)")))
+    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "vim.defer_fn(function() os.exit(_G.exit) end, 50)")))
     vim.cmd(string.format("!%s +'set columns=1000' --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
-    _9_ = vim.v.shell_error
+    _10_ = vim.v.shell_error
   end
-  if (_9_ == 33) then
+  if (_10_ == 104) then
     OK(string.format(("plugin/*.fnl executed automatically second time" or "")))
-  elseif true then
-    local __1_auto = _9_
-    FAIL(string.format(("plugin/*.fnl executed automatically second time" or "")))
   else
+    local __1_auto = _10_
+    FAIL(string.format(("plugin/*.fnl executed automatically second time" or "")))
   end
 end
-local stats_b_1 = vim.loop.fs_stat(lua_path_1)
-local stats_b_2 = vim.loop.fs_stat(lua_path_2)
+local stats_after
 do
-  local _11_ = ((stats_a_1.mtime.sec == stats_b_1.mtime.sec) and (stats_a_1.mtime.nsec == stats_b_1.mtime.nsec) and (stats_a_2.mtime.sec == stats_b_2.mtime.sec) and (stats_a_2.mtime.nsec == stats_b_2.mtime.nsec))
-  if (_11_ == true) then
+  local tbl_19_auto = {}
+  local i_20_auto = 0
+  for _, path in ipairs(lua_paths) do
+    local val_21_auto = vim.loop.fs_stat(path)
+    if (nil ~= val_21_auto) then
+      i_20_auto = (i_20_auto + 1)
+      do end (tbl_19_auto)[i_20_auto] = val_21_auto
+    else
+    end
+  end
+  stats_after = tbl_19_auto
+end
+do
+  local _13_
+  do
+    local same_3f = true
+    for i = 1, #lua_paths do
+      local before = stats_before[i]
+      local after = stats_after[i]
+      same_3f = ((before.mtime.sec == after.mtime.sec) and (before.mtime.nsec == after.mtime.nsec))
+    end
+    _13_ = same_3f
+  end
+  if (_13_ == true) then
     OK(string.format(("plugin lua files were not recompiled" or "")))
-  elseif true then
-    local __1_auto = _11_
-    FAIL(string.format(("plugin lua files were not recompiled" or "")))
   else
+    local __1_auto = _13_
+    FAIL(string.format(("plugin lua files were not recompiled" or "")))
   end
 end
 vim.loop.fs_unlink(plugin_path_1)
 do
-  local _13_
+  local _15_
   do
     local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
-    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "_G.exit_1 = 0\n                        _G.exit_2 = 0\n                        vim.defer_fn(function() os.exit(_G.exit_1 + _G.exit_2) end, 50)")))
+    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "vim.defer_fn(function() os.exit(_G.exit) end, 50)")))
     vim.cmd(string.format("!%s +'set columns=1000' --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
-    _13_ = vim.v.shell_error
+    _15_ = vim.v.shell_error
   end
-  if (_13_ == 22) then
-    OK(string.format(("plugin did not zombie" or "")))
-  elseif true then
-    local __1_auto = _13_
-    FAIL(string.format(("plugin did not zombie" or "")))
+  if (_15_ == 103) then
+    OK(string.format(("removed plugin/ file is removed from cache" or "")))
   else
+    local __1_auto = _15_
+    FAIL(string.format(("removed plugin/ file is removed from cache" or "")))
   end
 end
 if (1 ~= vim.fn.has("win32")) then
-  local _15_ = vim.loop.fs_access(lua_path_1, "R")
-  if (_15_ == false) then
+  local _17_ = vim.loop.fs_access(lua_path_1, "R")
+  if (_17_ == false) then
     OK(string.format(("plugin lua file removed" or "")))
-  elseif true then
-    local __1_auto = _15_
-    FAIL(string.format(("plugin lua file removed" or "")))
   else
+    local __1_auto = _17_
+    FAIL(string.format(("plugin lua file removed" or "")))
   end
 else
 end

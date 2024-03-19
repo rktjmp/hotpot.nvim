@@ -17,7 +17,7 @@ local function confirm_remove(path)
     return nil
   end
 end
-local function clear_cache()
+local function clear_cache(_3fopts)
   local function clear_dir(dir)
     local scanner = uv.fs_scandir(dir)
     local _let_4_ = require("hotpot.fs")
@@ -48,21 +48,37 @@ local function clear_cache()
   else
     _ = nil
   end
-  local message = ("Remove all files under: " .. prefix)
-  local options = "NO\nYes"
-  local _8_ = vim.fn.confirm(message, options, 1, "Warning")
-  if (_8_ == 1) then
-    vim.notify("Did NOT remove files.")
-    return false
-  elseif (_8_ == 2) then
-    clear_dir(prefix)
-    vim.notify(string.format("Cleared %s", prefix))
-    return true
+  local silent_3f
+  local _9_
+  do
+    local t_8_ = _3fopts
+    if (nil ~= t_8_) then
+      t_8_ = t_8_.silent
+    else
+    end
+    _9_ = t_8_
+  end
+  silent_3f = (true == _9_)
+  if silent_3f then
+    return clear_dir(prefix)
   else
-    return nil
+    if (2 == vim.fn.confirm(("Remove all files under: " .. prefix), "NO\nYes", 1, "Warning")) then
+      clear_dir(prefix)
+      return vim.notify(string.format("Cleared %s", prefix))
+    else
+      return vim.notify("Did NOT remove files.")
+    end
   end
 end
-local function open_cache(_3fhow, _3fopts)
-  return vim.cmd.vsplit(cache_prefix())
+local function open_cache(_3fcb)
+  local _13_ = type(_3fcb)
+  if (_13_ == "nil") then
+    return vim.cmd.vsplit(cache_prefix())
+  elseif (_13_ == "function") then
+    return _3fcb(cache_prefix())
+  else
+    local _ = _13_
+    return error("open-cache argument must be a function (or nil)")
+  end
 end
 return {["open-cache"] = open_cache, ["clear-cache"] = clear_cache, ["cache-prefix"] = cache_prefix}

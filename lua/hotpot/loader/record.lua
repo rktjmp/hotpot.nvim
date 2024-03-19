@@ -29,7 +29,7 @@ local function _5_(str)
 end
 uri_encode = ((vim.uri_encode and _4_) or _5_)
 local INDEX_ROOT_PATH = join_path(cache_root_path(), "index")
-local INDEX_VERSION = 2
+local INDEX_VERSION = 3
 local RECORD_TYPE_MODULE = 1
 local RECORD_TYPE_RUNTIME = 2
 local function module_3f(r)
@@ -37,7 +37,7 @@ local function module_3f(r)
   do
     local t_9_ = r
     if (nil ~= t_9_) then
-      t_9_ = (t_9_).type
+      t_9_ = t_9_.type
     else
     end
     _10_ = t_9_
@@ -49,7 +49,7 @@ local function runtime_3f(r)
   do
     local t_12_ = r
     if (nil ~= t_12_) then
-      t_12_ = (t_12_).type
+      t_12_ = t_12_.type
     else
     end
     _13_ = t_12_
@@ -94,10 +94,10 @@ local function load(lua_path)
                     if (_26_ == true) then
                       local function _27_(...)
                         local _28_, _29_ = ...
-                        if ((_28_ == true) and ((_G.type(_29_) == "table") and ((_29_).version == INDEX_VERSION) and (nil ~= (_29_).data))) then
-                          local data = (_29_).data
+                        if ((_28_ == true) and ((_G.type(_29_) == "table") and (_29_.version == INDEX_VERSION) and (nil ~= _29_.data))) then
+                          local data = _29_.data
                           return data
-                        elseif true then
+                        else
                           local _ = _28_
                           local function _30_(...)
                             local _31_ = ...
@@ -110,36 +110,28 @@ local function load(lua_path)
                                     local _35_ = ...
                                     if (_35_ == true) then
                                       return nil
-                                    elseif true then
-                                      local _0 = _35_
-                                      return nil
                                     else
+                                      local _0 = _35_
                                       return nil
                                     end
                                   end
                                   return _34_(rm_file(index_path0))
-                                elseif true then
-                                  local _0 = _33_
-                                  return nil
                                 else
+                                  local _0 = _33_
                                   return nil
                                 end
                               end
                               return _32_(file_exists_3f(index_path0))
-                            elseif true then
-                              local _0 = _31_
-                              return nil
                             else
+                              local _0 = _31_
                               return nil
                             end
                           end
                           return _30_(path__3eindex_key(lua_path))
-                        else
-                          return nil
                         end
                       end
                       return _27_(pcall(vim.mpack.decode, bytes))
-                    elseif true then
+                    else
                       local _ = _26_
                       local function _40_(...)
                         local _41_ = ...
@@ -152,36 +144,28 @@ local function load(lua_path)
                                 local _45_ = ...
                                 if (_45_ == true) then
                                   return nil
-                                elseif true then
-                                  local _0 = _45_
-                                  return nil
                                 else
+                                  local _0 = _45_
                                   return nil
                                 end
                               end
                               return _44_(rm_file(index_path0))
-                            elseif true then
-                              local _0 = _43_
-                              return nil
                             else
+                              local _0 = _43_
                               return nil
                             end
                           end
                           return _42_(file_exists_3f(index_path0))
-                        elseif true then
-                          local _0 = _41_
-                          return nil
                         else
+                          local _0 = _41_
                           return nil
                         end
                       end
                       return _40_(path__3eindex_key(lua_path))
-                    else
-                      return nil
                     end
                   end
                   return _25_(fin:close())
-                elseif true then
+                else
                   local _ = _24_
                   local function _50_(...)
                     local _51_ = ...
@@ -194,36 +178,28 @@ local function load(lua_path)
                             local _55_ = ...
                             if (_55_ == true) then
                               return nil
-                            elseif true then
-                              local _0 = _55_
-                              return nil
                             else
+                              local _0 = _55_
                               return nil
                             end
                           end
                           return _54_(rm_file(index_path0))
-                        elseif true then
-                          local _0 = _53_
-                          return nil
                         else
+                          local _0 = _53_
                           return nil
                         end
                       end
                       return _52_(file_exists_3f(index_path0))
-                    elseif true then
-                      local _0 = _51_
-                      return nil
                     else
+                      local _0 = _51_
                       return nil
                     end
                   end
                   return _50_(path__3eindex_key(lua_path))
-                else
-                  return nil
                 end
               end
               return _23_(fin:read("a*"))
-            elseif true then
+            else
               local _ = _22_
               local function _60_(...)
                 local _61_ = ...
@@ -236,36 +212,28 @@ local function load(lua_path)
                         local _65_ = ...
                         if (_65_ == true) then
                           return nil
-                        elseif true then
-                          local _0 = _65_
-                          return nil
                         else
+                          local _0 = _65_
                           return nil
                         end
                       end
                       return _64_(rm_file(index_path0))
-                    elseif true then
-                      local _0 = _63_
-                      return nil
                     else
+                      local _0 = _63_
                       return nil
                     end
                   end
                   return _62_(file_exists_3f(index_path0))
-                elseif true then
-                  local _0 = _61_
-                  return nil
                 else
+                  local _0 = _61_
                   return nil
                 end
               end
               return _60_(path__3eindex_key(lua_path))
-            else
-              return nil
             end
           end
           return _21_(io.open(index_path, "rb"))
-        elseif true then
+        else
           local _ = _20_
           local function _70_(...)
             local _71_ = ...
@@ -278,36 +246,28 @@ local function load(lua_path)
                     local _75_ = ...
                     if (_75_ == true) then
                       return nil
-                    elseif true then
-                      local _0 = _75_
-                      return nil
                     else
+                      local _0 = _75_
                       return nil
                     end
                   end
                   return _74_(rm_file(index_path0))
-                elseif true then
-                  local _0 = _73_
-                  return nil
                 else
+                  local _0 = _73_
                   return nil
                 end
               end
               return _72_(file_exists_3f(index_path0))
-            elseif true then
-              local _0 = _71_
-              return nil
             else
+              local _0 = _71_
               return nil
             end
           end
           return _70_(path__3eindex_key(lua_path))
-        else
-          return nil
         end
       end
       return _19_(file_exists_3f(index_path))
-    elseif true then
+    else
       local _ = _18_
       local function _80_(...)
         local _81_ = ...
@@ -320,32 +280,24 @@ local function load(lua_path)
                 local _85_ = ...
                 if (_85_ == true) then
                   return nil
-                elseif true then
-                  local _0 = _85_
-                  return nil
                 else
+                  local _0 = _85_
                   return nil
                 end
               end
               return _84_(rm_file(index_path))
-            elseif true then
-              local _0 = _83_
-              return nil
             else
+              local _0 = _83_
               return nil
             end
           end
           return _82_(file_exists_3f(index_path))
-        elseif true then
-          local _0 = _81_
-          return nil
         else
+          local _0 = _81_
           return nil
         end
       end
       return _80_(path__3eindex_key(lua_path))
-    else
-      return nil
     end
   end
   return _17_(path__3eindex_key(lua_path))
@@ -369,20 +321,16 @@ local function fetch(lua_path)
       if ((nil ~= record) and _93_()) then
         local record0 = record
         return record0
-      elseif true then
+      else
         local _ = record
         return nil, fmt("Could not load record, unknown type. Record: %s", vim.inspect(record))
-      else
-        return nil
       end
     end
   elseif ((_90_ == false) and (nil ~= _91_)) then
     local e = _91_
     return nil
-  elseif true then
-    local _ = _90_
-    return nil
   else
+    local _ = _90_
     return nil
   end
 end
@@ -392,13 +340,13 @@ local function save(record)
     if (_97_ == true) then
       local function _99_(...)
         local _100_, _101_ = ...
-        if ((_G.type(_100_) == "table") and (nil ~= (_100_)["lua-path"])) then
-          local lua_path = (_100_)["lua-path"]
+        if ((_G.type(_100_) == "table") and (nil ~= _100_["lua-path"])) then
+          local lua_path = _100_["lua-path"]
           local function _102_(...)
             local _103_, _104_ = ...
-            if ((_G.type(_103_) == "table") and (nil ~= (_103_).mtime) and (nil ~= (_103_).size)) then
-              local mtime = (_103_).mtime
-              local size = (_103_).size
+            if ((_G.type(_103_) == "table") and (nil ~= _103_.mtime) and (nil ~= _103_.size)) then
+              local mtime = _103_.mtime
+              local size = _103_.size
               local function _105_(...)
                 local _106_, _107_ = ...
                 if (nil ~= _106_) then
@@ -431,11 +379,9 @@ local function save(record)
                                         elseif ((_124_ == nil) and (nil ~= _125_)) then
                                           local e = _125_
                                           return error(string.format("Could not save record for %s\nReason: %s", record0["lua-path"], e))
-                                        elseif true then
+                                        else
                                           local _3fe = _124_
                                           return error(string.format("unknown error when saving record %s %s", vim.inspect(record0), vim.inspect(_3fe)))
-                                        else
-                                          return nil
                                         end
                                       end
                                       return _123_(fout:close())
@@ -445,11 +391,9 @@ local function save(record)
                                     elseif ((_121_ == nil) and (nil ~= _122_)) then
                                       local e = _122_
                                       return error(string.format("Could not save record for %s\nReason: %s", record0["lua-path"], e))
-                                    elseif true then
+                                    else
                                       local _3fe = _121_
                                       return error(string.format("unknown error when saving record %s %s", vim.inspect(record0), vim.inspect(_3fe)))
-                                    else
-                                      return nil
                                     end
                                   end
                                   return _120_(fout:write(mpacked))
@@ -459,11 +403,9 @@ local function save(record)
                                 elseif ((_118_ == nil) and (nil ~= _119_)) then
                                   local e = _119_
                                   return error(string.format("Could not save record for %s\nReason: %s", record0["lua-path"], e))
-                                elseif true then
+                                else
                                   local _3fe = _118_
                                   return error(string.format("unknown error when saving record %s %s", vim.inspect(record0), vim.inspect(_3fe)))
-                                else
-                                  return nil
                                 end
                               end
                               return _117_(io.open(index_path, "wb"))
@@ -473,11 +415,9 @@ local function save(record)
                             elseif ((_115_ == nil) and (nil ~= _116_)) then
                               local e = _116_
                               return error(string.format("Could not save record for %s\nReason: %s", record0["lua-path"], e))
-                            elseif true then
+                            else
                               local _3fe = _115_
                               return error(string.format("unknown error when saving record %s %s", vim.inspect(record0), vim.inspect(_3fe)))
-                            else
-                              return nil
                             end
                           end
                           return _114_(path__3eindex_key(lua_path))
@@ -487,11 +427,9 @@ local function save(record)
                         elseif ((_112_ == nil) and (nil ~= _113_)) then
                           local e = _113_
                           return error(string.format("Could not save record for %s\nReason: %s", record0["lua-path"], e))
-                        elseif true then
+                        else
                           local _3fe = _112_
                           return error(string.format("unknown error when saving record %s %s", vim.inspect(record0), vim.inspect(_3fe)))
-                        else
-                          return nil
                         end
                       end
                       return _111_(pcall(vim.mpack.encode, {version = INDEX_VERSION, data = record0}))
@@ -501,11 +439,9 @@ local function save(record)
                     elseif ((_109_ == nil) and (nil ~= _110_)) then
                       local e = _110_
                       return error(string.format("Could not save record for %s\nReason: %s", record0["lua-path"], e))
-                    elseif true then
+                    else
                       local _3fe = _109_
                       return error(string.format("unknown error when saving record %s %s", vim.inspect(record0), vim.inspect(_3fe)))
-                    else
-                      return nil
                     end
                   end
                   return _108_(make_path(INDEX_ROOT_PATH))
@@ -515,11 +451,9 @@ local function save(record)
                 elseif ((_106_ == nil) and (nil ~= _107_)) then
                   local e = _107_
                   return error(string.format("Could not save record for %s\nReason: %s", record["lua-path"], e))
-                elseif true then
+                else
                   local _3fe = _106_
                   return error(string.format("unknown error when saving record %s %s", vim.inspect(record), vim.inspect(_3fe)))
-                else
-                  return nil
                 end
               end
               local function _133_(...)
@@ -534,11 +468,9 @@ local function save(record)
             elseif ((_103_ == nil) and (nil ~= _104_)) then
               local e = _104_
               return error(string.format("Could not save record for %s\nReason: %s", record["lua-path"], e))
-            elseif true then
+            else
               local _3fe = _103_
               return error(string.format("unknown error when saving record %s %s", vim.inspect(record), vim.inspect(_3fe)))
-            else
-              return nil
             end
           end
           return _102_(file_stat(lua_path))
@@ -548,11 +480,9 @@ local function save(record)
         elseif ((_100_ == nil) and (nil ~= _101_)) then
           local e = _101_
           return error(string.format("Could not save record for %s\nReason: %s", record["lua-path"], e))
-        elseif true then
+        else
           local _3fe = _100_
           return error(string.format("unknown error when saving record %s %s", vim.inspect(record), vim.inspect(_3fe)))
-        else
-          return nil
         end
       end
       return _99_(record)
@@ -562,11 +492,9 @@ local function save(record)
     elseif ((_97_ == nil) and (nil ~= _98_)) then
       local e = _98_
       return error(string.format("Could not save record for %s\nReason: %s", record["lua-path"], e))
-    elseif true then
+    else
       local _3fe = _97_
       return error(string.format("unknown error when saving record %s %s", vim.inspect(record), vim.inspect(_3fe)))
-    else
-      return nil
     end
   end
   return _96_((module_3f(record) or runtime_3f(record)))
@@ -609,11 +537,9 @@ local function new(type, modname, src_path, _3fopts)
       module = "hotpot.loader.record.module"
     elseif (_145_ == RECORD_TYPE_RUNTIME) then
       module = "hotpot.loader.record.runtime"
-    elseif true then
+    else
       local _ = _145_
       module = error(string.format("Could not create record, unknown type: %s at %s", type, src_path))
-    else
-      module = nil
     end
   end
   local _let_148_ = require(module)
@@ -623,7 +549,7 @@ local function new(type, modname, src_path, _3fopts)
   local record = new_type(modname0, src_path0, _3fopts)
   return vim.tbl_extend("force", record, {type = type, ["lua-path-mtime-at-save"] = 0, ["lua-path-size-at-save"] = 0, files = {{path = src_path0, mtime = {sec = 0, nsec = 0}, size = 0}}})
 end
-local function set_record_files(record, files)
+local function set_files(record, files)
   _G.assert((nil ~= files), "Missing argument files on fnl/hotpot/loader/record.fnl:135")
   _G.assert((nil ~= record), "Missing argument record on fnl/hotpot/loader/record.fnl:135")
   local files0
@@ -633,41 +559,31 @@ local function set_record_files(record, files)
   end
   local file_stats
   do
-    local tbl_17_auto = {}
-    local i_18_auto = #tbl_17_auto
+    local tbl_19_auto = {}
+    local i_20_auto = 0
     for _, path in ipairs(files0) do
-      local val_19_auto
+      local val_21_auto
       do
         local _let_149_ = file_stat(path)
         local mtime = _let_149_["mtime"]
         local size = _let_149_["size"]
-        val_19_auto = {path = path, mtime = mtime, size = size}
+        val_21_auto = {path = path, mtime = mtime, size = size}
       end
-      if (nil ~= val_19_auto) then
-        i_18_auto = (i_18_auto + 1)
-        do end (tbl_17_auto)[i_18_auto] = val_19_auto
+      if (nil ~= val_21_auto) then
+        i_20_auto = (i_20_auto + 1)
+        do end (tbl_19_auto)[i_20_auto] = val_21_auto
       else
       end
     end
-    file_stats = tbl_17_auto
+    file_stats = tbl_19_auto
   end
   record["files"] = file_stats
   return record
 end
-local function lua_file_modified_3f(record)
-  local _let_151_ = record
-  local lua_path = _let_151_["lua-path"]
-  local _let_152_ = file_stat(lua_path)
-  local _let_153_ = _let_152_["mtime"]
-  local sec = _let_153_["sec"]
-  local nsec = _let_153_["nsec"]
-  local size = _let_152_["size"]
-  return not ((size == record["lua-path-size-at-save"]) and (sec == record["lua-path-mtime-at-save"].sec) and (nsec == record["lua-path-mtime-at-save"].nsec))
-end
-local function _154_(...)
+local function _151_(...)
   return new(RECORD_TYPE_MODULE, ...)
 end
-local function _155_(...)
+local function _152_(...)
   return new(RECORD_TYPE_RUNTIME, ...)
 end
-return {save = save, fetch = fetch, drop = drop, ["new-module"] = _154_, ["new-runtime"] = _155_, ["set-record-files"] = set_record_files, ["lua-file-modified?"] = lua_file_modified_3f}
+return {save = save, fetch = fetch, drop = drop, ["new-module"] = _151_, ["new-runtime"] = _152_, ["set-files"] = set_files}
