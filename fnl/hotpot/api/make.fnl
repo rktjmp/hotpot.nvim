@@ -202,7 +202,8 @@
          {:verbose true}
          [[:fnl/**/*macro*.fnl false]
           [:fnl/**/*.fnl true]
-          [:colors/*.fnl (fn [path] (string.gsub path :fnl$ :lua))]])
+          [:colors/*.fnl true]
+          [:test/**/*.fnl (fn [path] (string.gsub path :test/ :lua/test))]])
   ```
 
   Build accepts a `root-directory` to work in, an optional `options` table and
@@ -230,9 +231,9 @@
 
   (Note the keys are in 'lua style', without dashes or question marks.)
 
-  Glob patterns that begin with `fnl/` are automatically compiled to to `lua/`,
-  other patterns are compiled in place or should be constructing explicitly by a
-  function.
+  Glob patterns that begin with `fnl/` are automatically compiled to `lua/`.
+  All other paterns default to outputting the `.lua` file in the same location
+  as the `.fnl` file. Any other custom paths should be returned by a function.
 
   Glob patterns are checked in the order they are given, so generally 'ignore' patterns
   should be given first so things like 'macro modules' are not compiled to
