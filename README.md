@@ -51,27 +51,6 @@ neat("fennel") -- => "fennel is neat!"
 
 <!-- panvimdoc-ignore-start -->
 
-## 🎉 New
-
-- Per-project configuration via `.hotpot.lua`
-  - Build to `lua/` on save, use different compiler settings per project.
-  - For plugin development, but can be used for configs.
-  - See [`h hotpot-cookbook-using-dot-hotpot`](COOKBOOK.md#using-dot-hotpot)
-- `vim.loader` support
-  - Replaces hotpots own bytecode cache, so call `vim.loader.enable()` if you want the
-  fastest loading experience.
-  - You can still use `vim.loader` without the bytecode cache if desired, you do not
-  *have* to call `enable()`.
-  - (`vim.loader` is pretty fast without the bytecode cache.)
-- `preprocessor` setup option
-  - Alter fennel source code before it is compiled, prefix with common imports
-  or functions, implement alternative module namespaces wrappers, etc..
-  - (Actually existed previously but now is documented).
-
-<!-- panvimdoc-ignore-end -->
-
-<!-- panvimdoc-ignore-start -->
-
 ## TOC
 
 - [Requirements](#requirements)
@@ -127,7 +106,7 @@ if not vim.loop.fs_stat(hotpotpath) then
     "--filter=blob:none",
     "--single-branch",
     -- You may with to pin a known version tag with `--branch=vX.Y.Z`
-    "--branch=v0.9.6",
+    "--branch=v0.11.1",
     "https://github.com/rktjmp/hotpot.nvim.git",
     hotpotpath,
   })
