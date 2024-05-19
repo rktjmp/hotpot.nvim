@@ -1,5 +1,14 @@
 (local uv (or vim.uv vim.loop))
-(local {: report_start : report_info : report_ok : report_error} vim.health)
+(local {: report_start : report_info : report_ok : report_error}
+  (case vim.health
+    ;; 0.10.0+
+    {: ok : info : error : start} {:report_start start
+                                   :report_info info
+                                   :report_error error
+                                   :report_ok ok}
+    ;; 0.9.0...
+    other other))
+
 (fn fmt [s ...] (string.format s ...))
 
 (fn bytes->human [bytes]
