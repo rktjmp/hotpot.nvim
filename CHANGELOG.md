@@ -6,6 +6,10 @@ to "core" code (things that effect loading and running your code/config) are
 avoided but breaking changes to the API (things that might effect your bindings
 and auto commands) are treated with less reverence.
 
+## 0.12.1
+
+- Fix nvim 0.10.0 health report deprecation warnings.
+
 ## 0.12.0
 
 - **`vim.loader.enable()` must be called before requiring hotpot *if you are using `vim.loader`*.**
