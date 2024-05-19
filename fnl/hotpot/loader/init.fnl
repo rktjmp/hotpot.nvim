@@ -20,9 +20,8 @@
     (join-path (cache-root-path) :compiled ...)))
 
 (fn needs-compilation? [record]
-  (let [{: lua-path : files} record]
-    (fn lua-missing? []
-      (file-missing? record.lua-path))
+  (let [{: lua-path : files} record
+        lua-missing? #(file-missing? lua-path)]
     (fn files-changed? []
       (accumulate [stale? false _ historic-file (ipairs files) &until stale?]
         (let [{: path :size historic-size :mtime {:sec hsec :nsec hnsec}} historic-file
