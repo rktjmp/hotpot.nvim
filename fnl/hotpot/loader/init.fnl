@@ -82,6 +82,44 @@
   "Find module for modname, may find fnl files, lua files or nothing. Most
   search work is given over to vim.loader.find."
 
+  (fn search-by-preload [modname]
+    ;; We _try_ to install ourselves after the standard package.preload
+    ;; searcher by installing at index 2, [preload, hotpot], but this is mostly
+    ;; just an act of faith. There's no good way to know where the preloader is
+    ;; without altering package.preload and running each loader until we find
+    ;; it, which could be accidentally expensive.
+    ;;
+    ;; Rocks.nvim includes a call to require"luarocks.loader" which installs
+    ;; the luarocks loader at index 1 [luarocks, preload].
+    ;;
+    ;; Depending on if-and-when the user is manually calling require"hotpot",
+    ;; when we install our searcher at index 2, we might skip in front of the
+    ;; preload searcher [luarocks, hotpot, preload].
+    ;;
+    ;; `vim.loader` is actually a metatable __index'd call to
+    ;; require"vim.loader", which is in the preload table, meaning when running
+    ;; luarocks, depending on where we ended up in the loader chain, accessing
+    ;; vim.loader might infinitely recurse since we'll end up calling require
+    ;; inside our own require call.
+    ;;
+    ;; To avoid this, we include a check against the preload table here, even
+    ;; if it may be duplicating the work of a previous loader. The check is
+    ;; small and fast and ultimately the least brittle option to solve this.
+    ;;
+    ;; We could set `vim_loader = vim.loader` at the top level of this file, but
+    ;; there is potential for the same bug to arise in other files and
+    ;; functions called during require if they access some other masked call to
+    ;; require, and since the bug is configuration dependent, I would likely
+    ;; miss it until it hit a user.
+    ;;
+    ;; We could also inspect package.loaders for a potential `vim._load_package`,
+    ;; as well as checking `package.loaded["luarocks.loader"]` to see if we
+    ;; should (probably) insert at 2 or 3, but `vim.loader.enable()` has no
+    ;; exposed loader function and in general doing this is pretty fragile.
+    ;;
+    ;; Note: package.preload values should be functions.
+    (or (. package.preload modname) false))
+
   ;; Search for existing lua files via vim.loader, this includes lua files in
   ;; the cache. If a lua file is found, try to match it back to a known source
   ;; index record and if we can, use that index to check if the original source
@@ -141,11 +179,10 @@
         _ false)))
 
   (case-try
-    ;; Searchers can return nil in exceptional but not unusual cases, such when
-    ;; the user gave no input to a prompt and we have no good default.
-    ;; In these cases we give up and pass to the next loader by passing nil out
-    ;; so we have a specific "nothing found" marker instead of nil falling
-    ;; through.
+    ;; Loaders can return nil in internally exceptional cases, such as syntax
+    ;; errors but our own search functions return false to indicate the
+    ;; particular function returned no results and we should try the next.
+    (search-by-preload modname) false
     (search-by-existing-lua modname) false
     (search-by-rtp-fnl modname) false
     (search-by-package-path modname) false
