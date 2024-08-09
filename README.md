@@ -69,12 +69,14 @@ neat("fennel") -- => "fennel is neat!"
 - Neovim 0.9.1+
 - ~~Fanatical devotion to parentheses.~~
 
-# Getting Started
+# Install
 
-## Install
+All you need to do is install Hotpot and call `require("hotpot")` before you
+try to run any Fennel code.
 
-All you need to do is install Hotpot and call `require("hotpot")` in your
-`init.lua` Neovim configuration file.
+<details>
+
+<summary>Installing via Lazy.nvim or similar</summary>
 
 First lets setup our `init.lua` file. In this example we use the lazy.nvim
 plugin manager, but other plugin manager will follow the same pattern -- likely
@@ -105,7 +107,7 @@ if not vim.loop.fs_stat(hotpotpath) then
     "clone",
     "--filter=blob:none",
     "--single-branch",
-    "--branch=v0.12.0",
+    "--branch=v0.13.1",
     "https://github.com/rktjmp/hotpot.nvim.git",
     hotpotpath,
   })
@@ -131,7 +133,43 @@ The `say-hello` module would be put in `~/.config/nvim/fnl/say-hello.fnl`:
 (print :hello!)
 ```
 
-## Usage
+</details>
+
+<details>
+
+<summary>Installing via Rocks.nvim</summary>
+
+Install via the `Rocks` command or editing `rocks.toml`.
+
+```viml
+:Rocks install hotpot.nvim
+```
+
+Now update your `init.lua` file to call `require("hotpot")` and include the
+rest of your config.
+
+```lua
+-- ~/.config/nvim/init.lua
+
+-- Likely you will have some code to ensure Rocks.nvim is installed here
+-- ...
+
+require("hotpot") -- optionally you may call require("hotpot").setup(...) here
+
+-- include the rest of your config
+require("say-hello")
+````
+
+The `say-hello` module would be put in `~/.config/nvim/fnl/say-hello.fnl`:
+
+```fennel
+;; ~/.config/nvim/fnl/say-hello.fnl
+(print :hello!)
+```
+
+</details>
+
+# Usage
 
 Place all your fennel files under a `fnl` dir, as you would place lua files
 under `lua`. This practice extends to other folders outside of your config
