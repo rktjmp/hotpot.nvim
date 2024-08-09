@@ -6,6 +6,10 @@ to "core" code (things that effect loading and running your code/config) are
 avoided but breaking changes to the API (things that might effect your bindings
 and auto commands) are treated with less reverence.
 
+## 0.13.1
+
+- Improve Rocks.nvim compatibility.
+
 ## 0.13.0
 
 - Updated to Fennel 1.5.0, may contain unintended breaking changes from
