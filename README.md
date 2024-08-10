@@ -75,56 +75,113 @@ All you need to do is install Hotpot and call `require("hotpot")` before you
 try to run any Fennel code.
 
 <details>
-
 <summary>Installing via Lazy.nvim or similar</summary>
-
-First lets setup our `init.lua` file. In this example we use the lazy.nvim
-plugin manager, but other plugin manager will follow the same pattern -- likely
-without the runtimepath alterations.
 
 ```lua
 -- ~/.config/nvim/init.lua
-
--- As per lazy's install instructions
-local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not vim.loop.fs_stat(lazypath) then
-  vim.fn.system({
-    "git",
-    "clone",
-    "--filter=blob:none",
-    "https://github.com/folke/lazy.nvim.git",
-    "--branch=stable", -- latest stable release
-    lazypath,
-  })
+local function ensure_installed(plugin, branch)
+  local user, repo = string.match(plugin, "(.+)/(.+)")
+  local repo_path = vim.fn.stdpath("data") .. "/lazy/" .. repo
+  if not (vim.uv or vim.loop).fs_stat(repo_path) then
+    vim.notify("Installing " .. plugin .. " " .. branch)
+    local repo_url = "https://github.com/" .. plugin .. ".git"
+    local out = vim.fn.system({
+      "git",
+      "clone",
+      "--filter=blob:none",
+      "--branch=" .. branch,
+      repo_url,
+      repo_path
+    })
+    if vim.v.shell_error ~= 0 then
+      vim.api.nvim_echo({
+        { "Failed to clone " .. plugin .. ":\n", "ErrorMsg" },
+        { out, "WarningMsg" },
+        { "\nPress any key to exit..." },
+      }, true, {})
+      vim.fn.getchar()
+      os.exit(1)
+    end
+  end
+  return repo_path
 end
 
--- Bootstap hotpot into lazy plugin dir if it does not exist yet.
-local hotpotpath = vim.fn.stdpath("data") .. "/lazy/hotpot.nvim"
-if not vim.loop.fs_stat(hotpotpath) then
-  vim.notify("Bootstrapping hotpot.nvim...", vim.log.levels.INFO)
-  vim.fn.system({
-    "git",
-    "clone",
-    "--filter=blob:none",
-    "--single-branch",
-    "--branch=v0.13.1",
-    "https://github.com/rktjmp/hotpot.nvim.git",
-    hotpotpath,
-  })
-end
-
+local lazy_path = ensure_installed("folke/lazy.nvim", "stable")
+local hotpot_path = ensure_installed("rktjmp/hotpot.nvim", "v0.13.1")
 -- As per lazy's install instructions, but insert hotpots path at the front
-vim.opt.runtimepath:prepend({hotpotpath, lazypath})
+vim.opt.runtimepath:prepend({hotpot_path, lazy_path})
 
-require("hotpot") -- optionally you may call require("hotpot").setup(...) here
+require("hotpot") -- Optionally you may call require("hotpot").setup(...) here
 
--- include hotpot as a plugin so lazy will update it
+-- If you want to use lazy's "structured" style, you will need 
+-- a `.hotpot.lua` file containing `return {build=true,clean=true}`
+-- so a `lua/` dir is generated for lazy to scan.
+-- See further down in the readme for details.
+
+-- Include hotpot as a plugin so lazy will update it
 local plugins = {"rktjmp/hotpot.nvim"}
 require("lazy").setup(plugins)
 
--- include the rest of your config
+-- Include the rest of your config
 require("say-hello")
-````
+```
+
+The `say-hello` module would be put in `~/.config/nvim/fnl/say-hello.fnl`:
+
+```fennel
+;; ~/.config/nvim/fnl/say-hello.fnl
+(print :hello!)
+```
+
+</details>
+
+
+<details>
+<summary>Installing via MiniDeps</summary>
+
+```lua
+-- ~/.config/nvim/init.lua
+local path_package = vim.fn.stdpath('data') .. '/site/'
+local function ensure_installed(plugin, branch)
+  local user, repo = string.match(plugin, "(.+)/(.+)")
+  local repo_path = path_package .. 'pack/deps/start/' .. repo
+  if not (vim.uv or vim.loop).fs_stat(repo_path) then
+    vim.notify("Installing " .. plugin .. " " .. branch)
+    local repo_url = "https://github.com/" .. plugin
+    local out = vim.fn.system({
+      "git",
+      "clone",
+      "--filter=blob:none",
+      "--branch=" .. branch,
+      repo_url,
+      repo_path
+    })
+    if vim.v.shell_error ~= 0 then
+      vim.api.nvim_echo({
+        { "Failed to clone " .. plugin .. ":\n", "ErrorMsg" },
+        { out, "WarningMsg" },
+        { "\nPress any key to exit..." },
+      }, true, {})
+      vim.fn.getchar()
+      os.exit(1)
+    end
+    vim.cmd('packadd ' .. repo .. ' | helptags ALL')
+    vim.cmd('echo "Installed `' .. repo ..'`" | redraw')
+  end
+end
+
+ensure_installed("echasnovski/mini.nvim", "stable")
+ensure_installed("rktjmp/hotpot.nvim", "v0.13.1")
+
+require("hotpot") -- Optionally you may call require("hotpot").setup(...) here
+
+require("mini.deps").setup({path = {package = path_package}})
+MiniDeps.add({source = "echasnovski/mini.nvim", checkout = "stable"})
+MiniDeps.add({source = "rktjmp/hotpot.nvim", checkout = "v0.13.1"})
+
+-- Include the rest of your config
+require("say-hello")
+```
 
 The `say-hello` module would be put in `~/.config/nvim/fnl/say-hello.fnl`:
 
@@ -136,7 +193,6 @@ The `say-hello` module would be put in `~/.config/nvim/fnl/say-hello.fnl`:
 </details>
 
 <details>
-
 <summary>Installing via Rocks.nvim</summary>
 
 Install via the `Rocks` command or editing `rocks.toml`.
@@ -150,13 +206,12 @@ rest of your config.
 
 ```lua
 -- ~/.config/nvim/init.lua
-
 -- Likely you will have some code to ensure Rocks.nvim is installed here
 -- ...
 
 require("hotpot") -- optionally you may call require("hotpot").setup(...) here
 
--- include the rest of your config
+-- Include the rest of your config
 require("say-hello")
 ````
 
