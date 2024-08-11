@@ -63,8 +63,7 @@
               :macros {:env :_COMPILER}
               :preprocessor (fn [src] src)
               :traceback :hotpot}
-   :enable_hotpot_diagnostics true
-   :provide_require_fennel false})
+   :enable_hotpot_diagnostics true})
 
 (var user-config (M.default-config))
 (fn M.user-config [] user-config)
@@ -74,8 +73,6 @@
     (each [_ k (ipairs [:preprocessor :modules :macros :traceback])]
       (match (?. given-config :compiler k)
         val (tset new-config :compiler k val)))
-    (match (?. given-config :provide_require_fennel)
-      val (tset new-config :provide_require_fennel val))
     (match (?. given-config :enable_hotpot_diagnostics)
       val (tset new-config :enable_hotpot_diagnostics val))
     ;; better to hard fail this now, than fail it when something else fails

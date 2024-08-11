@@ -305,8 +305,7 @@ We can use a combination of the Make API and autocommands to write our main
           build hotpot.api.make.build
           uv vim.loop]
       ;; do some configuration stuff
-      (setup {:provide_require_fennel true
-              :compiler {:modules {:correlate true}
+      (setup {:compiler {:modules {:correlate true}
                          :macros {:env :_COMPILER
                                   :compilerEnv _G
                                   :allowedGlobals false}}})

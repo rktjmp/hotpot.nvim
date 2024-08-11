@@ -367,7 +367,6 @@ hotpot itself.
 
 ```lua
 require("hotpot").setup({
-  provide_require_fennel = true,
   enable_hotpot_diagnostics = true,
   compiler = {
     -- options passed to fennel.compile for modules, defaults to {}
@@ -387,9 +386,6 @@ require("hotpot").setup({
   }
 })
 ```
-
-- `provide_require_fennel` inserts a `package.preload` function that will load
-  Hotpot's copy of fennel when you call `(require :fennel)`.
 
 - `enable_hotpot_diagnostics` enable or disable automatic attachment of
   diagnostics to fennel buffers. See [diagnostics](#diagnostics).

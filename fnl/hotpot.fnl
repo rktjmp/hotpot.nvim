@@ -15,12 +15,11 @@
   ;; User may not call setup, we always want these enabled
   (neovim-runtime.enable)
   (automake.enable)
+  (tset package.preload :fennel #(require :hotpot.fennel))
 
   (fn setup [options]
     (let [runtime (require :hotpot.runtime)
           config (runtime.set-user-config options)]
-      (when config.provide_require_fennel
-        (tset package.preload :fennel #(require :hotpot.fennel)))
       (when config.enable_hotpot_diagnostics
         (let [diagnostics (require :hotpot.api.diagnostics)]
           (diagnostics.enable)))))

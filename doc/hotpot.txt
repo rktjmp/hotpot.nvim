@@ -167,9 +167,6 @@ Fennels configuration options as described on fennel-lang.org
 
 >lua
     require("hotpot").setup({
-      -- provide_require_fennel defaults to disabled to be polite with other
-      -- plugins but enabling it is recommended.
-      provide_require_fennel = false,
       enable_hotpot_diagnostics = true,
       compiler = {
         -- options passed to fennel.compile for modules, defaults to {}
@@ -190,11 +187,6 @@ Fennels configuration options as described on fennel-lang.org
     })
 <
 
-- `provide_require_fennel` inserts a `package.preload` function that will load
-    Hotpot’s copy of fennel when you call `(require :fennel)`. This can be useful
-    for ergonomics or for compatibility with libraries that expect Fennel to be in
-    `package.path` without having to pay the cost of loading the Fennel compiler
-    when its not used.
 - `enable_hotpot_diagnostics` enable or disable automatic attachment of
     diagnostics to fennel buffers. See |hotpot-diagnostics|.
 - `compiler.modules` is passed to the Fennel compiler when compiling regular
