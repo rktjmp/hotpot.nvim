@@ -2,7 +2,7 @@
 <img src="images/logo.png" style="width: 100%" alt="Hotpot Logo"/>
 </div>
 
-# 🍲 Hotpot
+# 🍲 Hotpot ![Github Tag Badge](https://img.shields.io/github/v/tag/rktjmp/hotpot.nvim) ![LuaRocks Release Badge](https://img.shields.io/luarocks/v/soup/hotpot.nvim)
 
 <!-- panvimdoc-ignore-start -->
 
