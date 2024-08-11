@@ -71,8 +71,13 @@
 
 (λ compile-string [source modules-options macros-options ?preprocessor]
   "Compile given string of fennel into lua, returns `true lua` or `false error`"
-  ;; (string table) :: (true string) | (false string)
   (let [fennel (require :hotpot.fennel)
+        ;; By default fennels path does not include a "fnl" dir, but in most
+        ;; cases we want to search this for macros and other files for (include).
+        saved-fennel-path fennel.path
+        saved-fennel-macro-path fennel.macro-path
+        _ (set fennel.path (.. "./fnl/?.fnl;./fnl/?/init.fnl;" fennel.path))
+        _ (set fennel.macro-path (.. "./fnl/?.fnl;./fnl/?/init-macros.fnl;./fnl/?/init.fnl;" fennel.macro-path))
         {: traceback} (require :hotpot.runtime)
         options (doto modules-options
                       (tset :error-pinpoint false)
@@ -93,7 +98,9 @@
                                             :macros macros-options
                                             :preprocessor preprocessor})
     (local (ok? val) (xpcall #(pick-values 1 (fennel.compile-string source options))
-                                   traceback))
+                             traceback))
+    (set fennel.path saved-fennel-path)
+    (set fennel.macro-path saved-fennel-macro-path)
     (table.remove compiler-options-stack 1)
     ;; We have to manually nil these out so they dont hang around.
     ;; We currently dont deep_extend these option tables because they may contain _G,
@@ -105,7 +112,6 @@
 
 (λ compile-file [fnl-path lua-path modules-options macros-options ?preprocessor]
   "Compile fennel code from `fnl-path` and save to `lua-path`"
-  ;; (string, string) :: (true, nil) | (false, errors)
   (fn check-existing [path]
     (let [uv vim.loop
           {: type} (or (uv.fs_stat path) {})]
