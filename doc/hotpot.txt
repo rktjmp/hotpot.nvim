@@ -5,18 +5,17 @@ Table of Contents                                   *hotpot*
 
 1. Hotpot                                                      |hotpot-hotpot|
 2. Requirements                                          |hotpot-requirements|
-3. Getting Started                                    |hotpot-getting-started|
-  - Install                                   |hotpot-getting-started-install|
-  - Usage                                       |hotpot-getting-started-usage|
-4. Setup                                                        |hotpot-setup|
-5. dot-hotpot                                              |hotpot-dot-hotpot|
-6. Diagnostics                                            |hotpot-diagnostics|
-7. The API                                                    |hotpot-the-api|
-8. Commands                                                  |hotpot-commands|
-9. Keymaps                                                    |hotpot-keymaps|
-10. Module preference                               |hotpot-module-preference|
-11. Quirks                                                     |hotpot-quirks|
-12. Licenses                                                 |hotpot-licenses|
+3. Install                                                    |hotpot-install|
+4. Usage                                                        |hotpot-usage|
+5. Setup                                                        |hotpot-setup|
+6. dot-hotpot                                              |hotpot-dot-hotpot|
+7. Diagnostics                                            |hotpot-diagnostics|
+8. The API                                                    |hotpot-the-api|
+9. Commands                                                  |hotpot-commands|
+10. Keymaps                                                   |hotpot-keymaps|
+11. Module preference                               |hotpot-module-preference|
+12. Quirks                                                     |hotpot-quirks|
+13. Licenses                                                 |hotpot-licenses|
 
 
 ==============================================================================
@@ -63,59 +62,230 @@ as needed.
 
 
 ==============================================================================
-3. Getting Started                                    *hotpot-getting-started*
+3. Install                                                    *hotpot-install*
 
+All you need to do is install Hotpot and call `require("hotpot")` before you
+try to run any Fennel code.
 
-INSTALL                                       *hotpot-getting-started-install*
-
-All you need to do is install Hotpot and call `require("hotpot")` in your
-`init.lua` Neovim configuration file.
-
-First lets setup our `init.lua` file. In this example we use the lazy.nvim
-plugin manager, but other plugin manager will follow the same pattern –
-likely without the runtimepath alterations.
+Installing via Lazy.nvim or similar ~
 
 >lua
     -- ~/.config/nvim/init.lua
-    
-    -- As per lazy's install instructions
-    local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-    if not vim.loop.fs_stat(lazypath) then
-      vim.fn.system({
-        "git",
-        "clone",
-        "--filter=blob:none",
-        "https://github.com/folke/lazy.nvim.git",
-        "--branch=stable", -- latest stable release
-        lazypath,
-      })
+    -- Ensure lazy and hotpot are always installed
+    local function ensure_installed(plugin, branch)
+      local user, repo = string.match(plugin, "(.+)/(.+)")
+      local repo_path = vim.fn.stdpath("data") .. "/lazy/" .. repo
+      if not (vim.uv or vim.loop).fs_stat(repo_path) then
+        vim.notify("Installing " .. plugin .. " " .. branch)
+        local repo_url = "https://github.com/" .. plugin .. ".git"
+        local out = vim.fn.system({
+          "git",
+          "clone",
+          "--filter=blob:none",
+          "--branch=" .. branch,
+          repo_url,
+          repo_path
+        })
+        if vim.v.shell_error ~= 0 then
+          vim.api.nvim_echo({
+            { "Failed to clone " .. plugin .. ":\n", "ErrorMsg" },
+            { out, "WarningMsg" },
+            { "\nPress any key to exit..." },
+          }, true, {})
+          vim.fn.getchar()
+          os.exit(1)
+        end
+      end
+      return repo_path
     end
+    local lazy_path = ensure_installed("folke/lazy.nvim", "stable")
+    local hotpot_path = ensure_installed("rktjmp/hotpot.nvim", "v0.14.0")
+    -- As per Lazy's install instructions, but also include hotpot
+    vim.opt.runtimepath:prepend({hotpot_path, lazy_path})
     
-    -- Bootstap hotpot into lazy plugin dir if it does not exist yet.
-    local hotpotpath = vim.fn.stdpath("data") .. "/lazy/hotpot.nvim"
-    if not vim.loop.fs_stat(hotpotpath) then
-      vim.notify("Bootstrapping hotpot.nvim...", vim.log.levels.INFO)
-      vim.fn.system({
-        "git",
-        "clone",
-        "--filter=blob:none",
-        "--single-branch",
-        "--branch=v0.12.0",
-        "https://github.com/rktjmp/hotpot.nvim.git",
-        hotpotpath,
-      })
-    end
+    -- You must call vim.loader.enable() before requiring hotpot unless you are
+    -- passing {performance = {cache = false}} to Lazy.
+    vim.loader.enable()
     
-    -- As per lazy's install instructions, but insert hotpots path at the front
-    vim.opt.runtimepath:prepend({hotpotpath, lazypath})
+    require("hotpot") -- Optionally you may call require("hotpot").setup(...) here
     
-    require("hotpot") -- optionally you may call require("hotpot").setup(...) here
-    
-    -- include hotpot as a plugin so lazy will update it
+    -- You must include Hotpot in your plugin list for it to function correctly.
+    -- If you want to use Lazy's "structured" style, see the next code sample.
     local plugins = {"rktjmp/hotpot.nvim"}
     require("lazy").setup(plugins)
     
-    -- include the rest of your config
+    -- Include the rest of your config. Your call to Lazy.setup does not have
+    -- to be done in init.lua and could be in a required file.
+    require("say-hello")
+<
+
+The `say-hello` module would be put in `~/.config/nvim/fnl/say-hello.fnl`
+
+>fennel
+    ;; ~/.config/nvim/fnl/say-hello.fnl
+    (print :hello!)
+<
+
+**“StructuredSetup”**
+
+Lazy.nvim allows you to separate your plugin specs into individual files and
+folders, but to support this it must be able to find the raw lua files.
+
+We can instruct Hotpot to compile your Fennel code ahead of time, into a
+directory Lazy can find (eg: `lua/`).
+
+First we must define a `.hotpot.lua` file at the root of `~/.config/nvim`. See
+the documenation for additional details on "dot-hotpot".
+
+>lua
+    -- ~/.config/nvim/.hotpot.lua
+    
+    -- By default, the Fennel compiler wont complain if unknown variables are
+    -- referenced, we can force a compiler error so we don't try to run faulty code.
+    local allowed_globals = {}
+    for key, _ in pairs(_G) do
+      table.insert(allowed_globals, key)
+    end
+    
+    return {
+      -- by default, build all fnl/ files into lua/
+      build = true,
+      -- remove stale lua/ files
+      clean = true,
+      compiler = {
+        modules = {
+          -- enforce unknown variable errors
+          allowedGlobals = allowed_globals
+        }
+      }
+    }
+<
+
+Now open a `.fnl` file and save it, you should now have a populated `lua/`
+directory and can pass the appropriate module to Lazy.
+
+>lua
+    -- .config/nvim/init.lua
+    
+    -- ...
+    
+    -- See Lazy's own documentation for details.
+    require("lazy").setup({spec = {import = "plugins"}})
+<
+
+Hiding `lua/` when using `.hotpot.lua` ~
+
+We can compile our lua to a hidden directory, and then add that directory to
+Neovims RTP via Lazy’s configuration.
+
+>lua
+    -- ~/.config/nvim/.hotpot.lua
+    local allowed_globals = {}
+    for key, _ in pairs(_G) do
+      table.insert(allowed_globals, key)
+    end
+    
+    return {
+      build = {
+        {atomic = true, verbose = true},
+        {"fnl/**/*macro*.fnl", false},
+        -- put all lua files inside `.compiled/lua`, note we must still name the
+        -- final directory lua/, due to how nvims RTP works.
+        {"fnl/**/*.fnl", function(path)
+          -- ~/.config/nvim/fnl/hello/there.fnl -> ~/.config/nvim/.compiled/lua/hello/there.lua
+          return string.gsub(path, "/fnl/", "/.compiled/lua/")
+        end},
+        -- You may also compile a init.fnl file to init.lua
+        {"init.fnl", true}
+      },
+      clean = {{".compiled/lua/**/*.lua", true}},
+      compiler = {
+        modules = {
+          allowedGlobals = allowed_globals
+        }
+      }
+    }
+<
+
+>fennel
+    ;; When calling Lazy setup, pass the hidden directory as an additional RTP patho
+    ;; Note that the path here *does not* include `/lua`!
+    (setup {:performance {:rtp {:paths [(.. (vim.fn.stdpath :config) "/.compiled")}}
+            :spec { ... }})
+<
+
+Installing via MiniDeps ~
+
+>lua
+    -- ~/.config/nvim/init.lua
+    local path_package = vim.fn.stdpath('data') .. '/site/'
+    local function ensure_installed(plugin, branch)
+      local user, repo = string.match(plugin, "(.+)/(.+)")
+      local repo_path = path_package .. 'pack/deps/start/' .. repo
+      if not (vim.uv or vim.loop).fs_stat(repo_path) then
+        vim.notify("Installing " .. plugin .. " " .. branch)
+        local repo_url = "https://github.com/" .. plugin
+        local out = vim.fn.system({
+          "git",
+          "clone",
+          "--filter=blob:none",
+          "--branch=" .. branch,
+          repo_url,
+          repo_path
+        })
+        if vim.v.shell_error ~= 0 then
+          vim.api.nvim_echo({
+            { "Failed to clone " .. plugin .. ":\n", "ErrorMsg" },
+            { out, "WarningMsg" },
+            { "\nPress any key to exit..." },
+          }, true, {})
+          vim.fn.getchar()
+          os.exit(1)
+        end
+        vim.cmd('packadd ' .. repo .. ' | helptags ALL')
+        vim.cmd('echo "Installed `' .. repo ..'`" | redraw')
+      end
+    end
+    
+    ensure_installed("echasnovski/mini.nvim", "stable")
+    ensure_installed("rktjmp/hotpot.nvim", "v0.14.0")
+    
+    require("hotpot") -- Optionally you may call require("hotpot").setup(...) here
+    
+    require("mini.deps").setup({path = {package = path_package}})
+    MiniDeps.add({source = "echasnovski/mini.nvim", checkout = "stable"})
+    MiniDeps.add({source = "rktjmp/hotpot.nvim", checkout = "v0.14.0"})
+    
+    -- Include the rest of your config
+    require("say-hello")
+<
+
+The `say-hello` module would be put in `~/.config/nvim/fnl/say-hello.fnl`
+
+>fennel
+    ;; ~/.config/nvim/fnl/say-hello.fnl
+    (print :hello!)
+<
+
+Installingvia Rocks.nvim ~
+
+Install via the `Rocks` command or editing `rocks.toml`.
+
+>viml
+    :Rocks install hotpot.nvim
+<
+
+Now update your `init.lua` file to call `require("hotpot")` and include the
+rest of your config.
+
+>lua
+    -- ~/.config/nvim/init.lua
+    -- Likely you will have some code to ensure Rocks.nvim is installed here
+    -- ...
+    
+    require("hotpot") -- optionally you may call require("hotpot").setup(...) here
+    
+    -- Include the rest of your config
     require("say-hello")
 <
 
@@ -127,7 +297,8 @@ The `say-hello` module would be put in `~/.config/nvim/fnl/say-hello.fnl`
 <
 
 
-USAGE                                           *hotpot-getting-started-usage*
+==============================================================================
+4. Usage                                                        *hotpot-usage*
 
 Placeall your fennel files under a `fnl` dir, as you would place lua files
 under `lua`. This practice extends to other folders outside of your config
@@ -157,7 +328,7 @@ You can may want to read the |hotpot-cookbook| or see more options in
 
 
 ==============================================================================
-4. Setup                                                        *hotpot-setup*
+5. Setup                                                        *hotpot-setup*
 
 The `setup()` function may _optionally_ be called. `setup()` provides access to
 Fennels configuration options as described on fennel-lang.org
@@ -218,7 +389,7 @@ For a complete list of compiler options, see Fennels documentation
 
 
 ==============================================================================
-5. dot-hotpot                                              *hotpot-dot-hotpot*
+6. dot-hotpot                                              *hotpot-dot-hotpot*
 
 Hotpot can optionally be configured to build `lua/` directories on-save with
 per-project settings by using a `.hotpot.lua` file.
@@ -227,7 +398,7 @@ See |hotpot-cookbook-using-dot-hotpot| for a usage guide.
 
 
 ==============================================================================
-6. Diagnostics                                            *hotpot-diagnostics*
+7. Diagnostics                                            *hotpot-diagnostics*
 
 Hotpot ships with built in diagnostics feature to show fennel compilation
 errors via Neovim diagnostics.
@@ -242,7 +413,7 @@ the macro environment in other contexts (please open an issue).
 
 
 ==============================================================================
-7. The API                                                    *hotpot-the-api*
+8. The API                                                    *hotpot-the-api*
 
 Hotpot provides a number of functions for evaluating and compiling Fennel code,
 including helpers to easily operate on strings, selections and buffers for
@@ -252,7 +423,7 @@ See |hotpot.api|.
 
 
 ==============================================================================
-8. Commands                                                  *hotpot-commands*
+9. Commands                                                  *hotpot-commands*
 
 Hotpot provides 3 commands which behave similarly but not exactly like Neovims
 Lua commands (see |lua-commands|).
@@ -327,7 +498,7 @@ available inside {expression}, `line` and `linenr`.
 
 
 ==============================================================================
-9. Keymaps                                                    *hotpot-keymaps*
+10. Keymaps                                                   *hotpot-keymaps*
 
 Hotpot expects the user to specify most maps themselves via the API functions
 (see |hotpot.api|). It does provide one `<Plug>` mapping for operator-pending
@@ -346,7 +517,7 @@ proceeding motion.
 
 
 ==============================================================================
-10. Module preference                               *hotpot-module-preference*
+11. Module preference                               *hotpot-module-preference*
 
 Given the directory structure,
 
@@ -368,7 +539,7 @@ a plugin in fennel.
 
 
 ==============================================================================
-11. Quirks                                                     *hotpot-quirks*
+12. Quirks                                                     *hotpot-quirks*
 
 - Hotpot will only _compile_ fennel files that are found in Neovims RTP. It
     will _evaluate_ files that are found in luas `package.path`. This is for safety
@@ -379,7 +550,7 @@ a plugin in fennel.
 
 
 ==============================================================================
-12. Licenses                                                 *hotpot-licenses*
+13. Licenses                                                 *hotpot-licenses*
 
 Hotpot embeds `fennel.lua`, see `lua/hotpot/fennel.lua` for licensing
 information.

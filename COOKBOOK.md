@@ -198,15 +198,6 @@ Enable auto-building with a default value that should be applicable to most
 usage. The default value skips any file with `macro` in its name and compiles
 all other files under `fnl/` to `lua/`, eg:
 
-<!-- panvimdoc-include-comment
-
-Note: due to a bug with the documentation generator, the glob patterns below
-       are incorrectly rendered.
-
-They should look like "fnl/**/*macro*.fnl", "fnl/**/*.fnl".
-
--->
-
 ```lua
 {{"fnl/**/*macro*.fnl", false},
  {"fnl/**/*.fnl", true}}

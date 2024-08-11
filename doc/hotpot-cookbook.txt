@@ -173,14 +173,9 @@ Enable auto-building with a default value that should be applicable to most
 usage. The default value skips any file with `macro` in its name and compiles
 all other files under `fnl/` to `lua/`, eg:
 
-Note: due to a bug with the documentation generator, the glob patterns below
-are incorrectly rendered.
-
-They should look like “fnl/**/macro.fnl”, “fnl/**/.fnl”.
-
 >lua
-    {{"fnl//macro.fnl", false},
-     {"fnl//.fnl", true}}
+    {{"fnl/**/*macro*.fnl", false},
+     {"fnl/**/*.fnl", true}}
 <
 
 **build = {{glob_pattern, boolean_or_function}, ...}** or **build = {{options},
@@ -216,11 +211,11 @@ They should look like “fnl/**/macro.fnl”, “fnl/**/-test.fnl”,
 >lua
     build = {
       {verbose = true, atomic = true},
-      {"fnl//macro.fnl", false}, -- dont compile macro files
-      {"fnl//-test.fnl", false}, -- dont compile x-test.fnl files
-      {"fnl//.fnl", true}, -- compile all other fnl files, automatically becomes lua//.lua
-      {"colors/.fnl", true}, -- compiles colors/x.fnl to colors/x.lua
-      {"colors/.fnl", function(path) return string.gsub(path, "fnl$", "lua") end} -- same as above
+      {"fnl/**/*macro*.fnl", false}, -- dont compile macro files
+      {"fnl/**/*-test.fnl", false}, -- dont compile x-test.fnl files
+      {"fnl/**/*.fnl", true}, -- compile all other fnl files, automatically becomes lua/**/*.lua
+      {"colors/*.fnl", true}, -- compiles colors/x.fnl to colors/x.lua
+      {"colors/*.fnl", function(path) return string.gsub(path, "fnl$", "lua") end} -- same as above
     }
 <
 
@@ -252,7 +247,7 @@ are incorrectly rendered, see the markdown file for the proper instructions.
 They should look like “lua//.lua”.
 
 >lua
-    {{"lua//.lua", true}}
+    {{"lua/**/*.lua", true}}
 <
 
 **clean = {{glob_pattern, boolean}, ...}**
@@ -269,8 +264,8 @@ They should look like “lua/lib//.lua”, “lua//.lua”.
 
 >lua
     clean = {
-      {"lua/lib//.lua", false}, -- dont remove lib files
-      {"lua//.lua", true}, -- remove anything else
+      {"lua/lib/**/*.lua", false}, -- dont remove lib files
+      {"lua/**/*.lua", true}, -- remove anything else
     }
 <
 
@@ -291,6 +286,30 @@ pass to `setup()`. See |hotpot-setup|.
 
 ==============================================================================
 5. Writing ~/.config/nvim/init.lua in Fennel*hotpot-cookbook-writing-~/.config/nvim/init.lua-in-fennel*
+
+**Using .hotpot.lua**
+
+You can configure a `.hotpot.lua` file to build `init.fnl`, see
+|hotpot-cookbook-using-`.hotpot.lua`| for more information.
+
+You should be aware that the presence of a `.hotpot.lua` file will disable any
+`compiler` options you pass to setup, so you should instead move them into the
+`.hotpot.lua` file.
+
+>lua
+    -- ~/.config/nvim/.hotpot.lua
+    
+    return {
+      build = {
+        {verbose = true},
+        -- This will only compile init.fnl, all other fnl/ files will behave as normal.
+        {"init.fnl", true},
+        -- Or you could enable other patterns too,
+        -- {"colors/*.fnl", true},
+        -- {"fnl/**/*.fnl", true},
+      }
+    }
+<
 
 **Using autocommands and hotpot.api.make**
 
@@ -313,7 +332,7 @@ We can use a combination of the Make API and autocommands to write our main
       (fn rebuild-on-save [{: buf}]
         (let [{: build} (require :hotpot.api.make)
               au-config {:buffer buf
-                         :callback (build (vim.fn.stdpath :config)
+                         :callback #(build (vim.fn.stdpath :config)
                                            {:verbose true :atomic true
                                             ;; Enforce hard errors when unknown symbols are encountered.
                                             :compiler {:modules {:allowedGlobals (icollect [n _ (pairs _G)] n)}}}
@@ -344,32 +363,6 @@ Finally, we have to manually run this code _once_ to generate the new
 - Open `init.lua` to confirm it contains your fennel, compiled into lua.
 - Start neovim in a new terminal to confirm the config loading is functioning
     without any errors.
-
-**Using .hotpot.lua**
-
-You can also configure a `.hotpot.lua` file to build `init.fnl`, see
-|hotpot-cookbook-using-`.hotpot.lua`| for more information.
-
-You should be aware that the presence of a `.hotpot.lua` file will disable any
-`compiler` options you pass to setup, so you should instead move them into the
-`.hotpot.lua` file.
-
-Your build instructions can be as broad or slim as you want:
-
->lua
-    -- ~/.config/nvim/.hotpot.lua
-    
-    return {
-      build = {
-        {verbose = true},
-        -- This will only compile init.fnl, all other fnl/ files will behave as normal.
-        {"init.fnl", true},
-        -- Or you could enable other patterns too,
-        -- {"colors/.fnl", true},
-        -- {"fnl//.fnl", true},
-      }
-    }
-<
 
 
 ==============================================================================
@@ -452,13 +445,13 @@ could be condensed.
                                   ;; create window, which will forcibly assume focus, swap the buffer
                                   ;; to our output buffer and setup an autocommand to drop the session id
                                   ;; when the session window is closed.
-                                  (vim.schedule (do
+                                  (vim.schedule #(do
                                                    (api.nvim_command "botright vnew")
                                                    (api.nvim_win_set_buf (api.nvim_get_current_win) buf)
                                                    (api.nvim_create_autocmd :BufWipeout
                                                                             {:buffer buf
                                                                              :once true
-                                                                             :callback (set reflect-session.id nil)}))))))]
+                                                                             :callback #(set reflect-session.id nil)}))))))]
         ;; we want to set the session mode to our current mode, and attach the
         ;; input buffer once we have a session id
         (with-session-id (fn [session-id]
@@ -512,31 +505,31 @@ Evaluate or compile the `v` selection, or the entire buffer.
             list [...]
             output []]
         ;; TODO: this can be fcollect in fennel 1.2.0)
-        (for [i 1 (select : ...)]
+        (for [i 1 (select :# ...)]
           (table.insert output (-> (. list i)
-                                   ((match (type $1)
+                                   (#(match (type $1)
                                        :table (view $1)
                                        _ (tostring $1)))
                                    (.. "\n"))))
         (nvim_echo (icollect [_ l (ipairs output)] [l hl]) true {})))
     
     (vim.keymap.set :n :heb
-                    (let [{: eval-buffer} (require :hotpot.api.eval)]
+                    #(let [{: eval-buffer} (require :hotpot.api.eval)]
                       (pecho (eval-buffer 0)))
                    {:desc "Evaluate entire buffer"})
     
     (vim.keymap.set :v :hes
-                    (let [{: eval-selection} (require :hotpot.api.eval)]
+                    #(let [{: eval-selection} (require :hotpot.api.eval)]
                       (pecho (eval-selection)))
                    {:desc "Evaluate selection"})
     
     (vim.keymap.set :n :hcb
-                    (let [{: compile-buffer} (require :hotpot.api.compile)]
+                    #(let [{: compile-buffer} (require :hotpot.api.compile)]
                       (pecho (compile-buffer 0)))
                    {:desc "Compile entire buffer"})
     
     (vim.keymap.set :v :hcs
-                    (let [{: compile-selection} (require :hotpot.api.compile)]
+                    #(let [{: compile-selection} (require :hotpot.api.compile)]
                       (pecho (compile-selection)))
                    {:desc "Compile selection"})
 <
@@ -602,7 +595,7 @@ compilation_, we may write something like this:
            ,body))))
     
     (fn-with-ts my-func [x]
-      (print ( x x)))
+      (print (* x x)))
 <
 
 If we try to build this with the Fennel CLI, we get the following error,
@@ -614,10 +607,10 @@ because `os` is unavailable:
       unknown identifier in strict mode: os
     
       (let [now (os.date :%s)]
-     Try looking to see if there's a typo.
-     Try using the _G table instead, eg. _G.os if you really want a global.
-     Try moving this code to somewhere that os is in scope.
-     Try binding os as a local in the scope of this code.
+    * Try looking to see if there's a typo.
+    * Try using the _G table instead, eg. _G.os if you really want a global.
+    * Try moving this code to somewhere that os is in scope.
+    * Try binding os as a local in the scope of this code.
 <
 
 We can disable the compiler sandbox with `--no-compiler-sandbox`, which will
@@ -627,7 +620,7 @@ allow us to compile our code:
     $ fennel --no-compiler-sandbox -c ts-fn.fnl
     local function my_func(x)
       print("code generated at", "1665501877")
-      return print((x  x))
+      return print((x * x))
     end
     return my_func
 <
@@ -713,7 +706,7 @@ becomes `(+ 1 1 1)`.
     
     ;; must define as function that returns a list
     (fn map-seq-fn [seq f]
-      `(icollect [_ v (ipairs ,seq)] (,f v)))
+      `(icollect [_# v# (ipairs ,seq)] (,f v#)))
     
     (fn call [ast scope ...]
       (match ast
@@ -723,10 +716,10 @@ becomes `(+ 1 1 1)`.
         (do
           ;; expand our macro as compiler would do, passing in capture arguments
           (local macro-ast (map-seq-fn (unpack other)))
-          ;; now expand that ast again (this expands icollect etc, other macros)
+          ;; now expand that ast again (this expands icollect etc, *other* macros)
           (local true-ast (macroexpand macro-ast))
           ;; change ast to match macro ast, note that we must
-          ;; modifiy the ast, not return a new one, as we're
+          ;; **modifiy** the ast, not return a new one, as we're
           ;; actually modifying the ast back in the compiler call-site.
           (each [i ex-ast (ipairs true-ast)]
             (tset ast i ex-ast))))
@@ -740,7 +733,7 @@ becomes `(+ 1 1 1)`.
 
 >fennel
     ;; file.fnl
-    (map-seq [1 2 3] (print $)) ;; works by magic
+    (map-seq [1 2 3] #(print $)) ;; works by magic
 <
 
 Generated by panvimdoc <https://github.com/kdheepak/panvimdoc>
