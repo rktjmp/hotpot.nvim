@@ -79,6 +79,7 @@ try to run any Fennel code.
 
 ```lua
 -- ~/.config/nvim/init.lua
+-- Ensure lazy and hotpot are always installed
 local function ensure_installed(plugin, branch)
   local user, repo = string.match(plugin, "(.+)/(.+)")
   local repo_path = vim.fn.stdpath("data") .. "/lazy/" .. repo
@@ -105,24 +106,24 @@ local function ensure_installed(plugin, branch)
   end
   return repo_path
 end
-
 local lazy_path = ensure_installed("folke/lazy.nvim", "stable")
 local hotpot_path = ensure_installed("rktjmp/hotpot.nvim", "v0.13.1")
--- As per lazy's install instructions, but insert hotpots path at the front
+-- As per Lazy's install instructions, but also include hotpot
 vim.opt.runtimepath:prepend({hotpot_path, lazy_path})
+
+-- You must call vim.loader.enable() before requiring hotpot unless you are
+-- passing {performance = {cache = false}} to Lazy.
+vim.loader.enable()
 
 require("hotpot") -- Optionally you may call require("hotpot").setup(...) here
 
--- If you want to use lazy's "structured" style, you will need 
--- a `.hotpot.lua` file containing `return {build=true,clean=true}`
--- so a `lua/` dir is generated for lazy to scan.
--- See further down in the readme for details.
-
--- Include hotpot as a plugin so lazy will update it
+-- You must include Hotpot in your plugin list for it to function correctly.
+-- If you want to use Lazy's "structured" style, see the next code sample.
 local plugins = {"rktjmp/hotpot.nvim"}
 require("lazy").setup(plugins)
 
--- Include the rest of your config
+-- Include the rest of your config. Your call to Lazy.setup does not have
+-- to be done in init.lua and could be in a required file.
 require("say-hello")
 ```
 
@@ -132,6 +133,98 @@ The `say-hello` module would be put in `~/.config/nvim/fnl/say-hello.fnl`:
 ;; ~/.config/nvim/fnl/say-hello.fnl
 (print :hello!)
 ```
+
+**"Structured Setup"**
+
+Lazy.nvim allows you to separate your plugin specs into individual files and
+folders, but to support this it must be able to find the raw lua files.
+
+We can instruct Hotpot to compile your Fennel code ahead of time, into a
+directory Lazy can find (eg: `lua/`).
+
+First we must define a `.hotpot.lua` file at the root of `~/.config/nvim`. See
+the documenation for additional details on "dot-hotpot".
+
+```lua
+-- ~/.config/nvim/.hotpot.lua
+
+-- By default, the Fennel compiler wont complain if unknown variables are
+-- referenced, we can force a compiler error so we don't try to run faulty code.
+local allowed_globals = {}
+for key, _ in pairs(_G) do
+  table.insert(allowed_globals, key)
+end
+
+return {
+  -- by default, build all fnl/ files into lua/
+  build = true,
+  -- remove stale lua/ files
+  clean = true,
+  compiler = {
+    modules = {
+      -- enforce unknown variable errors
+      allowedGlobals = allowed_globals
+    }
+  }
+}
+```
+
+Now open a `.fnl` file and save it, you should now have a populated `lua/`
+directory and can pass the appropriate module to Lazy.
+
+```lua
+-- .config/nvim/init.lua
+
+-- ...
+
+-- See Lazy's own documentation for details.
+require("lazy").setup({spec = {import = "plugins"}})
+```
+
+<details>
+<summary>Hiding `lua/` when using `.hotpot.lua`</summary>
+
+We can compile our lua to a hidden directory, and then add that directory to
+Neovims RTP via Lazy's configuration.
+
+```lua
+-- ~/.config/nvim/.hotpot.lua
+local allowed_globals = {}
+for key, _ in pairs(_G) do
+  table.insert(allowed_globals, key)
+end
+
+return {
+  build = {
+    {atomic = true, verbose = true},
+    {"fnl/**/*macro*.fnl", false},
+    -- put all lua files inside `.compiled/lua`, note we must still name the
+    -- final directory lua/, due to how nvims RTP works.
+    {"fnl/**/*.fnl", function(path)
+      -- ~/.config/nvim/fnl/hello/there.fnl -> ~/.config/nvim/.compiled/lua/hello/there.lua
+      return string.gsub(path, "/fnl/", "/.compiled/lua/")
+    end},
+    -- You may also compile a init.fnl file to init.lua
+    {"init.fnl", true}
+  },
+  clean = {{".compiled/lua/**/*.lua", true}},
+  compiler = {
+    modules = {
+      allowedGlobals = allowed_globals
+    }
+  }
+}
+```
+
+
+```fennel
+;; When calling Lazy setup, pass the hidden directory as an additional RTP patho
+;; Note that the path here *does not* include `/lua`!
+(setup {:performance {:rtp {:paths [(.. (vim.fn.stdpath :config) "/.compiled")}}
+        :spec { ... }})
+```
+
+</details>
 
 </details>
 
@@ -274,9 +367,7 @@ hotpot itself.
 
 ```lua
 require("hotpot").setup({
-  -- provide_require_fennel defaults to disabled to be polite with other
-  -- plugins but enabling it is recommended.
-  provide_require_fennel = false,
+  provide_require_fennel = true,
   enable_hotpot_diagnostics = true,
   compiler = {
     -- options passed to fennel.compile for modules, defaults to {}
@@ -298,10 +389,7 @@ require("hotpot").setup({
 ```
 
 - `provide_require_fennel` inserts a `package.preload` function that will load
-  Hotpot's copy of fennel when you call `(require :fennel)`. This can be useful
-  for ergonomics or for compatibility with libraries that expect Fennel to be in
-  `package.path` without having to pay the cost of loading the Fennel compiler
-  when its not used.
+  Hotpot's copy of fennel when you call `(require :fennel)`.
 
 - `enable_hotpot_diagnostics` enable or disable automatic attachment of
   diagnostics to fennel buffers. See [diagnostics](#diagnostics).
