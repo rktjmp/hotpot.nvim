@@ -78,7 +78,7 @@ M["default-config"] = function()
   local function _17_(src)
     return src
   end
-  return {compiler = {modules = {}, macros = {env = "_COMPILER"}, preprocessor = _17_, traceback = "hotpot"}, enable_hotpot_diagnostics = true, provide_require_fennel = false}
+  return {compiler = {modules = {}, macros = {env = "_COMPILER"}, preprocessor = _17_, traceback = "hotpot"}, enable_hotpot_diagnostics = true}
 end
 local user_config = M["default-config"]()
 M["user-config"] = function()
@@ -111,39 +111,23 @@ M["set-user-config"] = function(given_config)
     do
       local t_24_ = given_config
       if (nil ~= t_24_) then
-        t_24_ = t_24_.provide_require_fennel
+        t_24_ = t_24_.enable_hotpot_diagnostics
       else
       end
       _23_ = t_24_
     end
     if (nil ~= _23_) then
       local val = _23_
-      new_config["provide_require_fennel"] = val
-    else
-    end
-  end
-  do
-    local _27_
-    do
-      local t_28_ = given_config
-      if (nil ~= t_28_) then
-        t_28_ = t_28_.enable_hotpot_diagnostics
-      else
-      end
-      _27_ = t_28_
-    end
-    if (nil ~= _27_) then
-      local val = _27_
       new_config["enable_hotpot_diagnostics"] = val
     else
     end
   end
   do
-    local _31_ = new_config.compiler.traceback
-    if (_31_ == "hotpot") then
-    elseif (_31_ == "fennel") then
+    local _27_ = new_config.compiler.traceback
+    if (_27_ == "hotpot") then
+    elseif (_27_ == "fennel") then
     else
-      local _ = _31_
+      local _ = _27_
       error("invalid config.compiler.traceback value, must be 'hotpot' or 'fennel'")
     end
   end
@@ -154,15 +138,15 @@ M["lookup-local-config"] = function(file)
   return lookup_local_config(file)
 end
 M["loadfile-local-config"] = function(config_path)
-  local _33_, _34_ = loadfile_local_config(config_path)
-  if (nil ~= _33_) then
-    local config = _33_
+  local _29_, _30_ = loadfile_local_config(config_path)
+  if (nil ~= _29_) then
+    local config = _29_
     return config
-  elseif ((_33_ == nil) and (nil ~= _34_)) then
-    local err = _34_
+  elseif ((_29_ == nil) and (nil ~= _30_)) then
+    local err = _30_
     vim.notify(fmt(("Hotpot could not load local config due to lua error.\n" .. "Path: %s\n" .. "Error: %s"), config_path, err), vim.log.levels.WARN)
     return nil
-  elseif (_33_ == nil) then
+  elseif (_29_ == nil) then
     vim.notify(fmt(("Hotpot found local config but it return nil. " .. "Please update it to return a table instead of nil.\n" .. "Path: %s\n"), config_path), vim.log.levels.WARN)
     return nil
   else
@@ -173,16 +157,16 @@ M["config-for-context"] = function(file)
   if (nil == file) then
     return M["user-config"]()
   else
-    local _36_ = M["lookup-local-config"](file)
-    if (_36_ == nil) then
+    local _32_ = M["lookup-local-config"](file)
+    if (_32_ == nil) then
       return M["user-config"]()
-    elseif (nil ~= _36_) then
-      local config_path = _36_
-      local _37_ = M["loadfile-local-config"](config_path)
-      if (nil ~= _37_) then
-        local config = _37_
+    elseif (nil ~= _32_) then
+      local config_path = _32_
+      local _33_ = M["loadfile-local-config"](config_path)
+      if (nil ~= _33_) then
+        local config = _33_
         return config
-      elseif (_37_ == nil) then
+      elseif (_33_ == nil) then
         vim.notify("Using safe defaults", vim.log.levels.WARN)
         return M["default-config"]()
       else
@@ -195,11 +179,11 @@ M["config-for-context"] = function(file)
 end
 M["set-user-config"](M["default-config"]())
 M["proxied-keys"] = "traceback"
-local function _41_(_241, _242)
+local function _37_(_241, _242)
   if (_242 == "traceback") then
     return lazy_traceback()
   else
     return nil
   end
 end
-return setmetatable(M, {__index = _41_})
+return setmetatable(M, {__index = _37_})
