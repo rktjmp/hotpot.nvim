@@ -6,6 +6,14 @@ to "core" code (things that effect loading and running your code/config) are
 avoided but breaking changes to the API (things that might effect your bindings
 and auto commands) are treated with less reverence.
 
+## 0.14.0
+
+- **Remove `provide_require_fennel` option**, support for `require("fennel")`
+  is now always provided.
+- **Always enable diagnostics**. Previously was enabled by default, but only if
+  you called `setup()`, now enabled by `require("hotpot")`.
+- Add `./fnl` paths to `fennel.path` and `fennel.macro-path` when compiling.
+
 ## 0.13.1
 
 - Improve Rocks.nvim compatibility.
