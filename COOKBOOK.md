@@ -327,6 +327,30 @@ compiler = {
 
 ## Writing `~/.config/nvim/init.lua` in Fennel
 
+**Using `.hotpot.lua`**
+
+You can configure a `.hotpot.lua` file to build `init.fnl`, see [using
+`.hotpot.lua`](#using-dot-hotpot) for more information.
+
+You should be aware that the presence of a `.hotpot.lua` file will disable any
+`compiler` options you pass to setup, so you should instead move them into the
+`.hotpot.lua` file.
+
+```lua
+-- ~/.config/nvim/.hotpot.lua
+
+return {
+  build = {
+    {verbose = true},
+    -- This will only compile init.fnl, all other fnl/ files will behave as normal.
+    {"init.fnl", true},
+    -- Or you could enable other patterns too,
+    -- {"colors/*.fnl", true},
+    -- {"fnl/**/*.fnl", true},
+  }
+}
+```
+
 **Using autocommands and `hotpot.api.make`**
 
 We can use a combination of the Make API and autocommands to write our main
@@ -381,31 +405,6 @@ Finally, we have to manually run this code *once* to generate the new `init.lua`
 - Start neovim in a new terminal to confirm the config loading is functioning
   without any errors.
 
-**Using `.hotpot.lua`**
-
-You can also configure a `.hotpot.lua` file to build `init.fnl`, see [using
-`.hotpot.lua`](#using-dot-hotpot) for more information.
-
-You should be aware that the presence of a `.hotpot.lua` file will disable any
-`compiler` options you pass to setup, so you should instead move them into the
-`.hotpot.lua` file.
-
-Your build instructions can be as broad or slim as you want:
-
-```lua
--- ~/.config/nvim/.hotpot.lua
-
-return {
-  build = {
-    {verbose = true},
-    -- This will only compile init.fnl, all other fnl/ files will behave as normal.
-    {"init.fnl", true},
-    -- Or you could enable other patterns too,
-    -- {"colors/*.fnl", true},
-    -- {"fnl/**/*.fnl", true},
-  }
-}
-```
 
 ## Write an ftplugin
 
