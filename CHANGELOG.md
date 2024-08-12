@@ -6,6 +6,10 @@ to "core" code (things that effect loading and running your code/config) are
 avoided but breaking changes to the API (things that might effect your bindings
 and auto commands) are treated with less reverence.
 
+## 0.14.1
+
+- Disable Fennel's stderr output (temporarily) when it encounters compiler warnings.
+
 ## 0.14.0
 
 - **Remove `provide_require_fennel` option**, support for `require("fennel")`
