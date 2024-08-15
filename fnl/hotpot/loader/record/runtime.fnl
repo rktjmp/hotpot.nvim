@@ -18,10 +18,12 @@
         ;; Convert /a/b/c/nvim/ftplugin/x.fnl into
         ;; /a/b/c/nvim/ <- context, the last path section defines our namespace
         ;; ftplugin/x.fnl <- inside context
-        unescaped-context-pattern (fmt "(%s/%s%%.%s)$" runtime-type modname-suffix ext)
-        ;; escape regex pattern, e.g. plugin/x-y%.fnl -> plugin/x%-y%.fnl,
-        ;; this is identical to vim.pesc except we preserve any '.' in the pattern.
-        context-pattern (string.gsub unescaped-context-pattern "[%(%)%%%+%-%*%?%[%]%^%$]" "%%%1")
+        context-pattern (fmt "(%s/%s%%.%s)$"
+                             runtime-type
+                             ;; escape regex pattern, e.g. plugin/x-y%.fnl -> plugin/x%-y%.fnl,
+                             ;; this is identical to vim.pesc except we preserve any '.' in the pattern.
+                             (string.gsub modname-suffix "[%(%)%%%+%-%*%?%[%]%^%$]" "%%%1")
+                             ext)
         path-inside-context-dir (string.match src-path context-pattern)
         path-to-context-dir (string.sub src-path 1 (* -1 (+ (length path-inside-context-dir) 1)))
         ;; ftplugin/y.fnl -> lua/hotpot-runtime-ftplugin/y.lua
