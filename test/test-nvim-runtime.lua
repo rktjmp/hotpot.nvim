@@ -5,18 +5,18 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
   local function write_file(path, lines)
     vim.fn.mkdir(vim.fs.dirname(path), "p")
     local fh = assert(io.open(path, "w"), ("fs.write-file! io.open failed:" .. path))
-    local function close_handlers_10_auto(ok_11_auto, ...)
+    local function close_handlers_12_auto(ok_13_auto, ...)
       fh:close()
-      if ok_11_auto then
+      if ok_13_auto then
         return ...
       else
         return error(..., 0)
       end
     end
-    local function _3_()
+    local function _2_()
       return fh:write(lines)
     end
-    return close_handlers_10_auto(_G.xpcall(_3_, (package.loaded.fennel or debug).traceback))
+    return close_handlers_12_auto(_G.xpcall(_2_, (package.loaded.fennel or _G.debug or {}).traceback))
   end
   local results = {passes = 0, fails = 0}
   local function OK(message)
@@ -31,17 +31,17 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
     print("\n")
     return os.exit(results.fails)
   end
-  do end (vim.opt.runtimepath):prepend(vim.loop.cwd())
+  vim.opt.runtimepath:prepend(vim.loop.cwd())
   require("hotpot")
   return {["write-file"] = write_file, ["read-file"] = read_file, OK = OK, FAIL = FAIL, exit = exit, NVIM_APPNAME = vim.env.NVIM_APPNAME}
 end
-local _local_1_ = require("test.utils")
-local FAIL = _local_1_["FAIL"]
-local NVIM_APPNAME = _local_1_["NVIM_APPNAME"]
-local OK = _local_1_["OK"]
-local exit = _local_1_["exit"]
-local read_file = _local_1_["read-file"]
-local write_file = _local_1_["write-file"]
+local _local_3_ = require("test.utils")
+local FAIL = _local_3_["FAIL"]
+local NVIM_APPNAME = _local_3_["NVIM_APPNAME"]
+local OK = _local_3_["OK"]
+local exit = _local_3_["exit"]
+local read_file = _local_3_["read-file"]
+local write_file = _local_3_["write-file"]
 local function p(x)
   return (vim.fn.stdpath("config") .. x)
 end
@@ -55,7 +55,7 @@ local function make_plugin(file)
   return fnl_path, lua_path
 end
 local plugin_path_1, lua_path_1 = make_plugin("my_plugin_1")
-local plugin_path_2, lua_path_2 = make_plugin("nested/deeply/my_plugin_2")
+local plugin_path_2, lua_path_2 = make_plugin("nested/deeply/my-plugin-2")
 local plugin_path_3, lua_path_3 = make_plugin("init")
 local plugin_path_4, lua_path_4 = make_plugin("init/init.fnl")
 local lua_paths = {lua_path_1, lua_path_2, lua_path_3, lua_path_4}
@@ -92,17 +92,17 @@ do
 end
 local stats_before
 do
-  local tbl_19_auto = {}
-  local i_20_auto = 0
+  local tbl_21_auto = {}
+  local i_22_auto = 0
   for _, path in ipairs(lua_paths) do
-    local val_21_auto = vim.loop.fs_stat(path)
-    if (nil ~= val_21_auto) then
-      i_20_auto = (i_20_auto + 1)
-      do end (tbl_19_auto)[i_20_auto] = val_21_auto
+    local val_23_auto = vim.loop.fs_stat(path)
+    if (nil ~= val_23_auto) then
+      i_22_auto = (i_22_auto + 1)
+      tbl_21_auto[i_22_auto] = val_23_auto
     else
     end
   end
-  stats_before = tbl_19_auto
+  stats_before = tbl_21_auto
 end
 do
   local _10_
@@ -121,17 +121,17 @@ do
 end
 local stats_after
 do
-  local tbl_19_auto = {}
-  local i_20_auto = 0
+  local tbl_21_auto = {}
+  local i_22_auto = 0
   for _, path in ipairs(lua_paths) do
-    local val_21_auto = vim.loop.fs_stat(path)
-    if (nil ~= val_21_auto) then
-      i_20_auto = (i_20_auto + 1)
-      do end (tbl_19_auto)[i_20_auto] = val_21_auto
+    local val_23_auto = vim.loop.fs_stat(path)
+    if (nil ~= val_23_auto) then
+      i_22_auto = (i_22_auto + 1)
+      tbl_21_auto[i_22_auto] = val_23_auto
     else
     end
   end
-  stats_after = tbl_19_auto
+  stats_after = tbl_21_auto
 end
 do
   local _13_
