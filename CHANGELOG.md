@@ -6,6 +6,10 @@ to "core" code (things that effect loading and running your code/config) are
 avoided but breaking changes to the API (things that might effect your bindings
 and auto commands) are treated with less reverence.
 
+## 0.14.2
+
+- Fix support for dashes in runtime plugin paths, eg: `plugin/my-plugin.fnl`.
+
 ## 0.14.1
 
 - Disable Fennel's stderr output (temporarily) when it encounters compiler warnings.
