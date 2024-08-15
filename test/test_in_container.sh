@@ -10,7 +10,9 @@ start_at=$(date +%s)
 failed=0
 
 echo "Building test image"
-test_image_id=$($podman_command build $podman_flags --quiet -f ./test/Containerfile .)
+test_image_id=$($podman_command build $podman_flags --quiet \
+                --ignorefile ./test/Containerignore \
+                -f ./test/Containerfile .)
 echo "Image id: $test_image_id"
 
 echo "Running tests in $test_image_id"
