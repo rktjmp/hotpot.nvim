@@ -14,7 +14,7 @@
     (values fnl-path lua-path)))
 
 (local (plugin-path-1 lua-path-1) (make-plugin :my_plugin_1))
-(local (plugin-path-2 lua-path-2) (make-plugin :nested/deeply/my_plugin_2))
+(local (plugin-path-2 lua-path-2) (make-plugin :nested/deeply/my-plugin-2))
 (local (plugin-path-3 lua-path-3) (make-plugin :init))
 (local (plugin-path-4 lua-path-4) (make-plugin :init/init.fnl))
 (local lua-paths [lua-path-1 lua-path-2 lua-path-3 lua-path-4])
