@@ -11,7 +11,7 @@ fi
 for t in ${tests[@]};
 do
   echo "SUITE START  $t..."
-  NVIM_APPNAME=$(uuidgen) $nvim_bin +"set columns=1000" --headless -l "${t}"
+  NVIM_APPNAME="nvim-$(uuidgen)" $nvim_bin +"set columns=1000" --headless -l "${t}"
   if [ $? -ne 0 ]; then
     echo "SUITE FAILED $t"
     failed_count=1
