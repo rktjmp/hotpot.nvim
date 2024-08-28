@@ -181,19 +181,19 @@ local function find_module(modname)
                   local e = _44_
                   return e
                 else
-                  local __85_auto = _43_
+                  local __87_auto = _43_
                   return ...
                 end
               end
               return _42_(loader)
             else
-              local __85_auto = _41_
+              local __87_auto = _41_
               return ...
             end
           end
           return _40_(record_loadfile(index))
         else
-          local __85_auto = _39_
+          local __87_auto = _39_
           return ...
         end
       end

@@ -25,17 +25,17 @@ local function fnl(start, stop, code, range_count)
   local function _7_(_241)
     local _8_
     do
-      local tbl_19_auto = {}
-      local i_20_auto = 0
+      local tbl_21_auto = {}
+      local i_22_auto = 0
       for _, v in ipairs(_241) do
-        local val_21_auto = view(v)
-        if (nil ~= val_21_auto) then
-          i_20_auto = (i_20_auto + 1)
-          do end (tbl_19_auto)[i_20_auto] = val_21_auto
+        local val_23_auto = view(v)
+        if (nil ~= val_23_auto) then
+          i_22_auto = (i_22_auto + 1)
+          tbl_21_auto[i_22_auto] = val_23_auto
         else
         end
       end
-      _8_ = tbl_19_auto
+      _8_ = tbl_21_auto
     end
     return print(table.concat(_8_, ", "))
   end
@@ -43,13 +43,13 @@ local function fnl(start, stop, code, range_count)
   local eval
   do
     local _10_ = {(2 == range_count), code}
-    if ((_G.type(_10_) == "table") and (_10_[1] == true) and (_10_[2] == "=")) then
+    if ((_10_[1] == true) and (_10_[2] == "=")) then
       local function _11_()
         local _12_ = {eval_range(0, start, stop)}
-        if ((_G.type(_12_) == "table") and (_12_[1] == true)) then
+        if (_12_[1] == true) then
           local rest = {select(2, (table.unpack or _G.unpack)(_12_))}
           return print_result(rest)
-        elseif ((_G.type(_12_) == "table") and (_12_[1] == false) and (nil ~= _12_[2])) then
+        elseif ((_12_[1] == false) and (nil ~= _12_[2])) then
           local e = _12_[2]
           return false, e
         else
@@ -57,56 +57,57 @@ local function fnl(start, stop, code, range_count)
         end
       end
       eval = _11_
-    elseif ((_G.type(_10_) == "table") and (_10_[1] == true) and (_10_[2] == "")) then
+    elseif ((_10_[1] == true) and (_10_[2] == "")) then
       local function _14_()
         return eval_range(0, start, stop)
       end
       eval = _14_
     else
-      local function _15_()
+      local and_15_ = ((_G.type(_10_) == "table") and true and (_10_[2] == code))
+      if and_15_ then
         local _ = _10_[1]
-        return ("=" == string.sub(code, 1, 1))
+        and_15_ = ("=" == string.sub(code, 1, 1))
       end
-      if (((_G.type(_10_) == "table") and true and (_10_[2] == code)) and _15_()) then
+      if and_15_ then
         local _ = _10_[1]
-        local function _16_()
-          local _17_ = {eval_string(string.sub(code, 2, -1))}
-          if ((_G.type(_17_) == "table") and (_17_[1] == true)) then
-            local rest = {select(2, (table.unpack or _G.unpack)(_17_))}
+        local function _17_()
+          local _18_ = {eval_string(string.sub(code, 2, -1))}
+          if (_18_[1] == true) then
+            local rest = {select(2, (table.unpack or _G.unpack)(_18_))}
             return print_result(rest)
-          elseif ((_G.type(_17_) == "table") and (_17_[1] == false) and (nil ~= _17_[2])) then
-            local e = _17_[2]
+          elseif ((_18_[1] == false) and (nil ~= _18_[2])) then
+            local e = _18_[2]
             return false, e
           else
             return nil
           end
         end
-        eval = _16_
-      elseif ((_G.type(_10_) == "table") and true and (_10_[2] == code)) then
+        eval = _17_
+      elseif (true and (_10_[2] == code)) then
         local _ = _10_[1]
-        local function _19_()
+        local function _20_()
           return eval_string(code)
         end
-        eval = _19_
+        eval = _20_
       else
         eval = nil
       end
     end
   end
-  local _21_, _22_ = eval()
-  if ((_21_ == false) and (nil ~= _22_)) then
-    local err = _22_
+  local _22_, _23_ = eval()
+  if ((_22_ == false) and (nil ~= _23_)) then
+    local err = _23_
     return error(err)
   else
     return nil
   end
 end
 local function fnlfile(file)
-  local _let_24_ = require("hotpot.api.eval")
-  local eval_file = _let_24_["eval-file"]
-  local _25_, _26_ = eval_file(file)
-  if ((_25_ == false) and (nil ~= _26_)) then
-    local err = _26_
+  local _let_25_ = require("hotpot.api.eval")
+  local eval_file = _let_25_["eval-file"]
+  local _26_, _27_ = eval_file(file)
+  if ((_26_ == false) and (nil ~= _27_)) then
+    local err = _27_
     return error(err)
   else
     return nil
@@ -114,23 +115,23 @@ local function fnlfile(file)
 end
 local function fnldo(start, stop, code)
   assert((code and (code ~= "")), "Fnldo: missing expression to execute!")
-  local _let_28_ = require("hotpot.fennel")
-  local eval = _let_28_["eval"]
-  local _let_29_ = require("hotpot.runtime")
-  local traceback = _let_29_["traceback"]
+  local _let_29_ = require("hotpot.fennel")
+  local eval = _let_29_["eval"]
+  local _let_30_ = require("hotpot.runtime")
+  local traceback = _let_30_["traceback"]
   local codestr = ("(fn [line linenr] " .. code .. ")")
   local func
   do
-    local _30_, _31_ = nil, nil
-    local function _32_()
+    local _31_, _32_ = nil, nil
+    local function _33_()
       return eval(codestr, {filename = "hotpot-fnldo"})
     end
-    _30_, _31_ = xpcall(_32_, traceback)
-    if ((_30_ == true) and (nil ~= _31_)) then
-      local func0 = _31_
+    _31_, _32_ = xpcall(_33_, traceback)
+    if ((_31_ == true) and (nil ~= _32_)) then
+      local func0 = _32_
       func = func0
-    elseif ((_30_ == false) and (nil ~= _31_)) then
-      local err = _31_
+    elseif ((_31_ == false) and (nil ~= _32_)) then
+      local err = _32_
       func = error(err)
     else
       func = nil

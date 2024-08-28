@@ -40,27 +40,27 @@ local function expand_string(msg, ...)
   local n = select("#", ...)
   local details
   do
-    local tbl_19_auto = {}
-    local i_20_auto = 0
+    local tbl_21_auto = {}
+    local i_22_auto = 0
     for i = 1, n do
-      local val_21_auto
+      local val_23_auto
       do
         local v = vargs[i]
         local _8_ = type(v)
         if (_8_ == "string") then
-          val_21_auto = v
+          val_23_auto = v
         else
           local _ = _8_
-          val_21_auto = view(v)
+          val_23_auto = view(v)
         end
       end
-      if (nil ~= val_21_auto) then
-        i_20_auto = (i_20_auto + 1)
-        do end (tbl_19_auto)[i_20_auto] = val_21_auto
+      if (nil ~= val_23_auto) then
+        i_22_auto = (i_22_auto + 1)
+        tbl_21_auto[i_22_auto] = val_23_auto
       else
       end
     end
-    details = tbl_19_auto
+    details = tbl_21_auto
   end
   return string.format(msg, unpack(details))
 end

@@ -1,9 +1,9 @@
 local uv = vim.loop
 local function read_file_21(path)
   local fh = assert(io.open(path, "r"), ("fs.read-file! io.open failed:" .. path))
-  local function close_handlers_10_auto(ok_11_auto, ...)
+  local function close_handlers_12_auto(ok_13_auto, ...)
     fh:close()
-    if ok_11_auto then
+    if ok_13_auto then
       return ...
     else
       return error(..., 0)
@@ -12,14 +12,14 @@ local function read_file_21(path)
   local function _2_()
     return fh:read("*a")
   end
-  return close_handlers_10_auto(_G.xpcall(_2_, (package.loaded.fennel or debug).traceback))
+  return close_handlers_12_auto(_G.xpcall(_2_, (package.loaded.fennel or _G.debug or {}).traceback))
 end
 local function write_file_21(path, lines)
   assert(("string" == type(lines)), "write file expects string")
   local fh = assert(io.open(path, "w"), ("fs.write-file! io.open failed:" .. path))
-  local function close_handlers_10_auto(ok_11_auto, ...)
+  local function close_handlers_12_auto(ok_13_auto, ...)
     fh:close()
-    if ok_11_auto then
+    if ok_13_auto then
       return ...
     else
       return error(..., 0)
@@ -28,7 +28,7 @@ local function write_file_21(path, lines)
   local function _4_()
     return fh:write(lines)
   end
-  return close_handlers_10_auto(_G.xpcall(_4_, (package.loaded.fennel or debug).traceback))
+  return close_handlers_12_auto(_G.xpcall(_4_, (package.loaded.fennel or _G.debug or {}).traceback))
 end
 local function is_lua_path_3f(path)
   return (path and (nil ~= string.match(path, "%.lua$")))

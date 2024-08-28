@@ -284,13 +284,13 @@ local function compile_record(record, modules_options, macros_options, preproces
           local deps = _49_
           return true, deps
         else
-          local __85_auto = _49_
+          local __87_auto = _49_
           return ...
         end
       end
       return _48_((deps_for_fnl_path(src_path) or {}))
     else
-      local __85_auto = _47_
+      local __87_auto = _47_
       return ...
     end
   end

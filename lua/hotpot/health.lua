@@ -1,24 +1,24 @@
 local uv = (vim.uv or vim.loop)
-local function _3_(...)
-  local _2_ = vim.health
-  if ((_G.type(_2_) == "table") and (nil ~= _2_.ok) and (nil ~= _2_.info) and (nil ~= _2_.error) and (nil ~= _2_.start)) then
-    local ok = _2_.ok
-    local info = _2_.info
-    local error = _2_.error
-    local start = _2_.start
+local function _2_(...)
+  local _1_ = vim.health
+  if ((_G.type(_1_) == "table") and (nil ~= _1_.ok) and (nil ~= _1_.info) and (nil ~= _1_.error) and (nil ~= _1_.start)) then
+    local ok = _1_.ok
+    local info = _1_.info
+    local error = _1_.error
+    local start = _1_.start
     return {report_start = start, report_info = info, report_error = error, report_ok = ok}
-  elseif (nil ~= _2_) then
-    local other = _2_
+  elseif (nil ~= _1_) then
+    local other = _1_
     return other
   else
     return nil
   end
 end
-local _local_1_ = _3_(...)
-local report_start = _local_1_["report_start"]
-local report_info = _local_1_["report_info"]
-local report_ok = _local_1_["report_ok"]
-local report_error = _local_1_["report_error"]
+local _local_4_ = _2_(...)
+local report_start = _local_4_["report_start"]
+local report_info = _local_4_["report_info"]
+local report_ok = _local_4_["report_ok"]
+local report_error = _local_4_["report_error"]
 local function fmt(s, ...)
   return string.format(s, ...)
 end
@@ -28,67 +28,70 @@ local function bytes__3ehuman(bytes)
   end
   local function _5_(...)
     local _6_ = ...
-    local function _7_(...)
+    local and_7_ = ((_G.type(_6_) == "table") and (nil ~= _6_[1]) and (nil ~= _6_[2]))
+    if and_7_ then
       local bytes0 = _6_[1]
       local unit = _6_[2]
-      return (1023 < bytes0)
+      and_7_ = (1023 < bytes0)
     end
-    if (((_G.type(_6_) == "table") and (nil ~= _6_[1]) and (nil ~= _6_[2])) and _7_(...)) then
+    if and_7_ then
       local bytes0 = _6_[1]
       local unit = _6_[2]
-      local function _8_(...)
-        local _9_ = ...
-        local function _10_(...)
-          local kbytes = _9_[1]
-          local unit0 = _9_[2]
-          return (1023 < kbytes)
+      local function _9_(...)
+        local _10_ = ...
+        local and_11_ = ((_G.type(_10_) == "table") and (nil ~= _10_[1]) and (nil ~= _10_[2]))
+        if and_11_ then
+          local kbytes = _10_[1]
+          local unit0 = _10_[2]
+          and_11_ = (1023 < kbytes)
         end
-        if (((_G.type(_9_) == "table") and (nil ~= _9_[1]) and (nil ~= _9_[2])) and _10_(...)) then
-          local kbytes = _9_[1]
-          local unit0 = _9_[2]
-          local function _11_(...)
-            local _12_ = ...
-            local function _13_(...)
-              local mbytes = _12_[1]
-              local unit1 = _12_[2]
-              return (1023 < mbytes)
+        if and_11_ then
+          local kbytes = _10_[1]
+          local unit0 = _10_[2]
+          local function _13_(...)
+            local _14_ = ...
+            local and_15_ = ((_G.type(_14_) == "table") and (nil ~= _14_[1]) and (nil ~= _14_[2]))
+            if and_15_ then
+              local mbytes = _14_[1]
+              local unit1 = _14_[2]
+              and_15_ = (1023 < mbytes)
             end
-            if (((_G.type(_12_) == "table") and (nil ~= _12_[1]) and (nil ~= _12_[2])) and _13_(...)) then
-              local mbytes = _12_[1]
-              local unit1 = _12_[2]
-              local function _14_(...)
-                local _15_ = ...
-                if ((_G.type(_15_) == "table") and (nil ~= _15_[1]) and (nil ~= _15_[2])) then
-                  local gbytes = _15_[1]
-                  local unit2 = _15_[2]
+            if and_15_ then
+              local mbytes = _14_[1]
+              local unit1 = _14_[2]
+              local function _17_(...)
+                local _18_ = ...
+                if ((_G.type(_18_) == "table") and (nil ~= _18_[1]) and (nil ~= _18_[2])) then
+                  local gbytes = _18_[1]
+                  local unit2 = _18_[2]
                   return fmt(unit2, gbytes)
-                elseif ((_G.type(_15_) == "table") and (nil ~= _15_[1]) and (nil ~= _15_[2])) then
-                  local size = _15_[1]
-                  local unit2 = _15_[2]
+                elseif ((_G.type(_18_) == "table") and (nil ~= _18_[1]) and (nil ~= _18_[2])) then
+                  local size = _18_[1]
+                  local unit2 = _18_[2]
                   return fmt(unit2, size)
                 else
                   return nil
                 end
               end
-              return _14_({f(mbytes), "%.2fbg"})
-            elseif ((_G.type(_12_) == "table") and (nil ~= _12_[1]) and (nil ~= _12_[2])) then
-              local size = _12_[1]
-              local unit1 = _12_[2]
+              return _17_({f(mbytes), "%.2fbg"})
+            elseif ((_G.type(_14_) == "table") and (nil ~= _14_[1]) and (nil ~= _14_[2])) then
+              local size = _14_[1]
+              local unit1 = _14_[2]
               return fmt(unit1, size)
             else
               return nil
             end
           end
-          return _11_({f(kbytes), "%.2fmb"})
-        elseif ((_G.type(_9_) == "table") and (nil ~= _9_[1]) and (nil ~= _9_[2])) then
-          local size = _9_[1]
-          local unit0 = _9_[2]
+          return _13_({f(kbytes), "%.2fmb"})
+        elseif ((_G.type(_10_) == "table") and (nil ~= _10_[1]) and (nil ~= _10_[2])) then
+          local size = _10_[1]
+          local unit0 = _10_[2]
           return fmt(unit0, size)
         else
           return nil
         end
       end
-      return _8_({f(bytes0), "%dkb"})
+      return _9_({f(bytes0), "%dkb"})
     elseif ((_G.type(_6_) == "table") and (nil ~= _6_[1]) and (nil ~= _6_[2])) then
       local size = _6_[1]
       local unit = _6_[2]
@@ -107,22 +110,23 @@ local function disk_info()
   local paths = vim.fn.globpath(cache_root, "**", true, true, true)
   local count = #paths
   local size
-  local function _20_()
+  local function _23_()
     local size0 = 0
     for _, p in ipairs(paths) do
-      local function _21_(...)
-        local t_22_ = uv.fs_stat(p)
-        if (nil ~= t_22_) then
-          t_22_ = t_22_.size
+      local _25_
+      do
+        local t_24_ = uv.fs_stat(p)
+        if (nil ~= t_24_) then
+          t_24_ = t_24_.size
         else
         end
-        return t_22_
+        _25_ = t_24_
       end
-      size0 = (size0 + _21_() + 0)
+      size0 = (size0 + _25_ + 0)
     end
     return size0
   end
-  size = bytes__3ehuman(_20_())
+  size = bytes__3ehuman(_23_())
   report_info(fmt("Cache root path: %s", cache_root))
   return report_info(fmt("Cache size: %s files, %s", count, size))
 end
@@ -132,11 +136,11 @@ local function log_info()
   local path = logger.path()
   local size
   do
-    local _24_ = uv.fs_stat(path)
-    if (_24_ == nil) then
+    local _27_ = uv.fs_stat(path)
+    if (_27_ == nil) then
       size = 0
-    elseif ((_G.type(_24_) == "table") and (nil ~= _24_.size)) then
-      local size0 = _24_.size
+    elseif ((_G.type(_27_) == "table") and (nil ~= _27_.size)) then
+      local size0 = _27_.size
       size = bytes__3ehuman(size0)
     else
       size = nil
@@ -147,8 +151,8 @@ local function log_info()
 end
 local function searcher_info()
   report_start("Hotpot Module Searcher")
-  local _let_26_ = require("hotpot.loader")
-  local searcher = _let_26_["searcher"]
+  local _let_29_ = require("hotpot.loader")
+  local searcher = _let_29_["searcher"]
   local expected_index = 2
   local actual_index
   do

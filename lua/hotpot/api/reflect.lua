@@ -33,7 +33,7 @@ local function do_eval(str, compiler_options)
     local function _6_(...)
       local s = ""
       for _, v in ipairs({...}) do
-        s = (s .. view(v) .. "\9")
+        s = (s .. view(v) .. "\t")
       end
       return s
     end
@@ -76,39 +76,38 @@ local function default_session(buf)
 end
 local function _set_extmarks(session, start_line, start_col, stop_line, stop_col)
   do
-    local _let_12_ = vim.api
-    local nvim_buf_set_extmark = _let_12_["nvim_buf_set_extmark"]
+    local nvim_buf_set_extmark = vim.api["nvim_buf_set_extmark"]
     local start = nvim_buf_set_extmark(session["input-buf"], session.ns, start_line, start_col, {id = session["mark-start"], sign_text = "(*", sign_hl_group = "DiagnosticHint", strict = false})
     local stop = nvim_buf_set_extmark(session["input-buf"], session.ns, stop_line, stop_col, {id = session["mark-stop"], virt_text = {{" *)", "DiagnosticHint"}}, virt_text_pos = "eol", strict = false})
-    do end (session)["mark-start"] = start
+    session["mark-start"] = start
     session["mark-stop"] = stop
     session["extmark-memory"] = {start_line, start_col, stop_line, stop_col}
   end
   return session
 end
 local function _get_extmarks(session)
-  local _local_13_ = require("hotpot.api.get_text")
-  local get_range = _local_13_["get-range"]
-  local _let_14_ = api.nvim_buf_get_extmark_by_id(session["input-buf"], session.ns, session["mark-start"], {})
-  local start_l = _let_14_[1]
-  local start_c = _let_14_[2]
-  local _let_15_ = api.nvim_buf_get_extmark_by_id(session["input-buf"], session.ns, session["mark-stop"], {})
-  local stop_l = _let_15_[1]
-  local stop_c = _let_15_[2]
+  local _local_12_ = require("hotpot.api.get_text")
+  local get_range = _local_12_["get-range"]
+  local _let_13_ = api.nvim_buf_get_extmark_by_id(session["input-buf"], session.ns, session["mark-start"], {})
+  local start_l = _let_13_[1]
+  local start_c = _let_13_[2]
+  local _let_14_ = api.nvim_buf_get_extmark_by_id(session["input-buf"], session.ns, session["mark-stop"], {})
+  local stop_l = _let_14_[1]
+  local stop_c = _let_14_[2]
   local positions = {start_l, start_c, stop_l, stop_c}
   local ok_3f, positions0 = nil, nil
   if ((_G.type(positions) == "table") and (nil ~= positions[1]) and (nil ~= positions[2]) and (positions[1] == positions[3]) and (positions[2] == positions[4])) then
     local l = positions[1]
     local c = positions[2]
-    local _16_, _17_ = nil, nil
+    local _15_, _16_ = nil, nil
     do
-      _16_, _17_ = pcall(_set_extmarks, session, unpack(session["extmark-memory"]))
+      _15_, _16_ = pcall(_set_extmarks, session, unpack(session["extmark-memory"]))
     end
-    if ((_16_ == true) and true) then
-      local _ = _17_
+    if ((_15_ == true) and true) then
+      local _ = _16_
       ok_3f, positions0 = true, session["extmark-memory"]
-    elseif ((_16_ == false) and (nil ~= _17_)) then
-      local err = _17_
+    elseif ((_15_ == false) and (nil ~= _16_)) then
+      local err = _16_
       ok_3f, positions0 = false, err
     else
       ok_3f, positions0 = nil
@@ -124,12 +123,12 @@ local function _get_extmarks(session)
   return ok_3f, positions0
 end
 local function _get_extmarks_content(session, start_l, start_c, stop_l, stop_c)
-  local _21_, _22_ = pcall(api.nvim_buf_get_text, session["input-buf"], start_l, start_c, stop_l, stop_c, {})
-  if ((_21_ == true) and (nil ~= _22_)) then
-    local text = _22_
+  local _20_, _21_ = pcall(api.nvim_buf_get_text, session["input-buf"], start_l, start_c, stop_l, stop_c, {})
+  if ((_20_ == true) and (nil ~= _21_)) then
+    local text = _21_
     return table.concat(text, "\n")
-  elseif ((_21_ == false) and (nil ~= _22_)) then
-    local err = _22_
+  elseif ((_20_ == false) and (nil ~= _21_)) then
+    local err = _21_
     return err
   else
     return nil
@@ -137,48 +136,46 @@ local function _get_extmarks_content(session, start_l, start_c, stop_l, stop_c)
 end
 local function autocmd_handler(session)
   local function process_eval(source)
-    local _let_24_ = session
-    local compiler_options = _let_24_["compiler-options"]
+    local compiler_options = session["compiler-options"]
     local ok_3f, viewed, printed = do_eval(source, compiler_options)
     local output
-    local function _25_(_241)
+    local function _23_(_241)
       if (0 < #_241) then
         return (_241 .. "\n\n" .. viewed)
       else
         return viewed
       end
     end
-    local _27_
+    local _25_
     do
-      local tbl_19_auto = {}
-      local i_20_auto = 0
+      local tbl_21_auto = {}
+      local i_22_auto = 0
       for i, p in ipairs((printed or {})) do
-        local val_21_auto = (";;=> " .. p)
-        if (nil ~= val_21_auto) then
-          i_20_auto = (i_20_auto + 1)
-          do end (tbl_19_auto)[i_20_auto] = val_21_auto
+        local val_23_auto = (";;=> " .. p)
+        if (nil ~= val_23_auto) then
+          i_22_auto = (i_22_auto + 1)
+          tbl_21_auto[i_22_auto] = val_23_auto
         else
         end
       end
-      _27_ = tbl_19_auto
+      _25_ = tbl_21_auto
     end
-    output = _25_(table.concat(_27_, "\n"))
+    output = _23_(table.concat(_25_, "\n"))
     return ok_3f, output
   end
   local function process_compile(source)
-    local _let_29_ = session
-    local compiler_options = _let_29_["compiler-options"]
+    local compiler_options = session["compiler-options"]
     return do_compile(source, compiler_options)
   end
   if (session["mark-start"] and session["mark-stop"]) then
     local positions_3f, positions = _get_extmarks(session)
     local text
     do
-      local _30_, _31_ = positions_3f, positions
-      if ((_30_ == true) and (_31_ == positions)) then
+      local _27_, _28_ = positions_3f, positions
+      if ((_27_ == true) and (_28_ == positions)) then
         text = _get_extmarks_content(session, unpack(positions))
-      elseif ((_30_ == false) and (nil ~= _31_)) then
-        local err = _31_
+      elseif ((_27_ == false) and (nil ~= _28_)) then
+        local err = _28_
         text = ("Range was irrecoverably damaged by the editor, " .. "try re-selecting a range.\n" .. "Error:\n" .. positions)
       else
         text = nil
@@ -186,10 +183,10 @@ local function autocmd_handler(session)
     end
     local result_ok_3f, result = nil, nil
     if positions_3f then
-      local _33_ = session.mode
-      if (_33_ == "eval") then
+      local _30_ = session.mode
+      if (_30_ == "eval") then
         result_ok_3f, result = process_eval(text)
-      elseif (_33_ == "compile") then
+      elseif (_30_ == "compile") then
         result_ok_3f, result = process_compile(text)
       else
         result_ok_3f, result = nil
@@ -199,27 +196,26 @@ local function autocmd_handler(session)
     end
     local lines = {}
     local append
-    local function _36_(_241)
+    local function _33_(_241)
       return table.insert(lines, _241)
     end
-    append = _36_
+    append = _33_
     local blank
-    local function _37_()
+    local function _34_()
       return table.insert(lines, "")
     end
-    blank = _37_
+    blank = _34_
     local commented
-    local function _38_(_241)
-      local function _39_()
-        if (session.mode == "compile") then
-          return "-- "
-        else
-          return ";; "
-        end
+    local function _35_(_241)
+      local _36_
+      if (session.mode == "compile") then
+        _36_ = "-- "
+      else
+        _36_ = ";; "
       end
-      return (_39_() .. _241)
+      return (_36_ .. _241)
     end
-    commented = _38_
+    commented = _35_
     if result_ok_3f then
       append(commented((session.mode .. " = OK")))
     else
@@ -234,7 +230,7 @@ local function autocmd_handler(session)
     for _, line in ipairs(split_string(text, "\n")) do
       append(commented(line))
     end
-    local function _41_()
+    local function _39_()
       vim.api.nvim_buf_set_lines(session["output-buf"], 0, -1, false, lines)
       if ("eval" == session.mode) then
         return vim.api.nvim_buf_set_option(session["output-buf"], "filetype", "fennel")
@@ -242,21 +238,21 @@ local function autocmd_handler(session)
         return vim.api.nvim_buf_set_option(session["output-buf"], "filetype", "lua")
       end
     end
-    return vim.schedule(_41_)
+    return vim.schedule(_39_)
   else
     return nil
   end
 end
 local function attach_extmarks(session)
-  local _let_44_ = require("hotpot.api.get_text")
-  local get_highlight = _let_44_["get-highlight"]
-  local _let_45_, _let_46_ = get_highlight()
-  local _let_47_ = _let_45_
-  local vis_start_l = _let_47_[1]
-  local vis_start_c = _let_47_[2]
-  local _let_48_ = _let_46_
-  local vis_stop_l = _let_48_[1]
-  local vis_stop_c = _let_48_[2]
+  local _let_42_ = require("hotpot.api.get_text")
+  local get_highlight = _let_42_["get-highlight"]
+  local _let_43_, _let_44_ = get_highlight()
+  local _let_45_ = _let_43_
+  local vis_start_l = _let_45_[1]
+  local vis_start_c = _let_45_[2]
+  local _let_46_ = _let_44_
+  local vis_stop_l = _let_46_[1]
+  local vis_stop_c = _let_46_[2]
   local ex_start_l = (vis_start_l - 1)
   local ex_start_c = (vis_start_c - 1)
   local ex_stop_l = (vis_stop_l - 1)
@@ -265,30 +261,28 @@ local function attach_extmarks(session)
   return session
 end
 local function clear_extmarks(session)
-  local _let_49_ = session
-  local mark_start = _let_49_["mark-start"]
-  local mark_stop = _let_49_["mark-stop"]
+  local mark_start = session["mark-start"]
+  local mark_stop = session["mark-stop"]
   api.nvim_buf_del_extmark(session["input-buf"], session.ns, mark_start)
   api.nvim_buf_del_extmark(session["input-buf"], session.ns, mark_stop)
-  do end (session)["mark-start"] = nil
+  session["mark-start"] = nil
   session["mark-stop"] = nil
   session["extmark-memory"] = nil
   return session
 end
 local function attach_autocmd(session)
   local au
-  local function _50_()
+  local function _47_()
     return autocmd_handler(session)
   end
-  au = api.nvim_create_autocmd({"TextChanged", "InsertLeave"}, {buffer = session["input-buf"], desc = ("hotpot-reflect autocmd for buf#" .. session["input-buf"]), callback = _50_})
-  do end (session)["au"] = au
+  au = api.nvim_create_autocmd({"TextChanged", "InsertLeave"}, {buffer = session["input-buf"], desc = ("hotpot-reflect autocmd for buf#" .. session["input-buf"]), callback = _47_})
+  session["au"] = au
   return session
 end
 local function clear_autocmd(session)
-  local _let_51_ = session
-  local au = _let_51_["au"]
+  local au = session["au"]
   api.nvim_del_autocmd(au)
-  do end (session)["au"] = nil
+  session["au"] = nil
   return session
 end
 local function close_session(session)
@@ -302,7 +296,7 @@ end
 M["attach-output"] = function(given_buf_id)
   local buf = resolve_buf_id(given_buf_id)
   local session = default_session(buf)
-  do end (sessions)[session.id] = session
+  sessions[session.id] = session
   do
     api.nvim_buf_set_name(buf, ("hotpot-reflect-session#" .. buf))
     api.nvim_buf_set_option(buf, "buftype", "nofile")
@@ -310,24 +304,24 @@ M["attach-output"] = function(given_buf_id)
     api.nvim_buf_set_option(buf, "bufhidden", "wipe")
     api.nvim_buf_set_option(buf, "filetype", "lua")
   end
-  local function _53_()
+  local function _49_()
     return close_session(session)
   end
-  api.nvim_create_autocmd({"BufWipeout"}, {buffer = buf, once = true, callback = _53_})
-  local function _54_(_241)
+  api.nvim_create_autocmd({"BufWipeout"}, {buffer = buf, once = true, callback = _49_})
+  local function _50_(_241)
     return M.attach(session.id, _241)
   end
-  local function _55_(_241)
+  local function _51_(_241)
     return M.detach(session.id, _241)
   end
-  return session.id, {attach = _54_, detach = _55_}
+  return session.id, {attach = _50_, detach = _51_}
 end
 M["detach-input"] = function(session_id)
   local session = sessions[session_id]
   assert(session, string.format("Could not find session with given id %s", tostring(session_id)))
   clear_extmarks(session)
   clear_autocmd(session)
-  do end (session)["input-buf"] = nil
+  session["input-buf"] = nil
   return session.id
 end
 M["attach-input"] = function(session_id, given_buf_id, _3fcompiler_options)
@@ -340,11 +334,11 @@ M["attach-input"] = function(session_id, given_buf_id, _3fcompiler_options)
   local buf = resolve_buf_id(given_buf_id)
   local fname
   do
-    local _57_ = api.nvim_buf_get_name(buf)
-    if (_57_ == "") then
+    local _53_ = api.nvim_buf_get_name(buf)
+    if (_53_ == "") then
       fname = nil
-    elseif (nil ~= _57_) then
-      local name = _57_
+    elseif (nil ~= _53_) then
+      local name = _53_
       fname = name
     else
       fname = nil
@@ -352,13 +346,13 @@ M["attach-input"] = function(session_id, given_buf_id, _3fcompiler_options)
   end
   local real_compiler_options
   if _3fcompiler_options then
-    local function _59_(_241)
+    local function _55_(_241)
       return _241
     end
-    real_compiler_options = vim.tbl_extend("keep", _3fcompiler_options, {modules = {}, macros = {env = "_COMPILER"}, preprocessor = _59_})
+    real_compiler_options = vim.tbl_extend("keep", _3fcompiler_options, {modules = {}, macros = {env = "_COMPILER"}, preprocessor = _55_})
   else
-    local _let_60_ = require("hotpot.runtime")
-    local config_for_context = _let_60_["config-for-context"]
+    local _let_56_ = require("hotpot.runtime")
+    local config_for_context = _let_56_["config-for-context"]
     local context_loc
     if (fname == nil) then
       context_loc = vim.fn.getcwd()
@@ -382,7 +376,7 @@ M["set-mode"] = function(session_id, mode)
   local session = sessions[session_id]
   assert(session, string.format("Could not find session with given id %s", tostring(session_id)))
   assert(((mode == "compile") or (mode == "eval")), ("mode must be :compile or :eval, got " .. tostring(mode)))
-  do end (session)["mode"] = mode
+  session["mode"] = mode
   autocmd_handler(session)
   return session.id
 end
