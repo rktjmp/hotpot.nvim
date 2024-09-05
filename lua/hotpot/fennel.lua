@@ -5738,7 +5738,7 @@ package.preload["fennel.utils"] = package.preload["fennel.utils"] or function(..
             end
           end
         end
-        return (_G.io.stderr):write(("--WARNING: %s%s\n"):format(loc, msg))
+        return -- (_G.io.stderr):write(("--WARNING: %s%s\n"):format(loc, msg))
       end
     end
   end
