@@ -6,6 +6,10 @@ to "core" code (things that effect loading and running your code/config) are
 avoided but breaking changes to the API (things that might effect your bindings
 and auto commands) are treated with less reverence.
 
+## 0.14.4
+
+- Disable Fennel's stderr output (configuration option bugged upstream) when it encounters compiler warnings.
+
 ## 0.14.3
 
 - Updated to Fennel 1.5.1, may contain unintended breaking changes from
