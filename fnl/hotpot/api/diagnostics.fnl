@@ -1,5 +1,5 @@
-;; track error data per-buffer so we can get full errors or interrogate "has error?"
-(local data {})
+(local ft-autocmd-data {})
+(local per-buf-data {})
 (local M {})
 (local api vim.api)
 
@@ -14,23 +14,19 @@
 
 (fn record-attachment [buf ns au-group handler]
   "Save attachment data"
-  (tset data buf {: ns
-                  : buf
-                  : au-group
-                  : handler
-                  :err nil}))
+  (tset per-buf-data buf {: ns : buf : au-group : handler :err nil}))
 
 (fn record-detachment [buf]
   "Remove attachment data"
-  (tset data buf nil))
+  (tset per-buf-data buf nil))
 
 (fn set-buf-err [buf err]
   "Record last error in buffer, err may be nil to unset."
-  (tset data buf :err err))
+  (tset per-buf-data buf :err err))
 
 (fn data-for-buf [buf]
   "Get known data for buffer."
-  (. data buf))
+  (. per-buf-data buf))
 
 (fn reset-diagnostic [ns]
   "Remove all diagnostics for ns."
@@ -171,17 +167,17 @@
     (match event
       {:match "fennel" :buf buf} (M.attach buf))
     (values nil))
-  (when (not data.au-group)
-    (set data.au-group (api.nvim_create_augroup :hotpot-diagnostics-enabled {:clear true}))
-    (api.nvim_create_autocmd "FileType" {:group data.au-group
+  (when (not ft-autocmd-data.au-group)
+    (set ft-autocmd-data.au-group (api.nvim_create_augroup :hotpot-diagnostics-enabled {:clear true}))
+    (api.nvim_create_autocmd "FileType" {:group ft-autocmd-data.au-group
                                          :pattern "fennel"
                                          :desc "Hotpot diagnostics auto-attach"
                                          :callback attach-hotpot-diagnostics})))
 (fn M.disable []
   "Disables filetype autocommand and detaches any attached buffers"
-  (api.nvim_clear_autocmds {:group data.au-group})
-  (each [_ {: buf} (pairs data)]
-    (M.detach buf))
-  (set data.au-group nil))
+  (api.nvim_clear_autocmds {:group ft-autocmd-data.au-group})
+  (set ft-autocmd-data.au-group nil)
+  (each [_ {: buf} (pairs per-buf-data)]
+    (M.detach buf)))
 
 (values M)
