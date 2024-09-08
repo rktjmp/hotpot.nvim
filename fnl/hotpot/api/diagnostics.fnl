@@ -118,7 +118,7 @@
                              {:buffer buf
                               :group au-group
                               :desc (.. "Hotpot diagnostics auto-detach on filetype change for buf#" buf)
-                              :callback #(match $1
+                              :callback #(case $1
                                            {:match "fennel"} nil
                                            _ (M.detach buf))})
     (record-attachment buf ns au-group handler)
@@ -134,14 +134,14 @@
   when given 0, this id will be the 'real' buffer id, otherwise it will match
   the original `buf` argument."
   (let [buf (resolve-buf-id user-buf)]
-    (match (data-for-buf buf)
+    (case (data-for-buf buf)
       nil (do-attach buf))
     (values buf)))
 
 (fn M.detach [user-buf ?opts]
   "Remove hotpot-diagnostic instance from buffer."
   (let [buf (resolve-buf-id user-buf)]
-    (match (data-for-buf buf)
+    (case (data-for-buf buf)
       {: ns : au-group} (do
                           (api.nvim_clear_autocmds {:group au-group
                                                     :buffer buf})
@@ -164,7 +164,7 @@
 (fn M.enable []
   "Enables autocommand to attach diagnostics to Fennel filetype buffers"
   (fn attach-hotpot-diagnostics [event]
-    (match event
+    (case event
       {:match "fennel" :buf buf} (M.attach buf))
     (values nil))
   (when (not ft-autocmd-data.au-group)
