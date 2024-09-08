@@ -1,4 +1,5 @@
-local data = {}
+local ft_autocmd_data = {}
+local per_buf_data = {}
 local M = {}
 local api = vim.api
 local function resolve_buf_id(id)
@@ -11,19 +12,19 @@ local function resolve_buf_id(id)
   end
 end
 local function record_attachment(buf, ns, au_group, handler)
-  data[buf] = {ns = ns, buf = buf, ["au-group"] = au_group, handler = handler, err = nil}
+  per_buf_data[buf] = {ns = ns, buf = buf, ["au-group"] = au_group, handler = handler, err = nil}
   return nil
 end
 local function record_detachment(buf)
-  data[buf] = nil
+  per_buf_data[buf] = nil
   return nil
 end
 local function set_buf_err(buf, err)
-  data[buf]["err"] = err
+  per_buf_data[buf]["err"] = err
   return nil
 end
 local function data_for_buf(buf)
-  return data[buf]
+  return per_buf_data[buf]
 end
 local function reset_diagnostic(ns)
   return vim.diagnostic.reset(ns)
@@ -223,20 +224,20 @@ M.enable = function()
     end
     return nil
   end
-  if not data["au-group"] then
-    data["au-group"] = api.nvim_create_augroup("hotpot-diagnostics-enabled", {clear = true})
-    return api.nvim_create_autocmd("FileType", {group = data["au-group"], pattern = "fennel", desc = "Hotpot diagnostics auto-attach", callback = attach_hotpot_diagnostics})
+  if not ft_autocmd_data["au-group"] then
+    ft_autocmd_data["au-group"] = api.nvim_create_augroup("hotpot-diagnostics-enabled", {clear = true})
+    return api.nvim_create_autocmd("FileType", {group = ft_autocmd_data["au-group"], pattern = "fennel", desc = "Hotpot diagnostics auto-attach", callback = attach_hotpot_diagnostics})
   else
     return nil
   end
 end
 M.disable = function()
-  api.nvim_clear_autocmds({group = data["au-group"]})
-  for _, _36_ in pairs(data) do
+  api.nvim_clear_autocmds({group = ft_autocmd_data["au-group"]})
+  ft_autocmd_data["au-group"] = nil
+  for _, _36_ in pairs(per_buf_data) do
     local buf = _36_["buf"]
     M.detach(buf)
   end
-  data["au-group"] = nil
   return nil
 end
 return M
