@@ -6,6 +6,10 @@ to "core" code (things that effect loading and running your code/config) are
 avoided but breaking changes to the API (things that might effect your bindings
 and auto commands) are treated with less reverence.
 
+## 0.14.7
+
+- Fix `:checkhealth hotpot` disk usage report attempting to `size + nil`.
+
 ## 0.14.6
 
 - Improve `:checkhealth hotpot` module seacher report when luarocks is present.
