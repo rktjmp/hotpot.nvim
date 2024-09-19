@@ -107,7 +107,7 @@ local function ensure_installed(plugin, branch)
   return repo_path
 end
 local lazy_path = ensure_installed("folke/lazy.nvim", "stable")
-local hotpot_path = ensure_installed("rktjmp/hotpot.nvim", "v0.14.0")
+local hotpot_path = ensure_installed("rktjmp/hotpot.nvim", "v0.14.6")
 -- As per Lazy's install instructions, but also include hotpot
 vim.opt.runtimepath:prepend({hotpot_path, lazy_path})
 
@@ -264,13 +264,13 @@ local function ensure_installed(plugin, branch)
 end
 
 ensure_installed("echasnovski/mini.nvim", "stable")
-ensure_installed("rktjmp/hotpot.nvim", "v0.14.0")
+ensure_installed("rktjmp/hotpot.nvim", "v0.14.6")
 
 require("hotpot") -- Optionally you may call require("hotpot").setup(...) here
 
 require("mini.deps").setup({path = {package = path_package}})
 MiniDeps.add({source = "echasnovski/mini.nvim", checkout = "stable"})
-MiniDeps.add({source = "rktjmp/hotpot.nvim", checkout = "v0.14.0"})
+MiniDeps.add({source = "rktjmp/hotpot.nvim", checkout = "v0.14.6"})
 
 -- Include the rest of your config
 require("say-hello")
