@@ -124,7 +124,7 @@ local function disk_report()
         end
         _25_ = t_24_
       end
-      size0 = (size0 + _25_ + 0)
+      size0 = (size0 + (_25_ or 0))
     end
     return size0
   end
