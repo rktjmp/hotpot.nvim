@@ -31,7 +31,7 @@
         paths (vim.fn.globpath cache-root "**" true true true)
         count (length paths)
         size (-> (accumulate [size 0 _ p (ipairs paths)]
-                   (+ size (or (?. (uv.fs_stat p) :size)) 0))
+                   (+ size (or (?. (uv.fs_stat p) :size) 0)))
                  (bytes->human))]
     (report_info (fmt "Cache root path: %s" cache-root))
     (report_info (fmt "Cache size: %s files, %s" count size))))
