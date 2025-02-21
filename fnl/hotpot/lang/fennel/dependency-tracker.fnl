@@ -39,7 +39,7 @@
                    (. macro-mods-paths mod))))
 
 (fn new [fnl-path required-from-modname]
-  {:versions [:1.1.0 :1.1.1 :1.2.0 :1.2.1 :1.3.0 :1.3.1 :1.4.0 :1.4.1 :1.4.2 :1.5.0 :1.5.1]
+  {:versions [:1.1.0 :1.1.1 :1.2.0 :1.2.1 :1.3.0 :1.3.1 :1.4.0 :1.4.1 :1.4.2 :1.5.0 :1.5.1 :1.5.3]
    :name (.. :hotpot-macro-dep-tracking-for- required-from-modname)
    :require-macros
    (fn plug-require-macros [ast scope]

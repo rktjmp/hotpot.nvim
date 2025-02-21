@@ -47,6 +47,6 @@ local function new(fnl_path, required_from_modname)
     end
     return nil
   end
-  return {versions = {"1.1.0", "1.1.1", "1.2.0", "1.2.1", "1.3.0", "1.3.1", "1.4.0", "1.4.1", "1.4.2", "1.5.0", "1.5.1"}, name = ("hotpot-macro-dep-tracking-for-" .. required_from_modname), ["require-macros"] = plug_require_macros}
+  return {versions = {"1.1.0", "1.1.1", "1.2.0", "1.2.1", "1.3.0", "1.3.1", "1.4.0", "1.4.1", "1.4.2", "1.5.0", "1.5.1", "1.5.3"}, name = ("hotpot-macro-dep-tracking-for-" .. required_from_modname), ["require-macros"] = plug_require_macros}
 end
 return {["deps-for-fnl-path"] = deps_for_fnl_path, ["set-macro-modname-path"] = set_macro_modname_path, new = new}
