@@ -15,14 +15,14 @@ jobs:
         sudo apt-get install uuid-runtime curl jq
         curl -sL https://api.github.com/repos/neovim/neovim/releases/latest | \
         jq -r '.assets[].browser_download_url' | \
-        grep nvim-linux64.tar.gz | \
+        grep nvim-linux-x86_64.tar.gz | \
         head -n 1 | \
         xargs curl -LO && \
-        tar zxf nvim-linux64.tar.gz
+        tar zxf nvim-linux-x86_64.tar.gz
 
     - name: Run tests
       run: |
-        NVIM_BIN=./nvim-linux64/bin/nvim /bin/bash test/test.sh
+        NVIM_BIN=./nvim-linux-x86_64/bin/nvim /bin/bash test/test.sh
         exit $?
 
   run_tests_windows:
