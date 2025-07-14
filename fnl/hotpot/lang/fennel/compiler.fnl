@@ -83,6 +83,7 @@
                       (tset :error-pinpoint false)
                       (tset :filename (or modules-options.filename :hotpot-compile-string)))
         _ (spooky-prepare-plugins! options)
+        _ (set options.warn #nil)
         preprocessor (or ?preprocessor (fn [src] src))
         source (preprocessor source {:macro false
                                      :macro? false

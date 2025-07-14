@@ -7,33 +7,33 @@ local function spooky_prepare_plugins_21(options)
   local fennel = require("hotpot.fennel")
   local plugins
   do
-    local tbl_21_auto = {}
-    local i_22_auto = 0
+    local tbl_21_ = {}
+    local i_22_ = 0
     for _i, plug in ipairs((options.plugins or {})) do
-      local val_23_auto
+      local val_23_
       do
         local _2_ = type(plug)
         if (_2_ == "string") then
           local _3_ = mod_search({prefix = "fnl", extension = "fnl", modnames = {plug}})
           if ((_G.type(_3_) == "table") and (nil ~= _3_[1])) then
             local path = _3_[1]
-            val_23_auto = fennel.dofile(path, {env = "_COMPILER", useMetadata = true, ["compiler-env"] = _G}, plug, path)
+            val_23_ = fennel.dofile(path, {env = "_COMPILER", useMetadata = true, ["compiler-env"] = _G}, plug, path)
           else
             local _ = _3_
-            val_23_auto = error(string.format("Could not find fennel compiler plugin %q", plug))
+            val_23_ = error(string.format("Could not find fennel compiler plugin %q", plug))
           end
         else
           local _ = _2_
-          val_23_auto = plug
+          val_23_ = plug
         end
       end
-      if (nil ~= val_23_auto) then
-        i_22_auto = (i_22_auto + 1)
-        tbl_21_auto[i_22_auto] = val_23_auto
+      if (nil ~= val_23_) then
+        i_22_ = (i_22_ + 1)
+        tbl_21_[i_22_] = val_23_
       else
       end
     end
-    plugins = tbl_21_auto
+    plugins = tbl_21_
   end
   options.plugins = plugins
   return nil
@@ -58,11 +58,11 @@ local function make_macro_loader(modname, fnl_path)
   preprocessor = _10_
   local options0
   do
-    local tmp_9_auto = options.macros
-    tmp_9_auto["error-pinpoint"] = false
-    tmp_9_auto["filename"] = fnl_path
-    tmp_9_auto["module-name"] = modname
-    options0 = tmp_9_auto
+    local tmp_9_ = options.macros
+    tmp_9_["error-pinpoint"] = false
+    tmp_9_["filename"] = fnl_path
+    tmp_9_["module-name"] = modname
+    options0 = tmp_9_
   end
   local _ = spooky_prepare_plugins_21(options0)
   local fnl_code
@@ -125,15 +125,21 @@ local function compile_string(source, modules_options, macros_options, _3fprepro
     options = modules_options
   end
   local _1 = spooky_prepare_plugins_21(options)
+  local _2
+  local function _21_()
+    return nil
+  end
+  options.warn = _21_
+  _2 = nil
   local preprocessor
-  local or_21_ = _3fpreprocessor
-  if not or_21_ then
-    local function _22_(src)
+  local or_22_ = _3fpreprocessor
+  if not or_22_ then
+    local function _23_(src)
       return src
     end
-    or_21_ = _22_
+    or_22_ = _23_
   end
-  preprocessor = or_21_
+  preprocessor = or_22_
   local source0 = preprocessor(source, {path = modules_options.filename, modname = modules_options.modname, macro = false, ["macro?"] = false})
   if not injected_macro_searcher_3f then
     table.insert(fennel["macro-searchers"], 1, macro_searcher)
@@ -142,10 +148,10 @@ local function compile_string(source, modules_options, macros_options, _3fprepro
   end
   table.insert(compiler_options_stack, 1, {modules = modules_options, macros = macros_options, preprocessor = preprocessor})
   local ok_3f, val = nil, nil
-  local function _24_()
+  local function _25_()
     return (fennel["compile-string"](source0, options))
   end
-  ok_3f, val = xpcall(_24_, traceback)
+  ok_3f, val = xpcall(_25_, traceback)
   fennel.path = saved_fennel_path
   fennel["macro-path"] = saved_fennel_macro_path
   table.remove(compiler_options_stack, 1)
@@ -154,14 +160,14 @@ local function compile_string(source, modules_options, macros_options, _3fprepro
   return ok_3f, val
 end
 local function compile_file(fnl_path, lua_path, modules_options, macros_options, _3fpreprocessor)
-  _G.assert((nil ~= macros_options), "Missing argument macros-options on fnl/hotpot/lang/fennel/compiler.fnl:113")
-  _G.assert((nil ~= modules_options), "Missing argument modules-options on fnl/hotpot/lang/fennel/compiler.fnl:113")
-  _G.assert((nil ~= lua_path), "Missing argument lua-path on fnl/hotpot/lang/fennel/compiler.fnl:113")
-  _G.assert((nil ~= fnl_path), "Missing argument fnl-path on fnl/hotpot/lang/fennel/compiler.fnl:113")
+  _G.assert((nil ~= macros_options), "Missing argument macros-options on fnl/hotpot/lang/fennel/compiler.fnl:114")
+  _G.assert((nil ~= modules_options), "Missing argument modules-options on fnl/hotpot/lang/fennel/compiler.fnl:114")
+  _G.assert((nil ~= lua_path), "Missing argument lua-path on fnl/hotpot/lang/fennel/compiler.fnl:114")
+  _G.assert((nil ~= fnl_path), "Missing argument fnl-path on fnl/hotpot/lang/fennel/compiler.fnl:114")
   local function check_existing(path)
     local uv = vim.loop
-    local _let_25_ = (uv.fs_stat(path) or {})
-    local type = _let_25_["type"]
+    local _let_26_ = (uv.fs_stat(path) or {})
+    local type = _let_26_["type"]
     if not (("file" == type) or (nil == type)) then
       local failed_what_1_auto = "(or (= \"file\" type) (= nil type))"
       local err_2_auto = string.format("%s [failed: %s]", "Refusing to write to %q, it exists as a %s", failed_what_1_auto)
@@ -171,14 +177,14 @@ local function compile_file(fnl_path, lua_path, modules_options, macros_options,
     end
   end
   local function do_compile()
-    local _let_27_ = require("hotpot.runtime")
-    local windows_3f = _let_27_["windows?"]
-    local _let_28_ = require("hotpot.fs")
-    local read_file_21 = _let_28_["read-file!"]
-    local write_file_21 = _let_28_["write-file!"]
-    local is_lua_path_3f = _let_28_["is-lua-path?"]
-    local is_fnl_path_3f = _let_28_["is-fnl-path?"]
-    local make_path = _let_28_["make-path"]
+    local _let_28_ = require("hotpot.runtime")
+    local windows_3f = _let_28_["windows?"]
+    local _let_29_ = require("hotpot.fs")
+    local read_file_21 = _let_29_["read-file!"]
+    local write_file_21 = _let_29_["write-file!"]
+    local is_lua_path_3f = _let_29_["is-lua-path?"]
+    local is_fnl_path_3f = _let_29_["is-fnl-path?"]
+    local make_path = _let_29_["make-path"]
     local _
     if not is_fnl_path_3f(fnl_path) then
       local failed_what_1_auto = "(is-fnl-path? fnl-path)"
@@ -197,12 +203,12 @@ local function compile_file(fnl_path, lua_path, modules_options, macros_options,
     end
     local fnl_code
     do
-      local _31_, _32_ = read_file_21(fnl_path)
-      if ((_31_ == nil) and (nil ~= _32_)) then
-        local err = _32_
+      local _32_, _33_ = read_file_21(fnl_path)
+      if ((_32_ == nil) and (nil ~= _33_)) then
+        local err = _33_
         fnl_code = error(err)
-      elseif (nil ~= _31_) then
-        local src = _31_
+      elseif (nil ~= _32_) then
+        local src = _32_
         fnl_code = src
       else
         fnl_code = nil
@@ -213,58 +219,58 @@ local function compile_file(fnl_path, lua_path, modules_options, macros_options,
       modules_options["filename"] = fnl_path
     else
     end
-    local _35_, _36_ = compile_string(fnl_code, modules_options, macros_options, _3fpreprocessor)
-    if ((_35_ == true) and (nil ~= _36_)) then
-      local lua_code = _36_
+    local _36_, _37_ = compile_string(fnl_code, modules_options, macros_options, _3fpreprocessor)
+    if ((_36_ == true) and (nil ~= _37_)) then
+      local lua_code = _37_
       check_existing(lua_path)
       make_path(vim.fs.dirname(lua_path))
       return write_file_21(lua_path, lua_code)
-    elseif ((_35_ == false) and (nil ~= _36_)) then
-      local errors = _36_
+    elseif ((_36_ == false) and (nil ~= _37_)) then
+      local errors = _37_
       return error(errors)
     else
       return nil
     end
   end
-  local function _38_(_241)
+  local function _39_(_241)
     local lines = vim.split(_241, "\n")
-    local function _39_()
+    local function _40_()
       local s,c = "", true
       for _, line in ipairs(lines) do
         if not c then break end
-        local function _41_()
-          local _40_ = string.find(line, "stack traceback:", 1, true)
-          if (_40_ == 1) then
+        local function _42_()
+          local _41_ = string.find(line, "stack traceback:", 1, true)
+          if (_41_ == 1) then
             return {s, false}
           else
-            local _0 = _40_
+            local _0 = _41_
             return {(s .. line .. "\n"), true}
           end
         end
-        local _set_43_ = _41_()
-        s = _set_43_[1]
-        c = _set_43_[2]
+        local _set_44_ = _42_()
+        s = _set_44_[1]
+        c = _set_44_[2]
       end
       return {s, c}
     end
-    local _let_44_ = _39_()
-    local s = _let_44_[1]
-    local _ = _let_44_[2]
+    local _let_45_ = _40_()
+    local s = _let_45_[1]
+    local _ = _let_45_[2]
     return s
   end
-  return xpcall(do_compile, _38_)
+  return xpcall(do_compile, _39_)
 end
 local function compile_record(record, modules_options, macros_options, preprocessor)
-  _G.assert((nil ~= preprocessor), "Missing argument preprocessor on fnl/hotpot/lang/fennel/compiler.fnl:152")
-  _G.assert((nil ~= macros_options), "Missing argument macros-options on fnl/hotpot/lang/fennel/compiler.fnl:152")
-  _G.assert((nil ~= modules_options), "Missing argument modules-options on fnl/hotpot/lang/fennel/compiler.fnl:152")
-  _G.assert((nil ~= record), "Missing argument record on fnl/hotpot/lang/fennel/compiler.fnl:152")
+  _G.assert((nil ~= preprocessor), "Missing argument preprocessor on fnl/hotpot/lang/fennel/compiler.fnl:153")
+  _G.assert((nil ~= macros_options), "Missing argument macros-options on fnl/hotpot/lang/fennel/compiler.fnl:153")
+  _G.assert((nil ~= modules_options), "Missing argument modules-options on fnl/hotpot/lang/fennel/compiler.fnl:153")
+  _G.assert((nil ~= record), "Missing argument record on fnl/hotpot/lang/fennel/compiler.fnl:153")
   local lua_path = record["lua-path"]
   local src_path = record["src-path"]
   local modname = record["modname"]
-  local _let_45_ = require("hotpot.lang.fennel.dependency-tracker")
-  local new_macro_dep_tracking_plugin = _let_45_["new"]
-  local deps_for_fnl_path = _let_45_["deps-for-fnl-path"]
+  local _let_46_ = require("hotpot.lang.fennel.dependency-tracker")
+  local new_macro_dep_tracking_plugin = _let_46_["new"]
+  local deps_for_fnl_path = _let_46_["deps-for-fnl-path"]
   local modules_options0
   do
     modules_options["module-name"] = modname
@@ -275,26 +281,26 @@ local function compile_record(record, modules_options, macros_options, preproces
   local plugin = new_macro_dep_tracking_plugin(src_path, modname)
   table.insert(modules_options0.plugins, 1, plugin)
   local ok_3f, extra = nil, nil
-  local function _46_(...)
-    local _47_ = ...
-    if (_47_ == true) then
-      local function _48_(...)
-        local _49_ = ...
-        if (nil ~= _49_) then
-          local deps = _49_
+  local function _47_(...)
+    local _48_ = ...
+    if (_48_ == true) then
+      local function _49_(...)
+        local _50_ = ...
+        if (nil ~= _50_) then
+          local deps = _50_
           return true, deps
         else
-          local __87_auto = _49_
+          local __44_ = _50_
           return ...
         end
       end
-      return _48_((deps_for_fnl_path(src_path) or {}))
+      return _49_((deps_for_fnl_path(src_path) or {}))
     else
-      local __87_auto = _47_
+      local __44_ = _48_
       return ...
     end
   end
-  ok_3f, extra = _46_(compile_file(src_path, lua_path, modules_options0, macros_options, preprocessor))
+  ok_3f, extra = _47_(compile_file(src_path, lua_path, modules_options0, macros_options, preprocessor))
   table.remove(modules_options0.plugins, 1)
   return ok_3f, extra
 end
