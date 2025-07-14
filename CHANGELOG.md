@@ -6,6 +6,10 @@ to "core" code (things that effect loading and running your code/config) are
 avoided but breaking changes to the API (things that might effect your bindings
 and auto commands) are treated with less reverence.
 
+## 0.14.9
+
+- Disable fennel parser warnings, which are printed to stderr.
+
 ## 0.14.8
 
 - Updated to Fennel 1.5.3, may contain unintended breaking changes from
