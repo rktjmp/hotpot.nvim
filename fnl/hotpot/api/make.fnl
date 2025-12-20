@@ -48,7 +48,8 @@
     ;; By default fnl/**/*.fnl would include the dont dir, so we need run both
     ;; patterns to build an explicit ignore list.
     (each [_ [glob action] (ipairs spec)]
-      (assert (string.match glob "%.fnl$") (string.format "build glob patterns must end in .fnl, got %s" glob))
+      (assert (string.match glob "%.fnlm?$")
+              (string.format "build glob patterns must end in .fnl, got %s" glob))
       (each [_ path (ipairs (vim.fn.globpath root-dir glob true true))]
         (let [path (vim.fs.normalize path)]
           (if (= nil (. files path))
