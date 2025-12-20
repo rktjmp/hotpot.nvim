@@ -59,7 +59,7 @@
 (fn macro-searcher [modname]
   (let [{: mod-search} (require :hotpot.searcher)
         spec  {:prefix :fnl
-               :extension :fnl
+               :extensions [:fnlm :fnl]
                :modnames [(.. modname :.init-macros)
                           (.. modname :.init)
                           modname]}]
