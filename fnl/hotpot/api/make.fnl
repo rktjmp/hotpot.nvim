@@ -265,6 +265,7 @@
      (do
        (fn build-spec-or-default [given-spec]
          (let [default-spec [[:fnl/**/*macro*.fnl false]
+                             [:fnl/**/*.fnlm false]
                              [:fnl/**/*.fnl true]]
                [spec opts] (case given-spec
                              true [default-spec {}]
