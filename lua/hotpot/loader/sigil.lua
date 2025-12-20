@@ -6,25 +6,25 @@ local function load(path)
   local function _1_(sigil)
     local _2_
     do
-      local tbl_21_auto = {}
-      local i_22_auto = 0
+      local tbl_21_ = {}
+      local i_22_ = 0
       for key, _val in pairs(sigil) do
-        local val_23_auto
+        local val_23_
         do
           local _3_ = defaults[key]
           if (_3_ == nil) then
-            val_23_auto = key
+            val_23_ = key
           else
-            val_23_auto = nil
+            val_23_ = nil
           end
         end
-        if (nil ~= val_23_auto) then
-          i_22_auto = (i_22_auto + 1)
-          tbl_21_auto[i_22_auto] = val_23_auto
+        if (nil ~= val_23_) then
+          i_22_ = (i_22_ + 1)
+          tbl_21_[i_22_] = val_23_
         else
         end
       end
-      _2_ = tbl_21_auto
+      _2_ = tbl_21_
     end
     if ((_G.type(_2_) == "table") and (_2_[1] == nil)) then
       return true

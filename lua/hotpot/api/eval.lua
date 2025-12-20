@@ -4,18 +4,18 @@ local function inject_macro_searcher()
   local _let_2_ = require("hotpot.runtime")
   local default_config = _let_2_["default-config"]
   local _let_3_ = default_config()
-  local compiler_options = _let_3_["compiler"]
-  local modules_options = compiler_options["modules"]
-  local macros_options = compiler_options["macros"]
-  local preprocessor = compiler_options["preprocessor"]
+  local compiler_options = _let_3_.compiler
+  local modules_options = compiler_options.modules
+  local macros_options = compiler_options.macros
+  local preprocessor = compiler_options.preprocessor
   return compile_string("(+ 1 1)", modules_options, macros_options, preprocessor)
 end
 local function eval_string(code, _3foptions)
   inject_macro_searcher()
   local _let_4_ = require("hotpot.fennel")
-  local eval = _let_4_["eval"]
+  local eval = _let_4_.eval
   local _let_5_ = require("hotpot.runtime")
-  local traceback = _let_5_["traceback"]
+  local traceback = _let_5_.traceback
   local options = (_3foptions or {})
   local _
   if (nil == options.filename) then
@@ -50,9 +50,9 @@ local function eval_file(fnl_file, _3foptions)
   inject_macro_searcher()
   assert(fnl_file, "eval-file: must provide path to .fnl file")
   local _let_11_ = require("hotpot.fennel")
-  local dofile = _let_11_["dofile"]
+  local dofile = _let_11_.dofile
   local _let_12_ = require("hotpot.runtime")
-  local traceback = _let_12_["traceback"]
+  local traceback = _let_12_.traceback
   local options = (_3foptions or {})
   if (nil == options.filename) then
     options["filename"] = fnl_file
@@ -69,19 +69,19 @@ local function eval_module(modname, _3foptions)
   local mod_search = _let_15_["mod-search"]
   local _let_16_ = require("hotpot.common")
   local put_new = _let_16_["put-new"]
-  local _17_ = mod_search({prefix = "fnl", extension = "fnl", modnames = {(modname .. ".init"), modname}})
-  if ((_G.type(_17_) == "table") and (nil ~= _17_[1])) then
-    local path = _17_[1]
+  local case_17_ = mod_search({prefix = "fnl", extensions = {"fnl"}, modnames = {(modname .. ".init"), modname}})
+  if ((_G.type(case_17_) == "table") and (nil ~= case_17_[1])) then
+    local path = case_17_[1]
     local options
     do
-      local tmp_9_auto = vim.deepcopy((_3foptions or {}))
-      put_new(tmp_9_auto, "module-name", modname)
-      put_new(tmp_9_auto, "filename", path)
-      options = tmp_9_auto
+      local tmp_9_ = vim.deepcopy((_3foptions or {}))
+      put_new(tmp_9_, "module-name", modname)
+      put_new(tmp_9_, "filename", path)
+      options = tmp_9_
     end
     return eval_file(path, options)
   else
-    local _ = _17_
+    local _ = case_17_
     return error(string.format("compile-modname: could not find file for %s", modname))
   end
 end

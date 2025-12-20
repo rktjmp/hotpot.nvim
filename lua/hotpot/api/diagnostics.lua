@@ -65,17 +65,17 @@ local function make_handler(buf, ns)
   local compile_string = _let_10_["compile-string"]
   local allowed_globals
   do
-    local tbl_21_auto = {}
-    local i_22_auto = 0
+    local tbl_21_ = {}
+    local i_22_ = 0
     for n, _ in pairs(_G) do
-      local val_23_auto = n
-      if (nil ~= val_23_auto) then
-        i_22_auto = (i_22_auto + 1)
-        tbl_21_auto[i_22_auto] = val_23_auto
+      local val_23_ = n
+      if (nil ~= val_23_) then
+        i_22_ = (i_22_ + 1)
+        tbl_21_[i_22_] = val_23_
       else
       end
     end
-    allowed_globals = tbl_21_auto
+    allowed_globals = tbl_21_
   end
   local fname
   do

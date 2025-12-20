@@ -81,7 +81,7 @@ local function find_compile_targets(root_dir, spec)
   for _, _14_ in ipairs(spec) do
     local glob = _14_[1]
     local action = _14_[2]
-    assert(string.match(glob, "%.fnl$"), string.format("build glob patterns must end in .fnl, got %s", glob))
+    assert(string.match(glob, "%.fnlm?$"), string.format("build glob patterns must end in .fnl, got %s", glob))
     for _0, path in ipairs(vim.fn.globpath(root_dir, glob, true, true)) do
       local path0 = vim.fs.normalize(path)
       if (nil == files[path0]) then
@@ -153,22 +153,22 @@ local function find_clean_targets(root_dir, spec, compile_targets)
     local dest = _27_["dest"]
     files[dest] = false
   end
-  local tbl_21_auto = {}
-  local i_22_auto = 0
+  local tbl_21_ = {}
+  local i_22_ = 0
   for path, action in pairs(files) do
-    local val_23_auto
+    local val_23_
     if action then
-      val_23_auto = path
+      val_23_ = path
     else
-      val_23_auto = nil
+      val_23_ = nil
     end
-    if (nil ~= val_23_auto) then
-      i_22_auto = (i_22_auto + 1)
-      tbl_21_auto[i_22_auto] = val_23_auto
+    if (nil ~= val_23_) then
+      i_22_ = (i_22_ + 1)
+      tbl_21_[i_22_] = val_23_
     else
     end
   end
-  return tbl_21_auto
+  return tbl_21_
 end
 local function do_compile(compile_targets, compiler_options, root_dir)
   local _let_30_ = require("hotpot.lang.fennel.compiler")
@@ -192,9 +192,9 @@ local function do_compile(compile_targets, compiler_options, root_dir)
     local _35_, _36_ = nil, nil
     local _37_
     do
-      local tmp_9_auto = compiler_options.modules
-      tmp_9_auto["filename"] = relative_filename
-      _37_ = tmp_9_auto
+      local tmp_9_ = compiler_options.modules
+      tmp_9_["filename"] = relative_filename
+      _37_ = tmp_9_
     end
     _35_, _36_ = compile_file(src, tmp_path, _37_, compiler_options.macros, compiler_options.preprocessor)
     if (_35_ == true) then
@@ -334,51 +334,51 @@ local function do_build(opts, root_dir, build_spec)
   report_compile_results(compile_results, {["any-errors?"] = any_errors_3f, ["dry-run?"] = dry_run_3f, ["verbose?"] = verbose_3f, ["atomic?"] = atomic_3f, ["find-time-ns"] = find_time_ns})
   local _return
   do
-    local tbl_16_auto = {}
+    local tbl_16_ = {}
     for _, _71_ in ipairs(all_compile_targets) do
       local src = _71_["src"]
       local dest = _71_["dest"]
-      local k_17_auto, v_18_auto = src, {src = src, dest = dest}
-      if ((k_17_auto ~= nil) and (v_18_auto ~= nil)) then
-        tbl_16_auto[k_17_auto] = v_18_auto
+      local k_17_, v_18_ = src, {src = src, dest = dest}
+      if ((k_17_ ~= nil) and (v_18_ ~= nil)) then
+        tbl_16_[k_17_] = v_18_
       else
       end
     end
-    _return = tbl_16_auto
+    _return = tbl_16_
   end
   local _return0
   do
-    local tbl_16_auto = _return
+    local tbl_16_ = _return
     for _, _73_ in ipairs(compile_results) do
       local src = _73_["src"]
       local compiled_3f = _73_["compiled?"]
       local err = _73_["err"]
-      local k_17_auto, v_18_auto = nil, nil
+      local k_17_, v_18_ = nil, nil
       local function _74_()
-        local tmp_9_auto = _return[src]
-        tmp_9_auto["compiled?"] = compiled_3f
-        tmp_9_auto["err"] = err
-        return tmp_9_auto
+        local tmp_9_ = _return[src]
+        tmp_9_["compiled?"] = compiled_3f
+        tmp_9_["err"] = err
+        return tmp_9_
       end
-      k_17_auto, v_18_auto = src, _74_()
-      if ((k_17_auto ~= nil) and (v_18_auto ~= nil)) then
-        tbl_16_auto[k_17_auto] = v_18_auto
+      k_17_, v_18_ = src, _74_()
+      if ((k_17_ ~= nil) and (v_18_ ~= nil)) then
+        tbl_16_[k_17_] = v_18_
       else
       end
     end
-    _return0 = tbl_16_auto
+    _return0 = tbl_16_
   end
-  local tbl_21_auto = {}
-  local i_22_auto = 0
+  local tbl_21_ = {}
+  local i_22_ = 0
   for _, v in pairs(_return0) do
-    local val_23_auto = v
-    if (nil ~= val_23_auto) then
-      i_22_auto = (i_22_auto + 1)
-      tbl_21_auto[i_22_auto] = val_23_auto
+    local val_23_ = v
+    if (nil ~= val_23_) then
+      i_22_ = (i_22_ + 1)
+      tbl_21_[i_22_] = val_23_
     else
     end
   end
-  return tbl_21_auto
+  return tbl_21_
 end
 local function do_clean(clean_targets, opts)
   local _let_77_ = require("hotpot.fs")
@@ -431,7 +431,7 @@ M.check = function(...)
 end
 do
   local function build_spec_or_default(given_spec)
-    local default_spec = {{"fnl/**/*macro*.fnl", false}, {"fnl/**/*.fnl", true}}
+    local default_spec = {{"fnl/**/*macro*.fnl", false}, {"fnl/**/*.fnlm", false}, {"fnl/**/*.fnl", true}}
     local function _87_()
       if (given_spec == true) then
         return {default_spec, {}}
@@ -645,7 +645,7 @@ do
                 local _ = _145_
                 return handle_config(config, query_path, vim.fs.dirname(config_path), opts)
               else
-                local __87_auto = _145_
+                local __44_ = _145_
                 return ...
               end
             end
@@ -659,7 +659,7 @@ do
             end
             return _144_(_147_(...))
           else
-            local __87_auto = _143_
+            local __44_ = _143_
             return ...
           end
         end
@@ -691,13 +691,13 @@ do
                 local config = _156_
                 return handle_config(config, full_path_current_file, vim.fs.dirname(config_path))
               else
-                local __87_auto = _156_
+                local __44_ = _156_
                 return ...
               end
             end
             return _155_(loadfile_local_config(config_path))
           else
-            local __87_auto = _154_
+            local __44_ = _154_
             return ...
           end
         end

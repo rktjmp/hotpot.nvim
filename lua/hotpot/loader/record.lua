@@ -567,23 +567,23 @@ local function set_files(record, files)
   end
   local file_stats
   do
-    local tbl_21_auto = {}
-    local i_22_auto = 0
+    local tbl_21_ = {}
+    local i_22_ = 0
     for _, path in ipairs(files0) do
-      local val_23_auto
+      local val_23_
       do
         local _let_151_ = file_stat(path)
         local mtime = _let_151_["mtime"]
         local size = _let_151_["size"]
-        val_23_auto = {path = path, mtime = mtime, size = size}
+        val_23_ = {path = path, mtime = mtime, size = size}
       end
-      if (nil ~= val_23_auto) then
-        i_22_auto = (i_22_auto + 1)
-        tbl_21_auto[i_22_auto] = val_23_auto
+      if (nil ~= val_23_) then
+        i_22_ = (i_22_ + 1)
+        tbl_21_[i_22_] = val_23_
       else
       end
     end
-    file_stats = tbl_21_auto
+    file_stats = tbl_21_
   end
   record["files"] = file_stats
   return record

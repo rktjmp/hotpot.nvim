@@ -25,17 +25,17 @@ local function fnl(start, stop, code, range_count)
   local function _7_(_241)
     local _8_
     do
-      local tbl_21_auto = {}
-      local i_22_auto = 0
+      local tbl_21_ = {}
+      local i_22_ = 0
       for _, v in ipairs(_241) do
-        local val_23_auto = view(v)
-        if (nil ~= val_23_auto) then
-          i_22_auto = (i_22_auto + 1)
-          tbl_21_auto[i_22_auto] = val_23_auto
+        local val_23_ = view(v)
+        if (nil ~= val_23_) then
+          i_22_ = (i_22_ + 1)
+          tbl_21_[i_22_] = val_23_
         else
         end
       end
-      _8_ = tbl_21_auto
+      _8_ = tbl_21_
     end
     return print(table.concat(_8_, ", "))
   end

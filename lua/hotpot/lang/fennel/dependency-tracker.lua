@@ -18,20 +18,20 @@ local function fnl_path_depends_on_macro_module(fnl_path, macro_module)
   end
 end
 local function deps_for_fnl_path(fnl_path)
-  local _2_ = fnl_file_macro_mods[fnl_path]
-  if (nil ~= _2_) then
-    local deps = _2_
-    local tbl_21_auto = {}
-    local i_22_auto = 0
+  local case_2_ = fnl_file_macro_mods[fnl_path]
+  if (nil ~= case_2_) then
+    local deps = case_2_
+    local tbl_26_ = {}
+    local i_27_ = 0
     for _, mod in ipairs(deps) do
-      local val_23_auto = macro_mods_paths[mod]
-      if (nil ~= val_23_auto) then
-        i_22_auto = (i_22_auto + 1)
-        tbl_21_auto[i_22_auto] = val_23_auto
+      local val_28_ = macro_mods_paths[mod]
+      if (nil ~= val_28_) then
+        i_27_ = (i_27_ + 1)
+        tbl_26_[i_27_] = val_28_
       else
       end
     end
-    return tbl_21_auto
+    return tbl_26_
   else
     return nil
   end
@@ -47,6 +47,6 @@ local function new(fnl_path, required_from_modname)
     end
     return nil
   end
-  return {versions = {"1.1.0", "1.1.1", "1.2.0", "1.2.1", "1.3.0", "1.3.1", "1.4.0", "1.4.1", "1.4.2", "1.5.0", "1.5.1", "1.5.3"}, name = ("hotpot-macro-dep-tracking-for-" .. required_from_modname), ["require-macros"] = plug_require_macros}
+  return {versions = {"1.1.0", "1.1.1", "1.2.0", "1.2.1", "1.3.0", "1.3.1", "1.4.0", "1.4.1", "1.4.2", "1.5.0", "1.5.1", "1.5.3", "1.6.0"}, name = ("hotpot-macro-dep-tracking-for-" .. required_from_modname), ["require-macros"] = plug_require_macros}
 end
 return {["deps-for-fnl-path"] = deps_for_fnl_path, ["set-macro-modname-path"] = set_macro_modname_path, new = new}

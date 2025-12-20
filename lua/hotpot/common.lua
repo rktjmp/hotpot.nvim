@@ -11,9 +11,9 @@ local function set_lazy_proxy(t, lookup)
   local function __index(t0, k)
     local mod
     do
-      local tmp_3_auto = lookup[k]
-      if (nil ~= tmp_3_auto) then
-        mod = require(tmp_3_auto)
+      local tmp_3_ = lookup[k]
+      if (nil ~= tmp_3_) then
+        mod = require(tmp_3_)
       else
         mod = nil
       end
@@ -52,17 +52,17 @@ local function none_3f(f, seq)
   return not any_3f(f, seq)
 end
 local function map(f, seq)
-  local tbl_21_auto = {}
-  local i_22_auto = 0
+  local tbl_21_ = {}
+  local i_22_ = 0
   for _, v in ipairs(seq) do
-    local val_23_auto = f(v)
-    if (nil ~= val_23_auto) then
-      i_22_auto = (i_22_auto + 1)
-      tbl_21_auto[i_22_auto] = val_23_auto
+    local val_23_ = f(v)
+    if (nil ~= val_23_) then
+      i_22_ = (i_22_ + 1)
+      tbl_21_[i_22_] = val_23_
     else
     end
   end
-  return tbl_21_auto
+  return tbl_21_
 end
 local function reduce(f, acc, seq)
   local acc0 = acc

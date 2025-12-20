@@ -33,7 +33,7 @@ local function do_eval(str, compiler_options)
     local function _6_(...)
       local s = ""
       for _, v in ipairs({...}) do
-        s = (s .. view(v) .. "\t")
+        s = (s .. view(v) .. "\9")
       end
       return s
     end
@@ -148,17 +148,17 @@ local function autocmd_handler(session)
     end
     local _25_
     do
-      local tbl_21_auto = {}
-      local i_22_auto = 0
+      local tbl_21_ = {}
+      local i_22_ = 0
       for i, p in ipairs((printed or {})) do
-        local val_23_auto = (";;=> " .. p)
-        if (nil ~= val_23_auto) then
-          i_22_auto = (i_22_auto + 1)
-          tbl_21_auto[i_22_auto] = val_23_auto
+        local val_23_ = (";;=> " .. p)
+        if (nil ~= val_23_) then
+          i_22_ = (i_22_ + 1)
+          tbl_21_[i_22_] = val_23_
         else
         end
       end
-      _25_ = tbl_21_auto
+      _25_ = tbl_21_
     end
     output = _23_(table.concat(_25_, "\n"))
     return ok_3f, output

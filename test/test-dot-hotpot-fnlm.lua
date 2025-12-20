@@ -66,28 +66,31 @@ local OK = _local_10_["OK"]
 local exit = _local_10_["exit"]
 local read_file = _local_10_["read-file"]
 local write_file = _local_10_["write-file"]
-local function p(x)
-  return (vim.fn.stdpath("config") .. x)
-end
-local setup_path = p("/lua/setup.lua")
-local mod_path = p("/fnl/mod.fnl")
-local mac_path = p("/fnl/mac.fnl")
-write_file(setup_path, "\nrequire('hotpot').setup({\n  compiler = {\n    preprocessor = function(src, meta)\n      if meta.macro == true then\n        return '(fn inserted [] 100) ' .. src\n      else\n        return '(fn inserted [] 80) ' .. src\n      end\n    end\n  }\n})")
-write_file(mac_path, "(fn exit-var [] `,(inserted)) {: exit-var}")
-write_file(mod_path, "(import-macros {: exit-var} :mac) (os.exit (+ (inserted) (exit-var)))")
+local fnl_path = (vim.fn.stdpath("config") .. "/fnl/abc.fnl")
+local fnlm_path = (vim.fn.stdpath("config") .. "/fnl/xyz.fnlm")
+local dot_hotpot_path = (vim.fn.stdpath("config") .. "/.hotpot.lua")
+write_file(dot_hotpot_path, "return { build = true }")
+write_file(fnlm_path, "{:works (fn [v] `{:works ,v})}")
+write_file(fnl_path, "(import-macros {: works} :xyz) (works true)")
+vim.cmd(string.format("edit %s", fnl_path))
+vim.cmd("set ft=fennel")
+vim.cmd("w")
 do
-  local _11_
-  do
-    local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
-    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "require('setup') require('mod')")))
-    vim.cmd(string.format("!%s +'set columns=1000' --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
-    _11_ = vim.v.shell_error
-  end
-  if (_11_ == 180) then
-    OK(string.format(("preprocessor applies in macros and modules independently" or "")))
+  local _11_ = vim.loop.fs_access((vim.fn.stdpath("config") .. "/lua/abc.lua"), "R")
+  if (_11_ == true) then
+    OK(string.format(("built module file" or "")))
   else
     local __1_auto = _11_
-    FAIL(string.format(("preprocessor applies in macros and modules independently" or "")))
+    FAIL(string.format(("built module file" or "")))
+  end
+end
+do
+  local _13_ = vim.loop.fs_access((vim.fn.stdpath("config") .. "xyz.lua"), "R")
+  if (_13_ == false) then
+    OK(string.format(("did not build macro file" or "")))
+  else
+    local __1_auto = _13_
+    FAIL(string.format(("did not build macro file" or "")))
   end
 end
 return exit()

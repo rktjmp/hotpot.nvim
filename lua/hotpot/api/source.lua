@@ -1,20 +1,20 @@
 local function split_path(path)
   local sep = string.sub(package.config, 1, 1)
-  local tbl_21_auto = {}
-  local i_22_auto = 0
+  local tbl_21_ = {}
+  local i_22_ = 0
   for v in string.gmatch(path, ("[^" .. sep .. "]+")) do
-    local val_23_auto = v
-    if (nil ~= val_23_auto) then
-      i_22_auto = (i_22_auto + 1)
-      tbl_21_auto[i_22_auto] = val_23_auto
+    local val_23_ = v
+    if (nil ~= val_23_) then
+      i_22_ = (i_22_ + 1)
+      tbl_21_[i_22_] = val_23_
     else
     end
   end
-  return tbl_21_auto
+  return tbl_21_
 end
 local function find_module_name_parts(path_parts, acc)
   local head = path_parts[1]
-  local rest = (function (t, k, e) local mt = getmetatable(t) if 'table' == type(mt) and mt.__fennelrest then return mt.__fennelrest(t, k) elseif e then local rest = {} for k, v in pairs(t) do if not e[k] then rest[k] = v end end return rest else return {(table.unpack or unpack)(t, k)} end end)(path_parts, 2)
+  local rest = (function (t, k) return ((getmetatable(t) or {}).__fennelrest or function (t, k) return {(table.unpack or unpack)(t, k)} end)(t, k) end)(path_parts, 2)
   local _2_, _3_ = head, #rest
   if ((_2_ == "init.fnl") and (_3_ == 0)) then
     return acc
@@ -34,7 +34,7 @@ local function find_module_name_parts(path_parts, acc)
 end
 local function find_fnl_folder(path_parts)
   local head = path_parts[1]
-  local rest = (function (t, k, e) local mt = getmetatable(t) if 'table' == type(mt) and mt.__fennelrest then return mt.__fennelrest(t, k) elseif e then local rest = {} for k, v in pairs(t) do if not e[k] then rest[k] = v end end return rest else return {(table.unpack or unpack)(t, k)} end end)(path_parts, 2)
+  local rest = (function (t, k) return ((getmetatable(t) or {}).__fennelrest or function (t, k) return {(table.unpack or unpack)(t, k)} end)(t, k) end)(path_parts, 2)
   if (head == nil) then
     return nil
   elseif (head == "fnl") then

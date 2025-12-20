@@ -13,10 +13,10 @@ local function generate_runtime_loaders(plugin_type, glob, path)
   local glob_search = _let_4_["glob-search"]
   local _let_5_ = require("hotpot.fs")
   local file_exists_3f = _let_5_["file-exists?"]
-  local tbl_21_auto = {}
-  local i_22_auto = 0
+  local tbl_21_ = {}
+  local i_22_ = 0
   for _, fnl_path in ipairs(glob_search({glob = glob, path = path, ["all?"] = true})) do
-    local val_23_auto
+    local val_23_
     local function _6_(...)
       local _7_ = ...
       if (nil ~= _7_) then
@@ -63,14 +63,14 @@ local function generate_runtime_loaders(plugin_type, glob, path)
         return nil
       end
     end
-    val_23_auto = _6_(string.gsub(fnl_path, "fnl$", "lua"))
-    if (nil ~= val_23_auto) then
-      i_22_auto = (i_22_auto + 1)
-      tbl_21_auto[i_22_auto] = val_23_auto
+    val_23_ = _6_(string.gsub(fnl_path, "fnl$", "lua"))
+    if (nil ~= val_23_) then
+      i_22_ = (i_22_ + 1)
+      tbl_21_[i_22_] = val_23_
     else
     end
   end
-  return tbl_21_auto
+  return tbl_21_
 end
 local function find_runtime_plugins(plugin_type, glob, _3fpath)
   local _let_19_ = require("hotpot.fs")

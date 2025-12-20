@@ -12,22 +12,22 @@ local function brain_traceback(msg)
   local error_tail = ("*** Hotpot thinks you were requiring a module, you will   ***\n" .. "*** likely see an additional error below because lua was  ***\n" .. "*** unable to load the module.                            ***")
   local lines
   do
-    local tbl_21_auto = {}
-    local i_22_auto = 0
-    for line in string.gmatch(semi, "[^\13\n]+") do
-      local val_23_auto
+    local tbl_21_ = {}
+    local i_22_ = 0
+    for line in string.gmatch(semi, "[^\r\n]+") do
+      local val_23_
       if not string.match(line, hotpot_internals_pattern) then
-        val_23_auto = line
+        val_23_ = line
       else
-        val_23_auto = nil
+        val_23_ = nil
       end
-      if (nil ~= val_23_auto) then
-        i_22_auto = (i_22_auto + 1)
-        tbl_21_auto[i_22_auto] = val_23_auto
+      if (nil ~= val_23_) then
+        i_22_ = (i_22_ + 1)
+        tbl_21_[i_22_] = val_23_
       else
       end
     end
-    lines = tbl_21_auto
+    lines = tbl_21_
   end
   local function _4_()
     local state = {stack = {}, message = {}}
@@ -89,23 +89,23 @@ local function brain_traceback(msg)
   end
   local full_lines
   do
-    local tmp_9_auto = {}
-    table.insert(tmp_9_auto, ("\n" .. error_head .. "\n"))
+    local tmp_9_ = {}
+    table.insert(tmp_9_, ("\n" .. error_head .. "\n"))
     local function _15_(_241)
       for _, line in ipairs(message) do
         table.insert(_241, line)
       end
       return nil
     end
-    _15_(tmp_9_auto)
-    table.insert(tmp_9_auto, "\n")
+    _15_(tmp_9_)
+    table.insert(tmp_9_, "\n")
     local function _16_(_241)
       for _, line in ipairs(stack) do
         table.insert(_241, line)
       end
       return nil
     end
-    _16_(tmp_9_auto)
+    _16_(tmp_9_)
     local function _17_(_241)
       if in_require_3f then
         return table.insert(_241, ("\n" .. error_tail))
@@ -113,8 +113,8 @@ local function brain_traceback(msg)
         return nil
       end
     end
-    _17_(tmp_9_auto)
-    full_lines = tmp_9_auto
+    _17_(tmp_9_)
+    full_lines = tmp_9_
   end
   local function _19_(_241)
     return string.format("\n%s\n", _241)
