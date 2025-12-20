@@ -1,4 +1,7 @@
 (fn expect [shape expr message ...]
+  (assert-compile (~= nil shape) "must provide shape")
+  (assert-compile (~= nil expr) "must provide expr")
+  ; (assert-compile (~= nil message) "must provide message")
   `(case ,expr
      (where ,shape) (do
                       (OK (string.format (or ,message "") ,...))

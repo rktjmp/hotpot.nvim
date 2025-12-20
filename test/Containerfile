@@ -1,4 +1,4 @@
-FROM debian:bullseye-20211220-slim
+FROM debian:bookworm-20251208-slim
 
 # install latest nvim
 RUN apt-get update && \
