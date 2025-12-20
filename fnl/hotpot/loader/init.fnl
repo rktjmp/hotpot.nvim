@@ -144,7 +144,7 @@
     (let [search-runtime-path (let [{: mod-search} (require :hotpot.searcher)]
                                 (fn [modname]
                                   (mod-search {:prefix :fnl
-                                               :extension :fnl
+                                               :extensions [:fnl]
                                                :modnames [(.. modname ".init") modname]
                                                :package-path? false})))]
       (case (search-runtime-path modname)
@@ -166,7 +166,7 @@
     (let [search-package-path (let [{: mod-search} (require :hotpot.searcher)]
                                 (fn [modname]
                                   (mod-search {:prefix :fnl
-                                               :extension :fnl
+                                               :extensions [:fnl]
                                                :modnames [(.. modname ".init") modname]
                                                :runtime-path? false})))]
       (case (search-package-path modname)

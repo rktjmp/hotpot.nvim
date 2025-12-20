@@ -53,8 +53,6 @@
   modnames: A list of modnames to search for, in preference order, ex:
     [:hotpot.init :hotpot]
 
-  extension: A file extension to match with, ex: :fnl
-   or
   extensions: A list of file extensions to match with, eg: [:fnlm, :fnl]
 
   prefix: A directory to search inside of when performing RTP searches. Does
@@ -73,20 +71,14 @@
                   :runtime-path? true
                   :package-path? true}
         spec (vim.tbl_extend :keep spec defaults)]
-    (each [_ key (ipairs [:modnames :prefix])]
-      (assert (. spec key) (.. "search spec must have " key " field")))
     ;; While nvim_get_runtime_file does support `{fnlm,fnl}` patterns in its
     ;; query, it does not return files in the same order, which is important
     ;; for us when finding macro files: x/init.fnl and x/init.fnlm are very
     ;; different, but searching for `x/init.{fnlm,fnl}` will return `init.fnl`
-    ;; first.
-    ;; Instead we require an extensions list and we'll build an ordered search
-    ;; from that.
-    (assert (or spec.extension spec.extensions)
-            (.. "search spec must have extension or extensions field"))
-    (case spec
-      {: extension : extensions} (assert false "search spec contained extension and extensions fields!")
-      {: extension :extensions nil} (set spec.extensions [extension]))
+    ;; first. Instead we require an extensions list and we'll build an ordered
+    ;; search from that.
+    (each [_ key (ipairs [:modnames :extensions :prefix])]
+      (assert (. spec key) (.. "search spec must have " key " field")))
     (case-try
       (if spec.runtime-path? (modsearch-runtime-path spec) []) [nil]
       (if spec.package-path? (modsearch-package-path spec) []) [nil]

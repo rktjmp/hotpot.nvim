@@ -15,7 +15,7 @@
         ;; reloaded or adjusted at runtime.
         plugins (icollect [_i plug (ipairs (or options.plugins []))]
                   (match (type plug)
-                    :string (case (mod-search {:prefix :fnl :extension :fnl :modnames [plug]})
+                    :string (case (mod-search {:prefix :fnl :extensions [:fnl] :modnames [plug]})
                               [path] (fennel.dofile path {:env :_COMPILER
                                                           :useMetadata true
                                                           :compiler-env _G}

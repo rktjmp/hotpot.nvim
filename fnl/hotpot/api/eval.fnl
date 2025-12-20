@@ -72,7 +72,7 @@
   (assert modname "eval-module: must provide modname")
   (let [{: mod-search} (require :hotpot.searcher)
         {: put-new} (require :hotpot.common)]
-    (case (mod-search {:prefix :fnl :extension :fnl :modnames [(.. modname :.init) modname]})
+    (case (mod-search {:prefix :fnl :extensions [:fnl] :modnames [(.. modname :.init) modname]})
       [path] (let [options (doto (vim.deepcopy (or ?options {}))
                                  (put-new :module-name modname)
                                  (put-new :filename path))]
