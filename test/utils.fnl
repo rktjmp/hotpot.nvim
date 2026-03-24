@@ -21,8 +21,8 @@
   (print "\n")
   (os.exit results.fails))
 
-(vim.opt.runtimepath:prepend (vim.loop.cwd))
-(require :hotpot)
+; (vim.opt.runtimepath:prepend (vim.loop.cwd))
+; (require :hotpot)
 
 {: write-file : read-file
  : OK : FAIL

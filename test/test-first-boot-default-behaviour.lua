@@ -55,8 +55,6 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
     print("\n")
     return os.exit(results.fails)
   end
-  vim.opt.runtimepath:prepend(vim.loop.cwd())
-  require("hotpot")
   return {["write-file"] = write_file, ["read-file"] = read_file, OK = OK, FAIL = FAIL, exit = exit, NVIM_APPNAME = vim.env.NVIM_APPNAME}
 end
 local _local_10_ = require("test.utils")
@@ -66,29 +64,49 @@ local OK = _local_10_.OK
 local exit = _local_10_.exit
 local read_file = _local_10_["read-file"]
 local write_file = _local_10_["write-file"]
-local function in_path(path)
-  return (vim.fn.stdpath("config") .. "/fnl/" .. path)
+local fnl_path = (vim.fn.stdpath("config") .. "/fnl/abc.fnl")
+local first_boot_sigil = (vim.fn.stdpath("cache") .. "/hotpot/first-boot.txt")
+local lua_path = (vim.fn.stdpath("data") .. "/site/hotpot/start/lua/abc.lua")
+write_file(fnl_path, "{:works true}")
+local function start_nvim()
+  local nvim = vim.fn.jobstart({"nvim", "--embed", "--headless"}, {rpc = true})
+  vim.rpcrequest(nvim, "nvim_exec2", "lua vim.opt.runtimepath:prepend('/home/user/hotpot')", {output = true})
+  local function _11_(this)
+    return vim.fn.jobstop(this.channel)
+  end
+  local function _12_(this, src)
+    return vim.rpcrequest(this.channel, "nvim_exec2", table.concat({"lua << EOF", src, "EOF"}, "\n"), {output = true})
+  end
+  return {channel = nvim, close = _11_, lua = _12_}
 end
-write_file(in_path("code.fnl"), "(import-macros {: sum} :my-macro) (sum 1 2)")
-write_file(in_path("my-macro.fnlm"), "{:sum (fn [a b] `(+ ,a ,b))}")
 do
-  local case_11_, case_12_ = pcall(require, "code")
-  if ((case_11_ == true) and (case_12_ == 3)) then
-    OK(string.format(("can require fnlm macro file" or "")))
+  local case_13_ = vim.uv.fs_stat(first_boot_sigil)
+  if (case_13_ == nil) then
+    OK(string.format(("no first-boot-sigil" or "")))
   else
-    local __1_auto = case_11_
-    FAIL(string.format(("can require fnlm macro file" or "")))
+    local __1_auto = case_13_
+    FAIL(string.format(("no first-boot-sigil" or "")))
   end
 end
-write_file(in_path("prelude/init.fnl"), "(import-macros {: sum} :my-macro) (sum 5 5)")
-write_file(in_path("prelude/init.fnlm"), "{:sum (fn [a b] `(+ ,a ,b))}")
+local nvim = start_nvim()
+nvim:lua("require'hotpot'")
+nvim:close()
 do
-  local case_14_, case_15_ = pcall(require, "prelude")
-  if ((case_14_ == true) and (case_15_ == 10)) then
-    OK(string.format(("can require mod/init.fnlm when mod/init.fnl exists" or "")))
+  local case_15_ = vim.uv.fs_stat(first_boot_sigil)
+  if ((_G.type(case_15_) == "table") and (_G.type(case_15_.mtime) == "table")) then
+    OK(string.format(("created first-boot-sigil" or "")))
   else
-    local __1_auto = case_14_
-    FAIL(string.format(("can require mod/init.fnlm when mod/init.fnl exists" or "")))
+    local __1_auto = case_15_
+    FAIL(string.format(("created first-boot-sigil" or "")))
+  end
+end
+do
+  local case_17_ = read_file(lua_path)
+  if (case_17_ == "return {works = true}") then
+    OK(string.format(("created lua file in cache" or "")))
+  else
+    local __1_auto = case_17_
+    FAIL(string.format(("created lua file in cache" or "")))
   end
 end
 return exit()
