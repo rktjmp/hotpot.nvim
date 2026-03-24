@@ -1,5 +1,5 @@
 " Inject hotpot system, or no-op if already done
-lua require("hotpot")
+" lua require("hotpot")
 
 " Execute Fennel expression or range from buffer
 command! -range=% -nargs=* Fnl

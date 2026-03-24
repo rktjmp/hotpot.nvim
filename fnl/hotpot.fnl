@@ -1,29 +1,43 @@
-(assert (= 1 (vim.fn.has "nvim-0.9.1")) "Hotpot requires neovim 0.9.1+")
+(assert (= 1 (vim.fn.has "nvim-0.11.6")) "Hotpot requires neovim 0.11.6")
 
-(let [{: searcher : compiled-cache-path} (require :hotpot.loader)
-      {: join-path : make-path} (require :hotpot.fs)
-      {: set-lazy-proxy} (require :hotpot.common)
-      neovim-runtime (require :hotpot.neovim.runtime)
-      {:auto automake} (require :hotpot.api.make)
-      diagnostics (require :hotpot.api.diagnostics)]
+(let [first-boot-sigil (vim.fs.joinpath (vim.fn.stdpath :cache)
+                                        :hotpot
+                                        :first-boot)]
+   ;; We must ensure the rtp dir exists now otherwise vim.loader won't
+   ;; see it, and won't setup some internal mechanisms for the directory.
+   ;(make-path compiled-cache-path)
+  (when (not (vim.uv.fs_stat first-boot-sigil))
+    ;; We've never booted this neovim instance before so should try an initial
+    ;; compile of the config directory.
+    ;; By default (eg: with no configuration) this will be target the cache
+    ;; so it should be non-destructive -- clean will only clean the cache dir
+    ;; which doesn't exist. Otherwise if there is a config, it should still be
+    ;; safe to run as the user ... has a config.
+    (vim.notify "Hotpot: Running first boot compile" vim.log.INFO {})
+    (let [Context (require :hotpot.aot.context)
+          ctx (Context.new (vim.fn.stdpath :config))]
+      (Context.sync ctx)
+      ;; finally make the first-boot-sigil file to mark that we have run.
+      (with-open [fh (assert (io.open first-boot-sigil :w) (.. "fs.read-file! io.open failed:" first-boot-sigil))]
+        (let [{: sec : nsec} (vim.uv.clock_gettime :realtime)]
+          (fh:write (string.format "%s.%s" sec nsec)))))))
 
-  ;; We must ensure the rtp dir exists now otherwise vim.loader won't
-  ;; see it, and won't setup some internal mechanisms for the directory.
-  (make-path compiled-cache-path)
-  (vim.opt.runtimepath:prepend (join-path compiled-cache-path "*"))
-  (table.insert package.loaders 2 searcher)
+;; Create autocommand which does most of the work when the user is using
+;; neovim.
+(let [autocmd (require :hotpot.autocmd)]
+  (autocmd.enable))
 
-  ;; User may not call setup, we always want these enabled
-  (neovim-runtime.enable)
-  (automake.enable)
-  (diagnostics.enable)
-  (tset package.preload :fennel #(require :hotpot.fennel))
+;; Set fennel preload
+(tset package.preload :fennel #((require :hotpot.aot.fennel)))
 
-  (fn setup [options]
-    (let [runtime (require :hotpot.runtime)
-          config (runtime.set-user-config options)]
-      (if config.enable_hotpot_diagnostics
-        (diagnostics.enable)
-        (diagnostics.disable))))
+(λ setup [?options]
+  (let [default {:enable true
+                 :fennel {:byo false}}
+        options (vim.tbl_extend :force default (or ?options {}))]
+    (when (= false options.enable)
+      (let [autocmd (require :hotpot.aot.autocmd)]
+        (autocmd.disable)))
+    (when (= true options.fennel.byo)
+      (tset package.preload :fennel nil))))
 
-  (set-lazy-proxy {: setup} {:api :hotpot.api :runtime :hotpot.runtime}))
+{: setup}

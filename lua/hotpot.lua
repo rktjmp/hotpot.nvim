@@ -1,33 +1,84 @@
-assert((1 == vim.fn.has("nvim-0.9.1")), "Hotpot requires neovim 0.9.1+")
-local _let_1_ = require("hotpot.loader")
-local searcher = _let_1_["searcher"]
-local compiled_cache_path = _let_1_["compiled-cache-path"]
-local _let_2_ = require("hotpot.fs")
-local join_path = _let_2_["join-path"]
-local make_path = _let_2_["make-path"]
-local _let_3_ = require("hotpot.common")
-local set_lazy_proxy = _let_3_["set-lazy-proxy"]
-local neovim_runtime = require("hotpot.neovim.runtime")
-local _let_4_ = require("hotpot.api.make")
-local automake = _let_4_["auto"]
-local diagnostics = require("hotpot.api.diagnostics")
-make_path(compiled_cache_path)
-vim.opt.runtimepath:prepend(join_path(compiled_cache_path, "*"))
-table.insert(package.loaders, 2, searcher)
-neovim_runtime.enable()
-automake.enable()
-diagnostics.enable()
-local function _5_()
-  return require("hotpot.fennel")
-end
-package.preload["fennel"] = _5_
-local function setup(options)
-  local runtime = require("hotpot.runtime")
-  local config = runtime["set-user-config"](options)
-  if config.enable_hotpot_diagnostics then
-    return diagnostics.enable()
+assert((1 == vim.fn.has("nvim-0.11.6")), "Hotpot requires neovim 0.11.6")
+do
+  local first_boot_sigil = vim.fs.joinpath(vim.fn.stdpath("cache"), "hotpot", "first-boot")
+  if not vim.uv.fs_stat(first_boot_sigil) then
+    vim.notify("Hotpot: Running first boot compile", vim.log.INFO, {})
+    local Context = require("hotpot.aot.context")
+    local ctx = Context.new(vim.fn.stdpath("config"))
+    Context.sync(ctx)
+    local fh = assert(io.open(first_boot_sigil, "w"), ("fs.read-file! io.open failed:" .. first_boot_sigil))
+    local function close_handlers_13_(ok_14_, ...)
+      fh:close()
+      if ok_14_ then
+        return ...
+      else
+        return error(..., 0)
+      end
+    end
+    local function _2_(...)
+      local args_15_ = {...}
+      local n_16_ = select("#", ...)
+      local unpack_17_ = (_G.unpack or _G.table.unpack)
+      local function _3_()
+        local function _4_(...)
+          local _let_5_ = vim.uv.clock_gettime("realtime")
+          local sec = _let_5_.sec
+          local nsec = _let_5_.nsec
+          return fh:write(string.format("%s.%s", sec, nsec))
+        end
+        return _4_(unpack_17_(args_15_, 1, n_16_))
+      end
+      local _7_
+      do
+        local t_6_ = _G
+        if (nil ~= t_6_) then
+          t_6_ = t_6_.package
+        else
+        end
+        if (nil ~= t_6_) then
+          t_6_ = t_6_.loaded
+        else
+        end
+        if (nil ~= t_6_) then
+          t_6_ = t_6_.fennel
+        else
+        end
+        _7_ = t_6_
+      end
+      local or_11_ = _7_ or _G.debug
+      if not or_11_ then
+        local function _12_()
+          return ""
+        end
+        or_11_ = {traceback = _12_}
+      end
+      return _G.xpcall(_3_, or_11_.traceback)
+    end
+    close_handlers_13_(_2_(...))
   else
-    return diagnostics.disable()
   end
 end
-return set_lazy_proxy({setup = setup}, {api = "hotpot.api", runtime = "hotpot.runtime"})
+do
+  local autocmd = require("hotpot.autocmd")
+  autocmd.enable()
+end
+local function _14_()
+  return require("hotpot.aot.fennel")()
+end
+package.preload["fennel"] = _14_
+local function setup(_3foptions)
+  local default = {enable = true, fennel = {byo = false}}
+  local options = vim.tbl_extend("force", default, (_3foptions or {}))
+  if (false == options.enable) then
+    local autocmd = require("hotpot.aot.autocmd")
+    autocmd.disable()
+  else
+  end
+  if (true == options.fennel.byo) then
+    package.preload["fennel"] = nil
+    return nil
+  else
+    return nil
+  end
+end
+return {setup = setup}
