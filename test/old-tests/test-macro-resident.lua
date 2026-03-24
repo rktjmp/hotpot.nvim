@@ -5,9 +5,9 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
   local function write_file(path, lines)
     vim.fn.mkdir(vim.fs.dirname(path), "p")
     local fh = assert(io.open(path, "w"), ("fs.write-file! io.open failed:" .. path))
-    local function close_handlers_12_(ok_13_, ...)
+    local function close_handlers_13_(ok_14_, ...)
       fh:close()
-      if ok_13_ then
+      if ok_14_ then
         return ...
       else
         return error(..., 0)
@@ -40,7 +40,7 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
       end
       or_8_ = {traceback = _9_}
     end
-    return close_handlers_12_(_G.xpcall(_2_, or_8_.traceback))
+    return close_handlers_13_(_G.xpcall(_2_, or_8_.traceback))
   end
   local results = {passes = 0, fails = 0}
   local function OK(message)
@@ -55,15 +55,13 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
     print("\n")
     return os.exit(results.fails)
   end
-  vim.opt.runtimepath:prepend(vim.loop.cwd())
-  require("hotpot")
   return {["write-file"] = write_file, ["read-file"] = read_file, OK = OK, FAIL = FAIL, exit = exit, NVIM_APPNAME = vim.env.NVIM_APPNAME}
 end
 local _local_10_ = require("test.utils")
-local FAIL = _local_10_["FAIL"]
-local NVIM_APPNAME = _local_10_["NVIM_APPNAME"]
-local OK = _local_10_["OK"]
-local exit = _local_10_["exit"]
+local FAIL = _local_10_.FAIL
+local NVIM_APPNAME = _local_10_.NVIM_APPNAME
+local OK = _local_10_.OK
+local exit = _local_10_.exit
 local read_file = _local_10_["read-file"]
 local write_file = _local_10_["write-file"]
 local dot_hotpot_path = (vim.fn.stdpath("config") .. "/.hotpot.lua")
@@ -77,11 +75,11 @@ vim.cmd(string.format("edit %s", fnl_path))
 vim.cmd("set ft=fennel")
 vim.cmd("w")
 do
-  local _11_ = read_file(lua_path)
-  if (_11_ == "return (1 + 1 + 1)") then
+  local case_11_ = read_file(lua_path)
+  if (case_11_ == "return (1 + 1 + 1)") then
     OK(string.format(("returns first version of macro" or "")))
   else
-    local __1_auto = _11_
+    local __1_auto = case_11_
     FAIL(string.format(("returns first version of macro" or "")))
   end
 end
@@ -90,11 +88,11 @@ vim.cmd(string.format("edit %s", macro_path))
 vim.cmd("set ft=fennel")
 vim.cmd("w")
 do
-  local _13_ = read_file(lua_path)
-  if (_13_ == "return (1 + 1)") then
+  local case_13_ = read_file(lua_path)
+  if (case_13_ == "return (1 + 1)") then
     OK(string.format(("returns second version of macro" or "")))
   else
-    local __1_auto = _13_
+    local __1_auto = case_13_
     FAIL(string.format(("returns second version of macro" or "")))
   end
 end
