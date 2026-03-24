@@ -15,6 +15,9 @@
            :read-file ,(sym :read-file)
            :OK ,(sym :OK)
            :FAIL ,(sym :FAIL)
+           :create-file ,(sym :create-file)
+           :path ,(sym :path)
+           :start-nvim ,(sym :start-nvim)
            :NVIM_APPNAME ,(sym :NVIM_APPNAME)
            :exit ,(sym :exit)}
        (include :test.utils)))

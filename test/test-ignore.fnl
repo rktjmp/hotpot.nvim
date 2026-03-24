@@ -1,0 +1,72 @@
+(import-macros {: setup : expect} :test.macros)
+(setup)
+
+(local config-path (create-file (path :config :.hotpot.fnl)
+                                "{:schema :hotpot/2
+                                  :target :colocate
+                                  :ignore [:lua/vendor/lib.lua :fnl/dummy.fnl :fnl/dummy.fnlm]}"))
+
+(local abc-fnl-path (create-file (path :config :fnl/abc.fnl) "{:works true}"))
+(local abc-lua-path (path :config :lua/abc.lua))
+(local dummy-fnl-path (create-file (path :config :fnl/dummy.fnl) "{:dummy true}"))
+(local dummy-lua-path (path :config :lua/dummy.lua))
+(local dummy-fnlm-path (create-file (path :config :fnl/dummy.fnlm) "{}"))
+(local vendor-path (create-file (path :config :lua/vendor/lib.lua)
+                                "return 'vendor lib'"))
+
+(local nvim (start-nvim))
+(nvim:lua "require'hotpot'")
+
+(expect {:mtime {}} (vim.uv.fs_stat abc-lua-path) "created abc-lua")
+(expect {:mtime {}} (vim.uv.fs_stat vendor-path) "retained vendor-lua")
+(expect nil (vim.uv.fs_stat dummy-lua-path) "did not create dummy-lua")
+(local {:mtime {:sec time1}} (vim.uv.fs_stat abc-lua-path))
+
+(nvim:cmd (.. "edit " dummy-fnl-path))
+(nvim:cmd :write)
+
+(local {:mtime {:sec time2}} (vim.uv.fs_stat abc-lua-path))
+(expect nil (vim.uv.fs_stat dummy-lua-path) "did not create dummy-lua after write")
+(expect true (= time1 time2) "did not rebuild abc-lua with no changes")
+
+; ;;
+; ;; Compiles to cache as instructed, automatically on first boot
+; ;;
+; (expect "return {works = true}" (read-file lua-path) "first boot created lua file in cache")
+; (expect "return 'vendor lib'" (read-file vendor-path) "first boot left vendor file untouched")
+;
+; ;;
+; ;; Will not compile other files automatically at boot without saving
+; ;;
+; (local fnl-path2 (create-file (path :config :fnl/xyz.fnl)
+;                               "{:works :also}"))
+; (local lua-path2 (path :data :/site/hotpot/start/lua/xyz.lua))
+;
+; (local nvim (start-nvim))
+; (nvim:lua "require'hotpot'")
+;
+; (expect "return {works = true}" (read-file lua-path) "second boot kept lua file in cache")
+; (expect nil (vim.uv.fs_stat lua-path2) "second boot did not create second file in cache")
+; (expect "return 'vendor lib'" (read-file vendor-path) "second boot left vendor file untouched")
+;
+; ;;
+; ;; Saving fnl file triggers rebuild
+; ;;
+; (nvim:cmd (.. "edit " fnl-path2))
+; (nvim:cmd :write)
+; (expect "return {works = true}" (read-file lua-path) "saving file kept lua file in cache")
+; (expect "return {works = \"also\"}" (read-file lua-path2) "saving file created lua file 2 in cache")
+; (expect "return 'vendor lib'" (read-file vendor-path) "saving file left vendor file untouched")
+;
+; ;;
+; ;; Orphaned files are removed
+; ;;
+; (vim.fn.delete fnl-path)
+; (vim.print (nvim:cmd :write))
+; (expect nil (vim.uv.fs_stat lua-path) "saving file removed orphaned file")
+; (expect "return {works = \"also\"}" (read-file lua-path2) "saving file retained lua file 2 in cache")
+; (expect "return 'vendor lib'" (read-file vendor-path) "saving file left vendor file untouched")
+;
+(nvim:close)
+
+(exit)

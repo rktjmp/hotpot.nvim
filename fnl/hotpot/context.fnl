@@ -87,7 +87,11 @@
                {:kind :config :root root}
                (case spec
                  {:target :cache} {:source root :dest (-> (vim.fn.stdpath :data)
-                                                          (vim.fs.joinpath :site/hotpot/start)
+                                                          (vim.fs.joinpath :site
+                                                                           :pack
+                                                                           :hotpot
+                                                                           :opt
+                                                                           :config)
                                                           (vim.fs.normalize))}
                  {:target :colocate} {:source root :dest root})
                {:kind :plugin : root}
@@ -96,13 +100,17 @@
                  {:target :cache} (error (err-msg-unable-to-load root "non-config directories may only use target: :colocate")))
                _ (error (err-msg-unable-to-load "unknown" "internal error: spec meta missing kind")))
         ctx (vim.tbl_extend :force (base-spec) spec {: path})]
+    (set ctx.ignore (icollect [_ glob (ipairs ctx.ignore)]
+                      (vim.glob.to_lpeg glob)))
     ctx))
 
 (λ create-context [?directory]
   (case ?directory
     directory (let [root (vim.fs.normalize directory)
-                    path (vim.fs.joinpath root :.hotpot.fnl)]
-                (case (values (~= nil (vim.uv.fs_stat path)) (= root *config-root-path*))
+                    path (vim.fs.joinpath root :.hotpot.fnl)
+                    dot-hotpot-exists? (~= nil (vim.uv.fs_stat path))
+                    root-is-config-root? (= root *config-root-path*)]
+                (case (values dot-hotpot-exists? root-is-config-root?)
                   ;; config with custom def
                   (true true) (-> (load-spec-file path)
                                   (spec->context {:root root
@@ -121,10 +129,18 @@
             (spec->context {:kind :api}))))
 
 (λ m.find-files [root extension-pattern ignore]
-  (vim.fs.find (fn [name path]
-                 (and (name:match extension-pattern)
-                      (accumulate [ok? true _ rule (ipairs ignore) &until (not ok?)]
-                        (not (rule:match path)))))
+  (vim.fs.find (fn [name dir]
+                 ;; We implicitly always ignore our own config file, ignore any
+                 ;; files that do not match the given extension(s) and
+                 ;; otherwise ignore anything in the ignore list. Note that the
+                 ;; ignore list is given as glob patterns relative to the root,
+                 ;; eg lua/vendor/*.lua, etc, so we must get the relative path
+                 ;; to check against.
+                 (let [path (vim.fs.relpath root (vim.fs.joinpath dir name) {})]
+                   (and (~= :.hotpot.fnl name)
+                        (name:match extension-pattern)
+                        (accumulate [ok? true _ rule (ipairs ignore) &until (not ok?)]
+                          (not (rule:match path))))))
                {:limit math.huge :type :file :path root}))
 
 (λ m.find-source-files [ctx]
@@ -166,8 +182,11 @@
                                             ;; missing is as good as "very old"
                                             (false _) 0)
                                 fnl-mtime (mtime fnl-abs)]
-                            ;; lua stale or fnl stale
-                            (if (or (< lua-mtime fnl-mtime) (< fnl-mtime fnlm-mtime))
+                            ;; Rebuild lua file if its counterpart fnl file has
+                            ;; been updated more recently than its last build,
+                            ;; or if _any_ fnlm file has been updated since its
+                            ;; last build.
+                            (if (or (< lua-mtime fnl-mtime) (< lua-mtime fnlm-mtime))
                               file)))]
     needs-compiling))
 
@@ -217,7 +236,6 @@
   considered stale."
   (let [source-files (m.find-source-files ctx)
         stale-files (m.filter-stale-source-files source-files)
-        ; _ (vim.print ctx.compiler)
         results (icollect [_ {: fnl-abs : fnl-rel : lua-abs} (ipairs stale-files)]
                   (let [fnl-source (read-file! fnl-abs)]
                     (case (M.compile-string ctx fnl-source {:filename fnl-rel})
@@ -229,11 +247,16 @@
         all-ok? (icollect [_ result (ipairs results)]
                   (case result
                     {: fnl-abs : error &as bad} bad))]
-    ; (vim.print results)
+    _ (vim.print results)
     (case (length all-ok?)
-      0 (each [_ {: lua-abs : source} (ipairs results)]
-          (vim.fn.mkdir (vim.fs.dirname lua-abs) "p")
-          (write-file! lua-abs source))
+      0 (do
+          (each [_ {: lua-abs : source} (ipairs results)]
+            (vim.fn.mkdir (vim.fs.dirname lua-abs) "p")
+            (write-file! lua-abs source))
+          (let [orphans (m.find-orphaned-files ctx source-files)]
+            ;; TODO: if #orphans > n, warn+ confirm
+            (each [_ orphan (ipairs orphans)]
+              (vim.uv.fs_unlink orphan))))
       n (vim.notify "Errors"))
     nil
   ))

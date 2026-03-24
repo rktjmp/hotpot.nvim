@@ -55,25 +55,51 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
     print("\n")
     return os.exit(results.fails)
   end
-  return {["write-file"] = write_file, ["read-file"] = read_file, OK = OK, FAIL = FAIL, exit = exit, NVIM_APPNAME = vim.env.NVIM_APPNAME}
+  local function start_nvim()
+    local channel = vim.fn.jobstart({"nvim", "--embed", "--headless"}, {rpc = true})
+    local nvim
+    local function _10_(this)
+      return vim.fn.jobstop(channel)
+    end
+    local function _11_(this, cmd)
+      return vim.rpcrequest(channel, "nvim_exec2", cmd, {output = true})
+    end
+    local function _12_(this, src)
+      return vim.rpcrequest(channel, "nvim_exec2", table.concat({"lua << EOF", src, "EOF"}, "\n"), {output = true})
+    end
+    nvim = {channel = channel, close = _10_, cmd = _11_, lua = _12_}
+    nvim:lua("vim.opt.runtimepath:prepend('/home/user/hotpot')")
+    return nvim
+  end
+  local function create_file(path, content)
+    write_file(path, content)
+    return path
+  end
+  local function path(_in, ...)
+    return vim.fs.joinpath(vim.fn.stdpath(_in), ...)
+  end
+  return {["write-file"] = write_file, ["read-file"] = read_file, ["create-file"] = create_file, path = path, OK = OK, FAIL = FAIL, exit = exit, ["start-nvim"] = start_nvim, NVIM_APPNAME = vim.env.NVIM_APPNAME}
 end
-local _local_10_ = require("test.utils")
-local FAIL = _local_10_.FAIL
-local NVIM_APPNAME = _local_10_.NVIM_APPNAME
-local OK = _local_10_.OK
-local exit = _local_10_.exit
-local read_file = _local_10_["read-file"]
-local write_file = _local_10_["write-file"]
-local function test_path(modname, path)
-  local fnl_path = (vim.fn.stdpath("config") .. "/fnl/" .. path .. ".fnl")
-  local lua_path = (vim.fn.stdpath("cache") .. "/hotpot/compiled/" .. NVIM_APPNAME .. "/lua/" .. path .. ".lua")
+local _local_13_ = require("test.utils")
+local FAIL = _local_13_.FAIL
+local NVIM_APPNAME = _local_13_.NVIM_APPNAME
+local OK = _local_13_.OK
+local create_file = _local_13_["create-file"]
+local exit = _local_13_.exit
+local path = _local_13_.path
+local read_file = _local_13_["read-file"]
+local start_nvim = _local_13_["start-nvim"]
+local write_file = _local_13_["write-file"]
+local function test_path(modname, path0)
+  local fnl_path = (vim.fn.stdpath("config") .. "/fnl/" .. path0 .. ".fnl")
+  local lua_path = (vim.fn.stdpath("cache") .. "/hotpot/compiled/" .. NVIM_APPNAME .. "/lua/" .. path0 .. ".lua")
   write_file(fnl_path, "{:works true}")
   local val
-  local function _11_(...)
+  local function _14_(...)
     if (... == true) then
-      local function _12_(...)
+      local function _15_(...)
         if (... == true) then
-          local function _13_(...)
+          local function _16_(...)
             if (... == true) then
               return true
             else
@@ -81,52 +107,52 @@ local function test_path(modname, path)
               return ...
             end
           end
-          local function _16_(...)
-            local case_15_ = read_file(lua_path)
-            if (case_15_ == "return {works = true}") then
+          local function _19_(...)
+            local case_18_ = read_file(lua_path)
+            if (case_18_ == "return {works = true}") then
               OK(string.format(("Outputs correct lua code" or "")))
               return true
             else
-              local __1_auto = case_15_
+              local __1_auto = case_18_
               FAIL(string.format(("Outputs correct lua code" or "")))
               return false
             end
           end
-          return _13_(_16_(...))
+          return _16_(_19_(...))
         else
           local __43_ = ...
           return ...
         end
       end
-      local function _20_(...)
-        local case_19_ = vim.loop.fs_access(lua_path, "R")
-        if (case_19_ == true) then
+      local function _23_(...)
+        local case_22_ = vim.loop.fs_access(lua_path, "R")
+        if (case_22_ == true) then
           OK(string.format(("Creates a lua file at %s" or ""), lua_path))
           return true
         else
-          local __1_auto = case_19_
+          local __1_auto = case_22_
           FAIL(string.format(("Creates a lua file at %s" or ""), lua_path))
           return false
         end
       end
-      return _12_(_20_(...))
+      return _15_(_23_(...))
     else
       local __43_ = ...
       return ...
     end
   end
-  local function _25_()
-    local case_23_, case_24_ = pcall(require, modname)
-    if ((case_23_ == true) and ((_G.type(case_24_) == "table") and (case_24_.works == true))) then
+  local function _28_()
+    local case_26_, case_27_ = pcall(require, modname)
+    if ((case_26_ == true) and ((_G.type(case_27_) == "table") and (case_27_.works == true))) then
       OK(string.format(("Can require module %s %s" or ""), modname, fnl_path))
       return true
     else
-      local __1_auto = case_23_
+      local __1_auto = case_26_
       FAIL(string.format(("Can require module %s %s" or ""), modname, fnl_path))
       return false
     end
   end
-  val = _11_(_25_())
+  val = _14_(_28_())
   vim.fn.delete(fnl_path)
   vim.fn.delete(lua_path)
   return val
@@ -144,25 +170,25 @@ test_path("fnl", "fnl/init")
 test_path("some.code.fnl", "some/code/fnl/init")
 test_path("some.code.fnl.init", "some/code/fnl/init")
 do
-  local path = "issue-131"
+  local path0 = "issue-131"
   local modname = "issue-131"
-  local fnl_path_1 = (vim.fn.stdpath("config") .. "/fnl/" .. path .. ".fnl")
-  local fnl_path_2 = (vim.fn.stdpath("config") .. "/fnl/" .. path .. "-broken.fnl")
-  local lua_path = (vim.fn.stdpath("cache") .. "/hotpot/compiled/" .. NVIM_APPNAME .. "/lua/" .. path .. ".lua")
+  local fnl_path_1 = (vim.fn.stdpath("config") .. "/fnl/" .. path0 .. ".fnl")
+  local fnl_path_2 = (vim.fn.stdpath("config") .. "/fnl/" .. path0 .. "-broken.fnl")
+  local lua_path = (vim.fn.stdpath("cache") .. "/hotpot/compiled/" .. NVIM_APPNAME .. "/lua/" .. path0 .. ".lua")
   local test_code = table.concat({"require('issue-131')", string.format("vim.loop.fs_unlink(%q)", fnl_path_1), string.format("vim.loop.fs_rename(%q, %q)", fnl_path_2, fnl_path_1), "package.loaded['issue-131'] = nil", "if not pcall(require, 'issue-131') then os.exit(1) else os.exit(255) end"}, "\n")
   write_file(fnl_path_1, "{:works true}")
   write_file(fnl_path_2, "{:works true")
-  local case_27_
+  local case_30_
   do
     local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
     write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. test_code)))
     vim.cmd(string.format("!%s +'set columns=1000' --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
-    case_27_ = vim.v.shell_error
+    case_30_ = vim.v.shell_error
   end
-  if (case_27_ == 1) then
+  if (case_30_ == 1) then
     OK(string.format((nil or "")))
   else
-    local __1_auto = case_27_
+    local __1_auto = case_30_
     FAIL(string.format((nil or "")))
   end
 end

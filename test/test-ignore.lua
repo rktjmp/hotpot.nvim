@@ -90,38 +90,67 @@ local path = _local_13_.path
 local read_file = _local_13_["read-file"]
 local start_nvim = _local_13_["start-nvim"]
 local write_file = _local_13_["write-file"]
-local function p(x)
-  return (vim.fn.stdpath("config") .. x)
-end
-local _local_14_ = require("hotpot.api.cache")
-local cache_prefix = _local_14_["cache-prefix"]
-local fnl_plugin_path = p("/plugin/my_plugin_1.fnl")
-local fnl_lua_path = (cache_prefix() .. "/hotpot-runtime-" .. NVIM_APPNAME .. "/lua/hotpot-runtime-plugin/my_plugin_1.lua")
-local lua_plugin_path = p("/plugin/my_plugin_1.lua")
-write_file(fnl_plugin_path, "(set _G.exit_val 99)")
-write_file(lua_plugin_path, "_G.exit_val = 1")
+local config_path = create_file(path("config", ".hotpot.fnl"), "{:schema :hotpot/2\n                                  :target :colocate\n                                  :ignore [:lua/vendor/lib.lua :fnl/dummy.fnl :fnl/dummy.fnlm]}")
+local abc_fnl_path = create_file(path("config", "fnl/abc.fnl"), "{:works true}")
+local abc_lua_path = path("config", "lua/abc.lua")
+local dummy_fnl_path = create_file(path("config", "fnl/dummy.fnl"), "{:dummy true}")
+local dummy_lua_path = path("config", "lua/dummy.lua")
+local dummy_fnlm_path = create_file(path("config", "fnl/dummy.fnlm"), "{}")
+local vendor_path = create_file(path("config", "lua/vendor/lib.lua"), "return 'vendor lib'")
+local nvim = start_nvim()
+nvim:lua("require'hotpot'")
 do
-  local case_15_
-  do
-    local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
-    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "_G.exit_1 = 0\n                       vim.defer_fn(function()\n                         os.exit(_G.exit_val)\n                       end, 50)")))
-    vim.cmd(string.format("!%s +'set columns=1000' --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
-    case_15_ = vim.v.shell_error
-  end
-  if (case_15_ == 1) then
-    OK(string.format(("plugin/*.lua executed" or "")))
+  local case_14_ = vim.uv.fs_stat(abc_lua_path)
+  if ((_G.type(case_14_) == "table") and (_G.type(case_14_.mtime) == "table")) then
+    OK(string.format(("created abc-lua" or "")))
   else
-    local __1_auto = case_15_
-    FAIL(string.format(("plugin/*.lua executed" or "")))
+    local __1_auto = case_14_
+    FAIL(string.format(("created abc-lua" or "")))
   end
 end
 do
-  local case_17_ = vim.loop.fs_access(fnl_lua_path, "R")
-  if (case_17_ == false) then
-    OK(string.format(("fnl never compiled" or "")))
+  local case_16_ = vim.uv.fs_stat(vendor_path)
+  if ((_G.type(case_16_) == "table") and (_G.type(case_16_.mtime) == "table")) then
+    OK(string.format(("retained vendor-lua" or "")))
   else
-    local __1_auto = case_17_
-    FAIL(string.format(("fnl never compiled" or "")))
+    local __1_auto = case_16_
+    FAIL(string.format(("retained vendor-lua" or "")))
   end
 end
+do
+  local case_18_ = vim.uv.fs_stat(dummy_lua_path)
+  if (case_18_ == nil) then
+    OK(string.format(("did not create dummy-lua" or "")))
+  else
+    local __1_auto = case_18_
+    FAIL(string.format(("did not create dummy-lua" or "")))
+  end
+end
+local _local_20_ = vim.uv.fs_stat(abc_lua_path)
+local _local_21_ = _local_20_.mtime
+local time1 = _local_21_.sec
+nvim:cmd(("edit " .. dummy_fnl_path))
+nvim:cmd("write")
+local _local_22_ = vim.uv.fs_stat(abc_lua_path)
+local _local_23_ = _local_22_.mtime
+local time2 = _local_23_.sec
+do
+  local case_24_ = vim.uv.fs_stat(dummy_lua_path)
+  if (case_24_ == nil) then
+    OK(string.format(("did not create dummy-lua after write" or "")))
+  else
+    local __1_auto = case_24_
+    FAIL(string.format(("did not create dummy-lua after write" or "")))
+  end
+end
+do
+  local case_26_ = (time1 == time2)
+  if (case_26_ == true) then
+    OK(string.format(("did not rebuild abc-lua with no changes" or "")))
+  else
+    local __1_auto = case_26_
+    FAIL(string.format(("did not rebuild abc-lua with no changes" or "")))
+  end
+end
+nvim:close()
 return exit()

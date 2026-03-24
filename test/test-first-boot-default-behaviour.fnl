@@ -1,22 +1,9 @@
 (import-macros {: setup : expect} :test.macros)
 (setup)
 
-(local fnl-path (.. (vim.fn.stdpath :config) :/fnl/abc.fnl))
-(local first-boot-sigil (.. (vim.fn.stdpath :cache) :/hotpot/first-boot.txt))
-(local lua-path (.. (vim.fn.stdpath :data) :/site/hotpot/start/lua/abc.lua))
-(write-file fnl-path "{:works true}")
-
-(fn start-nvim []
-  (let [nvim (vim.fn.jobstart [:nvim :--embed :--headless] {:rpc true})]
-    (vim.rpcrequest nvim :nvim_exec2 "lua vim.opt.runtimepath:prepend('/home/user/hotpot')" {:output true})
-    {:channel nvim
-     :close (fn [this] (vim.fn.jobstop this.channel))
-     :lua (fn [this src]
-            (vim.rpcrequest this.channel
-                            :nvim_exec2
-                            (table.concat ["lua << EOF" src "EOF"] "\n")
-                            {:output true}))}))
-
+(local fnl-path (create-file (path :config :/fnl/abc.fnl) "{:works true}"))
+(local first-boot-sigil (path :data :/site/pack/hotpot/opt/config))
+(local lua-path (path :data :/site/pack/hotpot/opt/config/lua/abc.lua))
 
 (expect nil (vim.uv.fs_stat first-boot-sigil) "no first-boot-sigil")
 

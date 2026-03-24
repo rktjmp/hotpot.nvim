@@ -2,7 +2,7 @@ FROM debian:bookworm-20251208-slim
 
 # install latest nvim
 RUN apt-get update && \
-    apt-get install -y curl jq uuid-runtime git && \
+    apt-get install -y curl jq uuid-runtime git tree && \
     curl -sL https://api.github.com/repos/neovim/neovim/releases/latest | \
     jq -r '.assets[].browser_download_url' | \
     grep nvim-linux-x86_64.tar.gz | \

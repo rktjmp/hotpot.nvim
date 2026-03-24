@@ -11,10 +11,13 @@ fi
 for t in ${tests[@]};
 do
   echo "SUITE START  $t..."
-  NVIM_APPNAME="nvim-$(uuidgen)" $nvim_bin +"set columns=1000" --headless -l "${t}"
+  NVIM_APPNAME="nvim-$(uuidgen)"
+  NVIM_APPNAME=$NVIM_APPNAME $nvim_bin +"set columns=1000" --headless -l "${t}"
   if [ $? -ne 0 ]; then
     echo "SUITE FAILED $t"
     failed_count=1
+    tree ~/.config/$NVIM_APPNAME
+    tree ~/.local/share/$NVIM_APPNAME
   else
     echo "SUITE PASSED $t"
   fi

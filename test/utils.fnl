@@ -21,10 +21,33 @@
   (print "\n")
   (os.exit results.fails))
 
-; (vim.opt.runtimepath:prepend (vim.loop.cwd))
-; (require :hotpot)
+(fn start-nvim []
+  (let [channel (vim.fn.jobstart [:nvim :--embed :--headless] {:rpc true})
+        nvim {: channel
+              :close (fn [this] (vim.fn.jobstop channel))
+              :cmd (fn [this cmd]
+                     (vim.rpcrequest channel
+                                     :nvim_exec2
+                                     cmd
+                                     {:output true}))
+              :lua (fn [this src]
+                     (vim.rpcrequest channel
+                                     :nvim_exec2
+                                     (table.concat ["lua << EOF" src "EOF"] "\n")
+                                     {:output true}))}]
+    (nvim:lua "vim.opt.runtimepath:prepend('/home/user/hotpot')")
+    nvim))
+
+(fn create-file [path content]
+  (write-file path content)
+  path)
+
+(fn path [in ...]
+  (vim.fs.joinpath (vim.fn.stdpath in) ...))
+
 
 {: write-file : read-file
+ : create-file : path
  : OK : FAIL
- : exit
+ : exit : start-nvim
  :NVIM_APPNAME vim.env.NVIM_APPNAME}

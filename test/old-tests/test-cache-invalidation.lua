@@ -55,136 +55,162 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
     print("\n")
     return os.exit(results.fails)
   end
-  return {["write-file"] = write_file, ["read-file"] = read_file, OK = OK, FAIL = FAIL, exit = exit, NVIM_APPNAME = vim.env.NVIM_APPNAME}
+  local function start_nvim()
+    local channel = vim.fn.jobstart({"nvim", "--embed", "--headless"}, {rpc = true})
+    local nvim
+    local function _10_(this)
+      return vim.fn.jobstop(channel)
+    end
+    local function _11_(this, cmd)
+      return vim.rpcrequest(channel, "nvim_exec2", cmd, {output = true})
+    end
+    local function _12_(this, src)
+      return vim.rpcrequest(channel, "nvim_exec2", table.concat({"lua << EOF", src, "EOF"}, "\n"), {output = true})
+    end
+    nvim = {channel = channel, close = _10_, cmd = _11_, lua = _12_}
+    nvim:lua("vim.opt.runtimepath:prepend('/home/user/hotpot')")
+    return nvim
+  end
+  local function create_file(path, content)
+    write_file(path, content)
+    return path
+  end
+  local function path(_in, ...)
+    return vim.fs.joinpath(vim.fn.stdpath(_in), ...)
+  end
+  return {["write-file"] = write_file, ["read-file"] = read_file, ["create-file"] = create_file, path = path, OK = OK, FAIL = FAIL, exit = exit, ["start-nvim"] = start_nvim, NVIM_APPNAME = vim.env.NVIM_APPNAME}
 end
-local _local_10_ = require("test.utils")
-local FAIL = _local_10_.FAIL
-local NVIM_APPNAME = _local_10_.NVIM_APPNAME
-local OK = _local_10_.OK
-local exit = _local_10_.exit
-local read_file = _local_10_["read-file"]
-local write_file = _local_10_["write-file"]
+local _local_13_ = require("test.utils")
+local FAIL = _local_13_.FAIL
+local NVIM_APPNAME = _local_13_.NVIM_APPNAME
+local OK = _local_13_.OK
+local create_file = _local_13_["create-file"]
+local exit = _local_13_.exit
+local path = _local_13_.path
+local read_file = _local_13_["read-file"]
+local start_nvim = _local_13_["start-nvim"]
+local write_file = _local_13_["write-file"]
 local fnl_path = (vim.fn.stdpath("config") .. "/fnl/" .. "abc" .. ".fnl")
 local lua_path = (vim.fn.stdpath("cache") .. "/hotpot/compiled/" .. NVIM_APPNAME .. "/lua/" .. "abc" .. ".lua")
 write_file(fnl_path, "{:first true}")
 do
-  local case_11_
+  local case_14_
   do
     local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
     write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "require('abc') os.exit(1)")))
     vim.cmd(string.format("!%s +'set columns=1000' --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
-    case_11_ = vim.v.shell_error
+    case_14_ = vim.v.shell_error
   end
-  if (case_11_ == 1) then
+  if (case_14_ == 1) then
     OK(string.format((nil or "")))
   else
-    local __1_auto = case_11_
+    local __1_auto = case_14_
     FAIL(string.format((nil or "")))
   end
 end
 local stats_a = vim.loop.fs_stat(lua_path)
 do
-  local case_13_ = read_file(lua_path)
-  if (case_13_ == "return {first = true}") then
+  local case_16_ = read_file(lua_path)
+  if (case_16_ == "return {first = true}") then
     OK(string.format(("First require outputs lua code" or "")))
   else
-    local __1_auto = case_13_
+    local __1_auto = case_16_
     FAIL(string.format(("First require outputs lua code" or "")))
   end
 end
 write_file(fnl_path, "{:second true}")
 do
-  local case_15_
+  local case_18_
   do
     local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
     write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "require('abc') os.exit(1)")))
     vim.cmd(string.format("!%s +'set columns=1000' --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
-    case_15_ = vim.v.shell_error
+    case_18_ = vim.v.shell_error
   end
-  if (case_15_ == 1) then
+  if (case_18_ == 1) then
     OK(string.format((nil or "")))
   else
-    local __1_auto = case_15_
+    local __1_auto = case_18_
     FAIL(string.format((nil or "")))
   end
 end
 local stats_b = vim.loop.fs_stat(lua_path)
 do
-  local case_17_ = read_file(lua_path)
-  if (case_17_ == "return {second = true}") then
+  local case_20_ = read_file(lua_path)
+  if (case_20_ == "return {second = true}") then
     OK(string.format(("Second require outputs updated lua code" or "")))
   else
-    local __1_auto = case_17_
+    local __1_auto = case_20_
     FAIL(string.format(("Second require outputs updated lua code" or "")))
   end
 end
 do
-  local case_19_ = (stats_a.size == stats_b.size)
-  if (case_19_ == false) then
+  local case_22_ = (stats_a.size == stats_b.size)
+  if (case_22_ == false) then
     OK(string.format(("Recompiled file size changed" or "")))
   else
-    local __1_auto = case_19_
+    local __1_auto = case_22_
     FAIL(string.format(("Recompiled file size changed" or "")))
   end
 end
 do
-  local case_21_ = (stats_a.mtime.nsec == stats_b.mtime.nsec)
-  if (case_21_ == false) then
+  local case_24_ = (stats_a.mtime.nsec == stats_b.mtime.nsec)
+  if (case_24_ == false) then
     OK(string.format(("Recompiled file mtime.nsec changed" or "")))
   else
-    local __1_auto = case_21_
+    local __1_auto = case_24_
     FAIL(string.format(("Recompiled file mtime.nsec changed" or "")))
   end
 end
 do
-  local case_23_
+  local case_26_
   do
     local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
     write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "require('abc') os.exit(1)")))
     vim.cmd(string.format("!%s +'set columns=1000' --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
-    case_23_ = vim.v.shell_error
+    case_26_ = vim.v.shell_error
   end
-  if (case_23_ == 1) then
+  if (case_26_ == 1) then
     OK(string.format((nil or "")))
   else
-    local __1_auto = case_23_
+    local __1_auto = case_26_
     FAIL(string.format((nil or "")))
   end
 end
 local stats_c = vim.loop.fs_stat(lua_path)
 do
-  local case_25_ = read_file(lua_path)
-  if (case_25_ == "return {second = true}") then
+  local case_28_ = read_file(lua_path)
+  if (case_28_ == "return {second = true}") then
     OK(string.format(("Third require did not alter lua code" or "")))
   else
-    local __1_auto = case_25_
+    local __1_auto = case_28_
     FAIL(string.format(("Third require did not alter lua code" or "")))
   end
 end
 do
-  local case_27_ = (stats_b.size == stats_c.size)
-  if (case_27_ == true) then
+  local case_30_ = (stats_b.size == stats_c.size)
+  if (case_30_ == true) then
     OK(string.format(("Third require and second require stat.size is the same" or "")))
   else
-    local __1_auto = case_27_
+    local __1_auto = case_30_
     FAIL(string.format(("Third require and second require stat.size is the same" or "")))
   end
 end
 do
-  local case_29_ = (stats_b.mtime.sec == stats_c.mtime.sec)
-  if (case_29_ == true) then
+  local case_32_ = (stats_b.mtime.sec == stats_c.mtime.sec)
+  if (case_32_ == true) then
     OK(string.format(("Third require and second require stat.mtime.sec is the same" or "")))
   else
-    local __1_auto = case_29_
+    local __1_auto = case_32_
     FAIL(string.format(("Third require and second require stat.mtime.sec is the same" or "")))
   end
 end
 do
-  local case_31_ = (stats_b.mtime.nsec == stats_c.mtime.nsec)
-  if (case_31_ == true) then
+  local case_34_ = (stats_b.mtime.nsec == stats_c.mtime.nsec)
+  if (case_34_ == true) then
     OK(string.format(("Third require and second require stat.mtime.nsec is the same" or "")))
   else
-    local __1_auto = case_31_
+    local __1_auto = case_34_
     FAIL(string.format(("Third require and second require stat.mtime.nsec is the same" or "")))
   end
 end

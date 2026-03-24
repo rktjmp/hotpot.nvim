@@ -55,36 +55,50 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
     print("\n")
     return os.exit(results.fails)
   end
-  return {["write-file"] = write_file, ["read-file"] = read_file, OK = OK, FAIL = FAIL, exit = exit, NVIM_APPNAME = vim.env.NVIM_APPNAME}
-end
-local _local_10_ = require("test.utils")
-local FAIL = _local_10_.FAIL
-local NVIM_APPNAME = _local_10_.NVIM_APPNAME
-local OK = _local_10_.OK
-local exit = _local_10_.exit
-local read_file = _local_10_["read-file"]
-local write_file = _local_10_["write-file"]
-local fnl_path = (vim.fn.stdpath("config") .. "/fnl/abc.fnl")
-local first_boot_sigil = (vim.fn.stdpath("cache") .. "/hotpot/first-boot.txt")
-local lua_path = (vim.fn.stdpath("data") .. "/site/hotpot/start/lua/abc.lua")
-write_file(fnl_path, "{:works true}")
-local function start_nvim()
-  local nvim = vim.fn.jobstart({"nvim", "--embed", "--headless"}, {rpc = true})
-  vim.rpcrequest(nvim, "nvim_exec2", "lua vim.opt.runtimepath:prepend('/home/user/hotpot')", {output = true})
-  local function _11_(this)
-    return vim.fn.jobstop(this.channel)
+  local function start_nvim()
+    local channel = vim.fn.jobstart({"nvim", "--embed", "--headless"}, {rpc = true})
+    local nvim
+    local function _10_(this)
+      return vim.fn.jobstop(channel)
+    end
+    local function _11_(this, cmd)
+      return vim.rpcrequest(channel, "nvim_exec2", cmd, {output = true})
+    end
+    local function _12_(this, src)
+      return vim.rpcrequest(channel, "nvim_exec2", table.concat({"lua << EOF", src, "EOF"}, "\n"), {output = true})
+    end
+    nvim = {channel = channel, close = _10_, cmd = _11_, lua = _12_}
+    nvim:lua("vim.opt.runtimepath:prepend('/home/user/hotpot')")
+    return nvim
   end
-  local function _12_(this, src)
-    return vim.rpcrequest(this.channel, "nvim_exec2", table.concat({"lua << EOF", src, "EOF"}, "\n"), {output = true})
+  local function create_file(path, content)
+    write_file(path, content)
+    return path
   end
-  return {channel = nvim, close = _11_, lua = _12_}
+  local function path(_in, ...)
+    return vim.fs.joinpath(vim.fn.stdpath(_in), ...)
+  end
+  return {["write-file"] = write_file, ["read-file"] = read_file, ["create-file"] = create_file, path = path, OK = OK, FAIL = FAIL, exit = exit, ["start-nvim"] = start_nvim, NVIM_APPNAME = vim.env.NVIM_APPNAME}
 end
+local _local_13_ = require("test.utils")
+local FAIL = _local_13_.FAIL
+local NVIM_APPNAME = _local_13_.NVIM_APPNAME
+local OK = _local_13_.OK
+local create_file = _local_13_["create-file"]
+local exit = _local_13_.exit
+local path = _local_13_.path
+local read_file = _local_13_["read-file"]
+local start_nvim = _local_13_["start-nvim"]
+local write_file = _local_13_["write-file"]
+local fnl_path = create_file(path("config", "/fnl/abc.fnl"), "{:works true}")
+local first_boot_sigil = path("data", "/site/pack/hotpot/opt/config")
+local lua_path = path("data", "/site/pack/hotpot/opt/config/lua/abc.lua")
 do
-  local case_13_ = vim.uv.fs_stat(first_boot_sigil)
-  if (case_13_ == nil) then
+  local case_14_ = vim.uv.fs_stat(first_boot_sigil)
+  if (case_14_ == nil) then
     OK(string.format(("no first-boot-sigil" or "")))
   else
-    local __1_auto = case_13_
+    local __1_auto = case_14_
     FAIL(string.format(("no first-boot-sigil" or "")))
   end
 end
@@ -92,20 +106,20 @@ local nvim = start_nvim()
 nvim:lua("require'hotpot'")
 nvim:close()
 do
-  local case_15_ = vim.uv.fs_stat(first_boot_sigil)
-  if ((_G.type(case_15_) == "table") and (_G.type(case_15_.mtime) == "table")) then
+  local case_16_ = vim.uv.fs_stat(first_boot_sigil)
+  if ((_G.type(case_16_) == "table") and (_G.type(case_16_.mtime) == "table")) then
     OK(string.format(("created first-boot-sigil" or "")))
   else
-    local __1_auto = case_15_
+    local __1_auto = case_16_
     FAIL(string.format(("created first-boot-sigil" or "")))
   end
 end
 do
-  local case_17_ = read_file(lua_path)
-  if (case_17_ == "return {works = true}") then
+  local case_18_ = read_file(lua_path)
+  if (case_18_ == "return {works = true}") then
     OK(string.format(("created lua file in cache" or "")))
   else
-    local __1_auto = case_17_
+    local __1_auto = case_18_
     FAIL(string.format(("created lua file in cache" or "")))
   end
 end

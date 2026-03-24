@@ -90,38 +90,26 @@ local path = _local_13_.path
 local read_file = _local_13_["read-file"]
 local start_nvim = _local_13_["start-nvim"]
 local write_file = _local_13_["write-file"]
-local function p(x)
-  return (vim.fn.stdpath("config") .. x)
+local config_path = create_file(path("config", ".hotpot.fnl"), "{:schema :hotpot/2\n                                  :target :cache\n                                  :ignore [:fnl/ignore.fnlm]}")
+local module_file = create_file(path("config", "fnl/my/mod.fnl"), "(print :loaded-my-mod)")
+local ft_plugin = create_file(path("config", "ftplugin/fyle.fnl"), "(print :loaded-ft-plugin-fyle)")
+local nvim = start_nvim()
+nvim:lua("require'hotpot'")
+local _local_14_ = nvim:cmd("set ft=fyle")
+local output = _local_14_.output
+if (output == "loaded-ft-plugin-fyle") then
+  OK(string.format(("automatically loads ftplugin for ft on first boot" or "")))
+else
+  local __1_auto = output
+  FAIL(string.format(("automatically loads ftplugin for ft on first boot" or "")))
 end
-local _local_14_ = require("hotpot.api.cache")
-local cache_prefix = _local_14_["cache-prefix"]
-local fnl_plugin_path = p("/plugin/my_plugin_1.fnl")
-local fnl_lua_path = (cache_prefix() .. "/hotpot-runtime-" .. NVIM_APPNAME .. "/lua/hotpot-runtime-plugin/my_plugin_1.lua")
-local lua_plugin_path = p("/plugin/my_plugin_1.lua")
-write_file(fnl_plugin_path, "(set _G.exit_val 99)")
-write_file(lua_plugin_path, "_G.exit_val = 1")
-do
-  local case_15_
-  do
-    local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
-    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "_G.exit_1 = 0\n                       vim.defer_fn(function()\n                         os.exit(_G.exit_val)\n                       end, 50)")))
-    vim.cmd(string.format("!%s +'set columns=1000' --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
-    case_15_ = vim.v.shell_error
-  end
-  if (case_15_ == 1) then
-    OK(string.format(("plugin/*.lua executed" or "")))
-  else
-    local __1_auto = case_15_
-    FAIL(string.format(("plugin/*.lua executed" or "")))
-  end
+local _local_16_ = nvim:cmd("lua require'my.mod'")
+local output0 = _local_16_.output
+if (output0 == "loaded-my-mod") then
+  OK(string.format(("can require my.mod" or "")))
+else
+  local __1_auto = output0
+  FAIL(string.format(("can require my.mod" or "")))
 end
-do
-  local case_17_ = vim.loop.fs_access(fnl_lua_path, "R")
-  if (case_17_ == false) then
-    OK(string.format(("fnl never compiled" or "")))
-  else
-    local __1_auto = case_17_
-    FAIL(string.format(("fnl never compiled" or "")))
-  end
-end
+nvim:close()
 return exit()

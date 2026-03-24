@@ -90,38 +90,19 @@ local path = _local_13_.path
 local read_file = _local_13_["read-file"]
 local start_nvim = _local_13_["start-nvim"]
 local write_file = _local_13_["write-file"]
-local function p(x)
-  return (vim.fn.stdpath("config") .. x)
-end
-local _local_14_ = require("hotpot.api.cache")
-local cache_prefix = _local_14_["cache-prefix"]
-local fnl_plugin_path = p("/plugin/my_plugin_1.fnl")
-local fnl_lua_path = (cache_prefix() .. "/hotpot-runtime-" .. NVIM_APPNAME .. "/lua/hotpot-runtime-plugin/my_plugin_1.lua")
-local lua_plugin_path = p("/plugin/my_plugin_1.lua")
-write_file(fnl_plugin_path, "(set _G.exit_val 99)")
-write_file(lua_plugin_path, "_G.exit_val = 1")
+local config_path = create_file(path("config", ".hotpot.fnl"), "{:schema :hotpot/2 :target :colocate}")
+local fnl_path = create_file(path("config", "fnl/abc.fnl"), "{:works true}")
+local lua_path = path("config", "/lua/abc.lua")
+local nvim = start_nvim()
+nvim:lua("require'hotpot'")
+nvim:close()
 do
-  local case_15_
-  do
-    local fname = string.format("sub-nvim-%d.lua", vim.loop.hrtime())
-    write_file(fname, string.format(("vim.opt.runtimepath:prepend(vim.loop.cwd())\n                             require('hotpot')\n                             " .. "_G.exit_1 = 0\n                       vim.defer_fn(function()\n                         os.exit(_G.exit_val)\n                       end, 50)")))
-    vim.cmd(string.format("!%s +'set columns=1000' --headless -S %s", (vim.env.NVIM_BIN or "nvim"), fname))
-    case_15_ = vim.v.shell_error
-  end
-  if (case_15_ == 1) then
-    OK(string.format(("plugin/*.lua executed" or "")))
+  local case_14_ = read_file(lua_path)
+  if (case_14_ == "return {works = true}") then
+    OK(string.format(("created lua file in colocate" or "")))
   else
-    local __1_auto = case_15_
-    FAIL(string.format(("plugin/*.lua executed" or "")))
-  end
-end
-do
-  local case_17_ = vim.loop.fs_access(fnl_lua_path, "R")
-  if (case_17_ == false) then
-    OK(string.format(("fnl never compiled" or "")))
-  else
-    local __1_auto = case_17_
-    FAIL(string.format(("fnl never compiled" or "")))
+    local __1_auto = case_14_
+    FAIL(string.format(("created lua file in colocate" or "")))
   end
 end
 return exit()
