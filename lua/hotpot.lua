@@ -1,12 +1,14 @@
 assert((1 == vim.fn.has("nvim-0.11.6")), "Hotpot requires neovim 0.11.6")
 do
-  local first_boot_sigil = vim.fs.joinpath(vim.fn.stdpath("cache"), "hotpot", "first-boot")
+  local first_boot_sigil_dir = vim.fs.joinpath(vim.fn.stdpath("cache"), "hotpot")
+  local first_boot_sigil = vim.fs.joinpath(first_boot_sigil_dir, "first-boot.txt")
   if not vim.uv.fs_stat(first_boot_sigil) then
     vim.notify("Hotpot: Running first boot compile", vim.log.INFO, {})
-    local Context = require("hotpot.aot.context")
+    local Context = require("hotpot.context")
     local ctx = Context.new(vim.fn.stdpath("config"))
     Context.sync(ctx)
-    local fh = assert(io.open(first_boot_sigil, "w"), ("fs.read-file! io.open failed:" .. first_boot_sigil))
+    vim.fn.mkdir(first_boot_sigil_dir, "p")
+    local fh = assert(io.open(first_boot_sigil, "w"), ("fs.write io.open failed:" .. first_boot_sigil))
     local function close_handlers_13_(ok_14_, ...)
       fh:close()
       if ok_14_ then

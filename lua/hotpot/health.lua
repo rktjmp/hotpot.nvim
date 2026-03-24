@@ -1,26 +1,26 @@
 local uv = (vim.uv or vim.loop)
 local function _2_(...)
-  local _1_ = vim.health
-  if ((_G.type(_1_) == "table") and (nil ~= _1_.ok) and (nil ~= _1_.info) and (nil ~= _1_.error) and (nil ~= _1_.start) and (nil ~= _1_.warn)) then
-    local ok = _1_.ok
-    local info = _1_.info
-    local error = _1_.error
-    local start = _1_.start
-    local warn = _1_.warn
+  local case_1_ = vim.health
+  if ((_G.type(case_1_) == "table") and (nil ~= case_1_.ok) and (nil ~= case_1_.info) and (nil ~= case_1_.error) and (nil ~= case_1_.start) and (nil ~= case_1_.warn)) then
+    local ok = case_1_.ok
+    local info = case_1_.info
+    local error = case_1_.error
+    local start = case_1_.start
+    local warn = case_1_.warn
     return {report_start = start, report_warn = warn, report_info = info, report_error = error, report_ok = ok}
-  elseif (nil ~= _1_) then
-    local other = _1_
+  elseif (nil ~= case_1_) then
+    local other = case_1_
     return other
   else
     return nil
   end
 end
 local _local_4_ = _2_(...)
-local report_start = _local_4_["report_start"]
-local report_info = _local_4_["report_info"]
-local report_ok = _local_4_["report_ok"]
-local report_error = _local_4_["report_error"]
-local report_warn = _local_4_["report_warn"]
+local report_start = _local_4_.report_start
+local report_info = _local_4_.report_info
+local report_ok = _local_4_.report_ok
+local report_error = _local_4_.report_error
+local report_warn = _local_4_.report_warn
 local function fmt(s, ...)
   return string.format(s, ...)
 end
@@ -29,74 +29,70 @@ local function bytes__3ehuman(bytes)
     return (b / 1024)
   end
   local function _5_(...)
-    local _6_ = ...
-    local and_7_ = ((_G.type(_6_) == "table") and (nil ~= _6_[1]) and (nil ~= _6_[2]))
-    if and_7_ then
-      local bytes0 = _6_[1]
-      local unit = _6_[2]
-      and_7_ = (1023 < bytes0)
+    local and_6_ = ((_G.type(...) == "table") and (nil ~= (...)[1]) and (nil ~= (...)[2]))
+    if and_6_ then
+      local bytes0 = (...)[1]
+      local unit = (...)[2]
+      and_6_ = (1023 < bytes0)
     end
-    if and_7_ then
-      local bytes0 = _6_[1]
-      local unit = _6_[2]
-      local function _9_(...)
-        local _10_ = ...
-        local and_11_ = ((_G.type(_10_) == "table") and (nil ~= _10_[1]) and (nil ~= _10_[2]))
-        if and_11_ then
-          local kbytes = _10_[1]
-          local unit0 = _10_[2]
-          and_11_ = (1023 < kbytes)
+    if and_6_ then
+      local bytes0 = (...)[1]
+      local unit = (...)[2]
+      local function _8_(...)
+        local and_9_ = ((_G.type(...) == "table") and (nil ~= (...)[1]) and (nil ~= (...)[2]))
+        if and_9_ then
+          local kbytes = (...)[1]
+          local unit0 = (...)[2]
+          and_9_ = (1023 < kbytes)
         end
-        if and_11_ then
-          local kbytes = _10_[1]
-          local unit0 = _10_[2]
-          local function _13_(...)
-            local _14_ = ...
-            local and_15_ = ((_G.type(_14_) == "table") and (nil ~= _14_[1]) and (nil ~= _14_[2]))
-            if and_15_ then
-              local mbytes = _14_[1]
-              local unit1 = _14_[2]
-              and_15_ = (1023 < mbytes)
+        if and_9_ then
+          local kbytes = (...)[1]
+          local unit0 = (...)[2]
+          local function _11_(...)
+            local and_12_ = ((_G.type(...) == "table") and (nil ~= (...)[1]) and (nil ~= (...)[2]))
+            if and_12_ then
+              local mbytes = (...)[1]
+              local unit1 = (...)[2]
+              and_12_ = (1023 < mbytes)
             end
-            if and_15_ then
-              local mbytes = _14_[1]
-              local unit1 = _14_[2]
-              local function _17_(...)
-                local _18_ = ...
-                if ((_G.type(_18_) == "table") and (nil ~= _18_[1]) and (nil ~= _18_[2])) then
-                  local gbytes = _18_[1]
-                  local unit2 = _18_[2]
+            if and_12_ then
+              local mbytes = (...)[1]
+              local unit1 = (...)[2]
+              local function _14_(...)
+                if ((_G.type(...) == "table") and (nil ~= (...)[1]) and (nil ~= (...)[2])) then
+                  local gbytes = (...)[1]
+                  local unit2 = (...)[2]
                   return fmt(unit2, gbytes)
-                elseif ((_G.type(_18_) == "table") and (nil ~= _18_[1]) and (nil ~= _18_[2])) then
-                  local size = _18_[1]
-                  local unit2 = _18_[2]
+                elseif ((_G.type(...) == "table") and (nil ~= (...)[1]) and (nil ~= (...)[2])) then
+                  local size = (...)[1]
+                  local unit2 = (...)[2]
                   return fmt(unit2, size)
                 else
                   return nil
                 end
               end
-              return _17_({f(mbytes), "%.2fbg"})
-            elseif ((_G.type(_14_) == "table") and (nil ~= _14_[1]) and (nil ~= _14_[2])) then
-              local size = _14_[1]
-              local unit1 = _14_[2]
+              return _14_({f(mbytes), "%.2fbg"})
+            elseif ((_G.type(...) == "table") and (nil ~= (...)[1]) and (nil ~= (...)[2])) then
+              local size = (...)[1]
+              local unit1 = (...)[2]
               return fmt(unit1, size)
             else
               return nil
             end
           end
-          return _13_({f(kbytes), "%.2fmb"})
-        elseif ((_G.type(_10_) == "table") and (nil ~= _10_[1]) and (nil ~= _10_[2])) then
-          local size = _10_[1]
-          local unit0 = _10_[2]
+          return _11_({f(kbytes), "%.2fmb"})
+        elseif ((_G.type(...) == "table") and (nil ~= (...)[1]) and (nil ~= (...)[2])) then
+          local size = (...)[1]
+          local unit0 = (...)[2]
           return fmt(unit0, size)
         else
           return nil
         end
       end
-      return _9_({f(bytes0), "%dkb"})
-    elseif ((_G.type(_6_) == "table") and (nil ~= _6_[1]) and (nil ~= _6_[2])) then
-      local size = _6_[1]
-      local unit = _6_[2]
+      return _8_({f(bytes0), "%dkb"})
+    elseif ((_G.type(...) == "table") and (nil ~= (...)[1]) and (nil ~= (...)[2])) then
+      local size = (...)[1]
+      local unit = (...)[2]
       return fmt(unit, size)
     else
       return nil
@@ -112,23 +108,23 @@ local function disk_report()
   local paths = vim.fn.globpath(cache_root, "**", true, true, true)
   local count = #paths
   local size
-  local function _23_()
+  local function _19_()
     local size0 = 0
     for _, p in ipairs(paths) do
-      local _25_
+      local _21_
       do
-        local t_24_ = uv.fs_stat(p)
-        if (nil ~= t_24_) then
-          t_24_ = t_24_.size
+        local t_20_ = uv.fs_stat(p)
+        if (nil ~= t_20_) then
+          t_20_ = t_20_.size
         else
         end
-        _25_ = t_24_
+        _21_ = t_20_
       end
-      size0 = (size0 + (_25_ or 0))
+      size0 = (size0 + (_21_ or 0))
     end
     return size0
   end
-  size = bytes__3ehuman(_23_())
+  size = bytes__3ehuman(_19_())
   report_info(fmt("Cache root path: %s", cache_root))
   return report_info(fmt("Cache size: %s files, %s", count, size))
 end
@@ -138,11 +134,11 @@ local function log_report()
   local path = logger.path()
   local size
   do
-    local _27_ = uv.fs_stat(path)
-    if (_27_ == nil) then
+    local case_23_ = uv.fs_stat(path)
+    if (case_23_ == nil) then
       size = 0
-    elseif ((_G.type(_27_) == "table") and (nil ~= _27_.size)) then
-      local size0 = _27_.size
+    elseif ((_G.type(case_23_) == "table") and (nil ~= case_23_.size)) then
+      local size0 = case_23_.size
       size = bytes__3ehuman(size0)
     else
       size = nil
@@ -167,17 +163,17 @@ local function check_searcher_preload_then_hotpot(preloader_index, hotpot_index)
   local function loader_func_is_preload_loader_3f(func)
     local ok_3f = false
     local modname = "hotpot-health-preload-check"
-    local function _30_()
+    local function _26_()
       print("hi")
       ok_3f = true
       return nil
     end
-    package.preload[modname] = _30_
+    package.preload[modname] = _26_
     package.loaded[modname] = nil
     do
-      local _31_, _32_ = pcall(func, "hotpot-health-preload-check")
-      if ((_31_ == true) and (nil ~= _32_)) then
-        local f = _32_
+      local case_27_, case_28_ = pcall(func, "hotpot-health-preload-check")
+      if ((case_27_ == true) and (nil ~= case_28_)) then
+        local f = case_28_
         f()
       else
       end
@@ -199,33 +195,33 @@ end
 local function searcher_report_when_luarocks(hotpot_searcher, luarocks_searcher)
   report_info("Luarocks.loader is present.")
   do
-    local _35_ = find_searcher_index(luarocks_searcher)
-    if (_35_ == 1) then
+    local case_31_ = find_searcher_index(luarocks_searcher)
+    if (case_31_ == 1) then
       report_ok("Luarocks package.loader index: 1")
-    elseif (nil ~= _35_) then
-      local n = _35_
+    elseif (nil ~= case_31_) then
+      local n = case_31_
       report_warn(fmt("Luarocks package.loader index: %s, expected 1", n))
     else
     end
   end
-  local _37_ = find_searcher_index(hotpot_searcher)
-  if (_37_ == 2) then
+  local case_33_ = find_searcher_index(hotpot_searcher)
+  if (case_33_ == 2) then
     return report_ok(fmt("Hotpot package.loader index: %s", 2))
-  elseif (_37_ == 3) then
+  elseif (case_33_ == 3) then
     return check_searcher_preload_then_hotpot(2, 3)
-  elseif (nil ~= _37_) then
-    local n = _37_
+  elseif (nil ~= case_33_) then
+    local n = case_33_
     return report_error(fmt("Hotpot package.loader index: %s, expected 2 or 3 when using luarocks.", n))
   else
     return nil
   end
 end
 local function searcher_report_when_normal(hotpot_searcher)
-  local _39_ = find_searcher_index(hotpot_searcher)
-  if (_39_ == 2) then
+  local case_35_ = find_searcher_index(hotpot_searcher)
+  if (case_35_ == 2) then
     return check_searcher_preload_then_hotpot(1, 2)
-  elseif (nil ~= _39_) then
-    local n = _39_
+  elseif (nil ~= case_35_) then
+    local n = case_35_
     report_error(fmt("Hotpot package.loader index: %s, expected 2.", n))
     if vim.loader.enabled then
       return report_info(fmt("Ensure you are calling `vim.loader.enable()` before `require('hotpot')`"))
@@ -242,14 +238,14 @@ local function searcher_report()
     report_info("vim.loader is enabled.")
   else
   end
-  local _let_43_ = require("hotpot.loader")
-  local hotpot_searcher = _let_43_["searcher"]
-  local _44_ = package.loaded["luarocks.loader"]
-  if ((_G.type(_44_) == "table") and (nil ~= _44_.luarocks_loader)) then
-    local luarocks_searcher = _44_.luarocks_loader
+  local _let_39_ = require("hotpot.loader")
+  local hotpot_searcher = _let_39_.searcher
+  local case_40_ = package.loaded["luarocks.loader"]
+  if ((_G.type(case_40_) == "table") and (nil ~= case_40_.luarocks_loader)) then
+    local luarocks_searcher = case_40_.luarocks_loader
     return searcher_report_when_luarocks(hotpot_searcher, luarocks_searcher)
   else
-    local _ = _44_
+    local _ = case_40_
     return searcher_report_when_normal(hotpot_searcher)
   end
 end

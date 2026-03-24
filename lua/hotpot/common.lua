@@ -1,6 +1,6 @@
 local function inspect(...)
   local _let_1_ = require("hotpot.fennel")
-  local view = _let_1_["view"]
+  local view = _let_1_.view
   print(view({...}))
   return ...
 end
@@ -52,17 +52,17 @@ local function none_3f(f, seq)
   return not any_3f(f, seq)
 end
 local function map(f, seq)
-  local tbl_21_ = {}
-  local i_22_ = 0
+  local tbl_26_ = {}
+  local i_27_ = 0
   for _, v in ipairs(seq) do
-    local val_23_ = f(v)
-    if (nil ~= val_23_) then
-      i_22_ = (i_22_ + 1)
-      tbl_21_[i_22_] = val_23_
+    local val_28_ = f(v)
+    if (nil ~= val_28_) then
+      i_27_ = (i_27_ + 1)
+      tbl_26_[i_27_] = val_28_
     else
     end
   end
-  return tbl_21_
+  return tbl_26_
 end
 local function reduce(f, acc, seq)
   local acc0 = acc

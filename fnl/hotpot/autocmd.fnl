@@ -6,16 +6,12 @@
   ;; containing dir as the context dir.
   ;; If both of these fail then do nothing.
   ;; (vim.print event)
-  (let [config-root (vim.fn.stdpath :config)
-        Context (require :hotpot.context)
-        {:match path} event
-        context-root (case (vim.fs.relpath config-root path)
-                       path-inside-config config-root
-                       nil (vim.fs.root path :.hotpot.fnl))]
-    (when context-root
-      (case (Context.new context-root)
-        ctx (Context.sync ctx)
-        (nil err) (vim.notify  err vim.log.level.ERROR {})))
+  (let [Context (require :hotpot.context)
+        {:match path} event]
+    (case (Context.nearest path)
+      root (case (Context.new root)
+             ctx (Context.sync ctx)
+             (nil err) (vim.notify  err vim.log.level.ERROR {})))
     ;; return nil to retain cmd
     nil))
 

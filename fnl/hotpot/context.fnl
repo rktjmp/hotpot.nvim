@@ -187,6 +187,11 @@
     (true context) context
     (false err) (values nil err)))
 
+(λ M.nearest [starting-path]
+  "Find the nearest context root for given path, returns path to context root"
+  (case (vim.fs.relpath *config-root-path* starting-path)
+    path-inside-config *config-root-path*
+    nil (vim.fs.root starting-path :.hotpot.fnl)))
 
 (λ M.compile-string [ctx fnl-source meta]
   "Compile the given string with the given context compilation configuration.
@@ -224,8 +229,12 @@
         all-ok? (icollect [_ result (ipairs results)]
                   (case result
                     {: fnl-abs : error &as bad} bad))]
-    (vim.print results)
-    ;; ... todo
+    ; (vim.print results)
+    (case (length all-ok?)
+      0 (each [_ {: lua-abs : source} (ipairs results)]
+          (vim.fn.mkdir (vim.fs.dirname lua-abs) "p")
+          (write-file! lua-abs source))
+      n (vim.notify "Errors"))
     nil
   ))
 

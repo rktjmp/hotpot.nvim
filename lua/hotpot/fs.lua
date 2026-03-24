@@ -1,9 +1,9 @@
 local uv = vim.loop
 local function read_file_21(path)
   local fh = assert(io.open(path, "r"), ("fs.read-file! io.open failed:" .. path))
-  local function close_handlers_12_(ok_13_, ...)
+  local function close_handlers_13_(ok_14_, ...)
     fh:close()
-    if ok_13_ then
+    if ok_14_ then
       return ...
     else
       return error(..., 0)
@@ -36,14 +36,14 @@ local function read_file_21(path)
     end
     or_8_ = {traceback = _9_}
   end
-  return close_handlers_12_(_G.xpcall(_2_, or_8_.traceback))
+  return close_handlers_13_(_G.xpcall(_2_, or_8_.traceback))
 end
 local function write_file_21(path, lines)
   assert(("string" == type(lines)), "write file expects string")
   local fh = assert(io.open(path, "w"), ("fs.write-file! io.open failed:" .. path))
-  local function close_handlers_12_(ok_13_, ...)
+  local function close_handlers_13_(ok_14_, ...)
     fh:close()
-    if ok_13_ then
+    if ok_14_ then
       return ...
     else
       return error(..., 0)
@@ -76,7 +76,7 @@ local function write_file_21(path, lines)
     end
     or_17_ = {traceback = _18_}
   end
-  return close_handlers_12_(_G.xpcall(_11_, or_17_.traceback))
+  return close_handlers_13_(_G.xpcall(_11_, or_17_.traceback))
 end
 local function is_lua_path_3f(path)
   return (path and (nil ~= string.match(path, "%.lua$")))
@@ -98,7 +98,7 @@ local function file_mtime(path)
   else
   end
   local _let_20_ = uv.fs_stat(path)
-  local mtime = _let_20_["mtime"]
+  local mtime = _let_20_.mtime
   return mtime.sec
 end
 local function file_stat(path)
@@ -111,27 +111,30 @@ local function file_stat(path)
   return uv.fs_stat(path)
 end
 local function join_path(head, ...)
-  _G.assert((nil ~= head), "Missing argument head on fnl/hotpot/fs.fnl:33")
-  local function _22_(...)
+  if (nil == head) then
+    _G.error("Missing argument head on fnl/hotpot/fs.fnl:33", 2)
+  else
+  end
+  local function _23_(...)
     local t = head
     for _, part in ipairs({...}) do
       t = (t .. "/" .. part)
     end
     return t
   end
-  return vim.fs.normalize(_22_(...))
+  return vim.fs.normalize(_23_(...))
 end
 local function what_is_at(path)
-  local _23_, _24_, _25_ = uv.fs_stat(path)
-  if ((_G.type(_23_) == "table") and (nil ~= _23_.type)) then
-    local type = _23_.type
+  local case_24_, case_25_, case_26_ = uv.fs_stat(path)
+  if ((_G.type(case_24_) == "table") and (nil ~= case_24_.type)) then
+    local type = case_24_.type
     return type
-  elseif ((_23_ == nil) and true and (_25_ == "ENOENT")) then
-    local _ = _24_
+  elseif ((case_24_ == nil) and true and (case_26_ == "ENOENT")) then
+    local _ = case_25_
     return "nothing"
-  elseif ((_23_ == nil) and (nil ~= _24_) and true) then
-    local err = _24_
-    local _ = _25_
+  elseif ((case_24_ == nil) and (nil ~= case_25_) and true) then
+    local err = case_25_
+    local _ = case_26_
     return nil, string.format("uv.fs_stat error %s", err)
   else
     return nil
@@ -140,65 +143,65 @@ end
 local function make_path(path)
   local path0 = vim.fs.normalize(path)
   local backwards, _here = string.match(path0, string.format("(.+)%s(.+)$", "/"))
-  local _27_ = what_is_at(path0)
-  if (_27_ == "directory") then
+  local case_28_ = what_is_at(path0)
+  if (case_28_ == "directory") then
     return true
-  elseif (_27_ == "nothing") then
+  elseif (case_28_ == "nothing") then
     assert(make_path(backwards))
     return assert(uv.fs_mkdir(path0, 493))
-  elseif (nil ~= _27_) then
-    local other = _27_
+  elseif (nil ~= case_28_) then
+    local other = case_28_
     return error(string.format("could not create path because %s exists at %s", other, path0))
   else
     return nil
   end
 end
 local function rm_file(path)
-  local _29_, _30_ = uv.fs_unlink(path)
-  if (_29_ == true) then
+  local case_30_, case_31_ = uv.fs_unlink(path)
+  if (case_30_ == true) then
     return true
-  elseif ((_29_ == nil) and (nil ~= _30_)) then
-    local e = _30_
+  elseif ((case_30_ == nil) and (nil ~= case_31_)) then
+    local e = case_31_
     return false, e
   else
     return nil
   end
 end
 local function copy_file(from, to)
-  local function _32_(...)
-    local _33_, _34_ = ...
-    if (nil ~= _33_) then
-      local dir = _33_
-      local function _35_(...)
-        local _36_, _37_ = ...
-        if (_36_ == true) then
-          local function _38_(...)
-            local _39_, _40_ = ...
-            if (_39_ == true) then
+  local function _33_(...)
+    local case_34_, case_35_ = ...
+    if (nil ~= case_34_) then
+      local dir = case_34_
+      local function _36_(...)
+        local case_37_, case_38_ = ...
+        if (case_37_ == true) then
+          local function _39_(...)
+            local case_40_, case_41_ = ...
+            if (case_40_ == true) then
               return true
-            elseif ((_39_ == nil) and (nil ~= _40_)) then
-              local e = _40_
+            elseif ((case_40_ == nil) and (nil ~= case_41_)) then
+              local e = case_41_
               return false, e
             else
               return nil
             end
           end
-          return _38_(uv.fs_copyfile(from, to))
-        elseif ((_36_ == nil) and (nil ~= _37_)) then
-          local e = _37_
+          return _39_(uv.fs_copyfile(from, to))
+        elseif ((case_37_ == nil) and (nil ~= case_38_)) then
+          local e = case_38_
           return false, e
         else
           return nil
         end
       end
-      return _35_(make_path(dir))
-    elseif ((_33_ == nil) and (nil ~= _34_)) then
-      local e = _34_
+      return _36_(make_path(dir))
+    elseif ((case_34_ == nil) and (nil ~= case_35_)) then
+      local e = case_35_
       return false, e
     else
       return nil
     end
   end
-  return _32_(vim.fs.dirname(to))
+  return _33_(vim.fs.dirname(to))
 end
 return {["read-file!"] = read_file_21, ["write-file!"] = write_file_21, ["file-exists?"] = file_exists_3f, ["file-missing?"] = file_missing_3f, ["file-mtime"] = file_mtime, ["file-stat"] = file_stat, ["is-lua-path?"] = is_lua_path_3f, ["is-fnl-path?"] = is_fnl_path_3f, ["join-path"] = join_path, ["make-path"] = make_path, ["rm-file"] = rm_file, ["copy-file"] = copy_file}

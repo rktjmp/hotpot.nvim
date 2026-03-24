@@ -1,8 +1,7 @@
 (assert (= 1 (vim.fn.has "nvim-0.11.6")) "Hotpot requires neovim 0.11.6")
 
-(let [first-boot-sigil (vim.fs.joinpath (vim.fn.stdpath :cache)
-                                        :hotpot
-                                        :first-boot)]
+(let [first-boot-sigil-dir (vim.fs.joinpath (vim.fn.stdpath :cache) :hotpot)
+      first-boot-sigil (vim.fs.joinpath first-boot-sigil-dir :first-boot.txt)]
    ;; We must ensure the rtp dir exists now otherwise vim.loader won't
    ;; see it, and won't setup some internal mechanisms for the directory.
    ;(make-path compiled-cache-path)
@@ -14,11 +13,13 @@
     ;; which doesn't exist. Otherwise if there is a config, it should still be
     ;; safe to run as the user ... has a config.
     (vim.notify "Hotpot: Running first boot compile" vim.log.INFO {})
-    (let [Context (require :hotpot.aot.context)
+    (let [Context (require :hotpot.context)
           ctx (Context.new (vim.fn.stdpath :config))]
       (Context.sync ctx)
       ;; finally make the first-boot-sigil file to mark that we have run.
-      (with-open [fh (assert (io.open first-boot-sigil :w) (.. "fs.read-file! io.open failed:" first-boot-sigil))]
+      (vim.fn.mkdir first-boot-sigil-dir "p")
+      (with-open [fh (assert (io.open first-boot-sigil :w)
+                             (.. "fs.write io.open failed:" first-boot-sigil))]
         (let [{: sec : nsec} (vim.uv.clock_gettime :realtime)]
           (fh:write (string.format "%s.%s" sec nsec)))))))
 

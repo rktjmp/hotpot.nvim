@@ -361,17 +361,32 @@ M.new = function(_3fdirectory)
     return nil
   end
 end
+M.nearest = function(starting_path)
+  if (nil == starting_path) then
+    _G.error("Missing argument starting-path on fnl/hotpot/context.fnl:190", 2)
+  else
+  end
+  local case_62_ = vim.fs.relpath(_2aconfig_root_path_2a, starting_path)
+  if (nil ~= case_62_) then
+    local path_inside_config = case_62_
+    return _2aconfig_root_path_2a
+  elseif (case_62_ == nil) then
+    return vim.fs.root(starting_path, ".hotpot.fnl")
+  else
+    return nil
+  end
+end
 M["compile-string"] = function(ctx, fnl_source, meta)
   if (nil == meta) then
-    _G.error("Missing argument meta on fnl/hotpot/context.fnl:191", 2)
+    _G.error("Missing argument meta on fnl/hotpot/context.fnl:196", 2)
   else
   end
   if (nil == fnl_source) then
-    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:191", 2)
+    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:196", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:191", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:196", 2)
   else
   end
   local fennel = require("hotpot.aot.fennel")()
@@ -384,12 +399,12 @@ M["compile-string"] = function(ctx, fnl_source, meta)
     local _ = ctx
     fnl_source0 = fnl_source
   end
-  local case_65_, case_66_ = pcall(fennel["compile-string"], fnl_source0, compiler_options)
-  if ((case_65_ == true) and (nil ~= case_66_)) then
-    local src = case_66_
+  local case_68_, case_69_ = pcall(fennel["compile-string"], fnl_source0, compiler_options)
+  if ((case_68_ == true) and (nil ~= case_69_)) then
+    local src = case_69_
     return src
-  elseif ((case_65_ == false) and (nil ~= case_66_)) then
-    local err = case_66_
+  elseif ((case_68_ == false) and (nil ~= case_69_)) then
+    local err = case_69_
     return nil, err
   else
     return nil
@@ -397,7 +412,7 @@ M["compile-string"] = function(ctx, fnl_source, meta)
 end
 M.sync = function(ctx)
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:207", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:212", 2)
   else
   end
   local source_files = m["find-source-files"](ctx)
@@ -406,19 +421,19 @@ M.sync = function(ctx)
   do
     local tbl_26_ = {}
     local i_27_ = 0
-    for _, _69_ in ipairs(stale_files) do
-      local fnl_abs = _69_["fnl-abs"]
-      local fnl_rel = _69_["fnl-rel"]
-      local lua_abs = _69_["lua-abs"]
+    for _, _72_ in ipairs(stale_files) do
+      local fnl_abs = _72_["fnl-abs"]
+      local fnl_rel = _72_["fnl-rel"]
+      local lua_abs = _72_["lua-abs"]
       local val_28_
       do
         local fnl_source = read_file_21(fnl_abs)
-        local case_70_, case_71_ = M["compile-string"](ctx, fnl_source, {filename = fnl_rel})
-        if (nil ~= case_70_) then
-          local lua_source = case_70_
+        local case_73_, case_74_ = M["compile-string"](ctx, fnl_source, {filename = fnl_rel})
+        if (nil ~= case_73_) then
+          local lua_source = case_73_
           val_28_ = {["lua-abs"] = lua_abs, source = lua_source}
-        elseif ((case_70_ == nil) and (nil ~= case_71_)) then
-          local err = case_71_
+        elseif ((case_73_ == nil) and (nil ~= case_74_)) then
+          local err = case_74_
           val_28_ = {["fnl-abs"] = fnl_abs, error = err}
         else
           val_28_ = nil
@@ -454,7 +469,21 @@ M.sync = function(ctx)
     end
     all_ok_3f = tbl_26_
   end
-  vim.print(results)
+  do
+    local case_79_ = #all_ok_3f
+    if (case_79_ == 0) then
+      for _, _80_ in ipairs(results) do
+        local lua_abs = _80_["lua-abs"]
+        local source = _80_.source
+        vim.fn.mkdir(vim.fs.dirname(lua_abs), "p")
+        write_file_21(lua_abs, source)
+      end
+    elseif (nil ~= case_79_) then
+      local n = case_79_
+      vim.notify("Errors")
+    else
+    end
+  end
   return nil
 end
 return M
