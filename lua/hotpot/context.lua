@@ -544,38 +544,33 @@ m["sync-plan-confirm"] = function(ctx, source_files, orphan_files)
   else
   end
   if (5 < #orphan_files) then
-    local _2augly_sync_hack_2a = {["answered?"] = nil, ["clean?"] = false, ["compile?"] = false}
+    local _let_93_ = require("hotpot.ui")
+    local ui_select_sync = _let_93_["ui-select-sync"]
+    local confirmations = {["clean?"] = false, ["compile?"] = false}
     local prompt = string.format("\n%s\nFound %d orphaned files, delete all?", table.concat(orphan_files, "\n"), #orphan_files)
     local confirm = "Ok: Compile as normal and remove orphaned files"
     local compile_only = "Safe: Compile as normal but do not remove orphan files"
     local cancel = "Cancel: Do not compile, do not remove orphans"
-    local _
-    local function _93_(choice)
-      _2augly_sync_hack_2a["answered?"] = true
-      local case_94_, case_95_ = choice
-      if (case_94_ == confirm) then
-        _2augly_sync_hack_2a["compile?"] = true
-        _2augly_sync_hack_2a["clean?"] = true
+    local function _94_(choice)
+      local case_95_, case_96_ = choice
+      if (case_95_ == confirm) then
+        confirmations["compile?"] = true
+        confirmations["clean?"] = true
         return nil
-      elseif (case_94_ == compile_only) then
-        _2augly_sync_hack_2a["compile?"] = true
-        _2augly_sync_hack_2a["clean?"] = false
+      elseif (case_95_ == compile_only) then
+        confirmations["compile?"] = true
+        confirmations["clean?"] = false
         return nil
-      elseif (case_94_ == cancel) then
-        _2augly_sync_hack_2a["compile?"] = false
-        _2augly_sync_hack_2a["clean?"] = false
+      elseif (case_95_ == cancel) then
+        confirmations["compile?"] = false
+        confirmations["clean?"] = false
         return nil
       else
         return nil
       end
     end
-    _ = vim.ui.select({confirm, compile_only, cancel}, {prompt = prompt}, _93_)
-    local _0
-    local function _97_()
-      return (nil ~= _2augly_sync_hack_2a["answered?"])
-    end
-    _0 = vim.wait(math.huge, _97_)
-    return _2augly_sync_hack_2a
+    ui_select_sync({confirm, compile_only, cancel}, {prompt = prompt}, _94_)
+    return confirmations
   else
     return {["compile?"] = true, ["clean?"] = true}
   end
@@ -594,7 +589,7 @@ M.new = function(_3fdirectory)
 end
 M.nearest = function(starting_path)
   if (nil == starting_path) then
-    _G.error("Missing argument starting-path on fnl/hotpot/context.fnl:280", 2)
+    _G.error("Missing argument starting-path on fnl/hotpot/context.fnl:277", 2)
   else
   end
   local case_103_ = vim.fs.relpath(NVIM_CONFIG_ROOT, starting_path)
@@ -609,15 +604,15 @@ M.nearest = function(starting_path)
 end
 M["compile-string"] = function(ctx, fnl_source, meta)
   if (nil == meta) then
-    _G.error("Missing argument meta on fnl/hotpot/context.fnl:286", 2)
+    _G.error("Missing argument meta on fnl/hotpot/context.fnl:283", 2)
   else
   end
   if (nil == fnl_source) then
-    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:286", 2)
+    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:283", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:286", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:283", 2)
   else
   end
   local fennel = require("hotpot.fennel")
@@ -652,7 +647,7 @@ M["compile-string"] = function(ctx, fnl_source, meta)
 end
 M.sync = function(ctx, _3foptions)
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:327", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:324", 2)
   else
   end
   local options = (_3foptions or {["force?"] = false})

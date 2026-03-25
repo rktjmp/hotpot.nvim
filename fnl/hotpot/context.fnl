@@ -230,35 +230,32 @@
 
 (λ m.sync-plan-confirm [ctx source-files orphan-files]
   (if (< 5 (length orphan-files))
-    (let [*ugly-sync-hack* {:answered? nil
-                            :clean? false
-                            :compile? false}
+    (let [{: ui-select-sync} (require :hotpot.ui)
+          confirmations {:clean? false :compile? false}
           ;; put the list of files first, incase there are so many it bumps the prompt off.
           prompt (string.format "\n%s\nFound %d orphaned files, delete all?"
                                 (table.concat orphan-files "\n")
                                 (length orphan-files))
           confirm "Ok: Compile as normal and remove orphaned files"
           compile-only "Safe: Compile as normal but do not remove orphan files"
-          cancel "Cancel: Do not compile, do not remove orphans"
-          _ (vim.ui.select [confirm compile-only cancel]
-                           {: prompt}
-                           (fn [choice]
-                             (set *ugly-sync-hack*.answered? true)
-                             (case choice
-                               (where (= confirm))
-                               (do
-                                 (set *ugly-sync-hack*.compile? true)
-                                 (set *ugly-sync-hack*.clean? true))
-                               (where (= compile-only))
-                               (do
-                                 (set *ugly-sync-hack*.compile? true)
-                                 (set *ugly-sync-hack*.clean? false))
-                               (where (= cancel))
-                               (do
-                                 (set *ugly-sync-hack*.compile? false)
-                                 (set *ugly-sync-hack*.clean? false)))))
-          _ (vim.wait math.huge #(~= nil *ugly-sync-hack*.answered?))]
-      (values *ugly-sync-hack*))
+          cancel "Cancel: Do not compile, do not remove orphans"]
+      (ui-select-sync [confirm compile-only cancel]
+                      {: prompt}
+                      (fn [choice]
+                        (case choice
+                          (where (= confirm))
+                          (do
+                            (set confirmations.compile? true)
+                            (set confirmations.clean? true))
+                          (where (= compile-only))
+                          (do
+                            (set confirmations.compile? true)
+                            (set confirmations.clean? false))
+                          (where (= cancel))
+                          (do
+                            (set confirmations.compile? false)
+                            (set confirmations.clean? false)))))
+      (values confirmations))
     (values {:compile? true :clean? true})))
 
 (λ M.new [?directory]

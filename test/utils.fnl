@@ -25,10 +25,10 @@
   (let [channel (vim.fn.jobstart [:nvim :--embed :--headless] {:rpc true})
         nvim {: channel
               :close (fn [this] (vim.fn.jobstop channel))
-              :cmd (fn [this cmd]
+              :cmd (fn [this cmd ...]
                      (vim.rpcrequest channel
                                      :nvim_exec2
-                                     cmd
+                                     (string.format cmd ...)
                                      {:output true}))
               :lua (fn [this src]
                      (vim.rpcrequest channel

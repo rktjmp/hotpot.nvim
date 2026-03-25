@@ -61,8 +61,8 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
     local function _10_(this)
       return vim.fn.jobstop(channel)
     end
-    local function _11_(this, cmd)
-      return vim.rpcrequest(channel, "nvim_exec2", cmd, {output = true})
+    local function _11_(this, cmd, ...)
+      return vim.rpcrequest(channel, "nvim_exec2", string.format(cmd, ...), {output = true})
     end
     local function _12_(this, src)
       return vim.rpcrequest(channel, "nvim_exec2", table.concat({"lua << EOF", src, "EOF"}, "\n"), {output = true})
