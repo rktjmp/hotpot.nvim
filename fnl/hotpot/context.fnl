@@ -174,6 +174,75 @@
                               file)))]
     needs-compiling))
 
+(λ m.apply-transform [ctx source path]
+  (let [{: transform} ctx
+        new-src (transform source path)]
+    (assert (= :string (type new-src))
+            (string.format "%s `transform` did not return string" ctx._source))
+    new-src))
+
+(λ m.sync-plan-compile [ctx source-files force?]
+  (if force?
+    (. source-files :fnl)
+    (m.filter-stale-source-files source-files)))
+
+(λ m.sync-compile [ctx fnl-files]
+  (accumulate [results {:ok [] :errors []}
+               _ {: fnl-abs : fnl-rel : lua-abs} (ipairs fnl-files)]
+    (let [fnl-source (read-file! fnl-abs)]
+      (case (pcall M.compile-string ctx fnl-source {:filename fnl-rel})
+        (true lua-source) (do
+                            (table.insert results.ok {: fnl-abs : lua-abs :source lua-source})
+                            results)
+        (false err) (do
+                      (table.insert results.errors {: fnl-abs : lua-abs :error err})
+                      results)))))
+
+(λ m.sync-write [ctx output-files]
+  (each [_ {: lua-abs : source} (ipairs output-files)]
+    (vim.fn.mkdir (vim.fs.dirname lua-abs) "p")
+    (write-file! lua-abs source)))
+
+(λ m.sync-plan-clean [ctx source-files]
+  (m.find-orphaned-files ctx source-files))
+
+(λ m.sync-clean [ctx orphan-files]
+  (each [_ orphan (ipairs orphan-files)]
+    (vim.uv.fs_unlink orphan)))
+
+(λ m.sync-plan-confirm [ctx source-files orphan-files]
+  (if (< 5 (length orphan-files))
+    (let [*ugly-sync-hack* {:answered? nil
+                            :clean? false
+                            :compile? false}
+          ;; put the list of files first, incase there are so many it bumps the prompt off.
+          prompt (string.format "\n%s\nFound %d orphaned files, delete all?"
+                                (table.concat orphan-files "\n")
+                                (length orphan-files))
+          confirm "Ok: Compile as normal and remove orphaned files"
+          compile-only "Safe: Compile as normal but do not remove orphan files"
+          cancel "Cancel: Do not compile, do not remove orphans"
+          _ (vim.ui.select [confirm compile-only cancel]
+                           {: prompt}
+                           (fn [choice]
+                             (set *ugly-sync-hack*.answered? true)
+                             (case choice
+                               (where (= confirm))
+                               (do
+                                 (set *ugly-sync-hack*.compile? true)
+                                 (set *ugly-sync-hack*.clean? true))
+                               (where (= compile-only))
+                               (do
+                                 (set *ugly-sync-hack*.compile? true)
+                                 (set *ugly-sync-hack*.clean? false))
+                               (where (= cancel))
+                               (do
+                                 (set *ugly-sync-hack*.compile? false)
+                                 (set *ugly-sync-hack*.clean? false)))))
+          _ (vim.wait math.huge #(~= nil *ugly-sync-hack*.answered?))]
+      (values *ugly-sync-hack*))
+    (values {:compile? true :clean? true})))
+
 (λ M.new [?directory]
   "Create a new context object.
 
@@ -237,83 +306,6 @@
       (true src) (values src)
       (false err) (error err))))
 
-(λ m.apply-transform [ctx source path]
-  (let [{: transform} ctx
-        new-src (transform source path)]
-    (assert (= :string (type new-src))
-            (string.format "%s `transform` did not return string" ctx._source))
-    new-src))
-
-(λ m.sync-plan-compile [ctx source-files force?]
-  (if force?
-    (. source-files :fnl)
-    (m.filter-stale-source-files source-files)))
-
-(λ m.sync-compile [ctx fnl-files]
-  (accumulate [results {:ok [] :errors []}
-               _ {: fnl-abs : fnl-rel : lua-abs} (ipairs fnl-files)]
-    (let [fnl-source (read-file! fnl-abs)]
-      (case (pcall M.compile-string ctx fnl-source {:filename fnl-rel})
-        (true lua-source) (do
-                            (table.insert results.ok {: fnl-abs : lua-abs :source lua-source})
-                            results)
-        (false err) (do
-                      (table.insert results.errors {: fnl-abs : lua-abs :error err})
-                      results)))))
-
-(λ m.sync-write [ctx compile-results]
-  (let [compile-errors (icollect [_ result (ipairs compile-results)]
-                         (when result.error
-                           result))]
-    (if (and ctx.atomic? (< 0 (length compile-errors)))
-      (do
-        ;; dont write, warn errors out
-        (vim.print "atomic and have errors"))
-      (do
-        (each [_ {: lua-abs : source} (ipairs compile-results)]
-          (vim.fn.mkdir (vim.fs.dirname lua-abs) "p")
-          (write-file! lua-abs source))
-        true))))
-
-(λ m.sync-plan-clean [ctx source-files]
-  (m.find-orphaned-files ctx source-files))
-
-(λ m.sync-clean [ctx orphan-files]
-  (each [_ orphan (ipairs orphan-files)]
-    (vim.print vim.uv.fs_unlink orphan)))
-
-(λ m.sync-plan-confirm [ctx source-files orphan-files]
-  (if (< 5 (length orphan-files))
-    (let [*ugly-sync-hack* {:answered? nil
-                            :clean? false
-                            :compile? false}
-          ;; put the list of files first, incase there are so many it bumps the prompt off.
-          prompt (string.format "\n%s\nFound %d orphaned files, delete all?"
-                                (table.concat orphan-files "\n")
-                                (length orphan-files))
-          confirm "Ok: Compile as normal and remove orphaned files"
-          compile-only "Safe: Compile as normal but do not remove orphan files"
-          cancel "Cancel: Do not compile, do not remove orphans"
-          _ (vim.ui.select [confirm compile-only cancel]
-                           {: prompt}
-                           (fn [choice]
-                             (set *ugly-sync-hack*.answered? true)
-                             (case choice
-                               (where (= confirm))
-                               (do
-                                 (set *ugly-sync-hack*.compile? true)
-                                 (set *ugly-sync-hack*.clean? true))
-                               (where (= compile-only))
-                               (do
-                                 (set *ugly-sync-hack*.compile? true)
-                                 (set *ugly-sync-hack*.clean? false))
-                               (where (= cancel))
-                               (do
-                                 (set *ugly-sync-hack*.compile? false)
-                                 (set *ugly-sync-hack*.clean? false)))))
-          _ (vim.wait math.huge #(~= nil *ugly-sync-hack*.answered?))]
-      (values *ugly-sync-hack*))
-    (values {:compile? true :clean? true})))
 
 (λ M.sync [ctx ?options]
   "Compile files inside the given context, clean any orphans in destination.
