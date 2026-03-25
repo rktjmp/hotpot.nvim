@@ -33,12 +33,98 @@ broth, some neovim...  baby, you got a stew going!
 
 -->
 
-Hotpot is a [Fennel](https://fennel-lang.org/) compiler plugin for Neovim. Just
-`(require :my-fennel)` and Hotpot does the rest, recompiling your fennel code
-as needed.
+Hotpot is a [Fennel](https://fennel-lang.org/) compiler plugin for Neovim that
+allows you to write your Neovim config and plugins in Fennel.
+
+# Requirements
+
+- Neovim 0.12.0+
+- ~~Fanatical devotion to parentheses.~~
+
+# Installation
+
+Install with your package manager and call `require("hotpot")` early in your `init.lua`.
+
+```lua
+-- init.lua
+vim.pack.add({
+  {src = "https://github.com/rktjmp/hotpot.nvim",
+   version = vim.version.range("~2.0.0")}
+})
+require("hotpot")
+-- then most users will require their "config" module stored in `fnl/config/...`
+require("config")
+```
+
+
+# Usage
+
+In general, anything you would put in `lua/` should be put in `fnl/`, otherwise
+put `.fnl` files in the standard runtime directories such as `lsp/` or
+`ftplugin/`.
+
+## `~/.config/nvim`
+
+By default, Hotpot store any compiled `.lua` files in a separate location to
+maintain a clean directory tree, so you won't see any `.lua` files, with one
+exception: `.config/nvim/init.fnl` will always compile to
+`.config/nvim/init.lua`.
+
+You should be set to begin writing Fennel code by placing `.fnl` files inside
+`fnl/` or other runtime directories.
 
 ```fennel
+;; ~/.config/nvim/fnl/my-config/hello.fnl
+(print :hello)
+```
 
+```fennel
+;; ~/.config/nvim/lsp/my-lang.fnl
+(print :setup-some-lsp)
+```
+
+To configure some of Hotpots behaviour such as colocating `.lua`, ignoring
+files or configuring the Fennel compiler, see [Configuration](#configuration).
+
+## Plugins
+
+When writing plugins in Fennel, you'll want to ship `.lua` code to users, so we
+must "colocate" the `.fnl` and `.lua` files.
+
+To enable fennel compilation for a plugin, we must place a `.hotpot.fnl` file
+in the root of the plugin directory. At a bare minimum, this file must specify
+the `schema` and `target` keys, as shown below.
+
+```fnl
+;; projects/my-plugin/.hotpot.fnl
+{:schema :hotpot/2
+ :target :colocate}
+```
+
+After creating the `.hotpot.fnl` file, open any `.fnl` file and save it to
+trigger a build, or use the `sync` [command](#commands). Mo
+
+See [Configuration](#configuration) for details on customising Hotpots
+behaviour, ignoring files or configuring the Fennel compiler.
+
+## Macros
+
+Hotpot requires that fennel macro files **must** use the modern `.fnlm`
+extension. Regular fennel modules should use the `.fnl` extension.
+
+# Configuration
+
+All of hotpots behaviour is configured by a `.hotpot.fnl` file, placed in the
+root of your config or plugin directory.
+
+These files are independent from one another and only effect behaviour in the
+same tree.
+
+Note that if there is no `.hotpot.fnl` file in Neovims config directory, a
+default configuration is loaded. This is not the case for plugins, which *must*
+create a `.hotpot.fnl` file.
+
+```fennel
 {
  ;; Required, string, valid: hotpot/2
  ;; Describes expected schema for table.
@@ -49,8 +135,9 @@ as needed.
  ;; tree" in a directory loadable by neovim, `colocate` places lua files "in
  ;; tree", next to their fennel counterparts.
  ;;
- ;; The default for the `config` directory is `cache` but may be set to
- ;; `colocate`. Be aware that its the users responsibility to remove previously
+ ;; When no `.hotpot.fnl` file is present, the default value for the `config`
+ ;; is `cache`, but may be set to `colocate`.
+ ;; Be aware that its the users responsibility to remove previously
  ;; generated lua files when swapping targets.
  ;;
  ;; For plugins, the only valid value is `colocate`.
@@ -59,10 +146,13 @@ as needed.
  ;; All other keys are optional.
 
  ;; Optional, boolean
- ;; If true, any 1 compilation error will prevent all updated files from being
- ;; written.
+ ;; If true (default), any 1 compilation error will prevent all updated
+ ;; files from being written.
  :atomic? true
 
+ ;; Optional, boolean
+ ;; If true (default: false), output messages after every successful
+ ;; compilation instead of just on error.
  :verbose? true
 
  ;; Optional, function
@@ -74,11 +164,11 @@ as needed.
  :transform (fn [src path] src)
 
  ;; Optional, list of strings
- ;; Glob patterns to ignore when performaing compile and clean operations.
+ ;; Glob patterns to ignore when performing compile and clean operations.
  ;;
  ;; Files matching `.lua` patterns are never considered orphans and never removed.
  ;; Files matching `.fnl` patterns are never compiled.
- ;; Files matching `.fnlm` patterns are never considered when performaing stale checks.
+ ;; Files matching `.fnlm` patterns are never considered when performing stale checks.
  :ignore [:some/lib/**/*.lua :junk/*.fnl]
 
  ;; Optional, table
@@ -101,6 +191,10 @@ as needed.
 }
 ```
 
+
+# Changes from Version 1
+
+tk tk tk
 
 ```fennel
 ;; ~/.config/nvim/fnl/is_neat.fnl
@@ -129,10 +223,6 @@ neat("fennel") -- => "fennel is neat!"
 
 <!-- panvimdoc-ignore-end -->
 
-# Requirements
-
-- Neovim 0.9.1+
-- ~~Fanatical devotion to parentheses.~~
 
 # Install
 
