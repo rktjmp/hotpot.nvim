@@ -32,6 +32,12 @@
    :compiler {:error-pinpoint false
               :allowedGlobals (icollect [k _ (pairs _G)] k)}})
 
+(λ is-init-lua-special-case? [ctx fnl-rel]
+  (case (values ctx.kind ctx.target fnl-rel)
+    ;; <config>/init.fnl -> <config>/init.lua
+    (:config :cache :init.fnl) true
+    _ false))
+
 (fn default-config-spec []
   (vim.tbl_extend :force (base-spec) {:target :cache}))
 
@@ -137,20 +143,19 @@
     (accumulate [list {:fnl [] :fnlm []} _ fnl-abs (ipairs files)]
       (let [ext (fnl-abs:match "%.(fnlm?)$")
             fnl-rel (vim.fs.relpath source fnl-abs {})
-            (lua-rel lua-abs) (case (values ext ctx.kind ctx.target fnl-rel)
-                                ;; <config>/init.fnl -> <config>/init.lua
-                                (:fnl :config :cache :init.fnl)
-                                (let [lua-rel (string.gsub fnl-rel "%.fnl$" ".lua")
-                                      lua-abs (vim.fs.joinpath source lua-rel)]
-                                  (values lua-rel lua-abs))
-                                (:fnl _ _ _)
-                                (let [lua-rel (-> (string.gsub fnl-rel "^fnl/" "lua/")
-                                                  (string.gsub "%.fnl$" ".lua"))
-                                      lua-abs (vim.fs.joinpath dest lua-rel)]
-                                  (values lua-rel lua-abs)))]
+            (lua-rel lua-abs) (when (= :fnl ext)
+                                (if (is-init-lua-special-case? ctx fnl-rel)
+                                  ;; <config>/init.fnl -> <config>/init.lua
+                                  (let [lua-rel (string.gsub fnl-rel "%.fnl$" ".lua")
+                                        lua-abs (vim.fs.joinpath source lua-rel)]
+                                    (values lua-rel lua-abs))
+                                  ;; regular case
+                                  (let [lua-rel (-> (string.gsub fnl-rel "^fnl/" "lua/")
+                                                    (string.gsub "%.fnl$" ".lua"))
+                                        lua-abs (vim.fs.joinpath dest lua-rel)]
+                                    (values lua-rel lua-abs))))]
         (table.insert (. list ext) {: fnl-rel : fnl-abs : lua-rel : lua-abs})
         list))))
-
 
 (λ m.find-orphaned-files [ctx source-files]
   "Find files in dest directory that have no source counterpart"
@@ -199,10 +204,43 @@
             (string.format "%s `transform` did not return string" ctx._source))
     new-src))
 
+(var init-lua-choice nil)
 (λ m.sync-plan-compile [ctx source-files force?]
-  (if force?
-    (. source-files :fnl)
-    (m.filter-stale-source-files source-files)))
+  (let [fnl-source-files (if force?
+                           (. source-files :fnl)
+                           (m.filter-stale-source-files source-files))
+        init-lua-index (accumulate [found nil i {: fnl-rel} (ipairs fnl-source-files)
+                                    &until found]
+                         (when (is-init-lua-special-case? ctx fnl-rel)
+                           i))]
+    (when init-lua-index
+      (when (not init-lua-choice)
+        (let [{: ui-select-sync} (require :hotpot.ui)
+              yes-once "Yes (ask again later)"
+              no-once "No (ask again later)"
+              yes-always "Yes (always for this session)"
+              no-always "No (always for this session)"
+              prompt (string.format "Will any existing `%s/init.lua` with output from `init.fnl, is this ok?"
+                                    ctx.path.source)
+              callback (fn [choice]
+                         (case choice
+                           (where (= yes-once)) (set init-lua-choice :yes-once)
+                           (where (= no-once)) (set init-lua-choice :no-once)
+                           (where (= yes-always)) (set init-lua-choice :yes-always)
+                           (where (= no-always)) (set init-lua-choice :no-always)
+                           _ (set init-lua-choice :no-once)))]
+          (ui-select-sync [yes-once no-once yes-always no-always]
+                          {: prompt}
+                          callback)))
+      (case init-lua-choice
+        :yes-once (set init-lua-choice nil)
+        :yes-always nil
+        :no-once (do
+                   (table.remove fnl-source-files init-lua-index)
+                   (set init-lua-choice nil))
+        :no-always (do
+                     (table.remove fnl-source-files init-lua-index))))
+    fnl-source-files))
 
 (λ m.sync-compile [ctx fnl-files]
   (accumulate [results {:ok [] :errors []}
