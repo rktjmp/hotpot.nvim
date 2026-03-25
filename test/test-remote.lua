@@ -96,67 +96,41 @@ local path = _local_14_.path
 local read_file = _local_14_["read-file"]
 local start_nvim = _local_14_["start-nvim"]
 local write_file = _local_14_["write-file"]
-local config_path = create_file(path("config", ".hotpot.fnl"), "{:schema :hotpot/2\n                                  :target :colocate\n                                  :ignore [:lua/vendor/lib.lua :fnl/dummy.fnl :fnl/dummy.fnlm]}")
-local abc_fnl_path = create_file(path("config", "fnl/abc.fnl"), "{:works true}")
-local abc_lua_path = path("config", "lua/abc.lua")
-local dummy_fnl_path = create_file(path("config", "fnl/dummy.fnl"), "{:dummy true}")
-local dummy_lua_path = path("config", "lua/dummy.lua")
-local dummy_fnlm_path = create_file(path("config", "fnl/dummy.fnlm"), "{}")
-local vendor_path = create_file(path("config", "lua/vendor/lib.lua"), "return 'vendor lib'")
+local remote_dir = "/home/user/remote/"
+vim.fn.mkdir((remote_dir .. "/fnl"), "p")
+create_file((remote_dir .. "/.hotpot.fnl"), "{:schema :hotpot/2 :target :colocate}")
+create_file((remote_dir .. "/fnl/mod.fnl"), "(import-macros {: x} :macros) (x)")
+create_file(path("config", "/fnl/macros.fnlm"), "{:x (fn [] `:config-x)}")
 local nvim = start_nvim()
 nvim:lua("require'hotpot'")
+nvim:cmd(("edit " .. (remote_dir .. "/fnl/mod.fnl")))
+nvim:cmd(("cd " .. path("config")))
+nvim:cmd("write")
+nvim:close()
 do
-  local case_15_ = vim.uv.fs_stat(abc_lua_path)
-  if ((_G.type(case_15_) == "table") and (_G.type(case_15_.mtime) == "table")) then
-    OK(string.format(("created abc-lua" or "")))
+  local case_15_ = vim.uv.fs_stat((remote_dir .. "/lua/mod.lua"))
+  if (_G.type(case_15_) == "table") then
+    OK(string.format(("creates lua/mod.lua in non cwd" or "")))
   else
     local __1_auto = case_15_
-    FAIL(string.format(("created abc-lua" or "")))
+    FAIL(string.format(("creates lua/mod.lua in non cwd" or "")))
   end
 end
+vim.uv.sleep(5)
+create_file((remote_dir .. "/fnl/macros.fnlm"), "{:x (fn [] `:remote-x)}")
+local nvim0 = start_nvim()
+nvim0:lua("require'hotpot'")
+nvim0:cmd(("edit " .. (remote_dir .. "/fnl/mod.fnl")))
+nvim0:cmd(("cd " .. path("config")))
+nvim0:cmd("write")
+nvim0:close()
 do
-  local case_17_ = vim.uv.fs_stat(vendor_path)
-  if ((_G.type(case_17_) == "table") and (_G.type(case_17_.mtime) == "table")) then
-    OK(string.format(("retained vendor-lua" or "")))
+  local case_17_ = read_file((remote_dir .. "/lua/mod.lua"))
+  if (case_17_ == "return \"remote-x\"") then
+    OK(string.format(("correctly uses remote.macros.x()" or "")))
   else
     local __1_auto = case_17_
-    FAIL(string.format(("retained vendor-lua" or "")))
+    FAIL(string.format(("correctly uses remote.macros.x()" or "")))
   end
 end
-do
-  local case_19_ = vim.uv.fs_stat(dummy_lua_path)
-  if (case_19_ == nil) then
-    OK(string.format(("did not create dummy-lua" or "")))
-  else
-    local __1_auto = case_19_
-    FAIL(string.format(("did not create dummy-lua" or "")))
-  end
-end
-local _local_21_ = vim.uv.fs_stat(abc_lua_path)
-local _local_22_ = _local_21_.mtime
-local time1 = _local_22_.sec
-nvim:cmd(("edit " .. dummy_fnl_path))
-nvim:cmd("write")
-local _local_23_ = vim.uv.fs_stat(abc_lua_path)
-local _local_24_ = _local_23_.mtime
-local time2 = _local_24_.sec
-do
-  local case_25_ = vim.uv.fs_stat(dummy_lua_path)
-  if (case_25_ == nil) then
-    OK(string.format(("did not create dummy-lua after write" or "")))
-  else
-    local __1_auto = case_25_
-    FAIL(string.format(("did not create dummy-lua after write" or "")))
-  end
-end
-do
-  local case_27_ = (time1 == time2)
-  if (case_27_ == true) then
-    OK(string.format(("did not rebuild abc-lua with no changes" or "")))
-  else
-    local __1_auto = case_27_
-    FAIL(string.format(("did not rebuild abc-lua with no changes" or "")))
-  end
-end
-nvim:close()
 return exit()

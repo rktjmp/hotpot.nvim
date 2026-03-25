@@ -69,6 +69,7 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
     end
     nvim = {channel = channel, close = _10_, cmd = _11_, lua = _12_}
     nvim:lua("vim.opt.runtimepath:prepend('/home/user/hotpot')")
+    nvim:lua("vim.secure.read = function(path) return table.concat(vim.fn.readfile(path), '\\n') end")
     return nvim
   end
   local function create_file(path, content)
@@ -76,20 +77,25 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
     return path
   end
   local function path(_in, ...)
-    return vim.fs.joinpath(vim.fn.stdpath(_in), ...)
+    if (_in == "cache") then
+      return vim.fs.joinpath(vim.fn.stdpath("data"), "site", "pack", "hotpot", "opt", "hotpot-config-cache", ...)
+    else
+      local _ = _in
+      return vim.fs.joinpath(vim.fn.stdpath(_in), ...)
+    end
   end
   return {["write-file"] = write_file, ["read-file"] = read_file, ["create-file"] = create_file, path = path, OK = OK, FAIL = FAIL, exit = exit, ["start-nvim"] = start_nvim, NVIM_APPNAME = vim.env.NVIM_APPNAME}
 end
-local _local_13_ = require("test.utils")
-local FAIL = _local_13_.FAIL
-local NVIM_APPNAME = _local_13_.NVIM_APPNAME
-local OK = _local_13_.OK
-local create_file = _local_13_["create-file"]
-local exit = _local_13_.exit
-local path = _local_13_.path
-local read_file = _local_13_["read-file"]
-local start_nvim = _local_13_["start-nvim"]
-local write_file = _local_13_["write-file"]
+local _local_14_ = require("test.utils")
+local FAIL = _local_14_.FAIL
+local NVIM_APPNAME = _local_14_.NVIM_APPNAME
+local OK = _local_14_.OK
+local create_file = _local_14_["create-file"]
+local exit = _local_14_.exit
+local path = _local_14_.path
+local read_file = _local_14_["read-file"]
+local start_nvim = _local_14_["start-nvim"]
+local write_file = _local_14_["write-file"]
 local function p(x)
   return (vim.fn.stdpath("config") .. x)
 end
@@ -97,14 +103,14 @@ local fnl_path = p("/fnl/a/b/c.fnl")
 local lua_path = p("/lua/a/b/c.lua")
 write_file(p("/fnl/a/b/c.fnl"), "(fn x [] nil)")
 write_file(p("/fnl/a/macro.fnl"), "(fn x [] :macro)")
-local _local_14_ = require("hotpot.api.make")
-local build = _local_14_.build
+local _local_15_ = require("hotpot.api.make")
+local build = _local_15_.build
 build(vim.fn.stdpath("config"), {{"fnl/**/*macro*.fnl", false}, {"fnl/**/*.fnl", true}})
-local function _15_(...)
+local function _16_(...)
   if (... == true) then
-    local function _16_(...)
+    local function _17_(...)
       if (... == true) then
-        local function _17_(...)
+        local function _18_(...)
           if (... == true) then
             return vim.loop.fs_unlink(lua_path)
           else
@@ -112,66 +118,66 @@ local function _15_(...)
             return ...
           end
         end
-        local function _20_(...)
-          local case_19_ = vim.loop.fs_access(p("/lua/a/macro.lua"), "R")
-          if (case_19_ == false) then
+        local function _21_(...)
+          local case_20_ = vim.loop.fs_access(p("/lua/a/macro.lua"), "R")
+          if (case_20_ == false) then
             OK(string.format(("Did not compile macro" or ""), p("/lua/a/macro.lua")))
             return true
           else
-            local __1_auto = case_19_
+            local __1_auto = case_20_
             FAIL(string.format(("Did not compile macro" or ""), p("/lua/a/macro.lua")))
             return false
           end
         end
-        return _17_(_20_(...))
+        return _18_(_21_(...))
       else
         local __43_ = ...
         return ...
       end
     end
-    local function _24_(...)
-      local case_23_ = read_file(lua_path)
-      if (case_23_ == "local function x()\\n  return nil\\nend\\nreturn x") then
+    local function _25_(...)
+      local case_24_ = read_file(lua_path)
+      if (case_24_ == "local function x()\\n  return nil\\nend\\nreturn x") then
         OK(string.format(("Outputs correct lua code" or "")))
         return true
       else
-        local __1_auto = case_23_
+        local __1_auto = case_24_
         FAIL(string.format(("Outputs correct lua code" or "")))
         return false
       end
     end
-    return _16_(_24_(...))
+    return _17_(_25_(...))
   else
     local __43_ = ...
     return ...
   end
 end
-local function _28_(...)
-  local case_27_ = vim.loop.fs_access(lua_path, "R")
-  if (case_27_ == true) then
+local function _29_(...)
+  local case_28_ = vim.loop.fs_access(lua_path, "R")
+  if (case_28_ == true) then
     OK(string.format(("Creates a lua file at %s" or ""), lua_path))
     return true
   else
-    local __1_auto = case_27_
+    local __1_auto = case_28_
     FAIL(string.format(("Creates a lua file at %s" or ""), lua_path))
     return false
   end
 end
-_15_(_28_(...))
-local function _30_(path0)
+_16_(_29_(...))
+local function _31_(path0)
   if string.find(path0, "macro") then
     return false
   else
     return string.gsub(string.gsub(path0, "/fnl/", "/lua/"), "c.fnl$", "z.fnl")
   end
 end
-build(vim.fn.stdpath("config"), {{"fnl/**/*.fnl", _30_}})
+build(vim.fn.stdpath("config"), {{"fnl/**/*.fnl", _31_}})
 local lua_path0 = (vim.fn.stdpath("config") .. "/lua/a/b/z.lua")
-local function _32_(...)
+local function _33_(...)
   if (... == true) then
-    local function _33_(...)
+    local function _34_(...)
       if (... == true) then
-        local function _34_(...)
+        local function _35_(...)
           if (... == true) then
             return true
           else
@@ -179,50 +185,50 @@ local function _32_(...)
             return ...
           end
         end
-        local function _37_(...)
-          local case_36_ = vim.loop.fs_access(p("/lua/a/macro.lua"), "R")
-          if (case_36_ == false) then
+        local function _38_(...)
+          local case_37_ = vim.loop.fs_access(p("/lua/a/macro.lua"), "R")
+          if (case_37_ == false) then
             OK(string.format(("Did not compile macro" or ""), p("/lua/a/macro.lua")))
             return true
           else
-            local __1_auto = case_36_
+            local __1_auto = case_37_
             FAIL(string.format(("Did not compile macro" or ""), p("/lua/a/macro.lua")))
             return false
           end
         end
-        return _34_(_37_(...))
+        return _35_(_38_(...))
       else
         local __43_ = ...
         return ...
       end
     end
-    local function _41_(...)
-      local case_40_ = read_file(lua_path0)
-      if (case_40_ == "local function x()\\n  return nil\\nend\\nreturn x") then
+    local function _42_(...)
+      local case_41_ = read_file(lua_path0)
+      if (case_41_ == "local function x()\\n  return nil\\nend\\nreturn x") then
         OK(string.format(("Outputs correct lua code" or "")))
         return true
       else
-        local __1_auto = case_40_
+        local __1_auto = case_41_
         FAIL(string.format(("Outputs correct lua code" or "")))
         return false
       end
     end
-    return _33_(_41_(...))
+    return _34_(_42_(...))
   else
     local __43_ = ...
     return ...
   end
 end
-local function _45_(...)
-  local case_44_ = vim.loop.fs_access(lua_path0, "R")
-  if (case_44_ == true) then
+local function _46_(...)
+  local case_45_ = vim.loop.fs_access(lua_path0, "R")
+  if (case_45_ == true) then
     OK(string.format(("Creates a lua file at %s" or ""), lua_path0))
     return true
   else
-    local __1_auto = case_44_
+    local __1_auto = case_45_
     FAIL(string.format(("Creates a lua file at %s" or ""), lua_path0))
     return false
   end
 end
-_32_(_45_(...))
+_33_(_46_(...))
 return exit()

@@ -5,8 +5,7 @@
 ;;;; File ops
 (fn mtime [path]
   (case (vim.uv.fs_stat path)
-    ;; TODO: nsec precision?
-    {:mtime {: sec}} sec
+    {: mtime} mtime
     (nil err) (error err)))
 
 (fn missing? [path]
@@ -156,21 +155,31 @@
                     path))]
     orphans))
 
+(fn a-newer-than-b? [mtime1 mtime2]
+  (let [{:sec s1 :nsec n1} mtime1
+        {:sec s2 :nsec n2} mtime2]
+    (or (and (= s2 s1) (< n2 n1))
+        (< s2 s1))))
+
 (λ m.filter-stale-source-files [files]
   (let [{: fnl : fnlm} files
-        fnlm-mtime (accumulate [newest-mtime -1 _ {: fnl-abs} (ipairs fnlm)]
-                     (math.max newest-mtime (mtime fnl-abs)))
+        fnlm-mtime (accumulate [newest-mtime {:sec 0 :nsec 0} _ {: fnl-abs} (ipairs fnlm)]
+                     (let [this-mtime (mtime fnl-abs)]
+                       (if (a-newer-than-b? this-mtime newest-mtime)
+                         this-mtime
+                         newest-mtime)))
         needs-compiling (icollect [_ {: fnl-abs : lua-abs &as file} (ipairs fnl)]
                           (let [lua-mtime (case (pcall mtime lua-abs)
                                             (true mtime) mtime
                                             ;; missing is as good as "very old"
-                                            (false _) 0)
+                                            (false _) {:sec 0 :nsec 0})
                                 fnl-mtime (mtime fnl-abs)]
                             ;; Rebuild lua file if its counterpart fnl file has
                             ;; been updated more recently than its last build,
                             ;; or if _any_ fnlm file has been updated since its
                             ;; last build.
-                            (if (or (< lua-mtime fnl-mtime) (< lua-mtime fnlm-mtime))
+                            (when (or (a-newer-than-b? fnlm-mtime lua-mtime)
+                                    (a-newer-than-b? fnl-mtime lua-mtime))
                               file)))]
     needs-compiling))
 

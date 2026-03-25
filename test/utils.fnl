@@ -36,6 +36,7 @@
                                      (table.concat ["lua << EOF" src "EOF"] "\n")
                                      {:output true}))}]
     (nvim:lua "vim.opt.runtimepath:prepend('/home/user/hotpot')")
+    (nvim:lua "vim.secure.read = function(path) return table.concat(vim.fn.readfile(path), '\\n') end")
     nvim))
 
 (fn create-file [path content]
@@ -43,7 +44,9 @@
   path)
 
 (fn path [in ...]
-  (vim.fs.joinpath (vim.fn.stdpath in) ...))
+  (case in
+    :cache (vim.fs.joinpath (vim.fn.stdpath :data) :site :pack :hotpot :opt :hotpot-config-cache ...)
+    _ (vim.fs.joinpath (vim.fn.stdpath in) ...)))
 
 
 {: write-file : read-file

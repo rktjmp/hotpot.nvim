@@ -69,6 +69,7 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
     end
     nvim = {channel = channel, close = _10_, cmd = _11_, lua = _12_}
     nvim:lua("vim.opt.runtimepath:prepend('/home/user/hotpot')")
+    nvim:lua("vim.secure.read = function(path) return table.concat(vim.fn.readfile(path), '\\n') end")
     return nvim
   end
   local function create_file(path, content)
@@ -76,20 +77,25 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
     return path
   end
   local function path(_in, ...)
-    return vim.fs.joinpath(vim.fn.stdpath(_in), ...)
+    if (_in == "cache") then
+      return vim.fs.joinpath(vim.fn.stdpath("data"), "site", "pack", "hotpot", "opt", "hotpot-config-cache", ...)
+    else
+      local _ = _in
+      return vim.fs.joinpath(vim.fn.stdpath(_in), ...)
+    end
   end
   return {["write-file"] = write_file, ["read-file"] = read_file, ["create-file"] = create_file, path = path, OK = OK, FAIL = FAIL, exit = exit, ["start-nvim"] = start_nvim, NVIM_APPNAME = vim.env.NVIM_APPNAME}
 end
-local _local_13_ = require("test.utils")
-local FAIL = _local_13_.FAIL
-local NVIM_APPNAME = _local_13_.NVIM_APPNAME
-local OK = _local_13_.OK
-local create_file = _local_13_["create-file"]
-local exit = _local_13_.exit
-local path = _local_13_.path
-local read_file = _local_13_["read-file"]
-local start_nvim = _local_13_["start-nvim"]
-local write_file = _local_13_["write-file"]
+local _local_14_ = require("test.utils")
+local FAIL = _local_14_.FAIL
+local NVIM_APPNAME = _local_14_.NVIM_APPNAME
+local OK = _local_14_.OK
+local create_file = _local_14_["create-file"]
+local exit = _local_14_.exit
+local path = _local_14_.path
+local read_file = _local_14_["read-file"]
+local start_nvim = _local_14_["start-nvim"]
+local write_file = _local_14_["write-file"]
 local fnl_path = (vim.fn.stdpath("config") .. "/fnl/abc.fnl")
 local fnlm_path = (vim.fn.stdpath("config") .. "/fnl/xyz.fnlm")
 local dot_hotpot_path = (vim.fn.stdpath("config") .. "/.hotpot.lua")
@@ -100,20 +106,20 @@ vim.cmd(string.format("edit %s", fnl_path))
 vim.cmd("set ft=fennel")
 vim.cmd("w")
 do
-  local case_14_ = vim.loop.fs_access((vim.fn.stdpath("config") .. "/lua/abc.lua"), "R")
-  if (case_14_ == true) then
+  local case_15_ = vim.loop.fs_access((vim.fn.stdpath("config") .. "/lua/abc.lua"), "R")
+  if (case_15_ == true) then
     OK(string.format(("built module file" or "")))
   else
-    local __1_auto = case_14_
+    local __1_auto = case_15_
     FAIL(string.format(("built module file" or "")))
   end
 end
 do
-  local case_16_ = vim.loop.fs_access((vim.fn.stdpath("config") .. "xyz.lua"), "R")
-  if (case_16_ == false) then
+  local case_17_ = vim.loop.fs_access((vim.fn.stdpath("config") .. "xyz.lua"), "R")
+  if (case_17_ == false) then
     OK(string.format(("did not build macro file" or "")))
   else
-    local __1_auto = case_16_
+    local __1_auto = case_17_
     FAIL(string.format(("did not build macro file" or "")))
   end
 end

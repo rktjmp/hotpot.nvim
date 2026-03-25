@@ -69,6 +69,7 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
     end
     nvim = {channel = channel, close = _10_, cmd = _11_, lua = _12_}
     nvim:lua("vim.opt.runtimepath:prepend('/home/user/hotpot')")
+    nvim:lua("vim.secure.read = function(path) return table.concat(vim.fn.readfile(path), '\\n') end")
     return nvim
   end
   local function create_file(path, content)
@@ -76,20 +77,25 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
     return path
   end
   local function path(_in, ...)
-    return vim.fs.joinpath(vim.fn.stdpath(_in), ...)
+    if (_in == "cache") then
+      return vim.fs.joinpath(vim.fn.stdpath("data"), "site", "pack", "hotpot", "opt", "hotpot-config-cache", ...)
+    else
+      local _ = _in
+      return vim.fs.joinpath(vim.fn.stdpath(_in), ...)
+    end
   end
   return {["write-file"] = write_file, ["read-file"] = read_file, ["create-file"] = create_file, path = path, OK = OK, FAIL = FAIL, exit = exit, ["start-nvim"] = start_nvim, NVIM_APPNAME = vim.env.NVIM_APPNAME}
 end
-local _local_13_ = require("test.utils")
-local FAIL = _local_13_.FAIL
-local NVIM_APPNAME = _local_13_.NVIM_APPNAME
-local OK = _local_13_.OK
-local create_file = _local_13_["create-file"]
-local exit = _local_13_.exit
-local path = _local_13_.path
-local read_file = _local_13_["read-file"]
-local start_nvim = _local_13_["start-nvim"]
-local write_file = _local_13_["write-file"]
+local _local_14_ = require("test.utils")
+local FAIL = _local_14_.FAIL
+local NVIM_APPNAME = _local_14_.NVIM_APPNAME
+local OK = _local_14_.OK
+local create_file = _local_14_["create-file"]
+local exit = _local_14_.exit
+local path = _local_14_.path
+local read_file = _local_14_["read-file"]
+local start_nvim = _local_14_["start-nvim"]
+local write_file = _local_14_["write-file"]
 local config_path = create_file(path("config", ".hotpot.fnl"), "{:schema :hotpot/2\n                                  :target :colocate\n                                  :ignore [:fnl/ignore.fnlm]}")
 local abc_fnl_path = create_file(path("config", "fnl/abc.fnl"), "{:works true}")
 local abc_lua_path = path("config", "lua/abc.lua")
@@ -97,118 +103,116 @@ local xyz_fnl_path = create_file(path("config", "fnl/xyz.fnl"), "{:works true}")
 local xyz_lua_path = path("config", "lua/xyz.lua")
 local fnlm_path = create_file(path("config", "fnl/macro.fnlm"), "{}")
 local ignore_fnlm_path = create_file(path("config", "fnl/ignore.fnlm"), "{}")
+local function a_newer_than_b_3f(mtime1, mtime2)
+  local s1 = mtime1.sec
+  local n1 = mtime1.nsec
+  local s2 = mtime2.sec
+  local n2 = mtime2.nsec
+  return (((s2 == s1) and (n2 < n1)) or (s2 < s1))
+end
+local function a_equal_b_3f(mtime1, mtime2)
+  local s1 = mtime1.sec
+  local n1 = mtime1.nsec
+  local s2 = mtime2.sec
+  local n2 = mtime2.nsec
+  return ((s1 == s2) and (n1 == n2))
+end
 local nvim = start_nvim()
 nvim:lua("require'hotpot'")
 do
-  local case_14_ = vim.uv.fs_stat(abc_lua_path)
-  if ((_G.type(case_14_) == "table") and (_G.type(case_14_.mtime) == "table")) then
+  local case_15_ = vim.uv.fs_stat(abc_lua_path)
+  if ((_G.type(case_15_) == "table") and (_G.type(case_15_.mtime) == "table")) then
     OK(string.format(("created abc-lua" or "")))
   else
-    local __1_auto = case_14_
+    local __1_auto = case_15_
     FAIL(string.format(("created abc-lua" or "")))
   end
 end
 do
-  local case_16_ = vim.uv.fs_stat(xyz_lua_path)
-  if ((_G.type(case_16_) == "table") and (_G.type(case_16_.mtime) == "table")) then
+  local case_17_ = vim.uv.fs_stat(xyz_lua_path)
+  if ((_G.type(case_17_) == "table") and (_G.type(case_17_.mtime) == "table")) then
     OK(string.format(("created xyz-lua" or "")))
   else
-    local __1_auto = case_16_
+    local __1_auto = case_17_
     FAIL(string.format(("created xyz-lua" or "")))
   end
 end
-local _local_18_ = vim.uv.fs_stat(abc_lua_path)
-local _local_19_ = _local_18_.mtime
-local abc_time1 = _local_19_.sec
-local abc_time1_n = _local_19_.nsec
+local _local_19_ = vim.uv.fs_stat(abc_lua_path)
+local abc_time1 = _local_19_.mtime
 local _local_20_ = vim.uv.fs_stat(xyz_lua_path)
-local _local_21_ = _local_20_.mtime
-local xyz_time1 = _local_21_.sec
-local xyz_time1_n = _local_21_.nsec
-vim.uv.sleep(1100)
+local xyz_time1 = _local_20_.mtime
+vim.uv.sleep(40)
 nvim:cmd(("edit " .. abc_fnl_path))
 nvim:cmd("write")
-local _local_22_ = vim.uv.fs_stat(abc_lua_path)
-local _local_23_ = _local_22_.mtime
-local abc_time2 = _local_23_.sec
-local abc_time2_n = _local_23_.nsec
-local _local_24_ = vim.uv.fs_stat(xyz_lua_path)
-local _local_25_ = _local_24_.mtime
-local xyz_time2 = _local_25_.sec
-local xyz_time2_n = _local_25_.nsec
+local _local_21_ = vim.uv.fs_stat(abc_lua_path)
+local abc_time2 = _local_21_.mtime
+local _local_22_ = vim.uv.fs_stat(xyz_lua_path)
+local xyz_time2 = _local_22_.mtime
 do
-  local case_26_ = (abc_time1 < abc_time2)
-  if (case_26_ == true) then
+  local case_23_ = a_newer_than_b_3f(abc_time2, abc_time1)
+  if (case_23_ == true) then
     OK(string.format(("rebuilt abc-fnl because it was modified" or "")))
   else
-    local __1_auto = case_26_
+    local __1_auto = case_23_
     FAIL(string.format(("rebuilt abc-fnl because it was modified" or "")))
   end
 end
 do
-  local case_28_ = (xyz_time1 == xyz_time2)
-  if (case_28_ == true) then
+  local case_25_ = a_equal_b_3f(xyz_time1, xyz_time2)
+  if (case_25_ == true) then
     OK(string.format(("did not rebuild xyz-fnl" or "")))
   else
-    local __1_auto = case_28_
+    local __1_auto = case_25_
     FAIL(string.format(("did not rebuild xyz-fnl" or "")))
   end
 end
-vim.uv.sleep(1100)
+vim.uv.sleep(40)
 nvim:cmd(("edit " .. fnlm_path))
 nvim:cmd("write")
-local _local_30_ = vim.uv.fs_stat(abc_lua_path)
-local _local_31_ = _local_30_.mtime
-local abc_time3 = _local_31_.sec
-local abc_time3_n = _local_31_.nsec
-local _local_32_ = vim.uv.fs_stat(xyz_lua_path)
-local _local_33_ = _local_32_.mtime
-local xyz_time3 = _local_33_.sec
-local xyz_time3_n = _local_33_.nsec
+local _local_27_ = vim.uv.fs_stat(abc_lua_path)
+local abc_time3 = _local_27_.mtime
+local _local_28_ = vim.uv.fs_stat(xyz_lua_path)
+local xyz_time3 = _local_28_.mtime
 do
-  local case_34_ = (abc_time1 < abc_time2)
-  if (case_34_ == true) then
+  local case_29_ = a_newer_than_b_3f(abc_time2, abc_time1)
+  if (case_29_ == true) then
     OK(string.format(("rebuilt abc-fnl because of fnlm modified" or "")))
   else
-    local __1_auto = case_34_
+    local __1_auto = case_29_
     FAIL(string.format(("rebuilt abc-fnl because of fnlm modified" or "")))
   end
 end
 do
-  local case_36_ = (xyz_time1 < xyz_time3)
-  if (case_36_ == true) then
+  local case_31_ = a_newer_than_b_3f(xyz_time3, xyz_time1)
+  if (case_31_ == true) then
     OK(string.format(("rebuilt xyz-fnl because of fnlm modified" or "")))
   else
-    local __1_auto = case_36_
+    local __1_auto = case_31_
     FAIL(string.format(("rebuilt xyz-fnl because of fnlm modified" or "")))
   end
 end
-vim.uv.sleep(1100)
+vim.uv.sleep(40)
 nvim:cmd(("edit " .. ignore_fnlm_path))
 nvim:cmd("write")
-local _local_38_ = vim.uv.fs_stat(abc_lua_path)
-local _local_39_ = _local_38_.mtime
-local abc_time4 = _local_39_.sec
-local abc_time4_n = _local_39_.nsec
-local _local_40_ = vim.uv.fs_stat(xyz_lua_path)
-local _local_41_ = _local_40_.mtime
-local xyz_time4 = _local_41_.sec
-local xyz_time4_n = _local_41_.nsec
+local _local_33_ = vim.uv.fs_stat(abc_lua_path)
+local abc_time4 = _local_33_.mtime
+local _local_34_ = vim.uv.fs_stat(xyz_lua_path)
+local xyz_time4 = _local_34_.mtime
 do
-  local case_42_ = (abc_time3 == abc_time4)
-  if (case_42_ == true) then
+  local case_35_ = a_equal_b_3f(abc_time3, abc_time4)
+  if (case_35_ == true) then
     OK(string.format(("did not rebuild abc-fnl when ignored fnlm changed" or "")))
   else
-    local __1_auto = case_42_
+    local __1_auto = case_35_
     FAIL(string.format(("did not rebuild abc-fnl when ignored fnlm changed" or "")))
   end
 end
 do
-  local case_44_ = (xyz_time3 == xyz_time4)
-  if (case_44_ == true) then
+  local case_37_ = a_equal_b_3f(xyz_time3, xyz_time4)
+  if (case_37_ == true) then
     OK(string.format(("did not rebuild xyz-fnl when ignored fnlm changed" or "")))
   else
-    local __1_auto = case_44_
+    local __1_auto = case_37_
     FAIL(string.format(("did not rebuild xyz-fnl when ignored fnlm changed" or "")))
   end
 end

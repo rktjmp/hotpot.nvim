@@ -5,7 +5,7 @@
                                 "{:schema :hotpot/2 :target :cache}"))
 (local fnl-path (create-file (path :config :fnl/abc.fnl)
                              "{:works true}"))
-(local lua-path (path :data :/site/pack/hotpot/opt/config/lua/abc.lua))
+(local lua-path (path :cache :/lua/abc.lua))
 (local vendor-path (create-file (path :config :lua/vendor/lib.lua)
                                 "return 'vendor lib'"))
 
@@ -24,7 +24,7 @@
 ;;
 (local fnl-path2 (create-file (path :config :fnl/xyz.fnl)
                               "{:works :also}"))
-(local lua-path2 (path :data :/site/pack/hotpot/opt/config/lua/xyz.lua))
+(local lua-path2 (path :cache :/lua/xyz.lua))
 
 (local nvim (start-nvim))
 (nvim:lua "require'hotpot'")

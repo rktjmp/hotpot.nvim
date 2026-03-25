@@ -69,6 +69,7 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
     end
     nvim = {channel = channel, close = _10_, cmd = _11_, lua = _12_}
     nvim:lua("vim.opt.runtimepath:prepend('/home/user/hotpot')")
+    nvim:lua("vim.secure.read = function(path) return table.concat(vim.fn.readfile(path), '\\n') end")
     return nvim
   end
   local function create_file(path, content)
@@ -76,20 +77,25 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
     return path
   end
   local function path(_in, ...)
-    return vim.fs.joinpath(vim.fn.stdpath(_in), ...)
+    if (_in == "cache") then
+      return vim.fs.joinpath(vim.fn.stdpath("data"), "site", "pack", "hotpot", "opt", "hotpot-config-cache", ...)
+    else
+      local _ = _in
+      return vim.fs.joinpath(vim.fn.stdpath(_in), ...)
+    end
   end
   return {["write-file"] = write_file, ["read-file"] = read_file, ["create-file"] = create_file, path = path, OK = OK, FAIL = FAIL, exit = exit, ["start-nvim"] = start_nvim, NVIM_APPNAME = vim.env.NVIM_APPNAME}
 end
-local _local_13_ = require("test.utils")
-local FAIL = _local_13_.FAIL
-local NVIM_APPNAME = _local_13_.NVIM_APPNAME
-local OK = _local_13_.OK
-local create_file = _local_13_["create-file"]
-local exit = _local_13_.exit
-local path = _local_13_.path
-local read_file = _local_13_["read-file"]
-local start_nvim = _local_13_["start-nvim"]
-local write_file = _local_13_["write-file"]
+local _local_14_ = require("test.utils")
+local FAIL = _local_14_.FAIL
+local NVIM_APPNAME = _local_14_.NVIM_APPNAME
+local OK = _local_14_.OK
+local create_file = _local_14_["create-file"]
+local exit = _local_14_.exit
+local path = _local_14_.path
+local read_file = _local_14_["read-file"]
+local start_nvim = _local_14_["start-nvim"]
+local write_file = _local_14_["write-file"]
 local fnl_path = (vim.fn.stdpath("config") .. "/fnl/abc.fnl")
 local fnl_path_2 = (vim.fn.stdpath("config") .. "/fnl/def.fnl")
 local lua_path = (vim.fn.stdpath("config") .. "/lua/abc.lua")
@@ -101,20 +107,20 @@ write_file(dot_hotpot_path, "\n_G.loaded_dot = true\nreturn {\n  compiler = {\n 
 write_file(fnl_path, "{:works true}")
 require("abc")
 do
-  local case_14_ = _G.loaded_dot
-  if (case_14_ == true) then
+  local case_15_ = _G.loaded_dot
+  if (case_15_ == true) then
     OK(string.format((".hotpot.lua file loaded" or "")))
   else
-    local __1_auto = case_14_
+    local __1_auto = case_15_
     FAIL(string.format((".hotpot.lua file loaded" or "")))
   end
 end
 do
-  local case_16_ = read_file(lua_cache_path)
-  if (case_16_ == "do local _ = (1 + 1) end\\nreturn {works = true}") then
+  local case_17_ = read_file(lua_cache_path)
+  if (case_17_ == "do local _ = (1 + 1) end\\nreturn {works = true}") then
     OK(string.format((".hotpot.lua applies a preprocessor" or "")))
   else
-    local __1_auto = case_16_
+    local __1_auto = case_17_
     FAIL(string.format((".hotpot.lua applies a preprocessor" or "")))
   end
 end
@@ -124,40 +130,40 @@ vim.cmd(string.format("edit %s", fnl_path))
 vim.cmd("set ft=fennel")
 vim.cmd("w")
 do
-  local case_18_ = read_file(lua_path)
-  if (case_18_ == "return {works = true}") then
+  local case_19_ = read_file(lua_path)
+  if (case_19_ == "return {works = true}") then
     OK(string.format(("build = true outputs to lua/ dir" or "")))
   else
-    local __1_auto = case_18_
+    local __1_auto = case_19_
     FAIL(string.format(("build = true outputs to lua/ dir" or "")))
   end
 end
 do
-  local case_20_ = read_file(lua_path_2)
-  if (case_20_ == "return {works = \"also-true\"}") then
+  local case_21_ = read_file(lua_path_2)
+  if (case_21_ == "return {works = \"also-true\"}") then
     OK(string.format(("build = true outputs to lua/ dir" or "")))
   else
-    local __1_auto = case_20_
+    local __1_auto = case_21_
     FAIL(string.format(("build = true outputs to lua/ dir" or "")))
   end
 end
 do
-  local case_22_ = vim.loop.fs_access(lua_cache_path, "R")
-  if (case_22_ == true) then
+  local case_23_ = vim.loop.fs_access(lua_cache_path, "R")
+  if (case_23_ == true) then
     OK(string.format(("previous cache lua still exists" or "")))
   else
-    local __1_auto = case_22_
+    local __1_auto = case_23_
     FAIL(string.format(("previous cache lua still exists" or "")))
   end
 end
 write_file(dot_hotpot_path, "\nreturn {\n  build = {{atomic = true},\n           {'fnl/**/*.fnl', true}},\n  clean = true,\n}")
 write_file(junk_path, "return 1")
 do
-  local case_24_ = vim.loop.fs_access(junk_path, "R")
-  if (case_24_ == true) then
+  local case_25_ = vim.loop.fs_access(junk_path, "R")
+  if (case_25_ == true) then
     OK(string.format(("junk file exists" or "")))
   else
-    local __1_auto = case_24_
+    local __1_auto = case_25_
     FAIL(string.format(("junk file exists" or "")))
   end
 end
@@ -165,11 +171,11 @@ vim.cmd(string.format("edit %s", fnl_path))
 vim.cmd("set ft=fennel")
 vim.cmd("w")
 do
-  local case_26_ = vim.loop.fs_access(junk_path, "R")
-  if (case_26_ == false) then
+  local case_27_ = vim.loop.fs_access(junk_path, "R")
+  if (case_27_ == false) then
     OK(string.format(("junk file is cleaned away" or "")))
   else
-    local __1_auto = case_26_
+    local __1_auto = case_27_
     FAIL(string.format(("junk file is cleaned away" or "")))
   end
 end

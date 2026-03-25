@@ -69,6 +69,7 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
     end
     nvim = {channel = channel, close = _10_, cmd = _11_, lua = _12_}
     nvim:lua("vim.opt.runtimepath:prepend('/home/user/hotpot')")
+    nvim:lua("vim.secure.read = function(path) return table.concat(vim.fn.readfile(path), '\\n') end")
     return nvim
   end
   local function create_file(path, content)
@@ -76,42 +77,47 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
     return path
   end
   local function path(_in, ...)
-    return vim.fs.joinpath(vim.fn.stdpath(_in), ...)
+    if (_in == "cache") then
+      return vim.fs.joinpath(vim.fn.stdpath("data"), "site", "pack", "hotpot", "opt", "hotpot-config-cache", ...)
+    else
+      local _ = _in
+      return vim.fs.joinpath(vim.fn.stdpath(_in), ...)
+    end
   end
   return {["write-file"] = write_file, ["read-file"] = read_file, ["create-file"] = create_file, path = path, OK = OK, FAIL = FAIL, exit = exit, ["start-nvim"] = start_nvim, NVIM_APPNAME = vim.env.NVIM_APPNAME}
 end
-local _local_13_ = require("test.utils")
-local FAIL = _local_13_.FAIL
-local NVIM_APPNAME = _local_13_.NVIM_APPNAME
-local OK = _local_13_.OK
-local create_file = _local_13_["create-file"]
-local exit = _local_13_.exit
-local path = _local_13_.path
-local read_file = _local_13_["read-file"]
-local start_nvim = _local_13_["start-nvim"]
-local write_file = _local_13_["write-file"]
+local _local_14_ = require("test.utils")
+local FAIL = _local_14_.FAIL
+local NVIM_APPNAME = _local_14_.NVIM_APPNAME
+local OK = _local_14_.OK
+local create_file = _local_14_["create-file"]
+local exit = _local_14_.exit
+local path = _local_14_.path
+local read_file = _local_14_["read-file"]
+local start_nvim = _local_14_["start-nvim"]
+local write_file = _local_14_["write-file"]
 local function in_path(path0)
   return (vim.fn.stdpath("config") .. "/fnl/" .. path0)
 end
 write_file(in_path("code.fnl"), "(import-macros {: sum} :my-macro) (sum 1 2)")
 write_file(in_path("my-macro.fnlm"), "{:sum (fn [a b] `(+ ,a ,b))}")
 do
-  local case_14_, case_15_ = pcall(require, "code")
-  if ((case_14_ == true) and (case_15_ == 3)) then
+  local case_15_, case_16_ = pcall(require, "code")
+  if ((case_15_ == true) and (case_16_ == 3)) then
     OK(string.format(("can require fnlm macro file" or "")))
   else
-    local __1_auto = case_14_
+    local __1_auto = case_15_
     FAIL(string.format(("can require fnlm macro file" or "")))
   end
 end
 write_file(in_path("prelude/init.fnl"), "(import-macros {: sum} :my-macro) (sum 5 5)")
 write_file(in_path("prelude/init.fnlm"), "{:sum (fn [a b] `(+ ,a ,b))}")
 do
-  local case_17_, case_18_ = pcall(require, "prelude")
-  if ((case_17_ == true) and (case_18_ == 10)) then
+  local case_18_, case_19_ = pcall(require, "prelude")
+  if ((case_18_ == true) and (case_19_ == 10)) then
     OK(string.format(("can require mod/init.fnlm when mod/init.fnl exists" or "")))
   else
-    local __1_auto = case_17_
+    local __1_auto = case_18_
     FAIL(string.format(("can require mod/init.fnlm when mod/init.fnl exists" or "")))
   end
 end

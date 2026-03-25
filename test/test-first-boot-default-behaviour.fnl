@@ -2,8 +2,8 @@
 (setup)
 
 (local fnl-path (create-file (path :config :/fnl/abc.fnl) "{:works true}"))
-(local first-boot-sigil (path :data :/site/pack/hotpot/opt/config))
-(local lua-path (path :data :/site/pack/hotpot/opt/config/lua/abc.lua))
+(local first-boot-sigil (path :cache))
+(local lua-path (path :cache :/lua/abc.lua))
 
 (expect nil (vim.uv.fs_stat first-boot-sigil) "no first-boot-sigil")
 
