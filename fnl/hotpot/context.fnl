@@ -46,7 +46,11 @@
   "load .hotpot.fnl file and validate"
   (assert (vim.uv.fs_stat path) (err-msg-unable-to-load path "does not exist"))
   (let [fennel ((require :hotpot.aot.fennel))
-        def (fennel.dofile path)]
+        content (case (vim.secure.read path)
+                  content content
+                  nil (error (string.format "Unable to continue with untrusted file: %s"
+                                            path)))
+        def (fennel.eval content)]
     (assert (= :table (type def)) (err-msg-unable-to-load path "must return table"))
     (assert (= def.schema :hotpot/2) (err-msg-unable-to-load path "must define schema key as hotpot/2"))
     (assert (or (= def.target :cache) (= def.target :colocate))
