@@ -27,10 +27,11 @@
 
 (fn base-spec []
   {:schema :hotpot/2
-   :atomic true
-   :verbose true
+   :atomic? true
+   :verbose? true
    :ignore []
-   :compiler {:error-pinpoint false}})
+   :compiler {:error-pinpoint false
+              :allowedGlobals (icollect [k _ (pairs _G)] k)}})
 
 (fn default-config-spec []
   (vim.tbl_extend :force (base-spec) {:target :cache}))
@@ -196,7 +197,8 @@
 
   Returns lua-source or raises error."
   (let [fennel ((require :hotpot.aot.fennel))
-        compiler-options (vim.tbl_extend :force ctx.compiler {:filename meta.filename})
+        compiler-options (vim.tbl_extend :force ctx.compiler {:filename meta.filename
+                                                              :error-pinpoint false})
         fnl-source (m.apply-transform ctx fnl-source meta.filename)
         ;; Insert the context source root into the search path, so our working
         ;; directory can be different to the context `.hotpot.fnl` file and
@@ -238,40 +240,146 @@
             (string.format "%s `transform` did not return string" ctx._source))
     new-src))
 
+(λ m.sync-plan-compile [ctx source-files force?]
+  (if force?
+    (. source-files :fnl)
+    (m.filter-stale-source-files source-files)))
+
+(λ m.sync-compile [ctx fnl-files]
+  (accumulate [results {:ok [] :errors []}
+               _ {: fnl-abs : fnl-rel : lua-abs} (ipairs fnl-files)]
+    (let [fnl-source (read-file! fnl-abs)]
+      (case (pcall M.compile-string ctx fnl-source {:filename fnl-rel})
+        (true lua-source) (do
+                            (table.insert results.ok {: fnl-abs : lua-abs :source lua-source})
+                            results)
+        (false err) (do
+                      (table.insert results.errors {: fnl-abs : lua-abs :error err})
+                      results)))))
+
+(λ m.sync-write [ctx compile-results]
+  (let [compile-errors (icollect [_ result (ipairs compile-results)]
+                         (when result.error
+                           result))]
+    (if (and ctx.atomic? (< 0 (length compile-errors)))
+      (do
+        ;; dont write, warn errors out
+        (vim.print "atomic and have errors"))
+      (do
+        (each [_ {: lua-abs : source} (ipairs compile-results)]
+          (vim.fn.mkdir (vim.fs.dirname lua-abs) "p")
+          (write-file! lua-abs source))
+        true))))
+
+(λ m.sync-plan-clean [ctx source-files]
+  (m.find-orphaned-files ctx source-files))
+
+(λ m.sync-clean [ctx orphan-files]
+  (each [_ orphan (ipairs orphan-files)]
+    (vim.print vim.uv.fs_unlink orphan)))
+
+(λ m.sync-plan-confirm [ctx source-files orphan-files]
+  (if (< 5 (length orphan-files))
+    (let [*ugly-sync-hack* {:answered? nil
+                            :clean? false
+                            :compile? false}
+          ;; put the list of files first, incase there are so many it bumps the prompt off.
+          prompt (string.format "\n%s\nFound %d orphaned files, delete all?"
+                                (table.concat orphan-files "\n")
+                                (length orphan-files))
+          confirm "Ok: Compile as normal and remove orphaned files"
+          compile-only "Safe: Compile as normal but do not remove orphan files"
+          cancel "Cancel: Do not compile, do not remove orphans"
+          _ (vim.ui.select [confirm compile-only cancel]
+                           {: prompt}
+                           (fn [choice]
+                             (set *ugly-sync-hack*.answered? true)
+                             (case choice
+                               (where (= confirm))
+                               (do
+                                 (set *ugly-sync-hack*.compile? true)
+                                 (set *ugly-sync-hack*.clean? true))
+                               (where (= compile-only))
+                               (do
+                                 (set *ugly-sync-hack*.compile? true)
+                                 (set *ugly-sync-hack*.clean? false))
+                               (where (= cancel))
+                               (do
+                                 (set *ugly-sync-hack*.compile? false)
+                                 (set *ugly-sync-hack*.clean? false)))))
+          _ (vim.wait math.huge #(~= nil *ugly-sync-hack*.answered?))]
+      (values *ugly-sync-hack*))
+    (values {:compile? true :clean? true})))
+
 (λ M.sync [ctx ?options]
   "Compile files inside the given context, clean any orphans in destination.
 
   By default this only compiles stale files, where the .lua counterparts are
   older than the .fnl sources, or if any .fnlm file is newer, all files are
   considered stale."
-  (let [options (or ?options {:force false})
+  (let [options (or ?options {:force? false})
+        report {:format []
+                :summary []
+                :success []
+                :errors []
+                :clean []}
         source-files (m.find-source-files ctx)
-        stale-files (if options.force
-                      source-files
-                      (m.filter-stale-source-files source-files))
-        results (icollect [_ {: fnl-abs : fnl-rel : lua-abs} (ipairs stale-files)]
-                  (let [fnl-source (read-file! fnl-abs)]
-                    (case (pcall M.compile-string ctx fnl-source {:filename fnl-rel})
-                      (true lua-source) {: lua-abs :source lua-source}
-                      (false err) {: fnl-abs :error err})))
-        ;; TODO: check atomic?
-        ;; TODO: build each on idle timer
-        ;; TODO: notification to lsp server
-        all-ok? (icollect [_ result (ipairs results)]
-                  (case result
-                    {: fnl-abs : error &as bad} bad))]
-    _ (vim.print results)
-    (case (length all-ok?)
-      0 (do
-          (each [_ {: lua-abs : source} (ipairs results)]
-            (vim.fn.mkdir (vim.fs.dirname lua-abs) "p")
-            (write-file! lua-abs source))
-          (let [orphans (m.find-orphaned-files ctx source-files)]
-            ;; TODO: if #orphans > n, warn+ confirm
-            (each [_ orphan (ipairs orphans)]
-              (vim.uv.fs_unlink orphan))))
-      n (vim.notify "Errors"))
-    nil
-  ))
+        stale-files (m.sync-plan-compile ctx source-files options.force?)
+        clean-files (m.sync-plan-clean ctx source-files)
+        {:ok output-files :errors failed-compiles} (m.sync-compile ctx stale-files)
+        atomic-ok? (or (and (= true ctx.atomic?) (= 0 (length failed-compiles)))
+                       (= false ctx.atomic?))]
+
+    ;; On any compilation error, we want to say we hit trouble.
+    ;; If we're atomic with errors, we should say we wont output anything.
+    ;; If we're atomic with erors, we do not clean.
+    ;; If we're verbose and writing, we need to show lua -> fnl pathing.
+    ;; We always show orphan removal messages.
+
+    ;; Include all successful fnl -> lua messages, put these first as they're less interesting.
+    (each [_ {: fnl-abs : lua-abs} (ipairs output-files)]
+      (table.insert report.success [(string.format "☑  %s\n-> %s\n" fnl-abs lua-abs)
+                                    :DiagnosticOk]))
+
+    ;; Always show what files failed to compile
+    (each [_ {: fnl-abs : lua-abs : error} (ipairs failed-compiles)]
+      (table.insert report.errors [(string.format "☒  %s\n-> %s\n%s\n" fnl-abs lua-abs error)
+                                   :DiagnosticWarn]))
+
+    ;; Insert error message at the bottom as I think its more natrual in neovim?
+    (when (< 0 (length failed-compiles))
+      (table.insert report.summary ["\nSome files had compilation errors! " :DiagnosticWarn])
+      (when ctx.atomic?
+        (table.insert report.summary ["`atomic? = true`, no changes were written to disk!\n"
+                                      :DiagnosticWarn])))
+
+    (each [_ lua-abs (ipairs clean-files)]
+      (table.insert report.clean [(string.format "rm %s\n" lua-abs)
+                                  :DiagnosticInfo]))
+
+    (if atomic-ok?
+      ;; We actually have one last check before proceeding, when we have
+      ;; some larger number of orphans, we confirm the user is OK with this.
+      (let [{: compile? : clean?} (m.sync-plan-confirm ctx stale-files clean-files)]
+        (when compile?
+          (m.sync-write ctx output-files)
+          (when ctx.verbose?
+            (table.insert report.format :success))
+          (table.insert report.format :errors))
+        (when clean?
+          (m.sync-clean ctx clean-files)
+          (table.insert report.format :clean))
+        (when compile?
+          (table.insert report.format :summary)))
+      ;; We still want to report compilation errors
+      (do
+        (set report.format [:errors :summary])))
+
+  (when (< 0 (length report.format))
+    (let [output []]
+      (each [_ k (ipairs report.format)]
+        (icollect [_ m (ipairs (. report k)) &into output]
+          m))
+    (vim.api.nvim_echo output true {})))))
 
 M
