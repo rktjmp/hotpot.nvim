@@ -1,4 +1,4 @@
-(local {: HOTPOT_CACHE_ROOT : NVIM_CONFIG_ROOT} (require :hotpot.const))
+(local {: HOTPOT_CONFIG_CACHE_ROOT : NVIM_CONFIG_ROOT} (require :hotpot.const))
 
 (local (M m) (values {} {}))
 
@@ -67,7 +67,7 @@
                ;; Config kind supports cache OR colocate
                {:kind :config :root root}
                (case spec
-                 {:target :cache} {:source root :dest HOTPOT_CACHE_ROOT}
+                 {:target :cache} {:source root :dest HOTPOT_CONFIG_CACHE_ROOT}
                  {:target :colocate} {:source root :dest root})
                {:kind :plugin : root}
                (case spec

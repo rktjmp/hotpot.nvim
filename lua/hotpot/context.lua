@@ -1,5 +1,5 @@
 local _local_1_ = require("hotpot.const")
-local HOTPOT_CACHE_ROOT = _local_1_.HOTPOT_CACHE_ROOT
+local HOTPOT_CONFIG_CACHE_ROOT = _local_1_.HOTPOT_CONFIG_CACHE_ROOT
 local NVIM_CONFIG_ROOT = _local_1_.NVIM_CONFIG_ROOT
 local M, m = {}, {}
 local function mtime(path)
@@ -159,7 +159,7 @@ local function spec__3econtext(spec, meta)
   elseif ((_G.type(meta) == "table") and (meta.kind == "config") and (nil ~= meta.root)) then
     local root = meta.root
     if ((_G.type(spec) == "table") and (spec.target == "cache")) then
-      path = {source = root, dest = HOTPOT_CACHE_ROOT}
+      path = {source = root, dest = HOTPOT_CONFIG_CACHE_ROOT}
     elseif ((_G.type(spec) == "table") and (spec.target == "colocate")) then
       path = {source = root, dest = root}
     else

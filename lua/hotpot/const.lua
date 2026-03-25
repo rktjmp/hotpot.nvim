@@ -1,1 +1,1 @@
-return {HOTPOT_CACHE_ROOT = vim.fs.normalize(vim.fs.joinpath(vim.fn.stdpath("data"), "site", "pack", "hotpot", "opt", "config")), NVIM_CONFIG_ROOT = vim.fs.normalize(vim.fn.stdpath("config"))}
+return {HOTPOT_CONFIG_CACHE_ROOT = vim.fs.normalize(vim.fs.joinpath(vim.fn.stdpath("data"), "site", "pack", "hotpot", "opt", "hotpot-config-cache")), NVIM_CONFIG_ROOT = vim.fs.normalize(vim.fn.stdpath("config"))}
