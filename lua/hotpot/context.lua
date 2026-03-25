@@ -134,7 +134,7 @@ local function load_spec_file(path)
   else
   end
   assert(vim.uv.fs_stat(path), err_msg_unable_to_load(path, "does not exist"))
-  local fennel = require("hotpot.aot.fennel")()
+  local fennel = require("hotpot.fennel")
   local content
   do
     local case_28_ = vim.secure.read(path)
@@ -609,7 +609,7 @@ M["compile-string"] = function(ctx, fnl_source, meta)
     _G.error("Missing argument ctx on fnl/hotpot/context.fnl:277", 2)
   else
   end
-  local fennel = require("hotpot.aot.fennel")()
+  local fennel = require("hotpot.fennel")
   local compiler_options = vim.tbl_extend("force", ctx.compiler, {filename = meta.filename, ["error-pinpoint"] = false})
   local fnl_source0 = m["apply-transform"](ctx, fnl_source, meta.filename)
   local old_paths = {path = fennel.path, ["macro-path"] = fennel["macro-path"]}

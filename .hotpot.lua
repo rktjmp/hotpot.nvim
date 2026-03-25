@@ -18,7 +18,7 @@ return {
     {"test/**/*.fnl", true}
   },
   clean = {
-    {"lua/hotpot/fennel.lua", false},
+    {"lua/hotpot/vendor/fennel.lua", false},
     {"lua/**/*.lua", true}
   }
 }

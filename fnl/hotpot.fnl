@@ -26,7 +26,7 @@
   (autocmd.enable))
 
 ;; Setup `require("fennel")` to work.
-(tset package.preload :fennel #((require :hotpot.aot.fennel)))
+(tset package.preload :fennel #(require :hotpot.fennel))
 
 ;; Provide setup function for UX even though it does nothing.
 (λ setup [?options]

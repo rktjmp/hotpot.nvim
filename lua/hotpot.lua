@@ -22,7 +22,7 @@ do
   autocmd.enable()
 end
 local function _4_()
-  return require("hotpot.aot.fennel")()
+  return require("hotpot.fennel")
 end
 package.preload["fennel"] = _4_
 local function setup(_3foptions)

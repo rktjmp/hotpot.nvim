@@ -44,7 +44,7 @@
 (λ load-spec-file [path]
   "load .hotpot.fnl file and validate"
   (assert (vim.uv.fs_stat path) (err-msg-unable-to-load path "does not exist"))
-  (let [fennel ((require :hotpot.aot.fennel))
+  (let [fennel (require :hotpot.fennel)
         content (case (vim.secure.read path)
                   content content
                   nil (error (string.format "Unable to continue with untrusted file: %s"
@@ -278,7 +278,7 @@
   "Compile the given string with the given context compilation configuration.
 
   Returns lua-source or raises error."
-  (let [fennel ((require :hotpot.aot.fennel))
+  (let [fennel (require :hotpot.fennel)
         compiler-options (vim.tbl_extend :force ctx.compiler {:filename meta.filename
                                                               :error-pinpoint false})
         fnl-source (m.apply-transform ctx fnl-source meta.filename)
