@@ -38,6 +38,71 @@ Hotpot is a [Fennel](https://fennel-lang.org/) compiler plugin for Neovim. Just
 as needed.
 
 ```fennel
+
+{
+ ;; Required, string, valid: hotpot/2
+ ;; Describes expected schema for table.
+ :schema :hotpot/2
+
+ ;; Required, string, valid: cache|colocate
+ ;; Describes target location of lua files. `cache` places lua files "out of
+ ;; tree" in a directory loadable by neovim, `colocate` places lua files "in
+ ;; tree", next to their fennel counterparts.
+ ;;
+ ;; The default for the `config` directory is `cache` but may be set to
+ ;; `colocate`. Be aware that its the users responsibility to remove previously
+ ;; generated lua files when swapping targets.
+ ;;
+ ;; For plugins, the only valid value is `colocate`.
+ :target :cache
+
+ ;; All other keys are optional.
+
+ ;; Optional, boolean
+ ;; If true, any 1 compilation error will prevent all updated files from being
+ ;; written.
+ :atomic? true
+
+ :verbose? true
+
+ ;; Optional, function
+ ;; If provided, all compiled fennel source is passed to the function, along
+ ;; with its path, relative to `.hotpot.fnl`. The function must return the
+ ;; modified source.
+ ;; When using `api.context(my-context).compile(my-source)`, the filename will
+ ;; begin with `--hotpot`.
+ :transform (fn [src path] src)
+
+ ;; Optional, list of strings
+ ;; Glob patterns to ignore when performaing compile and clean operations.
+ ;;
+ ;; Files matching `.lua` patterns are never considered orphans and never removed.
+ ;; Files matching `.fnl` patterns are never compiled.
+ ;; Files matching `.fnlm` patterns are never considered when performaing stale checks.
+ :ignore [:some/lib/**/*.lua :junk/*.fnl]
+
+ ;; Optional, table
+ ;; Fennel compiler options, passed directly to `fennel.compile-string`.
+ ;;
+ ;; Hotpot enables strict global checking by default to prevent referencing
+ ;; unknown or misspelled variables. To restore Fennels default
+ ;; behaviour, you can set `allowedGlobals` to `false`.
+ ;;
+ ;; If you wish to reference `vim` in your macros, you should set the
+ ;; `extra-compiler-env` option to `:extra-compiler-env {: vim}`.
+ ;;
+ ;; Note that `error-pinpoint` is always forced to false and `filename` is
+ ;; always set to the correct value.
+ ;;
+ ;; See Fennels own API documentation and --help for further details.
+ :compiler {:allowedGlobals (icollect [k _ (pairs _G)] k)
+            :extra-compiler-env {: vim}
+            :error-pinpoint false}
+}
+```
+
+
+```fennel
 ;; ~/.config/nvim/fnl/is_neat.fnl
 ;; put your fennel code in fnl/
 (fn [what] (print what "is neat!"))
