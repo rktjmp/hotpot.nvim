@@ -11,7 +11,7 @@ do
   elseif ((_G.type(case_2_) == "table") and (case_2_.type == "directory")) then
   elseif ((_G.type(case_2_) == "table") and (nil ~= case_2_.type)) then
     local t = case_2_.type
-    local msg = "Hotpot: %s exists but is not directory, is %s, consider removing it?"
+    local msg = "Hotpot: %s exists but is not directory, is %s, consider removing it? Hotpot probably wont function correctly."
     vim.notify(string.format(msg, HOTPOT_CACHE_ROOT, t), vim.log.levels.ERROR, {})
   else
   end
@@ -26,13 +26,6 @@ local function _4_()
 end
 package.preload["fennel"] = _4_
 local function setup(_3foptions)
-  local default = {fennel = {byo = false}}
-  local options = vim.tbl_extend("force", default, (_3foptions or {}))
-  if (true == options.fennel.byo) then
-    package.preload["fennel"] = nil
-    return nil
-  else
-    return nil
-  end
+  return true
 end
 return {setup = setup}

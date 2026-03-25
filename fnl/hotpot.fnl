@@ -11,7 +11,7 @@
   ;; exists, do nothing
   {:type :directory} nil
   ;; wrong type
-  {:type t} (let [msg  "Hotpot: %s exists but is not directory, is %s, consider removing it?"]
+  {:type t} (let [msg  "Hotpot: %s exists but is not directory, is %s, consider removing it? Hotpot probably wont function correctly."]
               (vim.notify (string.format msg HOTPOT_CACHE_ROOT t) vim.log.levels.ERROR {})))
 
 (vim.cmd.packadd :config)
@@ -25,9 +25,6 @@
 (tset package.preload :fennel #((require :hotpot.aot.fennel)))
 
 (λ setup [?options]
-  (let [default {:fennel {:byo false}}
-        options (vim.tbl_extend :force default (or ?options {}))]
-    (when (= true options.fennel.byo)
-      (tset package.preload :fennel nil))))
+  true)
 
 {: setup}
