@@ -321,18 +321,31 @@
     nil (vim.fs.root starting-path :.hotpot.fnl)))
 
 (λ m.make-fennel-path-modifiers [fennel directory-prefix]
+  ;; Insert the context source root into the search path, so our working
+  ;; directory can be different to the context `.hotpot.fnl` file and still
+  ;; have the correct macros be found. We can just insert the paths in front
+  ;; which will cause those to be searched first.
+  ;;
+  ;; Note we preference `<source>/fnl/?.fnl` over `<source>/?.fnl` as primarily
+  ;; that should match most use cases. We do add both paths however, as eg: we
+  ;; use `hotpot/test/macros.fnlm`, so test files must be able to do `import test.macros`.
   (let [old-paths {:path fennel.path :macro-path fennel.macro-path}
         new-paths {:path (table.concat [(.. directory-prefix :/fnl/?.fnl)
                                         (.. directory-prefix :/fnl/?/init.fnl)
-                                        old-paths.path]
-                                       ";")
+                                        (.. directory-prefix :/?.fnl)
+                                        (.. directory-prefix :/?/init.fnl)
+                                        old-paths.path] ";")
                    :macro-path (table.concat [(.. directory-prefix :/fnl/?.fnlm)
                                               (.. directory-prefix :/fnl/?/init.fnlm)
                                               (.. directory-prefix :/fnl/?.fnl)
                                               (.. directory-prefix :/fnl/?/init-macros.fnl)
                                               (.. directory-prefix :/fnl/?/init.fnl)
-                                              old-paths.macro-path]
-                                             ";")}]
+                                              (.. directory-prefix :/?.fnlm)
+                                              (.. directory-prefix :/?/init.fnlm)
+                                              (.. directory-prefix :/?.fnl)
+                                              (.. directory-prefix :/?/init-macros.fnl)
+                                              (.. directory-prefix :/?/init.fnl)
+                                              old-paths.macro-path] ";")}]
     {:update-fennel-path (fn []
                            (set fennel.path new-paths.path)
                            (set fennel.macro-path new-paths.macro-path))
@@ -348,16 +361,6 @@
         compiler-options (vim.tbl_extend :force ctx.compiler {:filename meta.filename
                                                               :error-pinpoint false})
         fnl-source (m.apply-transform ctx fnl-source meta.filename)
-        ;; Insert the context source root into the search path, so our working
-        ;; directory can be different to the context `.hotpot.fnl` file and
-        ;; still have the correct macros be found.
-        ;; We can just insert the paths in front which will cause those to be
-        ;; searched first.
-        ;;
-        ;; Note we only insert <source>/fnl/?.fnl paths, not <source>/?.fnl,
-        ;; for the most part this should be fine? Users should be putting code
-        ;; in `fnl/` and if they are doing something odd, the other patterns
-        ;; should cover it as long as they set their cwd.
         {: update-fennel-path : restore-fennel-path} (m.make-fennel-path-modifiers fennel ctx.path.source)
         _ (update-fennel-path)
         (ok? val) (pcall fennel.compile-string fnl-source compiler-options)
