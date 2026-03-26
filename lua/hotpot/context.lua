@@ -723,9 +723,9 @@ M.nearest = function(starting_path)
     return nil
   end
 end
-M["compile-string"] = function(ctx, fnl_source, meta)
-  if (nil == meta) then
-    _G.error("Missing argument meta on fnl/hotpot/context.fnl:407", 2)
+M["compile-string"] = function(ctx, fnl_source, options)
+  if (nil == options) then
+    _G.error("Missing argument options on fnl/hotpot/context.fnl:407", 2)
   else
   end
   if (nil == fnl_source) then
@@ -737,7 +737,7 @@ M["compile-string"] = function(ctx, fnl_source, meta)
   else
   end
   local fennel = require("hotpot.fennel")
-  local compiler_options = vim.tbl_extend("force", ctx.compiler, {filename = meta.filename, ["error-pinpoint"] = false})
+  local compiler_options = vim.tbl_extend("force", ctx.compiler, options, {filename = options.filename, ["error-pinpoint"] = false})
   local _let_131_ = m["make-fennel-path-modifiers"](ctx, fennel)
   local update_fennel_path = _let_131_["update-fennel-path"]
   local restore_fennel_path = _let_131_["restore-fennel-path"]
@@ -755,23 +755,23 @@ M["compile-string"] = function(ctx, fnl_source, meta)
     return nil
   end
 end
-M["eval-string"] = function(ctx, fnl_source, meta)
-  if (nil == meta) then
-    _G.error("Missing argument meta on fnl/hotpot/context.fnl:422", 2)
+M["eval-string"] = function(ctx, fnl_source, options)
+  if (nil == options) then
+    _G.error("Missing argument options on fnl/hotpot/context.fnl:425", 2)
   else
   end
   if (nil == fnl_source) then
-    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:422", 2)
+    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:425", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:422", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:425", 2)
   else
   end
   local fennel = require("hotpot.fennel")
   local _let_138_ = require("hotpot.util")
   local pack = _let_138_.pack
-  local compiler_options = vim.tbl_extend("force", ctx.compiler, {filename = meta.filename, ["error-pinpoint"] = false})
+  local compiler_options = vim.tbl_extend("force", ctx.compiler, options, {filename = options.filename, ["error-pinpoint"] = false})
   local _let_139_ = m["make-fennel-path-modifiers"](ctx, fennel)
   local update_fennel_path = _let_139_["update-fennel-path"]
   local restore_fennel_path = _let_139_["restore-fennel-path"]
@@ -789,7 +789,7 @@ M["eval-string"] = function(ctx, fnl_source, meta)
 end
 M.sync = function(ctx, _3foptions)
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:438", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:444", 2)
   else
   end
   local options = (_3foptions or {["force?"] = false})
@@ -800,64 +800,95 @@ M.sync = function(ctx, _3foptions)
   local _let_143_ = m["sync-compile"](ctx, stale_files)
   local output_files = _let_143_.ok
   local failed_compiles = _let_143_.errors
-  local atomic_ok_3f = (((true == ctx["atomic?"]) and (0 == #failed_compiles)) or (false == ctx["atomic?"]))
-  for _, _144_ in ipairs(output_files) do
-    local fnl_abs = _144_["fnl-abs"]
-    local lua_abs = _144_["lua-abs"]
-    table.insert(report.success, {string.format("\226\152\145  %s\n-> %s\n", fnl_abs, lua_abs), "DiagnosticOk"})
+  local has_errors_3f = (0 < #failed_compiles)
+  local atomic_ok_3f = (not has_errors_3f or not ctx["atomic?"])
+  local success_messages
+  do
+    local tbl_26_ = {}
+    local i_27_ = 0
+    for _, _144_ in ipairs(output_files) do
+      local fnl_abs = _144_["fnl-abs"]
+      local lua_abs = _144_["lua-abs"]
+      local val_28_ = {string.format("\226\152\145  %s\n-> %s\n", fnl_abs, lua_abs), "DiagnosticOk"}
+      if (nil ~= val_28_) then
+        i_27_ = (i_27_ + 1)
+        tbl_26_[i_27_] = val_28_
+      else
+      end
+    end
+    success_messages = tbl_26_
   end
-  for _, _145_ in ipairs(failed_compiles) do
-    local fnl_abs = _145_["fnl-abs"]
-    local lua_abs = _145_["lua-abs"]
-    local error = _145_.error
-    table.insert(report.errors, {string.format("\226\152\146  %s\n-> %s\n%s\n", fnl_abs, lua_abs, error), "DiagnosticWarn"})
+  local error_messages
+  do
+    local tbl_26_ = {}
+    local i_27_ = 0
+    for _, _146_ in ipairs(failed_compiles) do
+      local fnl_abs = _146_["fnl-abs"]
+      local lua_abs = _146_["lua-abs"]
+      local error = _146_.error
+      local val_28_ = {string.format("\226\152\146  %s\n-> %s\n%s\n", fnl_abs, lua_abs, error), "DiagnosticWarn"}
+      if (nil ~= val_28_) then
+        i_27_ = (i_27_ + 1)
+        tbl_26_[i_27_] = val_28_
+      else
+      end
+    end
+    error_messages = tbl_26_
   end
-  if (0 < #failed_compiles) then
-    table.insert(report.summary, {"\nSome files had compilation errors! ", "DiagnosticWarn"})
-    if ctx["atomic?"] then
-      table.insert(report.summary, {"`atomic? = true`, no changes were written to disk!\n", "DiagnosticWarn"})
+  local clean_messages
+  do
+    local tbl_26_ = {}
+    local i_27_ = 0
+    for _, lua_abs in ipairs(clean_files) do
+      local val_28_ = {string.format("rm %s\n", lua_abs), "DiagnosticInfo"}
+      if (nil ~= val_28_) then
+        i_27_ = (i_27_ + 1)
+        tbl_26_[i_27_] = val_28_
+      else
+      end
+    end
+    clean_messages = tbl_26_
+  end
+  local summary_messages
+  if has_errors_3f then
+    local summary = {{"\nSome files had compilation errors! ", "DiagnosticWarn"}, {"`atomic? = true`, no changes were written to disk!\n", "DiagnosticWarn"}}
+    if not ctx["atomic?"] then
+      table.remove(summary)
     else
     end
+    summary_messages = summary
   else
+    summary_messages = {}
   end
-  for _, lua_abs in ipairs(clean_files) do
-    table.insert(report.clean, {string.format("rm %s\n", lua_abs), "DiagnosticInfo"})
-  end
+  local report0 = {}
   if atomic_ok_3f then
-    local _let_148_ = m["sync-plan-confirm"](ctx, stale_files, clean_files)
-    local compile_3f = _let_148_["compile?"]
-    local clean_3f = _let_148_["clean?"]
+    local _let_151_ = m["sync-plan-confirm"](ctx, stale_files, clean_files)
+    local compile_3f = _let_151_["compile?"]
+    local clean_3f = _let_151_["clean?"]
     if compile_3f then
       m["sync-write"](ctx, output_files)
       if ctx["verbose?"] then
-        table.insert(report.format, "success")
+        vim.list_extend(report0, success_messages)
       else
       end
-      table.insert(report.format, "errors")
+      vim.list_extend(report0, error_messages)
     else
     end
     if clean_3f then
       m["sync-clean"](ctx, clean_files)
-      table.insert(report.format, "clean")
+      vim.list_extend(report0, clean_messages)
     else
     end
     if compile_3f then
-      table.insert(report.format, "summary")
+      vim.list_extend(report0, summary_messages)
     else
     end
   else
-    report.format = {"errors", "summary"}
+    vim.list_extend(report0, error_messages)
+    vim.list_extend(report0, summary_messages)
   end
-  if (0 < #report.format) then
-    local output = {}
-    for _, k in ipairs(report.format) do
-      local tbl_24_ = output
-      for _0, m0 in ipairs(report[k]) do
-        local val_25_ = m0
-        table.insert(tbl_24_, val_25_)
-      end
-    end
-    vim.api.nvim_echo(output, true, {})
+  if (0 < #report0) then
+    vim.api.nvim_echo(report0, true, {})
   else
   end
   return nil

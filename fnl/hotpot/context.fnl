@@ -404,13 +404,16 @@
 
 
 
-(λ M.compile-string [ctx fnl-source meta]
+(λ M.compile-string [ctx fnl-source options]
   "Compile the given string with the given context configuration.
 
   Returns lua-source or raises error."
   (let [fennel (require :hotpot.fennel)
-        compiler-options (vim.tbl_extend :force ctx.compiler {:filename meta.filename
-                                                              :error-pinpoint false})
+        compiler-options (vim.tbl_extend :force
+                                         ctx.compiler
+                                         options
+                                         {:filename options.filename
+                                          :error-pinpoint false})
         {: update-fennel-path : restore-fennel-path} (m.make-fennel-path-modifiers ctx fennel)
         _ (update-fennel-path)
         (ok? val) (pcall fennel.compile-string fnl-source compiler-options)
@@ -419,14 +422,17 @@
       (true src) (values src)
       (false err) (error err))))
 
-(λ M.eval-string [ctx fnl-source meta]
+(λ M.eval-string [ctx fnl-source options]
   "Eval the given string with the given context configuration.
 
   Returns result or raises error."
   (let [fennel (require :hotpot.fennel)
         {: pack} (require :hotpot.util)
-        compiler-options (vim.tbl_extend :force ctx.compiler {:filename meta.filename
-                                                              :error-pinpoint false})
+        compiler-options (vim.tbl_extend :force
+                                         ctx.compiler
+                                         options
+                                         {:filename options.filename
+                                          :error-pinpoint false})
         {: update-fennel-path : restore-fennel-path} (m.make-fennel-path-modifiers ctx fennel)
         _ (update-fennel-path)
         returns (pack (pcall fennel.eval fnl-source compiler-options))
@@ -451,35 +457,23 @@
         stale-files (m.sync-plan-compile ctx source-files options.force?)
         clean-files (m.sync-plan-clean ctx source-files)
         {:ok output-files :errors failed-compiles} (m.sync-compile ctx stale-files)
-        atomic-ok? (or (and (= true ctx.atomic?) (= 0 (length failed-compiles)))
-                       (= false ctx.atomic?))]
-
-    ;; On any compilation error, we want to say we hit trouble.
-    ;; If we're atomic with errors, we should say we wont output anything.
-    ;; If we're atomic with erors, we do not clean.
-    ;; If we're verbose and writing, we need to show lua -> fnl pathing.
-    ;; We always show orphan removal messages.
-
-    ;; Include all successful fnl -> lua messages, put these first as they're less interesting.
-    (each [_ {: fnl-abs : lua-abs} (ipairs output-files)]
-      (table.insert report.success [(string.format "☑  %s\n-> %s\n" fnl-abs lua-abs)
-                                    :DiagnosticOk]))
-
-    ;; Always show what files failed to compile
-    (each [_ {: fnl-abs : lua-abs : error} (ipairs failed-compiles)]
-      (table.insert report.errors [(string.format "☒  %s\n-> %s\n%s\n" fnl-abs lua-abs error)
-                                   :DiagnosticWarn]))
-
-    ;; Insert error message at the bottom as I think its more natrual in neovim?
-    (when (< 0 (length failed-compiles))
-      (table.insert report.summary ["\nSome files had compilation errors! " :DiagnosticWarn])
-      (when ctx.atomic?
-        (table.insert report.summary ["`atomic? = true`, no changes were written to disk!\n"
-                                      :DiagnosticWarn])))
-
-    (each [_ lua-abs (ipairs clean-files)]
-      (table.insert report.clean [(string.format "rm %s\n" lua-abs)
-                                  :DiagnosticInfo]))
+        has-errors? (< 0 (length failed-compiles))
+        atomic-ok? (or (not has-errors?) (not ctx.atomic?))
+        success-messages (icollect [_ {: fnl-abs : lua-abs} (ipairs output-files)]
+                           [(string.format "☑  %s\n-> %s\n" fnl-abs lua-abs) :DiagnosticOk])
+        error-messages (icollect [_ {: fnl-abs : lua-abs : error} (ipairs failed-compiles)]
+                         [(string.format "☒  %s\n-> %s\n%s\n" fnl-abs lua-abs error) :DiagnosticWarn])
+        clean-messages (icollect [_ lua-abs (ipairs clean-files)]
+                         [(string.format "rm %s\n" lua-abs) :DiagnosticInfo])
+        summary-messages (if has-errors?
+                           (let [summary [["\nSome files had compilation errors! "
+                                           :DiagnosticWarn]
+                                          ["`atomic? = true`, no changes were written to disk!\n"
+                                           :DiagnosticWarn]]]
+                               (when (not ctx.atomic?) (table.remove summary))
+                               summary)
+                           [])
+        report []]
 
     (if atomic-ok?
       ;; We actually have one last check before proceeding, when we have
@@ -488,24 +482,21 @@
         (when compile?
           (m.sync-write ctx output-files)
           (when ctx.verbose?
-            (table.insert report.format :success))
-          (table.insert report.format :errors))
+            (vim.list_extend report success-messages))
+          (vim.list_extend report error-messages))
         (when clean?
           (m.sync-clean ctx clean-files)
-          (table.insert report.format :clean))
+          (vim.list_extend report clean-messages))
         (when compile?
-          (table.insert report.format :summary)))
+          (vim.list_extend report summary-messages)))
       ;; We still want to report compilation errors
       (do
-        (set report.format [:errors :summary])))
+        (vim.list_extend report error-messages)
+        (vim.list_extend report summary-messages)))
 
-  (when (< 0 (length report.format))
-    (let [output []]
-      (each [_ k (ipairs report.format)]
-        (icollect [_ m (ipairs (. report k)) &into output]
-          m))
-    (vim.api.nvim_echo output true {})))
+    (when (< 0 (length report))
+      (vim.api.nvim_echo report true {}))
 
-  nil))
+    nil))
 
 M
