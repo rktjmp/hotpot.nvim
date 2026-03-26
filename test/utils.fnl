@@ -26,15 +26,19 @@
         nvim {: channel
               :close (fn [this] (vim.fn.jobstop channel))
               :cmd (fn [this cmd ...]
-                     (vim.rpcrequest channel
-                                     :nvim_exec2
-                                     (string.format cmd ...)
-                                     {:output true}))
+                     (case (vim.rpcrequest channel
+                                           :nvim_exec2
+                                           (string.format cmd ...)
+                                           {:output true})
+                       {: output} output
+                       _ nil))
               :lua (fn [this src]
-                     (vim.rpcrequest channel
-                                     :nvim_exec2
-                                     (table.concat ["lua << EOF" src "EOF"] "\n")
-                                     {:output true}))}]
+                     (case (vim.rpcrequest channel
+                                           :nvim_exec2
+                                           (table.concat ["lua << EOF" src "EOF"] "\n")
+                                           {:output true})
+                       {: output} output
+                       _ nil))}]
     (nvim:lua "vim.opt.runtimepath:prepend('/home/user/hotpot')")
     (nvim:lua "vim.secure.read = function(path) return table.concat(vim.fn.readfile(path), '\\n') end")
     nvim))

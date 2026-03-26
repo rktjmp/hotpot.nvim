@@ -222,8 +222,7 @@ create a `.hotpot.fnl` file.
  ;; If provided, all compiled fennel source is passed to the function, along
  ;; with its path, relative to `.hotpot.fnl`. The function must return the
  ;; modified source.
- ;; When using `api.context(my-context).compile(my-source)`, the filename will
- ;; begin with `--hotpot`.
+ ;; Transform is not called automatically when using the compile and eval API.
  :transform (fn [src path] src)
 
  ;; Optional, list of strings

@@ -62,12 +62,26 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
       return vim.fn.jobstop(channel)
     end
     local function _11_(this, cmd, ...)
-      return vim.rpcrequest(channel, "nvim_exec2", string.format(cmd, ...), {output = true})
+      local case_12_ = vim.rpcrequest(channel, "nvim_exec2", string.format(cmd, ...), {output = true})
+      if ((_G.type(case_12_) == "table") and (nil ~= case_12_.output)) then
+        local output = case_12_.output
+        return output
+      else
+        local _ = case_12_
+        return nil
+      end
     end
-    local function _12_(this, src)
-      return vim.rpcrequest(channel, "nvim_exec2", table.concat({"lua << EOF", src, "EOF"}, "\n"), {output = true})
+    local function _14_(this, src)
+      local case_15_ = vim.rpcrequest(channel, "nvim_exec2", table.concat({"lua << EOF", src, "EOF"}, "\n"), {output = true})
+      if ((_G.type(case_15_) == "table") and (nil ~= case_15_.output)) then
+        local output = case_15_.output
+        return output
+      else
+        local _ = case_15_
+        return nil
+      end
     end
-    nvim = {channel = channel, close = _10_, cmd = _11_, lua = _12_}
+    nvim = {channel = channel, close = _10_, cmd = _11_, lua = _14_}
     nvim:lua("vim.opt.runtimepath:prepend('/home/user/hotpot')")
     nvim:lua("vim.secure.read = function(path) return table.concat(vim.fn.readfile(path), '\\n') end")
     return nvim
@@ -86,15 +100,87 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
   end
   return {["write-file"] = write_file, ["read-file"] = read_file, ["create-file"] = create_file, path = path, OK = OK, FAIL = FAIL, exit = exit, ["start-nvim"] = start_nvim, NVIM_APPNAME = vim.env.NVIM_APPNAME}
 end
-local _local_14_ = require("test.utils")
-local FAIL = _local_14_.FAIL
-local NVIM_APPNAME = _local_14_.NVIM_APPNAME
-local OK = _local_14_.OK
-local create_file = _local_14_["create-file"]
-local exit = _local_14_.exit
-local path = _local_14_.path
-local read_file = _local_14_["read-file"]
-local start_nvim = _local_14_["start-nvim"]
-local write_file = _local_14_["write-file"]
+local _local_18_ = require("test.utils")
+local FAIL = _local_18_.FAIL
+local NVIM_APPNAME = _local_18_.NVIM_APPNAME
+local OK = _local_18_.OK
+local create_file = _local_18_["create-file"]
+local exit = _local_18_.exit
+local path = _local_18_.path
+local read_file = _local_18_["read-file"]
+local start_nvim = _local_18_["start-nvim"]
+local write_file = _local_18_["write-file"]
 local nvim = start_nvim()
-return vim.print(nvim:lua("require'hotpot'"))
+nvim:lua("require'hotpot'")
+nvim:lua("api = require'hotpot.api'")
+local output = nvim:lua("local ctx, err = api.context('doesnt-exist')\n                        vim.print(ctx,err)")
+if (output == "nil\nUnable to load doesnt-exist/.hotpot.fnl: does not exist") then
+  OK(string.format(("loading fake path returns nil, err" or "")))
+else
+  local __1_auto = output
+  FAIL(string.format(("loading fake path returns nil, err" or "")))
+end
+nvim:lua("ctx = api.context(vim.fn.stdpath('config'))")
+local output0 = nvim:lua("vim.print(ctx.path.source)")
+local config_dir = vim.fn.stdpath("config")
+do
+  local case_20_, case_21_ = output0
+  if (case_20_ == config_dir) then
+    OK(string.format(("source is config dir" or "")))
+  else
+    local __1_auto = case_20_
+    FAIL(string.format(("source is config dir" or "")))
+  end
+end
+local output1 = nvim:lua("vim.print(ctx.path.destination)")
+local data_dir = vim.fs.joinpath(vim.fn.stdpath("data"), "site", "pack", "hotpot", "opt", "hotpot-config-cache")
+do
+  local case_23_, case_24_ = output1
+  if (case_23_ == data_dir) then
+    OK(string.format(("destination is cache dir" or "")))
+  else
+    local __1_auto = case_23_
+    FAIL(string.format(("destination is cache dir" or "")))
+  end
+end
+local output2 = nvim:lua("local ok, val = ctx.compile('(.. :he :llo)')\n                        print(val)")
+if (output2 == "return (\"he\" .. \"llo\")") then
+  OK(string.format(("compiles code" or "")))
+else
+  local __1_auto = output2
+  FAIL(string.format(("compiles code" or "")))
+end
+local output3 = nvim:lua("local ok, val = ctx.compile('.. :he :llo)')\n                        print(ok)")
+if (output3 == "false") then
+  OK(string.format(("handles compiling bad code" or "")))
+else
+  local __1_auto = output3
+  FAIL(string.format(("handles compiling bad code" or "")))
+end
+local output4 = nvim:lua("local ok, val = ctx.eval('(.. :he :llo)')\n                        print(val)")
+if (output4 == "hello") then
+  OK(string.format(("evals code" or "")))
+else
+  local __1_auto = output4
+  FAIL(string.format(("evals code" or "")))
+end
+local output5 = nvim:lua("local ok, val = ctx.eval('.. :he :llo)')\n                        print(ok)")
+if (output5 == "false") then
+  OK(string.format(("handles evaling bad code" or "")))
+else
+  local __1_auto = output5
+  FAIL(string.format(("handles evaling bad code" or "")))
+end
+local fnl_path = create_file(path("config", "fnl/abc.fnl"), "{:works true}")
+local lua_path = path("cache", "/lua/abc.lua")
+local output6 = nvim:lua("local ok, val = ctx.sync()\n                        print(ok)")
+do
+  local case_30_ = read_file(lua_path)
+  if (case_30_ == "return {works = true}") then
+    OK(string.format(("can sync" or "")))
+  else
+    local __1_auto = case_30_
+    FAIL(string.format(("can sync" or "")))
+  end
+end
+return nvim:close()

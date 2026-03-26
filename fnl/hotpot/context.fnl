@@ -90,12 +90,17 @@
                  {:target :colocate} {:source root :dest root}
                  {:target :cache} (error (err-msg-unable-to-load root "non-config directories may only use target: :colocate")))
                _ (error (err-msg-unable-to-load "unknown" "internal error: spec meta missing kind")))
-        ctx (vim.tbl_extend :force (base-spec) spec {: kind : path :source (or source :in-memory)})]
-    (set ctx.transform (or ctx.transform #$1))
+        ctx (vim.tbl_extend :force
+                            (base-spec)
+                            spec
+                            {: kind : path :source (or source :in-memory)})]
     (set ctx.ignore (icollect [_ glob (ipairs ctx.ignore)]
                       (vim.glob.to_lpeg glob)))
-    (assert (= :function (type ctx.transform))
-            (string.format "%s `transform` not a function" ctx._source))
+    ;; check transform but dont set a default transform as we will export it to
+    ;; api.context() and dont want to include a dummy impl if not needed.
+    (when ctx.transform
+      (assert (= :function (type ctx.transform))
+              (string.format "%s `transform` not a function" ctx.source)))
     ctx))
 
 (λ m.find-files [root extension-pattern ignore]
@@ -171,11 +176,12 @@
     needs-compiling))
 
 (λ m.apply-transform [ctx source path]
-  (let [{: transform} ctx
-        new-src (transform source path)]
-    (assert (= :string (type new-src))
-            (string.format "%s `transform` did not return string" ctx._source))
-    new-src))
+  (case ctx.transform
+    transform (let [new-src (transform source path)]
+                (assert (= :string (type new-src))
+                        (string.format "%s `transform` did not return string" ctx.source))
+                new-src)
+    _ source))
 
 (var init-lua-choice nil)
 (λ m.sync-plan-compile [ctx source-files force?]
@@ -270,6 +276,39 @@
       (values confirmations))
     (values {:compile? true :clean? true})))
 
+(λ m.make-fennel-path-modifiers [fennel directory-prefix]
+  ;; Insert the context source root into the search path, so our working
+  ;; directory can be different to the context `.hotpot.fnl` file and still
+  ;; have the correct macros be found. We can just insert the paths in front
+  ;; which will cause those to be searched first.
+  ;;
+  ;; Note we preference `<source>/fnl/?.fnl` over `<source>/?.fnl` as primarily
+  ;; that should match most use cases. We do add both paths however, as eg: we
+  ;; use `hotpot/test/macros.fnlm`, so test files must be able to do `import test.macros`.
+  (let [old-paths {:path fennel.path :macro-path fennel.macro-path}
+        new-paths {:path (table.concat [(.. directory-prefix :/fnl/?.fnl)
+                                        (.. directory-prefix :/fnl/?/init.fnl)
+                                        (.. directory-prefix :/?.fnl)
+                                        (.. directory-prefix :/?/init.fnl)
+                                        old-paths.path] ";")
+                   :macro-path (table.concat [(.. directory-prefix :/fnl/?.fnlm)
+                                              (.. directory-prefix :/fnl/?/init.fnlm)
+                                              (.. directory-prefix :/fnl/?.fnl)
+                                              (.. directory-prefix :/fnl/?/init-macros.fnl)
+                                              (.. directory-prefix :/fnl/?/init.fnl)
+                                              (.. directory-prefix :/?.fnlm)
+                                              (.. directory-prefix :/?/init.fnlm)
+                                              (.. directory-prefix :/?.fnl)
+                                              (.. directory-prefix :/?/init-macros.fnl)
+                                              (.. directory-prefix :/?/init.fnl)
+                                              old-paths.macro-path] ";")}]
+    {:update-fennel-path (fn []
+                           (set fennel.path new-paths.path)
+                           (set fennel.macro-path new-paths.macro-path))
+     :restore-fennel-path (fn []
+                            (set fennel.path old-paths.path)
+                            (set fennel.macro-path old-paths.macro-path))}))
+
 (λ M.new [?directory]
   "Create a new context object.
 
@@ -350,38 +389,7 @@
                  "Unable to find nearest context to %s, does not exist"
                  starting-path))))
 
-(λ m.make-fennel-path-modifiers [fennel directory-prefix]
-  ;; Insert the context source root into the search path, so our working
-  ;; directory can be different to the context `.hotpot.fnl` file and still
-  ;; have the correct macros be found. We can just insert the paths in front
-  ;; which will cause those to be searched first.
-  ;;
-  ;; Note we preference `<source>/fnl/?.fnl` over `<source>/?.fnl` as primarily
-  ;; that should match most use cases. We do add both paths however, as eg: we
-  ;; use `hotpot/test/macros.fnlm`, so test files must be able to do `import test.macros`.
-  (let [old-paths {:path fennel.path :macro-path fennel.macro-path}
-        new-paths {:path (table.concat [(.. directory-prefix :/fnl/?.fnl)
-                                        (.. directory-prefix :/fnl/?/init.fnl)
-                                        (.. directory-prefix :/?.fnl)
-                                        (.. directory-prefix :/?/init.fnl)
-                                        old-paths.path] ";")
-                   :macro-path (table.concat [(.. directory-prefix :/fnl/?.fnlm)
-                                              (.. directory-prefix :/fnl/?/init.fnlm)
-                                              (.. directory-prefix :/fnl/?.fnl)
-                                              (.. directory-prefix :/fnl/?/init-macros.fnl)
-                                              (.. directory-prefix :/fnl/?/init.fnl)
-                                              (.. directory-prefix :/?.fnlm)
-                                              (.. directory-prefix :/?/init.fnlm)
-                                              (.. directory-prefix :/?.fnl)
-                                              (.. directory-prefix :/?/init-macros.fnl)
-                                              (.. directory-prefix :/?/init.fnl)
-                                              old-paths.macro-path] ";")}]
-    {:update-fennel-path (fn []
-                           (set fennel.path new-paths.path)
-                           (set fennel.macro-path new-paths.macro-path))
-     :restore-fennel-path (fn []
-                            (set fennel.path old-paths.path)
-                            (set fennel.macro-path old-paths.macro-path))}))
+
 
 (λ M.compile-string [ctx fnl-source meta]
   "Compile the given string with the given context configuration.

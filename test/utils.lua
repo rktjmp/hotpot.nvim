@@ -61,12 +61,26 @@ local function start_nvim()
     return vim.fn.jobstop(channel)
   end
   local function _11_(this, cmd, ...)
-    return vim.rpcrequest(channel, "nvim_exec2", string.format(cmd, ...), {output = true})
+    local case_12_ = vim.rpcrequest(channel, "nvim_exec2", string.format(cmd, ...), {output = true})
+    if ((_G.type(case_12_) == "table") and (nil ~= case_12_.output)) then
+      local output = case_12_.output
+      return output
+    else
+      local _ = case_12_
+      return nil
+    end
   end
-  local function _12_(this, src)
-    return vim.rpcrequest(channel, "nvim_exec2", table.concat({"lua << EOF", src, "EOF"}, "\n"), {output = true})
+  local function _14_(this, src)
+    local case_15_ = vim.rpcrequest(channel, "nvim_exec2", table.concat({"lua << EOF", src, "EOF"}, "\n"), {output = true})
+    if ((_G.type(case_15_) == "table") and (nil ~= case_15_.output)) then
+      local output = case_15_.output
+      return output
+    else
+      local _ = case_15_
+      return nil
+    end
   end
-  nvim = {channel = channel, close = _10_, cmd = _11_, lua = _12_}
+  nvim = {channel = channel, close = _10_, cmd = _11_, lua = _14_}
   nvim:lua("vim.opt.runtimepath:prepend('/home/user/hotpot')")
   nvim:lua("vim.secure.read = function(path) return table.concat(vim.fn.readfile(path), '\\n') end")
   return nvim
