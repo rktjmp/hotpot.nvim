@@ -288,45 +288,67 @@
     ;; discovers.
     ;;
     ;; We need to call fs_realpath to resolve any symlinks so we can accurately
-    ;; work out if 
-    ;; When we call fs_realpath, if the path does not exist, it returns nil but
-    ;; we *do* want to call this as a config dir may exist under a symlink and
-    ;; we need to resolve our checks against the true path.
+    ;; work out if the given directory is the config and allows cache targeting
+    ;; or not.
     ;;
-    directory (let [root (case (-> (vim.fs.normalize directory) (vim.uv.fs_realpath))
-                           nil directory
-                           real-path real-path)
-                    _ (vim.print {:root (or root :nil) :directory directory})
-                    _ (assert root "no root")
-                    path (vim.fs.joinpath root :.hotpot.fnl)
-                    dot-hotpot-exists? (~= nil (vim.uv.fs_stat path))
-                    root-is-config-root? (= root NVIM_CONFIG_ROOT)]
-                (case (values dot-hotpot-exists? root-is-config-root?)
-                  ;; config with custom def
-                  (true true) (-> (load-spec-file path)
-                                  (spec->context {:root root
+    ;; But fs_realpath will return nil if a the directory does not exist, which
+    ;; it might if thats what nvim gives us.
+    ;;
+    ;; So there is a bit of hunt and poke to work out the truth of it, where
+    ;; for configs only, a missing config dir is the same as a missing
+    ;; .hotpot.fnl file and we load the default config context in both cases.
+    ;;
+    ;; Probably 99% of the time, the directory *will* exist, but here we are.
+    ;;
+    ;; We also must do this here instead of in `Context.nearest` because if a
+    ;; file is inside a symlinkd dir, `nearest` gets the full resolved path from
+    ;; vim -- at least this is the case with $MYVIMRC, which resolves to inside
+    ;; the symlinked root ir in 0.11 -- so we'd stll end up passing in the real
+    ;; path.
+    directory (let [dot-hotpot-path (-> (vim.fs.joinpath directory :.hotpot.fnl)
+                                        (vim.fs.normalize))
+                    dot-hotpot-exists? (~= nil (vim.uv.fs_realpath dot-hotpot-path))
+                    real-directory (-> (vim.fs.normalize directory)
+                                       (vim.uv.fs_realpath))
+                    ;; See above, if the real directory does not exist, do an
+                    ;; in-memory check, is the *intent* to build a config context?
+                    is-config-root? (case real-directory
+                                      any (= real-directory NVIM_CONFIG_ROOT)
+                                      nil (= directory NVIM_CONFIG_ROOT))]
+                (case (values dot-hotpot-exists? is-config-root?)
+                  ;; .hotpot.fnl exists in current nvim config dir
+                  (true true) (-> (load-spec-file dot-hotpot-path)
+                                  (spec->context {:root NVIM_CONFIG_ROOT
                                                   :kind :config
-                                                  :source path}))
-                  ;; config with no custom def
+                                                  :source dot-hotpot-path}))
+                  ;; .hotpot.fnl does not exist but the dir is nvim config
                   (false true) (-> (default-config-spec)
                                    (spec->context {:root NVIM_CONFIG_ROOT
                                                    :kind :config}))
-                  ;; non-config with custom def
-                  (true false) (-> (load-spec-file path)
-                                   (spec->context {:root root
+                  ;; .hotpot.fnl exists in non-config directory
+                  (true false) (-> (load-spec-file dot-hotpot-path)
+                                   (spec->context {:root real-directory
                                                    :kind :plugin
-                                                   :source path}))
-                  ;; non-config with no def (error)
-                  (false false) (error (err-msg-unable-to-load path "does not exist"))))
+                                                   :source dot-hotpot-path}))
+                  ;; no .hotpot.fnl and not config so no default fallback
+                  (false false) (-> (error (err-msg-unable-to-load
+                                             dot-hotpot-path "does not exist")))))
     nil (-> (default-api-spec)
             (spec->context {:kind :api}))))
 
 (λ M.nearest [starting-path]
   "Find the nearest context root for given path, returns path to context root"
-  ;; TODO: must handle fs_realpath for starting path
-  (case (vim.fs.relpath NVIM_CONFIG_ROOT starting-path)
-    path-inside-config NVIM_CONFIG_ROOT
-    nil (vim.fs.root starting-path :.hotpot.fnl)))
+  (case (vim.uv.fs_realpath starting-path)
+    real-path (case (vim.fs.relpath NVIM_CONFIG_ROOT starting-path)
+                ;; if the given path is inside our config, we dont actually
+                ;; need to find a .hotpot.fnl file and can just call the config
+                ;; root as nearest.
+                path-inside-config NVIM_CONFIG_ROOT
+                ;; otherwise we actually *do* need to find a directory.
+                nil (vim.fs.root starting-path :.hotpot.fnl))
+    nil (error (string.format
+                 "Unable to find nearest context to %s, does not exist"
+                 starting-path))))
 
 (λ m.make-fennel-path-modifiers [fennel directory-prefix]
   ;; Insert the context source root into the search path, so our working
