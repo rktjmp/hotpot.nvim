@@ -38,7 +38,8 @@ allows you to write your Neovim config and plugins in Fennel.
 
 # Requirements
 
-- Neovim 0.12.0+
+- Neovim 0.11.6+
+  - *or set `_G.__hotpot_disable_version_check = true` before `require('hotpot')`*
 - ~~Fanatical devotion to parentheses.~~
 
 # Installation

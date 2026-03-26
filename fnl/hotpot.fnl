@@ -1,4 +1,6 @@
-(assert (= 1 (vim.fn.has "nvim-0.11.6")) "Hotpot requires neovim 0.11.6")
+(when (= nil _G.__hotpot_disable_version_check)
+  (assert (= 1 (vim.fn.has "nvim-0.11.6")) "Hotpot requires neovim 0.11.6"))
+
 (local {: HOTPOT_CONFIG_CACHE_ROOT} (require :hotpot.const))
 
 ;; If the cache dir (in site/pack/hotpot/opt/config) does not exist, we should create it.
@@ -19,7 +21,7 @@
 
 ;; Add the cache directory into the RTP, which will also automatically handle
 ;; any automatic loading per neovims startup.
-(vim.cmd.packadd :hotpot-config-cache)
+(vim.cmd.packadd (vim.fs.basename HOTPOT_CONFIG_CACHE_ROOT))
 
 ;; The fennel filetype autocommand does most of the orchestration work.
 (let [autocmd (require :hotpot.autocmd)]
@@ -29,7 +31,6 @@
 (tset package.preload :fennel #(require :hotpot.fennel))
 
 ;; Provide setup function for UX even though it does nothing.
-(λ setup [?options]
-  true)
+(λ setup [?options] true)
 
 {: setup}
