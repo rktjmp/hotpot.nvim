@@ -57,6 +57,66 @@ require("config")
 ```
 
 
+<details>
+<summary>Lazy.nvim</summary>
+
+```lua
+-- init.lua
+local function ensure_installed(plugin, branch)
+  local user, repo = string.match(plugin, "(.+)/(.+)")
+  local repo_path = vim.fn.stdpath("data") .. "/lazy/" .. repo
+  if not (vim.uv or vim.loop).fs_stat(repo_path) then
+    vim.notify("Installing " .. plugin .. " " .. branch)
+    local repo_url = "https://github.com/" .. plugin .. ".git"
+    local out = vim.fn.system({
+      "git",
+      "clone",
+      "--filter=blob:none",
+      "--branch=" .. branch,
+      repo_url,
+      repo_path
+    })
+    if vim.v.shell_error ~= 0 then
+      vim.api.nvim_echo({
+        { "Failed to clone " .. plugin .. ":\n", "ErrorMsg" },
+        { out, "WarningMsg" },
+        { "\nPress any key to exit..." },
+      }, true, {})
+      vim.fn.getchar()
+      os.exit(1)
+    end
+  end
+  return repo_path
+end
+
+-- Install hotpot in the same manner as lazy, via ensure_installed
+local lazy_path = ensure_installed("folke/lazy.nvim", "stable")
+local hotpot_path = ensure_installed("rktjmp/hotpot.nvim", "v2.0.0")
+-- As per Lazy's install instructions, but also include hotpot
+vim.opt.runtimepath:prepend({hotpot_path, lazy_path})
+
+-- require hotpot module before lazy to ensure the module is loaded 
+-- into memory before lazy alters neovims behaviour.
+require("hotpot")
+require("config")
+```
+
+*You must also include hotpot in your plugins list for lazy to correctly manage updates.*
+
+```fnl
+;; fnl/config/init.fnl
+
+;; When calling `lazy.setup` you must include hotpots output directory in the
+;; `performance.rtp.paths` option. If you have configured your config directory
+;; to use `:target :colocate` (which is *not* the default), you may skip this step.
+(let [lazy (require :lazy)
+      hotpot (require :hotpot)
+      context (hotpot.api.context (vim.stdpath :config))]
+  (lazy.setup {:performance {:rtp {:paths [context.path.destination]}}))
+```
+
+</details>
+
 # Usage
 
 In general, anything you would put in `lua/` should be put in `fnl/`, otherwise
