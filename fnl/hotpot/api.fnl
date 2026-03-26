@@ -26,8 +26,7 @@
 (fn bind-context [ctx]
   (let [base {:compile (bind-compile ctx)
               :eval (bind-eval ctx)
-              :sync (bind-sync ctx)
-              :transform ctx.transform}]
+              :sync (bind-sync ctx)}]
     (when ctx.transform
       (set base.transform
            (λ [source ?filename]

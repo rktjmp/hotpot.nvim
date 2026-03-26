@@ -1,8 +1,0 @@
-(fn expect [assertion message ...]
-  `(when (not ,assertion)
-     (let [failed-what# ,(view assertion)
-           err# (string.format "%s [failed: %s]" ,message failed-what#)]
-       (error (string.format err# ,...) 0))))
-
-
-{: expect}

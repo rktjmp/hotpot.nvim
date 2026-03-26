@@ -54,11 +54,11 @@ local function bind_sync(ctx)
   end
 end
 local function bind_context(ctx)
-  local base = {compile = bind_compile(ctx), eval = bind_eval(ctx), sync = bind_sync(ctx), transform = ctx.transform}
+  local base = {compile = bind_compile(ctx), eval = bind_eval(ctx), sync = bind_sync(ctx)}
   if ctx.transform then
     local function _13_(source, _3ffilename)
       if (nil == source) then
-        _G.error("Missing argument source on fnl/hotpot/api.fnl:33", 2)
+        _G.error("Missing argument source on fnl/hotpot/api.fnl:32", 2)
       else
       end
       return ctx.transform(source, (_3ffilename or "--hotpot-api-transform"))
