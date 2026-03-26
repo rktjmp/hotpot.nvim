@@ -96,32 +96,6 @@
             (string.format "%s `transform` not a function" ctx._source))
     ctx))
 
-(λ create-context [?directory]
-  (case ?directory
-    directory (let [root (vim.fs.normalize directory)
-                    path (vim.fs.joinpath root :.hotpot.fnl)
-                    dot-hotpot-exists? (~= nil (vim.uv.fs_stat path))
-                    root-is-config-root? (= root NVIM_CONFIG_ROOT)]
-                (case (values dot-hotpot-exists? root-is-config-root?)
-                  ;; config with custom def
-                  (true true) (-> (load-spec-file path)
-                                  (spec->context {:root root
-                                                  :kind :config
-                                                  :source path}))
-                  ;; config with no custom def
-                  (false true) (-> (default-config-spec)
-                                   (spec->context {:root NVIM_CONFIG_ROOT
-                                                   :kind :config}))
-                  ;; non-config with custom def
-                  (true false) (-> (load-spec-file path)
-                                   (spec->context {:root root
-                                                   :kind :plugin
-                                                   :source path}))
-                  ;; non-config with no def (error)
-                  (false false) (error (err-msg-unable-to-load path "does not exist"))))
-    nil (-> (default-api-spec)
-            (spec->context {:kind :api}))))
-
 (λ m.find-files [root extension-pattern ignore]
   (vim.fs.find (fn [name dir]
                  ;; We implicitly always ignore our own config file, ignore any
@@ -313,7 +287,32 @@
   If given no directory, a default context is created which may be used by the
   api to compile or evaluate arbitrary code, but is generally unuseful outside
   of that."
-  (create-context ?directory))
+  (case ?directory
+    directory (let [root (-> (vim.fs.normalize directory)
+                             ;; TODO this can error
+                             (vim.uv.fs_realpath))
+                    path (vim.fs.joinpath root :.hotpot.fnl)
+                    dot-hotpot-exists? (~= nil (vim.uv.fs_stat path))
+                    root-is-config-root? (= root NVIM_CONFIG_ROOT)]
+                (case (values dot-hotpot-exists? root-is-config-root?)
+                  ;; config with custom def
+                  (true true) (-> (load-spec-file path)
+                                  (spec->context {:root root
+                                                  :kind :config
+                                                  :source path}))
+                  ;; config with no custom def
+                  (false true) (-> (default-config-spec)
+                                   (spec->context {:root NVIM_CONFIG_ROOT
+                                                   :kind :config}))
+                  ;; non-config with custom def
+                  (true false) (-> (load-spec-file path)
+                                   (spec->context {:root root
+                                                   :kind :plugin
+                                                   :source path}))
+                  ;; non-config with no def (error)
+                  (false false) (error (err-msg-unable-to-load path "does not exist"))))
+    nil (-> (default-api-spec)
+            (spec->context {:kind :api}))))
 
 (λ M.nearest [starting-path]
   "Find the nearest context root for given path, returns path to context root"
