@@ -801,9 +801,9 @@ M.sync = function(ctx, _3foptions)
         table.insert(tbl_24_, val_25_)
       end
     end
-    return vim.api.nvim_echo(output, true, {})
+    vim.api.nvim_echo(output, true, {})
   else
-    return nil
   end
+  return nil
 end
 return M

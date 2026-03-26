@@ -437,6 +437,8 @@
       (each [_ k (ipairs report.format)]
         (icollect [_ m (ipairs (. report k)) &into output]
           m))
-    (vim.api.nvim_echo output true {})))))
+    (vim.api.nvim_echo output true {})))
+
+  nil))
 
 M
