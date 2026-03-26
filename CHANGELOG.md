@@ -1,10 +1,7 @@
 # 🍲 Hotpot Changelog
 
-Breaking changes are in **bold**. Note that the SEMVER MAJOR version is 0, so
-breaking changes may occur on minor point releases. Generally breaking changes
-to "core" code (things that effect loading and running your code/config) are
-avoided but breaking changes to the API (things that might effect your bindings
-and auto commands) are treated with less reverence.
+## 1.0.0
+- No functional changes.
 
 ## 0.15.0
 
