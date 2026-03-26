@@ -1,10 +1,10 @@
 local _1_
 do
   local path = vim.fn.stdpath("config")
-  local case_2_ = vim.uv.fs_stat(path)
-  if ((_G.type(case_2_) == "table") and true) then
-    local _type = case_2_._type
-    _1_ = vim.uv.fs_realpath(vim.fs.normalize(path))
+  local case_2_ = vim.uv.fs_realpath(vim.fs.normalize(path))
+  if (nil ~= case_2_) then
+    local real_path = case_2_
+    _1_ = real_path
   elseif (case_2_ == nil) then
     _1_ = path
   else

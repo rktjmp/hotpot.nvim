@@ -17,13 +17,13 @@
                              : nsec}
     (nil err) nil))
 
-(fn read-file! [path]
+(fn read-file [path]
   (with-open [fh (assert (io.open path :r) (.. "fs.read-file! io.open failed:" path))]
     (fh:read :*a)))
 
-(fn write-file! [path lines]
+(fn write-file [path lines]
   (assert (= :string (type lines)) "write file expects string")
-  (with-open [fh (assert (io.open path :w) (.. "fs.write-file! io.open failed:" path))]
+  (with-open [fh (assert (io.open path :w) (.. "fs.write-file io.open failed:" path))]
     (fh:write lines)))
 
 (fn base-spec []
@@ -218,7 +218,8 @@
 (λ m.sync-compile [ctx fnl-files]
   (accumulate [results {:ok [] :errors []}
                _ {: fnl-abs : fnl-rel : lua-abs} (ipairs fnl-files)]
-    (let [fnl-source (read-file! fnl-abs)]
+    (let [fnl-source (read-file fnl-abs)
+          fnl-source (m.apply-transform ctx fnl-source fnl-rel)]
       (case (pcall M.compile-string ctx fnl-source {:filename fnl-rel})
         (true lua-source) (do
                             (table.insert results.ok {: fnl-abs : lua-abs :source lua-source})
@@ -230,7 +231,7 @@
 (λ m.sync-write [ctx output-files]
   (each [_ {: lua-abs : source} (ipairs output-files)]
     (vim.fn.mkdir (vim.fs.dirname lua-abs) "p")
-    (write-file! lua-abs source)))
+    (write-file lua-abs source)))
 
 (λ m.sync-plan-clean [ctx source-files]
   (m.find-orphaned-files ctx source-files))
@@ -282,9 +283,21 @@
   api to compile or evaluate arbitrary code, but is generally unuseful outside
   of that."
   (case ?directory
-    directory (let [root (-> (vim.fs.normalize directory)
-                             ;; TODO this can error if the path does not exist
-                             (vim.uv.fs_realpath))
+    ;; Some nuance here, directory may or may not exist, as when we create our
+    ;; config context, we just ask nvim for the path which it generates, not
+    ;; discovers.
+    ;;
+    ;; We need to call fs_realpath to resolve any symlinks so we can accurately
+    ;; work out if 
+    ;; When we call fs_realpath, if the path does not exist, it returns nil but
+    ;; we *do* want to call this as a config dir may exist under a symlink and
+    ;; we need to resolve our checks against the true path.
+    ;;
+    directory (let [root (case (-> (vim.fs.normalize directory) (vim.uv.fs_realpath))
+                           nil directory
+                           real-path real-path)
+                    _ (vim.print {:root (or root :nil) :directory directory})
+                    _ (assert root "no root")
                     path (vim.fs.joinpath root :.hotpot.fnl)
                     dot-hotpot-exists? (~= nil (vim.uv.fs_stat path))
                     root-is-config-root? (= root NVIM_CONFIG_ROOT)]
@@ -310,6 +323,7 @@
 
 (λ M.nearest [starting-path]
   "Find the nearest context root for given path, returns path to context root"
+  ;; TODO: must handle fs_realpath for starting path
   (case (vim.fs.relpath NVIM_CONFIG_ROOT starting-path)
     path-inside-config NVIM_CONFIG_ROOT
     nil (vim.fs.root starting-path :.hotpot.fnl)))
@@ -348,14 +362,14 @@
                             (set fennel.macro-path old-paths.macro-path))}))
 
 (λ M.compile-string [ctx fnl-source meta]
-  "Compile the given string with the given context compilation configuration.
+  "Compile the given string with the given context configuration.
 
   Returns lua-source or raises error."
   (let [fennel (require :hotpot.fennel)
         compiler-options (vim.tbl_extend :force ctx.compiler {:filename meta.filename
                                                               :error-pinpoint false})
-        fnl-source (m.apply-transform ctx fnl-source meta.filename)
-        {: update-fennel-path : restore-fennel-path} (m.make-fennel-path-modifiers fennel ctx.path.source)
+        {: update-fennel-path
+         : restore-fennel-path} (m.make-fennel-path-modifiers fennel ctx.path.source)
         _ (update-fennel-path)
         (ok? val) (pcall fennel.compile-string fnl-source compiler-options)
         _ (restore-fennel-path)]
@@ -363,6 +377,24 @@
       (true src) (values src)
       (false err) (error err))))
 
+(λ M.eval-string [ctx fnl-source meta]
+  "Eval the given string with the given context configuration.
+
+  Returns result or raises error."
+  (fn pack [...]
+    (doto [...]
+      (tset :n (select :# ...))))
+  (let [fennel (require :hotpot.fennel)
+        compiler-options (vim.tbl_extend :force ctx.compiler {:filename meta.filename
+                                                              :error-pinpoint false})
+        {: update-fennel-path
+         : restore-fennel-path} (m.make-fennel-path-modifiers fennel ctx.path.source)
+        _ (update-fennel-path)
+        returns (pack (pcall fennel.eval fnl-source compiler-options))
+        _ (restore-fennel-path)]
+    (case (. returns 1)
+      true (unpack returns 2 returns.n)
+      false (error (. returns 2)))))
 
 (λ M.sync [ctx ?options]
   "Compile files inside the given context, clean any orphans in destination.

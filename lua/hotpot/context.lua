@@ -24,7 +24,7 @@ local function file_mtime(path)
     return nil
   end
 end
-local function read_file_21(path)
+local function read_file(path)
   local fh = assert(io.open(path, "r"), ("fs.read-file! io.open failed:" .. path))
   local function close_handlers_13_(ok_14_, ...)
     fh:close()
@@ -63,9 +63,9 @@ local function read_file_21(path)
   end
   return close_handlers_13_(_G.xpcall(_9_, or_15_.traceback))
 end
-local function write_file_21(path, lines)
+local function write_file(path, lines)
   assert(("string" == type(lines)), "write file expects string")
-  local fh = assert(io.open(path, "w"), ("fs.write-file! io.open failed:" .. path))
+  local fh = assert(io.open(path, "w"), ("fs.write-file io.open failed:" .. path))
   local function close_handlers_13_(ok_14_, ...)
     fh:close()
     if ok_14_ then
@@ -515,8 +515,9 @@ m["sync-compile"] = function(ctx, fnl_files)
     local fnl_abs = _88_["fnl-abs"]
     local fnl_rel = _88_["fnl-rel"]
     local lua_abs = _88_["lua-abs"]
-    local fnl_source = read_file_21(fnl_abs)
-    local case_89_, case_90_ = pcall(M["compile-string"], ctx, fnl_source, {filename = fnl_rel})
+    local fnl_source = read_file(fnl_abs)
+    local fnl_source0 = m["apply-transform"](ctx, fnl_source, fnl_rel)
+    local case_89_, case_90_ = pcall(M["compile-string"], ctx, fnl_source0, {filename = fnl_rel})
     if ((case_89_ == true) and (nil ~= case_90_)) then
       local lua_source = case_90_
       table.insert(results.ok, {["fnl-abs"] = fnl_abs, ["lua-abs"] = lua_abs, source = lua_source})
@@ -533,39 +534,39 @@ m["sync-compile"] = function(ctx, fnl_files)
 end
 m["sync-write"] = function(ctx, output_files)
   if (nil == output_files) then
-    _G.error("Missing argument output-files on fnl/hotpot/context.fnl:230", 2)
+    _G.error("Missing argument output-files on fnl/hotpot/context.fnl:231", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:230", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:231", 2)
   else
   end
   for _, _94_ in ipairs(output_files) do
     local lua_abs = _94_["lua-abs"]
     local source = _94_.source
     vim.fn.mkdir(vim.fs.dirname(lua_abs), "p")
-    write_file_21(lua_abs, source)
+    write_file(lua_abs, source)
   end
   return nil
 end
 m["sync-plan-clean"] = function(ctx, source_files)
   if (nil == source_files) then
-    _G.error("Missing argument source-files on fnl/hotpot/context.fnl:235", 2)
+    _G.error("Missing argument source-files on fnl/hotpot/context.fnl:236", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:235", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:236", 2)
   else
   end
   return m["find-orphaned-files"](ctx, source_files)
 end
 m["sync-clean"] = function(ctx, orphan_files)
   if (nil == orphan_files) then
-    _G.error("Missing argument orphan-files on fnl/hotpot/context.fnl:238", 2)
+    _G.error("Missing argument orphan-files on fnl/hotpot/context.fnl:239", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:238", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:239", 2)
   else
   end
   for _, orphan in ipairs(orphan_files) do
@@ -575,15 +576,15 @@ m["sync-clean"] = function(ctx, orphan_files)
 end
 m["sync-plan-confirm"] = function(ctx, source_files, orphan_files)
   if (nil == orphan_files) then
-    _G.error("Missing argument orphan-files on fnl/hotpot/context.fnl:242", 2)
+    _G.error("Missing argument orphan-files on fnl/hotpot/context.fnl:243", 2)
   else
   end
   if (nil == source_files) then
-    _G.error("Missing argument source-files on fnl/hotpot/context.fnl:242", 2)
+    _G.error("Missing argument source-files on fnl/hotpot/context.fnl:243", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:242", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:243", 2)
   else
   end
   if (5 < #orphan_files) then
@@ -621,18 +622,31 @@ end
 M.new = function(_3fdirectory)
   if (nil ~= _3fdirectory) then
     local directory = _3fdirectory
-    local root = vim.uv.fs_realpath(vim.fs.normalize(directory))
+    local root
+    do
+      local case_108_ = vim.uv.fs_realpath(vim.fs.normalize(directory))
+      if (case_108_ == nil) then
+        root = directory
+      elseif (nil ~= case_108_) then
+        local real_path = case_108_
+        root = real_path
+      else
+        root = nil
+      end
+    end
+    local _ = vim.print({root = (root or "nil"), directory = directory})
+    local _0 = assert(root, "no root")
     local path = vim.fs.joinpath(root, ".hotpot.fnl")
     local dot_hotpot_exists_3f = (nil ~= vim.uv.fs_stat(path))
     local root_is_config_root_3f = (root == NVIM_CONFIG_ROOT)
-    local case_108_, case_109_ = dot_hotpot_exists_3f, root_is_config_root_3f
-    if ((case_108_ == true) and (case_109_ == true)) then
+    local case_110_, case_111_ = dot_hotpot_exists_3f, root_is_config_root_3f
+    if ((case_110_ == true) and (case_111_ == true)) then
       return spec__3econtext(load_spec_file(path), {root = root, kind = "config", source = path})
-    elseif ((case_108_ == false) and (case_109_ == true)) then
+    elseif ((case_110_ == false) and (case_111_ == true)) then
       return spec__3econtext(default_config_spec(), {root = NVIM_CONFIG_ROOT, kind = "config"})
-    elseif ((case_108_ == true) and (case_109_ == false)) then
+    elseif ((case_110_ == true) and (case_111_ == false)) then
       return spec__3econtext(load_spec_file(path), {root = root, kind = "plugin", source = path})
-    elseif ((case_108_ == false) and (case_109_ == false)) then
+    elseif ((case_110_ == false) and (case_111_ == false)) then
       return error(err_msg_unable_to_load(path, "does not exist"))
     else
       return nil
@@ -645,14 +659,14 @@ M.new = function(_3fdirectory)
 end
 M.nearest = function(starting_path)
   if (nil == starting_path) then
-    _G.error("Missing argument starting-path on fnl/hotpot/context.fnl:311", 2)
+    _G.error("Missing argument starting-path on fnl/hotpot/context.fnl:324", 2)
   else
   end
-  local case_113_ = vim.fs.relpath(NVIM_CONFIG_ROOT, starting_path)
-  if (nil ~= case_113_) then
-    local path_inside_config = case_113_
+  local case_115_ = vim.fs.relpath(NVIM_CONFIG_ROOT, starting_path)
+  if (nil ~= case_115_) then
+    local path_inside_config = case_115_
     return NVIM_CONFIG_ROOT
-  elseif (case_113_ == nil) then
+  elseif (case_115_ == nil) then
     return vim.fs.root(starting_path, ".hotpot.fnl")
   else
     return nil
@@ -660,63 +674,97 @@ M.nearest = function(starting_path)
 end
 m["make-fennel-path-modifiers"] = function(fennel, directory_prefix)
   if (nil == directory_prefix) then
-    _G.error("Missing argument directory-prefix on fnl/hotpot/context.fnl:317", 2)
+    _G.error("Missing argument directory-prefix on fnl/hotpot/context.fnl:331", 2)
   else
   end
   if (nil == fennel) then
-    _G.error("Missing argument fennel on fnl/hotpot/context.fnl:317", 2)
+    _G.error("Missing argument fennel on fnl/hotpot/context.fnl:331", 2)
   else
   end
   local old_paths = {path = fennel.path, ["macro-path"] = fennel["macro-path"]}
   local new_paths = {path = table.concat({(directory_prefix .. "/fnl/?.fnl"), (directory_prefix .. "/fnl/?/init.fnl"), (directory_prefix .. "/?.fnl"), (directory_prefix .. "/?/init.fnl"), old_paths.path}, ";"), ["macro-path"] = table.concat({(directory_prefix .. "/fnl/?.fnlm"), (directory_prefix .. "/fnl/?/init.fnlm"), (directory_prefix .. "/fnl/?.fnl"), (directory_prefix .. "/fnl/?/init-macros.fnl"), (directory_prefix .. "/fnl/?/init.fnl"), (directory_prefix .. "/?.fnlm"), (directory_prefix .. "/?/init.fnlm"), (directory_prefix .. "/?.fnl"), (directory_prefix .. "/?/init-macros.fnl"), (directory_prefix .. "/?/init.fnl"), old_paths["macro-path"]}, ";")}
-  local function _117_()
+  local function _119_()
     fennel.path = new_paths.path
     fennel["macro-path"] = new_paths["macro-path"]
     return nil
   end
-  local function _118_()
+  local function _120_()
     fennel.path = old_paths.path
     fennel["macro-path"] = old_paths["macro-path"]
     return nil
   end
-  return {["update-fennel-path"] = _117_, ["restore-fennel-path"] = _118_}
+  return {["update-fennel-path"] = _119_, ["restore-fennel-path"] = _120_}
 end
 M["compile-string"] = function(ctx, fnl_source, meta)
   if (nil == meta) then
-    _G.error("Missing argument meta on fnl/hotpot/context.fnl:350", 2)
+    _G.error("Missing argument meta on fnl/hotpot/context.fnl:364", 2)
   else
   end
   if (nil == fnl_source) then
-    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:350", 2)
+    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:364", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:350", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:364", 2)
   else
   end
   local fennel = require("hotpot.fennel")
   local compiler_options = vim.tbl_extend("force", ctx.compiler, {filename = meta.filename, ["error-pinpoint"] = false})
-  local fnl_source0 = m["apply-transform"](ctx, fnl_source, meta.filename)
-  local _let_122_ = m["make-fennel-path-modifiers"](fennel, ctx.path.source)
-  local update_fennel_path = _let_122_["update-fennel-path"]
-  local restore_fennel_path = _let_122_["restore-fennel-path"]
+  local _let_124_ = m["make-fennel-path-modifiers"](fennel, ctx.path.source)
+  local update_fennel_path = _let_124_["update-fennel-path"]
+  local restore_fennel_path = _let_124_["restore-fennel-path"]
   local _ = update_fennel_path()
-  local ok_3f, val = pcall(fennel["compile-string"], fnl_source0, compiler_options)
+  local ok_3f, val = pcall(fennel["compile-string"], fnl_source, compiler_options)
   local _0 = restore_fennel_path()
-  local case_123_, case_124_ = ok_3f, val
-  if ((case_123_ == true) and (nil ~= case_124_)) then
-    local src = case_124_
+  local case_125_, case_126_ = ok_3f, val
+  if ((case_125_ == true) and (nil ~= case_126_)) then
+    local src = case_126_
     return src
-  elseif ((case_123_ == false) and (nil ~= case_124_)) then
-    local err = case_124_
+  elseif ((case_125_ == false) and (nil ~= case_126_)) then
+    local err = case_126_
     return error(err)
+  else
+    return nil
+  end
+end
+M["eval-string"] = function(ctx, fnl_source, meta)
+  if (nil == meta) then
+    _G.error("Missing argument meta on fnl/hotpot/context.fnl:380", 2)
+  else
+  end
+  if (nil == fnl_source) then
+    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:380", 2)
+  else
+  end
+  if (nil == ctx) then
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:380", 2)
+  else
+  end
+  local function pack(...)
+    local tmp_9_ = {...}
+    tmp_9_["n"] = select("#", ...)
+    return tmp_9_
+  end
+  local fennel = require("hotpot.fennel")
+  local compiler_options = vim.tbl_extend("force", ctx.compiler, {filename = meta.filename, ["error-pinpoint"] = false})
+  local _let_131_ = m["make-fennel-path-modifiers"](fennel, ctx.path.source)
+  local update_fennel_path = _let_131_["update-fennel-path"]
+  local restore_fennel_path = _let_131_["restore-fennel-path"]
+  local _ = update_fennel_path()
+  local returns = pack(pcall(fennel.eval, fnl_source, compiler_options))
+  local _0 = restore_fennel_path()
+  local case_132_ = returns[1]
+  if (case_132_ == true) then
+    return unpack(returns, 2, returns.n)
+  elseif (case_132_ == false) then
+    return error(returns[2])
   else
     return nil
   end
 end
 M.sync = function(ctx, _3foptions)
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:367", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:399", 2)
   else
   end
   local options = (_3foptions or {["force?"] = false})
@@ -724,19 +772,19 @@ M.sync = function(ctx, _3foptions)
   local source_files = m["find-source-files"](ctx)
   local stale_files = m["sync-plan-compile"](ctx, source_files, options["force?"])
   local clean_files = m["sync-plan-clean"](ctx, source_files)
-  local _let_127_ = m["sync-compile"](ctx, stale_files)
-  local output_files = _let_127_.ok
-  local failed_compiles = _let_127_.errors
+  local _let_135_ = m["sync-compile"](ctx, stale_files)
+  local output_files = _let_135_.ok
+  local failed_compiles = _let_135_.errors
   local atomic_ok_3f = (((true == ctx["atomic?"]) and (0 == #failed_compiles)) or (false == ctx["atomic?"]))
-  for _, _128_ in ipairs(output_files) do
-    local fnl_abs = _128_["fnl-abs"]
-    local lua_abs = _128_["lua-abs"]
+  for _, _136_ in ipairs(output_files) do
+    local fnl_abs = _136_["fnl-abs"]
+    local lua_abs = _136_["lua-abs"]
     table.insert(report.success, {string.format("\226\152\145  %s\n-> %s\n", fnl_abs, lua_abs), "DiagnosticOk"})
   end
-  for _, _129_ in ipairs(failed_compiles) do
-    local fnl_abs = _129_["fnl-abs"]
-    local lua_abs = _129_["lua-abs"]
-    local error = _129_.error
+  for _, _137_ in ipairs(failed_compiles) do
+    local fnl_abs = _137_["fnl-abs"]
+    local lua_abs = _137_["lua-abs"]
+    local error = _137_.error
     table.insert(report.errors, {string.format("\226\152\146  %s\n-> %s\n%s\n", fnl_abs, lua_abs, error), "DiagnosticWarn"})
   end
   if (0 < #failed_compiles) then
@@ -751,9 +799,9 @@ M.sync = function(ctx, _3foptions)
     table.insert(report.clean, {string.format("rm %s\n", lua_abs), "DiagnosticInfo"})
   end
   if atomic_ok_3f then
-    local _let_132_ = m["sync-plan-confirm"](ctx, stale_files, clean_files)
-    local compile_3f = _let_132_["compile?"]
-    local clean_3f = _let_132_["clean?"]
+    local _let_140_ = m["sync-plan-confirm"](ctx, stale_files, clean_files)
+    local compile_3f = _let_140_["compile?"]
+    local clean_3f = _let_140_["clean?"]
     if compile_3f then
       m["sync-write"](ctx, output_files)
       if ctx["verbose?"] then
