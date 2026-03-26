@@ -55,7 +55,12 @@
                   content content
                   nil (error (string.format "Unable to continue with untrusted file: %s"
                                             path)))
-        def (fennel.eval content)]
+        {: update-fennel-path
+         : restore-fennel-path} (m.make-fennel-path-modifiers fennel (vim.fs.dirname path))
+        _ (update-fennel-path)
+        (ok? def) (pcall fennel.eval content)
+        _ (restore-fennel-path)]
+    (assert ok? (err-msg-unable-to-load path def))
     (assert (= :table (type def)) (err-msg-unable-to-load path "must return table"))
     (assert (= def.schema :hotpot/2) (err-msg-unable-to-load path "must define schema key as hotpot/2"))
     (assert (or (= def.target :cache) (= def.target :colocate))
@@ -308,15 +313,33 @@
   If given no directory, a default context is created which may be used by the
   api to compile or evaluate arbitrary code, but is generally unuseful outside
   of that."
-  (case (pcall create-context ?directory)
-    (true context) context
-    (false err) (values nil err)))
+  (create-context ?directory))
 
 (λ M.nearest [starting-path]
   "Find the nearest context root for given path, returns path to context root"
   (case (vim.fs.relpath NVIM_CONFIG_ROOT starting-path)
     path-inside-config NVIM_CONFIG_ROOT
     nil (vim.fs.root starting-path :.hotpot.fnl)))
+
+(λ m.make-fennel-path-modifiers [fennel directory-prefix]
+  (let [old-paths {:path fennel.path :macro-path fennel.macro-path}
+        new-paths {:path (table.concat [(.. directory-prefix :/fnl/?.fnl)
+                                        (.. directory-prefix :/fnl/?/init.fnl)
+                                        old-paths.path]
+                                       ";")
+                   :macro-path (table.concat [(.. directory-prefix :/fnl/?.fnlm)
+                                              (.. directory-prefix :/fnl/?/init.fnlm)
+                                              (.. directory-prefix :/fnl/?.fnl)
+                                              (.. directory-prefix :/fnl/?/init-macros.fnl)
+                                              (.. directory-prefix :/fnl/?/init.fnl)
+                                              old-paths.macro-path]
+                                             ";")}]
+    {:update-fennel-path (fn []
+                           (set fennel.path new-paths.path)
+                           (set fennel.macro-path new-paths.macro-path))
+     :restore-fennel-path (fn []
+                            (set fennel.path old-paths.path)
+                            (set fennel.macro-path old-paths.macro-path))}))
 
 (λ M.compile-string [ctx fnl-source meta]
   "Compile the given string with the given context compilation configuration.
@@ -336,24 +359,10 @@
         ;; for the most part this should be fine? Users should be putting code
         ;; in `fnl/` and if they are doing something odd, the other patterns
         ;; should cover it as long as they set their cwd.
-        old-paths {:path fennel.path :macro-path fennel.macro-path}
-        {:path {: source}} ctx
-        _ (do
-            (set fennel.path (table.concat [(.. source :/fnl/?.fnl)
-                                            (.. source :/fnl/?/init.fnl)
-                                            old-paths.path]
-                                           ";"))
-            (set fennel.macro-path (table.concat [(.. source :/fnl/?.fnlm)
-                                                  (.. source :/fnl/?/init.fnlm)
-                                                  (.. source :/fnl/?.fnl)
-                                                  (.. source :/fnl/?/init-macros.fnl)
-                                                  (.. source :/fnl/?/init.fnl)
-                                                  old-paths.macro-path]
-                                             ";")))
+        {: update-fennel-path : restore-fennel-path} (m.make-fennel-path-modifiers fennel ctx.path.source)
+        _ (update-fennel-path)
         (ok? val) (pcall fennel.compile-string fnl-source compiler-options)
-        _ (do
-            (set fennel.path old-paths.path)
-            (set fennel.macro-path old-paths.macro-path))]
+        _ (restore-fennel-path)]
     (case (values ok? val)
       (true src) (values src)
       (false err) (error err))))
