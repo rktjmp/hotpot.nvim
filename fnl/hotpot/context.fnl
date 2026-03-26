@@ -1,5 +1,4 @@
 (local {: R} (require :hotpot.util))
-(local {:const {: HOTPOT_CONFIG_CACHE_ROOT : NVIM_CONFIG_ROOT}} R)
 
 (local (M m) (values {} {}))
 

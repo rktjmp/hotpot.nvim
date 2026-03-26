@@ -1,3 +1,4 @@
+(local {: R} (require :hotpot.util))
 (local (M m) (values {} {}))
 
 (fn buf-write-post-callback [event]
@@ -6,12 +7,19 @@
   ;; containing dir as the context dir.
   ;; If both of these fail then do nothing.
   ;; (vim.print event)
-  (let [Context (require :hotpot.context)
+  (let [{: Context} R
         {:match path} event]
-    (case (Context.nearest path)
-      root (case (Context.new root)
-             ctx (Context.sync ctx)
-             (nil err) (vim.notify  err vim.log.level.ERROR {})))
+    (case-try
+      (pcall Context.nearest path) (true root)
+      (pcall Context.new root) (true ctx)
+      (pcall Context.sync ctx) (true _report)
+      nil
+      (catch
+        (false err) (vim.notify  err vim.log.level.ERROR {})))
+    ; (case (Context.nearest path)
+    ;   root (case (Context.new root)
+    ;          ctx (Context.sync ctx)
+    ;          (nil err) (vim.notify  err vim.log.level.ERROR {})))
     ;; return nil to retain cmd
     nil))
 
