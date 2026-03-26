@@ -176,7 +176,7 @@ the `schema` and `target` keys, as shown below.
 ```
 
 After creating the `.hotpot.fnl` file, open any `.fnl` file and save it to
-trigger a build, or use the `sync` [command](#commands). Mo
+trigger a build, or use the `sync` [command](#commands).
 
 See [Configuration](#configuration) for details on customising Hotpots
 behaviour, ignoring files or configuring the Fennel compiler.
@@ -267,23 +267,53 @@ have a `.hotpot.fnl` file.
 
 # API
 
-<!-- "the api" instead of "api" so it doesnt generate a dupilcate help tag -->
+Hotpot provides an API to compile and evaluate arbitrary Fennel code, as well
+as compiling files in a project. All interaction is done via a `context` object.
 
-Hotpot provides a number of functions for evaluating and compiling Fennel code,
-including helpers to easily operate on strings, selections and buffers for
-example.
+## `context(path|nil)`
 
-<!-- panvimdoc-ignore-start -->
+Creates a `context` object. Returns `context` or `nil, error`.
 
-See [`:h hotpot.api`](API.md).
+`path` may be:
 
-<!-- panvimdoc-ignore-end -->
+- A path to a file or directory that has a `.hotpot.fnl` in its file tree,
+- your Neovim config directory, even if that does not have a `.hotpot.fnl` file,
+- or `nil`.
 
-<!-- panvimdoc-include-comment
+If given a valid path, the `context` is loaded for use. If given `nil`, a
+default "api" context is created with no `sync` ability.
 
-See `:h hotpot.api`.
+## `context.compile(string)`
 
--->
+Compiles the given string, using the context compiler options. Returns the
+`compiled string` or `nil, error`
+
+Does *not* automatically apply any transform, which can be done manually by
+`context.transform` *if one is set for the context*.
+
+## `context.eval(string)`
+
+Evaluates the given string, using the context compiler options. Returns the
+`evaluated values` or `nil, error`
+
+Does *not* automatically apply any transform, which can be done manually by
+`context.transform` *if one is set for the context*.
+
+## `context.sync(options|nil)`
+
+Syncs the context by compiling files in the context. Returns `nil`.
+
+Supports the following options:
+
+- `force: true|false`: compile all files, even if they are up to date.
+
+Not available for "api" contexts, eg: those without any path given.
+
+## `context.transform(string, filename|nil)`
+
+Apply context transform to string, as defined in the context `.hotpot.fnl`. 
+
+Not available if no `transform` has been defined.
 
 # Commands
 

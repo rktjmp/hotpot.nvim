@@ -23,6 +23,10 @@
               :eval (bind-eval ctx)
               :sync (bind-sync ctx)
               :transform ctx.transform}]
+    (when ctx.transform
+      (set base.transform
+           (λ [source ?filename]
+             (ctx.transform source (or ?filename :--hotpot-api-transform)))))
     (when ctx.path
       (set base.path {:source ctx.path.source
                       :destination ctx.path.dest}))
