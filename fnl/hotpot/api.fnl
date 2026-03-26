@@ -3,12 +3,17 @@
 (fn bind-compile [ctx]
   (let [Context (require :hotpot.context)]
     (λ [source]
-      (pcall Context.compile-string ctx source {:filename :--hotpot-api-compile}))))
+      (case (pcall Context.compile-string ctx source {:filename :--hotpot-api-compile})
+        (true lua-code) (values lua-code)
+        (false err) (values nil err)))))
 
 (fn bind-eval [ctx]
-  (let [Context (require :hotpot.context)]
+  (let [Context (require :hotpot.context)
+        {: pack} (require :hotpot.util)]
     (λ [source]
-      (pcall Context.eval-string ctx source {:filename :--hotpot-api-eval}))))
+      (case (pack (pcall Context.eval-string ctx source {:filename :--hotpot-api-eval}))
+        [true &as returns] (unpack returns 2 returns.n)
+        [false err] (values nil err)))))
 
 (fn bind-sync [ctx]
   (let [Context (require :hotpot.context)]
@@ -27,7 +32,7 @@
       (set base.transform
            (λ [source ?filename]
              (ctx.transform source (or ?filename :--hotpot-api-transform)))))
-    (when ctx.path
+    (when (?. ctx :path :source)
       (set base.path {:source ctx.path.source
                       :destination ctx.path.dest}))
     base))

@@ -1,5 +1,11 @@
 (local {: HOTPOT_CONFIG_CACHE_ROOT : NVIM_CONFIG_ROOT} (require :hotpot.const))
 
+(local R
+  (setmetatable {} {:index (fn [t key]
+                             (let [mod (require (.. :hotpot. key))]
+                               (set (. t key) mod)
+                               (values mod)))}))
+
 (local (M m) (values {} {}))
 
 (fn file-mtime [path]
@@ -58,7 +64,8 @@
                   nil (error (string.format "Unable to continue with untrusted file: %s"
                                             path)))
         {: update-fennel-path
-         : restore-fennel-path} (m.make-fennel-path-modifiers fennel (vim.fs.dirname path))
+         : restore-fennel-path} (m.make-fennel-path-modifiers {:path {:source (vim.fs.dirname path)}}
+                                                              fennel)
         _ (update-fennel-path)
         (ok? def) (pcall fennel.eval content)
         _ (restore-fennel-path)]
@@ -276,7 +283,7 @@
       (values confirmations))
     (values {:compile? true :clean? true})))
 
-(λ m.make-fennel-path-modifiers [fennel directory-prefix]
+(λ m.make-fennel-path-modifiers [ctx fennel]
   ;; Insert the context source root into the search path, so our working
   ;; directory can be different to the context `.hotpot.fnl` file and still
   ;; have the correct macros be found. We can just insert the paths in front
@@ -285,29 +292,35 @@
   ;; Note we preference `<source>/fnl/?.fnl` over `<source>/?.fnl` as primarily
   ;; that should match most use cases. We do add both paths however, as eg: we
   ;; use `hotpot/test/macros.fnlm`, so test files must be able to do `import test.macros`.
-  (let [old-paths {:path fennel.path :macro-path fennel.macro-path}
-        new-paths {:path (table.concat [(.. directory-prefix :/fnl/?.fnl)
-                                        (.. directory-prefix :/fnl/?/init.fnl)
-                                        (.. directory-prefix :/?.fnl)
-                                        (.. directory-prefix :/?/init.fnl)
-                                        old-paths.path] ";")
-                   :macro-path (table.concat [(.. directory-prefix :/fnl/?.fnlm)
-                                              (.. directory-prefix :/fnl/?/init.fnlm)
-                                              (.. directory-prefix :/fnl/?.fnl)
-                                              (.. directory-prefix :/fnl/?/init-macros.fnl)
-                                              (.. directory-prefix :/fnl/?/init.fnl)
-                                              (.. directory-prefix :/?.fnlm)
-                                              (.. directory-prefix :/?/init.fnlm)
-                                              (.. directory-prefix :/?.fnl)
-                                              (.. directory-prefix :/?/init-macros.fnl)
-                                              (.. directory-prefix :/?/init.fnl)
-                                              old-paths.macro-path] ";")}]
-    {:update-fennel-path (fn []
-                           (set fennel.path new-paths.path)
-                           (set fennel.macro-path new-paths.macro-path))
-     :restore-fennel-path (fn []
-                            (set fennel.path old-paths.path)
-                            (set fennel.macro-path old-paths.macro-path))}))
+  (if (= :api ctx.kind)
+    {:update-fennel-path #nil
+     :restore-fennel-path #nil}
+    (let [directory-prefix ctx.path.source
+          _ (when (not directory-prefix)
+              (error (vim.inspect ctx)))
+          old-paths {:path fennel.path :macro-path fennel.macro-path}
+          new-paths {:path (table.concat [(.. directory-prefix :/fnl/?.fnl)
+                                          (.. directory-prefix :/fnl/?/init.fnl)
+                                          (.. directory-prefix :/?.fnl)
+                                          (.. directory-prefix :/?/init.fnl)
+                                          old-paths.path] ";")
+                     :macro-path (table.concat [(.. directory-prefix :/fnl/?.fnlm)
+                                                (.. directory-prefix :/fnl/?/init.fnlm)
+                                                (.. directory-prefix :/fnl/?.fnl)
+                                                (.. directory-prefix :/fnl/?/init-macros.fnl)
+                                                (.. directory-prefix :/fnl/?/init.fnl)
+                                                (.. directory-prefix :/?.fnlm)
+                                                (.. directory-prefix :/?/init.fnlm)
+                                                (.. directory-prefix :/?.fnl)
+                                                (.. directory-prefix :/?/init-macros.fnl)
+                                                (.. directory-prefix :/?/init.fnl)
+                                                old-paths.macro-path] ";")}]
+      {:update-fennel-path (fn []
+                             (set fennel.path new-paths.path)
+                             (set fennel.macro-path new-paths.macro-path))
+       :restore-fennel-path (fn []
+                              (set fennel.path old-paths.path)
+                              (set fennel.macro-path old-paths.macro-path))})))
 
 (λ M.new [?directory]
   "Create a new context object.
@@ -398,8 +411,7 @@
   (let [fennel (require :hotpot.fennel)
         compiler-options (vim.tbl_extend :force ctx.compiler {:filename meta.filename
                                                               :error-pinpoint false})
-        {: update-fennel-path
-         : restore-fennel-path} (m.make-fennel-path-modifiers fennel ctx.path.source)
+        {: update-fennel-path : restore-fennel-path} (m.make-fennel-path-modifiers ctx fennel)
         _ (update-fennel-path)
         (ok? val) (pcall fennel.compile-string fnl-source compiler-options)
         _ (restore-fennel-path)]
@@ -411,14 +423,11 @@
   "Eval the given string with the given context configuration.
 
   Returns result or raises error."
-  (fn pack [...]
-    (doto [...]
-      (tset :n (select :# ...))))
   (let [fennel (require :hotpot.fennel)
+        {: pack} (require :hotpot.util)
         compiler-options (vim.tbl_extend :force ctx.compiler {:filename meta.filename
                                                               :error-pinpoint false})
-        {: update-fennel-path
-         : restore-fennel-path} (m.make-fennel-path-modifiers fennel ctx.path.source)
+        {: update-fennel-path : restore-fennel-path} (m.make-fennel-path-modifiers ctx fennel)
         _ (update-fennel-path)
         returns (pack (pcall fennel.eval fnl-source compiler-options))
         _ (restore-fennel-path)]

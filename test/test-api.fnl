@@ -28,21 +28,26 @@
 (expect (= data-dir) output "destination is cache dir")
 
 ;; Can compile
-(local output (nvim:lua "local ok, val = ctx.compile('(.. :he :llo)')
+(local output (nvim:lua "local val, err = ctx.compile('(.. :he :llo)')
                         print(val)"))
 (expect "return (\"he\" .. \"llo\")" output "compiles code")
 
-(local output (nvim:lua "local ok, val = ctx.compile('.. :he :llo)')
-                        print(ok)"))
-(expect "false" output "handles compiling bad code")
+(local output (nvim:lua "local val, err = ctx.compile('.. :he :llo)')
+                        print(err)"))
+(expect true (~= "" output) "handles compiling bad code")
 
 ;; Can eval
-(local output (nvim:lua "local ok, val = ctx.eval('(.. :he :llo)')
+(local output (nvim:lua "local val = ctx.eval('(.. :he :llo)')
                         print(val)"))
 (expect "hello" output "evals code")
-(local output (nvim:lua "local ok, val = ctx.eval('.. :he :llo)')
-                        print(ok)"))
-(expect "false" output "handles evaling bad code")
+
+(local output (nvim:lua "local a, b, c = ctx.eval('(values 1 2 3)')
+                        print(a,b,c)"))
+(expect "1 2 3" output "evals multi return")
+
+(local output (nvim:lua "local val, err = ctx.eval('.. :he :llo)')
+                        print(err)"))
+(expect true (~= "" output) "handles evaling bad code")
 
 ;; Can sync
 (local fnl-path (create-file (path :config :fnl/abc.fnl)
@@ -52,5 +57,10 @@
                         print(ok)"))
 (expect "return {works = true}" (read-file lua-path)
         "can sync")
+
+;; can create api context
+(local output (nvim:lua "local ctx, err = api.context()
+                        vim.print(ctx.eval('(+ 1 1)'))"))
+(expect "2" output "API context works")
 
 (nvim:close)
