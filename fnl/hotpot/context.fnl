@@ -2,27 +2,29 @@
 
 (local (M m) (values {} {}))
 
-;;;; File ops
-(fn mtime [path]
+(fn file-mtime [path]
   (case (vim.uv.fs_stat path)
-    {: mtime} mtime
-    (nil err) (error err)))
-
-(fn missing? [path]
-  (case (vim.uv.fs_stat path)
-    nil true
-    _ false))
+    {:mtime {: sec : nsec}} {:equal? (fn [this other]
+                                       (and (= sec other.sec) (= nsec other.nsec)))
+                             :after? (fn [this other]
+                                       (or (< other.sec sec)
+                                           (and (= other.sec sec) (< other.nsec nsec))))
+                             :before? (fn [this other]
+                                        (or (< sec other.sec)
+                                            (and (= sec other.sec) (< nsec other.nsec))))
+                             : path
+                             : sec
+                             : nsec}
+    (nil err) nil))
 
 (fn read-file! [path]
-  ;; (string) :: table | false errors
   (with-open [fh (assert (io.open path :r) (.. "fs.read-file! io.open failed:" path))]
-             (fh:read :*a)))
+    (fh:read :*a)))
 
 (fn write-file! [path lines]
-  ;; (string string) :: true | false errors
   (assert (= :string (type lines)) "write file expects string")
   (with-open [fh (assert (io.open path :w) (.. "fs.write-file! io.open failed:" path))]
-             (fh:write lines)))
+    (fh:write lines)))
 
 (fn base-spec []
   {:schema :hotpot/2
@@ -148,31 +150,23 @@
                     path))]
     orphans))
 
-(fn a-newer-than-b? [mtime1 mtime2]
-  (let [{:sec s1 :nsec n1} mtime1
-        {:sec s2 :nsec n2} mtime2]
-    (or (and (= s2 s1) (< n2 n1))
-        (< s2 s1))))
-
 (λ m.filter-stale-source-files [files]
   (let [{: fnl : fnlm} files
-        fnlm-mtime (accumulate [newest-mtime {:sec 0 :nsec 0} _ {: fnl-abs} (ipairs fnlm)]
-                     (let [this-mtime (mtime fnl-abs)]
-                       (if (a-newer-than-b? this-mtime newest-mtime)
+        fnlm-mtime (accumulate [newest-mtime {:sec 0 :nsec 0 :after? #false} _ {: fnl-abs} (ipairs fnlm)]
+                     (let [this-mtime (file-mtime fnl-abs)]
+                       (if (this-mtime:after? newest-mtime)
                          this-mtime
                          newest-mtime)))
         needs-compiling (icollect [_ {: fnl-abs : lua-abs &as file} (ipairs fnl)]
-                          (let [lua-mtime (case (pcall mtime lua-abs)
-                                            (true mtime) mtime
-                                            ;; missing is as good as "very old"
-                                            (false _) {:sec 0 :nsec 0})
-                                fnl-mtime (mtime fnl-abs)]
+                          (let [lua-mtime (file-mtime lua-abs)
+                                fnl-mtime (file-mtime fnl-abs)]
                             ;; Rebuild lua file if its counterpart fnl file has
                             ;; been updated more recently than its last build,
-                            ;; or if _any_ fnlm file has been updated since its
-                            ;; last build.
-                            (when (or (a-newer-than-b? fnlm-mtime lua-mtime)
-                                    (a-newer-than-b? fnl-mtime lua-mtime))
+                            ;; or if _any_ fnlm file has been updated since the
+                            ;; lua file was created.
+                            (when (or (not lua-mtime)
+                                      (fnl-mtime:after? lua-mtime)
+                                      (fnlm-mtime:after? lua-mtime))
                               file)))]
     needs-compiling))
 
@@ -289,7 +283,7 @@
   of that."
   (case ?directory
     directory (let [root (-> (vim.fs.normalize directory)
-                             ;; TODO this can error
+                             ;; TODO this can error if the path does not exist
                              (vim.uv.fs_realpath))
                     path (vim.fs.joinpath root :.hotpot.fnl)
                     dot-hotpot-exists? (~= nil (vim.uv.fs_stat path))
