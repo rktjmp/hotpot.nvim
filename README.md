@@ -43,7 +43,7 @@ allows you to write your Neovim config and plugins in Fennel.
 
 # Installation
 
-Install with your package manager and call `require("hotpot")` early in your `init.lua`.
+Install with your package manager.
 
 ```lua
 -- init.lua
@@ -51,7 +51,6 @@ vim.pack.add({
   {src = "https://github.com/rktjmp/hotpot.nvim",
    version = vim.version.range("~2.0.0")}
 })
-require("hotpot")
 -- then most users will require their "config" module stored in `fnl/config/...`
 require("config")
 ```
@@ -95,9 +94,12 @@ local hotpot_path = ensure_installed("rktjmp/hotpot.nvim", "v2.0.0")
 -- As per Lazy's install instructions, but also include hotpot
 vim.opt.runtimepath:prepend({hotpot_path, lazy_path})
 
--- require hotpot module before lazy to ensure the module is loaded 
--- into memory before lazy alters neovims behaviour.
+-- Important! When using Lazy.nvim you *must* require hotpot module
+-- before lazy to ensure the module is loaded into memory prior to
+-- lazy altering neovims behaviour.
 require("hotpot")
+
+-- require the rest of your config
 require("config")
 ```
 
