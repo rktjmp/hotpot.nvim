@@ -456,12 +456,12 @@
         source-files (m.find-source-files ctx)
         stale-files (m.sync-plan-compile ctx source-files options.force?)
         clean-files (m.sync-plan-clean ctx source-files)
-        {:ok output-files :errors failed-compiles} (m.sync-compile ctx stale-files)
-        has-errors? (< 0 (length failed-compiles))
+        {:ok compile-oks :errors compile-errors} (m.sync-compile ctx stale-files)
+        has-errors? (< 0 (length compile-errors))
         atomic-ok? (or (not has-errors?) (not ctx.atomic?))
-        success-messages (icollect [_ {: fnl-abs : lua-abs} (ipairs output-files)]
+        success-messages (icollect [_ {: fnl-abs : lua-abs} (ipairs compile-oks)]
                            [(string.format "☑  %s\n-> %s\n" fnl-abs lua-abs) :DiagnosticOk])
-        error-messages (icollect [_ {: fnl-abs : lua-abs : error} (ipairs failed-compiles)]
+        error-messages (icollect [_ {: fnl-abs : lua-abs : error} (ipairs compile-errors)]
                          [(string.format "☒  %s\n-> %s\n%s\n" fnl-abs lua-abs error) :DiagnosticWarn])
         clean-messages (icollect [_ lua-abs (ipairs clean-files)]
                          [(string.format "rm %s\n" lua-abs) :DiagnosticInfo])
@@ -480,7 +480,7 @@
       ;; some larger number of orphans, we confirm the user is OK with this.
       (let [{: compile? : clean?} (m.sync-plan-confirm ctx stale-files clean-files)]
         (when compile?
-          (m.sync-write ctx output-files)
+          (m.sync-write ctx compile-oks)
           (when ctx.verbose?
             (vim.list_extend report success-messages))
           (vim.list_extend report error-messages))
@@ -497,6 +497,10 @@
     (when (< 0 (length report))
       (vim.api.nvim_echo report true {}))
 
-    nil))
+    {:sources source-files
+     :compiled (icollect [_ v (ipairs compile-oks)]
+                 (doto v (tset :source nil)))
+     :errors compile-errors
+     :cleaned clean-files}))
 
 M

@@ -798,15 +798,15 @@ M.sync = function(ctx, _3foptions)
   local stale_files = m["sync-plan-compile"](ctx, source_files, options["force?"])
   local clean_files = m["sync-plan-clean"](ctx, source_files)
   local _let_143_ = m["sync-compile"](ctx, stale_files)
-  local output_files = _let_143_.ok
-  local failed_compiles = _let_143_.errors
-  local has_errors_3f = (0 < #failed_compiles)
+  local compile_oks = _let_143_.ok
+  local compile_errors = _let_143_.errors
+  local has_errors_3f = (0 < #compile_errors)
   local atomic_ok_3f = (not has_errors_3f or not ctx["atomic?"])
   local success_messages
   do
     local tbl_26_ = {}
     local i_27_ = 0
-    for _, _144_ in ipairs(output_files) do
+    for _, _144_ in ipairs(compile_oks) do
       local fnl_abs = _144_["fnl-abs"]
       local lua_abs = _144_["lua-abs"]
       local val_28_ = {string.format("\226\152\145  %s\n-> %s\n", fnl_abs, lua_abs), "DiagnosticOk"}
@@ -822,7 +822,7 @@ M.sync = function(ctx, _3foptions)
   do
     local tbl_26_ = {}
     local i_27_ = 0
-    for _, _146_ in ipairs(failed_compiles) do
+    for _, _146_ in ipairs(compile_errors) do
       local fnl_abs = _146_["fnl-abs"]
       local lua_abs = _146_["lua-abs"]
       local error = _146_.error
@@ -866,7 +866,7 @@ M.sync = function(ctx, _3foptions)
     local compile_3f = _let_151_["compile?"]
     local clean_3f = _let_151_["clean?"]
     if compile_3f then
-      m["sync-write"](ctx, output_files)
+      m["sync-write"](ctx, compile_oks)
       if ctx["verbose?"] then
         vim.list_extend(report0, success_messages)
       else
@@ -891,6 +891,24 @@ M.sync = function(ctx, _3foptions)
     vim.api.nvim_echo(report0, true, {})
   else
   end
-  return nil
+  local _158_
+  do
+    local tbl_26_ = {}
+    local i_27_ = 0
+    for _, v in ipairs(compile_oks) do
+      local val_28_
+      do
+        v["source"] = nil
+        val_28_ = v
+      end
+      if (nil ~= val_28_) then
+        i_27_ = (i_27_ + 1)
+        tbl_26_[i_27_] = val_28_
+      else
+      end
+    end
+    _158_ = tbl_26_
+  end
+  return {sources = source_files, compiled = _158_, errors = compile_errors, cleaned = clean_files}
 end
 return M

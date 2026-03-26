@@ -301,7 +301,7 @@ Does *not* automatically apply any transform, which can be done manually by
 
 ## `context.sync(options|nil)`
 
-Syncs the context by compiling files in the context. Returns `nil`.
+Syncs the context by compiling files in the context. Returns `report table`.
 
 Supports the following options:
 
