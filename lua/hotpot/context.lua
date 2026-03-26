@@ -682,7 +682,7 @@ m["make-fennel-path-modifiers"] = function(fennel, directory_prefix)
   else
   end
   local old_paths = {path = fennel.path, ["macro-path"] = fennel["macro-path"]}
-  local new_paths = {path = table.concat({(directory_prefix .. "/fnl/?.fnl"), (directory_prefix .. "/fnl/?/init.fnl"), old_paths.path}, ";"), ["macro-path"] = table.concat({(directory_prefix .. "/fnl/?.fnlm"), (directory_prefix .. "/fnl/?/init.fnlm"), (directory_prefix .. "/fnl/?.fnl"), (directory_prefix .. "/fnl/?/init-macros.fnl"), (directory_prefix .. "/fnl/?/init.fnl"), old_paths["macro-path"]}, ";")}
+  local new_paths = {path = table.concat({(directory_prefix .. "/fnl/?.fnl"), (directory_prefix .. "/fnl/?/init.fnl"), (directory_prefix .. "/?.fnl"), (directory_prefix .. "/?/init.fnl"), old_paths.path}, ";"), ["macro-path"] = table.concat({(directory_prefix .. "/fnl/?.fnlm"), (directory_prefix .. "/fnl/?/init.fnlm"), (directory_prefix .. "/fnl/?.fnl"), (directory_prefix .. "/fnl/?/init-macros.fnl"), (directory_prefix .. "/fnl/?/init.fnl"), (directory_prefix .. "/?.fnlm"), (directory_prefix .. "/?/init.fnlm"), (directory_prefix .. "/?.fnl"), (directory_prefix .. "/?/init-macros.fnl"), (directory_prefix .. "/?/init.fnl"), old_paths["macro-path"]}, ";")}
   local function _118_()
     fennel.path = new_paths.path
     fennel["macro-path"] = new_paths["macro-path"]
@@ -697,15 +697,15 @@ m["make-fennel-path-modifiers"] = function(fennel, directory_prefix)
 end
 M["compile-string"] = function(ctx, fnl_source, meta)
   if (nil == meta) then
-    _G.error("Missing argument meta on fnl/hotpot/context.fnl:343", 2)
+    _G.error("Missing argument meta on fnl/hotpot/context.fnl:356", 2)
   else
   end
   if (nil == fnl_source) then
-    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:343", 2)
+    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:356", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:343", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:356", 2)
   else
   end
   local fennel = require("hotpot.fennel")
@@ -730,7 +730,7 @@ M["compile-string"] = function(ctx, fnl_source, meta)
 end
 M.sync = function(ctx, _3foptions)
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:370", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:373", 2)
   else
   end
   local options = (_3foptions or {["force?"] = false})
