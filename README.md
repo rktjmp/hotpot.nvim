@@ -145,7 +145,7 @@ this is untested.*
 (let [lazy (require :lazy)
       api (require :hotpot.api)
       context (api.context (vim.stdpath :config))]
-  (lazy.setup {:performance {:rtp {:paths [context.path.destination]}}))
+  (lazy.setup {:performance {:rtp {:paths [context.locate("destination")]}}))
 ```
 
 </details>
@@ -295,6 +295,14 @@ as compiling files in a project. All interaction is done via a `context` object.
 
 Creates a `context` object. Returns `context` or `nil, error`.
 
+All other API interactions are performed through the `context` object.
+
+```fennel
+(let [api (require :hotpot.api)
+      ctx (api.context (vim.fn.stdpath :config))]
+  (ctx.eval "(+ 1 1)"))
+```
+
 `path` may be:
 
 - A path to a file or directory that has a `.hotpot.fnl` in its file tree,
@@ -339,6 +347,15 @@ Not available for "api" contexts, eg: those without any path given.
 Apply context transform to string, as defined in the context `.hotpot.fnl`. 
 
 Not available if no `transform` has been defined.
+
+## `context.locate(string)`
+
+Convert given path into its counterpart, eg: given a `.fnl` file path inside
+the context source, convert it to the `.lua` file path in the context
+destination.
+
+Accepts `.fnl` or `.lua` file paths. Will construct paths for files that do not
+exist if desired.
 
 # Commands
 

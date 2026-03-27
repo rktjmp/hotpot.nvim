@@ -24,17 +24,51 @@
         ;; TODO: whitelist options?
         (pcall R.context.sync ctx ?options))))
 
+(fn bind-locate [ctx]
+  (case ctx
+    {:kind :api} nil
+    _ (λ [what]
+        (case what
+          :source ctx.path.source
+          :destination ctx.path.dest
+          ;; We support resolving made up files as this may be useful so try to
+          ;; get the real path but if we can't just use what was given.
+          path (let [real-path (or (vim.uv.fs_realpath path) path)
+                     {:const {: NVIM_CONFIG_ROOT}} R
+                     init-fnl (vim.fs.joinpath NVIM_CONFIG_ROOT :init.fnl)
+                     init-lua (vim.fs.joinpath NVIM_CONFIG_ROOT :init.lua)
+                     ext (string.match real-path "%.([^%.]+)$")]
+                 (case (values real-path ext)
+                   (where (= init-fnl ) _) init-lua
+                   (where (= init-lua ) _) init-fnl
+                   ;; asking where fnlm files are is weird but, well, its right there...?
+                   (_ :fnlm) real-path
+                   ;; convert into dest
+                   (_ :fnl)
+                   (case (vim.fs.relpath ctx.path.source path)
+                     rel-path (let [renamed (-> (string.gsub rel-path "^fnl/" "lua/")
+                                                (string.gsub "%.fnl$" ".lua"))]
+                                (vim.fs.joinpath ctx.path.dest renamed))
+                     nil (values nil (string.format "%s not under context source %s" path ctx.path.source)))
+                   ;; convert into source, which means swapping the extension to fnl
+                   ;; and updating any leading /lua/ to /fnl/.
+                   (_ :lua)
+                   (case (vim.fs.relpath ctx.path.dest path)
+                     rel-path (let [renamed (-> (string.gsub "^lua/" "fnl/")
+                                                (string.gsub "%.lua$" ".fnl"))]
+                                (vim.fs.joinpath ctx.path.source renamed))
+                     nil (values nil (string.format "%s not under context destination %s" path ctx.path.dest)))
+                   (_ ext) (values nil (string.format "Unsupported extension %s, must be .fnl, .fnlm and .lua" ext))))))))
+
 (fn bind-context [ctx]
   (let [base {:compile (bind-compile ctx)
               :eval (bind-eval ctx)
-              :sync (bind-sync ctx)}]
+              :sync (bind-sync ctx)
+              :locate (bind-locate ctx)}]
     (when ctx.transform
       (set base.transform
            (λ [source ?filename]
              (ctx.transform source (or ?filename :--hotpot-api-transform)))))
-    (when (?. ctx :path :source)
-      (set base.path {:source ctx.path.source
-                      :destination ctx.path.dest}))
     base))
 
 (λ M.context [?path]
