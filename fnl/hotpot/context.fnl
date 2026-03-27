@@ -449,9 +449,13 @@
   By default this only compiles stale files, where the .lua counterparts are
   older than the .fnl sources, or if any .fnlm file is newer, all files are
   considered stale."
-  (let [force? (or (?. ?options :force?) false)
-        verbose? (or (?. ?options :verbose?) ctx.verbose? false)
-        atomic? (or (?. ?options :atomic?) ctx.atomic? true)
+  (fn option-if-set [key]
+    (case (?. ?options key)
+      nil (. ctx key)
+      val val))
+  (let [force? (or (option-if-set :force?) false)
+        atomic? (option-if-set :atomic?)
+        verbose? (option-if-set :verbose?)
         extra-compiler-options (or (?. ?options :compiler) {})
         report {:format []
                 :summary []
