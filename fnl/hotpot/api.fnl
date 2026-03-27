@@ -2,12 +2,20 @@
 (local (M m) (values {} {}))
 
 (fn bind-compile [ctx]
-  (λ [source]
-    (pcall R.context.compile-string ctx source {:filename :--hotpot-api-compile})))
+  (λ [source ?options]
+    (pcall R.context.compile-string
+           ctx source
+           (vim.tbl_extend :force
+                           (or ?options {})
+                           {:filename :--hotpot-api-compile}))))
 
 (fn bind-eval [ctx]
-  (λ [source]
-    (pcall R.context.eval-string ctx source {:filename :--hotpot-api-eval})))
+  (λ [source ?options]
+    (pcall R.context.eval-string
+           ctx source
+           (vim.tbl_extend :force
+                           (or ?options {})
+                           {:filename :--hotpot-api-eval}))))
 
 (fn bind-sync [ctx]
   (case ctx

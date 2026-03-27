@@ -2,22 +2,22 @@ local _local_1_ = require("hotpot.util")
 local R = _local_1_.R
 local M, m = {}, {}
 local function bind_compile(ctx)
-  local function _2_(source)
+  local function _2_(source, _3foptions)
     if (nil == source) then
       _G.error("Missing argument source on fnl/hotpot/api.fnl:5", 2)
     else
     end
-    return pcall(R.context["compile-string"], ctx, source, {filename = "--hotpot-api-compile"})
+    return pcall(R.context["compile-string"], ctx, source, vim.tbl_extend("force", (_3foptions or {}), {filename = "--hotpot-api-compile"}))
   end
   return _2_
 end
 local function bind_eval(ctx)
-  local function _4_(source)
+  local function _4_(source, _3foptions)
     if (nil == source) then
-      _G.error("Missing argument source on fnl/hotpot/api.fnl:9", 2)
+      _G.error("Missing argument source on fnl/hotpot/api.fnl:13", 2)
     else
     end
-    return pcall(R.context["eval-string"], ctx, source, {filename = "--hotpot-api-eval"})
+    return pcall(R.context["eval-string"], ctx, source, vim.tbl_extend("force", (_3foptions or {}), {filename = "--hotpot-api-eval"}))
   end
   return _4_
 end
@@ -37,7 +37,7 @@ local function bind_context(ctx)
   if ctx.transform then
     local function _8_(source, _3ffilename)
       if (nil == source) then
-        _G.error("Missing argument source on fnl/hotpot/api.fnl:25", 2)
+        _G.error("Missing argument source on fnl/hotpot/api.fnl:33", 2)
       else
       end
       return ctx.transform(source, (_3ffilename or "--hotpot-api-transform"))
