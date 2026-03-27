@@ -1,14 +1,15 @@
 (when (= nil _G.__hotpot_disable_version_check)
   (assert (= 1 (vim.fn.has "nvim-0.11.6")) "Hotpot requires neovim 0.11.6"))
+(local {: R} (require :hotpot.util))
 
-(local {: HOTPOT_CONFIG_CACHE_ROOT} (require :hotpot.const))
+(local {: HOTPOT_CONFIG_CACHE_ROOT} R.const)
 
 ;; If the cache dir (in site/pack/hotpot/opt/config) does not exist, we should create it.
 ;; If its missing its also an indication that we might be booting hotpot for
 ;; the first time and should attempt an initial context sync.
 (case (vim.uv.fs_stat HOTPOT_CONFIG_CACHE_ROOT)
   nil (let [_ (vim.fn.mkdir HOTPOT_CONFIG_CACHE_ROOT "p")
-            Context (require :hotpot.context)
+            {: Context} R
             ctx (Context.new (vim.fn.stdpath :config))]
         ;; TODO: pcall this so we dont crash loading?
         (Context.sync ctx))
@@ -24,8 +25,9 @@
 (vim.cmd.packadd (vim.fs.basename HOTPOT_CONFIG_CACHE_ROOT))
 
 ;; The fennel filetype autocommand does most of the orchestration work.
-(let [autocmd (require :hotpot.autocmd)]
-  (autocmd.enable))
+(let [{: autocmd : command} R]
+  (autocmd.enable)
+  (command.enable))
 
 ;; Setup `require("fennel")` to work.
 (tset package.preload :fennel #(require :hotpot.fennel))
