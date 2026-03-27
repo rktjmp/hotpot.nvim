@@ -39,14 +39,30 @@ allows you to write your Neovim config and plugins in Fennel.
 # Version 2
 
 > [!IMPORTANT]
-> Version 2 of Hotpot has a different configuration style and altered feature
-> set. It is incompatible with Version 1. See [Changes from Version
-> 1](#changes-from-version-1)
+> Hotpot version 2's configuration is incompatible with version 1 (*née*
+> version 0). For most users, the migration should be simple, see [migrating
+> from version 1](#migrating-from-version-1).
+>
+> **The most dramatic change to all users is the requirement that all macro
+> files must use the extension `.fnlm`.**
+>
+> If you are unable or do not want to update your configuration, pin your
+> plugin manager version to the `v1.0.0` tag.
+>
+> Version 2 has a simpler configuration, better support for directories such as
+> `lsp` as well as improved support working in multiple project directories
+> with isolated configuration.
+>
+> See [Changes from Version 1](#changes-from-version-1)
+
+> [!WARNING]
+> Again, The most dramatic change to all users is the requirement that **all macro
+> files must use the extension `.fnlm`.**
 
 # Requirements
 
 - Neovim 0.11.6+
-  - Probably it works on `~0.10.x+` but it's untested. If youre unable to
+  - Probably it works on `~0.10.x+` but it's untested. If you're unable to
     upgrade, you can set `_G.__hotpot_disable_version_check = true` before
     `require('hotpot')`.
 - ~~Fanatical devotion to parentheses.~~
@@ -62,6 +78,7 @@ vim.pack.add({
    version = vim.version.range("~2.0.0")}
 })
 -- then most users will require their "config" module stored in `fnl/config/...`
+-- there is no need to call `require("hotpot")`.
 require("config")
 ```
 
@@ -98,24 +115,26 @@ local function ensure_installed(plugin, branch)
   return repo_path
 end
 
--- Install hotpot in the same manner as lazy, via ensure_installed
+-- Install hotpot in the same manner as lazy.nvim, into Lazy's own plugin directory.
 local lazy_path = ensure_installed("folke/lazy.nvim", "stable")
 local hotpot_path = ensure_installed("rktjmp/hotpot.nvim", "v2.0.0")
 -- As per Lazy's install instructions, but also include hotpot as
--- we have installed it to lazy's managed directory outside of nvims
+-- we have installed it to lazy.nvim's managed directory outside of Neovim's
 -- runtimepath.
 vim.opt.runtimepath:prepend({hotpot_path, lazy_path})
 
--- Important! When using Lazy.nvim you *must* require hotpot module
--- before lazy to ensure the module is loaded into memory prior to
--- lazy altering neovims behaviour.
+-- Important! When using Lazy.nvim you *must* require the hotpot module
+-- before Lazy.nvim to ensure the module is loaded into memory prior to
+-- lazy.nvim altering neovims behaviour.
 require("hotpot")
 
 -- require the rest of your config
 require("config")
 ```
 
-*You must also include hotpot in your plugins list for lazy to correctly manage updates.*
+*You must also include Hotpot in your plugins list for Lazy.nvim to correctly manage
+updates. You may be able to lazy-load Hotpot by `fnl` and `fnlm` filetype but
+this is untested.*
 
 ```fnl
 ;; fnl/config/init.fnl
@@ -133,16 +152,17 @@ require("config")
 
 # Usage
 
-In general, anything you would put in `lua/` should be put in `fnl/`, otherwise
-put `.fnl` files in the standard runtime directories such as `lsp/` or
-`ftplugin/`.
+In general, anything you would put in `lua/` should be put in `fnl/`,
+otherwise, put `.fnl` files in the standard runtime directories such as `lsp/`
+or `ftplugin/`.
 
 ## `~/.config/nvim`
 
-By default, Hotpot store any compiled `.lua` files in a separate location to
-maintain a clean directory tree, so you won't see any `.lua` files, with one
-exception: `.config/nvim/init.fnl` will always compile to
-`.config/nvim/init.lua`.
+By default, Hotpot stores any compiled `.lua` files in a separate location to
+maintain a clean directory tree, so you won't see any `.lua` files.
+
+There is one special exception to the above: **`.config/nvim/init.fnl` will
+always compile to `.config/nvim/init.lua`.**
 
 You should be set to begin writing Fennel code by placing `.fnl` files inside
 `fnl/` or other runtime directories.
@@ -157,7 +177,7 @@ You should be set to begin writing Fennel code by placing `.fnl` files inside
 (print :setup-some-lsp)
 ```
 
-To configure some of Hotpots behaviour such as colocating `.lua`, ignoring
+To configure some of Hotpot's behaviour such as colocating `.lua`, ignoring
 files or configuring the Fennel compiler, see [Configuration](#configuration).
 
 ## Plugins
@@ -165,7 +185,7 @@ files or configuring the Fennel compiler, see [Configuration](#configuration).
 When writing plugins in Fennel, you'll want to ship `.lua` code to users, so we
 must "colocate" the `.fnl` and `.lua` files.
 
-To enable fennel compilation for a plugin, we must place a `.hotpot.fnl` file
+To enable Fennel compilation for a plugin, we must place a `.hotpot.fnl` file
 in the root of the plugin directory. At a bare minimum, this file must specify
 the `schema` and `target` keys, as shown below.
 
@@ -178,27 +198,29 @@ the `schema` and `target` keys, as shown below.
 After creating the `.hotpot.fnl` file, open any `.fnl` file and save it to
 trigger a build, or use the `sync` [command](#commands).
 
-See [Configuration](#configuration) for details on customising Hotpots
+See [Configuration](#configuration) for details on customising Hotpot's
 behaviour, ignoring files or configuring the Fennel compiler.
 
 ## Macros
 
-Hotpot requires that fennel macro files **must** use the modern `.fnlm`
-extension. Regular fennel modules should use the `.fnl` extension.
+> [!IMPORTANT]
+> Hotpot requires that Fennel macro files **must** use the modern `.fnlm`
+> extension. Regular Fennel modules should use the `.fnl` extension.
 
 # Configuration
 
-All of hotpots behaviour is configured by a `.hotpot.fnl` file, placed in the
+All of Hotpot's behaviour is configured by a `.hotpot.fnl` file, placed in the
 root of your config or plugin directory.
 
-These files are independent from one another and only effect behaviour in the
+These files are independent of one another and only alter behaviour in the
 same tree.
 
-Note that if there is no `.hotpot.fnl` file in Neovims config directory, a
+Note that if there is no `.hotpot.fnl` file in Neovim's config directory, a
 default configuration is loaded. This is not the case for plugins, which *must*
 have a `.hotpot.fnl` file.
 
 ```fennel
+;; .hotpot.fnl
 {
  ;; Required, string, valid: hotpot/2
  ;; Describes expected schema for table.
@@ -209,10 +231,11 @@ have a `.hotpot.fnl` file.
  ;; tree" in a directory loadable by neovim, `colocate` places lua files "in
  ;; tree", next to their fennel counterparts.
  ;;
- ;; When no `.hotpot.fnl` file is present, the default value for the `config`
- ;; is `cache`, but may be set to `colocate`.
+ ;; When no `.hotpot.fnl` file is present in your config directory,
+ ;; the target defaults to :cache. You may set it to :colocate by adding a
+ ;; .hotpot.fnl file.
  ;; Be aware that its the users responsibility to remove previously
- ;; generated lua files when swapping targets.
+ ;; generated lua files when swapping targets in either direction.
  ;;
  ;; For plugins, the only valid value is `colocate`.
  :target :cache
@@ -220,8 +243,8 @@ have a `.hotpot.fnl` file.
  ;; All other keys are optional.
 
  ;; Optional, boolean
- ;; If true (default), any 1 compilation error will prevent all updated
- ;; files from being written.
+ ;; If true (default), any single compilation error will prevent any changes
+ ;; from being written.
  :atomic? true
 
  ;; Optional, boolean
@@ -248,16 +271,15 @@ have a `.hotpot.fnl` file.
  ;; Fennel compiler options, passed directly to `fennel.compile-string`.
  ;;
  ;; Hotpot enables strict global checking by default to prevent referencing
- ;; unknown or misspelled variables. To restore Fennels default
+ ;; unknown or misspelled variables. To restore Fennel's default
  ;; behaviour, you can set `allowedGlobals` to `false`.
  ;;
- ;; If you wish to reference `vim` in your macros, you should set the
- ;; `extra-compiler-env` option to `:extra-compiler-env {: vim}`.
+ ;; If you wish to reference `vim` in your macros, set `:extra-compiler-env {: vim}`.
  ;;
  ;; Note that `error-pinpoint` is always forced to false and `filename` is
  ;; always set to the correct value.
  ;;
- ;; See Fennels own API documentation and --help for further details.
+ ;; See Fennel's own API documentation and --help for further details.
  :compiler {:allowedGlobals (icollect [k _ (pairs _G)] k)
             :extra-compiler-env {: vim}
             :error-pinpoint false}
@@ -280,20 +302,21 @@ Creates a `context` object. Returns `context` or `nil, error`.
 - or `nil`.
 
 If given a valid path, the `context` is loaded for use. If given `nil`, a
-default "api" context is created with no `sync` ability.
+default "api" context is created which does not support some operations that
+require disk paths, such as `sync`.
 
-## `context.compile(string)`
+## `context.compile(string, compiler-options)`
 
-Compiles the given string, using the context compiler options. Returns the
-`true, compiled string` or `false, error`
+Compiles the given string, using the context compiler options. Returns `true,
+compiled string` or `false, error`>
 
 Does *not* automatically apply any transform, which can be done manually by
 `context.transform` *if one is set for the context*.
 
-## `context.eval(string)`
+## `context.eval(string, compiler-options)`
 
-Evaluates the given string, using the context compiler options. Returns the
-`true, ...evaluated values` or `false, error`
+Evaluates the given string, using the context compiler options. Returns `true,
+...evaluated values` or `false, error`.
 
 Does *not* automatically apply any transform, which can be done manually by
 `context.transform` *if one is set for the context*.
@@ -305,9 +328,9 @@ Syncs the context by compiling files in the context. Returns `report table`.
 Supports the following options:
 
 - `force?`: force compilation of all files in the context, even if the `.lua` is up to date.
-- `atomic?`: allow writing successfully compiled files even if others have compiliation errors.
+- `atomic?`: allow writing successfully compiled files even if others have compilation errors.
 - `verbose?`: output additional compilation messages.
-- `compiler`: additional fennel compiler options.
+- `compiler`: additional Fennel compiler options.
 
 Not available for "api" contexts, eg: those without any path given.
 
@@ -325,14 +348,14 @@ The `:Hotpot` command interacts with Hotpot (*surprise!*). It exposes the follow
 
 ### `sync`
 
-"Sync" a given contexts `.fnl` and `.lua` files. This is the same operation
-that occurs when you save a `.fnl` or `.fnlm` file.
+Sync a given context's `.fnl` and `.lua` files. This is the same operation that
+occurs when you save a `.fnl` or `.fnlm` file.
 
 `:Hotpot sync` supports the following parameters:
 
 - `context=<path>`: sets the context for the command, if not given, the current working directory is used.
 - `force`: force compilation of all files in the context, even if the `.lua` is up to date.
-- `atomic`: allow writing successfully compiled files even if others have compiliation errors.
+- `atomic`: allow writing successfully compiled files even if others have compilation errors.
 - `verbose`: output additional compilation messages.
 
 ### `watch`
@@ -346,10 +369,10 @@ Enable or disable the compile-on-save behaviour.
 
 ## `:Fnl`
 
-Evaulate either the command line provided fennel, or a range from the current
-buffer either specified on the commandline or by selection.
+Evaluates either the command line provided Fennel, or a range from the current
+buffer either specified on the command line or by selection.
 
-This command is analogous to Neovims built in `:lua` command, and supports the
+This command is analogous to Neovim's built in `:lua` command, and supports the
 same `=` output toggle, eg: `:Fnl= (+ 1 2)` will output `3`, where as `:Fnl (+
 1 2)` will silently evaluate the code.
 
@@ -359,18 +382,44 @@ Evaluates the given file, also supports `:Fnlfile= file` to output the results.
 
 ## `:source {file.fnl}`
 
-See `:h :source`
+Sources given `.fnl` file. See `:h :source`
+
+# Migrating from Version 1
+
+>[!IMPORTANT]
+> You **must** update all macro files to use the the `.fnlm` extension.
+
+For many users who have not explicitly configure Hotpot, after renaming any
+macro files to `.fnlm`, version 2 should work automatically. You should
+re-check the [installation](#installation) instructions if you are using
+*Lazy.nvim* to ensure your settings are correct.
+
+If you have specifically configured compiler options (via the
+`compiler.macros`/`compiler.modules` setup options) or use a `.hotpot.lua`
+file, you will need to migrate to a `.hotpot.fnl` file. See
+[configuration](#configuration) for details on `.hotpot.fnl`.
+
+You no longer need to provide separate `macros` and `modules` compiler
+tables. Your compiler options are specified in the `compiler` key in your
+`.hotpot.fnl` file.
+
+The [API](#api) has been simplified but with simplification, some previously
+provided functions have been removed, eg: there is now only `eval(source,
+options)`, no `eval-buffer`, `eval-file`, etc.
+
+Previously Hotpot provided in-editor diagnostics. These have been removed in
+favour of more complete solutions provided by LSP servers.
 
 # Changes from Version 1
 
-- **No more Just in Time, now a Ahead of Time compiler**
-  - Hotpot now compiles all fennel files that require compiling on save,
+- **No more Just in Time, now an Ahead of Time compiler**
+  - Hotpot now compiles all Fennel files that require compiling on save,
     instead of on-demand (i.e. on `require()`). This change was made for better
     compatibility with things such as the `lsp/` runtime directory.
   - You can still "hide" `.lua` files from your config, this is still the default behaviour.
 - **Better support for different compiler contexts**
   - `.hotpot.fnl` supports configuring different directories with different
-    compiler options and editing files in one plugin directory while the
+    compiler options and editing files in one plugin directory while your
     current working directory is elsewhere works better.
 - **Macro files must use the extension `.fnlm`**
   - This is the modern Fennel way, no concessions are currently made to support
@@ -378,12 +427,12 @@ See `:h :source`
 - **`.hotpot.lua` is now `.hotpot.fnl`**
   - See [configuration](#configuration), most of the same features exist, providing
     direct access to the compiler options, transforming source code and
-    including/ignoring files. You can no-longer redirect files on a case-by-case
+    including/ignoring files. You can no longer redirect files on a case-by-case
     basis, either all are in cache or colocated (special case for
     `<config>/init.fnl` which is always colocated).
 - **Diagnostics (in-editor compiler warnings) removed**
   - LSP (eg: `fennel-language-server`) provides a richer feature set.
-- **Configuring fennel compiler options via `setup()`***
+- **Configuring Fennel compiler options via `setup()`**
   - Removed, use `.hotpot.fnl` file + `compiler` key *if needed*.
 - **`hotpot.api.compile|evaluate_[file|selection|...]`**
   - Simplified and context aware, see [API](#API).
