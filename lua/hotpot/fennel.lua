@@ -1,4 +1,15 @@
-local fennel = require("hotpot.vendor.fennel")
+local fennel
+do
+  local case_1_, case_2_ = pcall(require, "hotpot.update-fennel.fennel")
+  if ((case_1_ == true) and (nil ~= case_2_)) then
+    local fennel0 = case_2_
+    fennel = fennel0
+  elseif (case_1_ == false) then
+    fennel = require("hotpot.vendor.fennel")
+  else
+    fennel = nil
+  end
+end
 local path = fennel.path
 local macro_path = fennel["macro-path"]
 fennel.path = table.concat({"./fnl/?.fnl", "./fnl/?/init.fnl", fennel.path}, ";")

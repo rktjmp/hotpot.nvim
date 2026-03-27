@@ -1,6 +1,12 @@
 {:HOTPOT_CONFIG_CACHE_ROOT (-> (vim.fn.stdpath :data)
-                               (vim.fs.joinpath  :site :pack :hotpot :opt :hotpot-config-cache)
+                               (vim.fs.joinpath :site :pack :hotpot :opt :hotpot-config-cache)
                                (vim.fs.normalize))
+ :HOTPOT_FENNEL_UPDATE_ROOT (-> (vim.fn.stdpath :data)
+                                (vim.fs.joinpath :site :pack :hotpot :opt :hotpot-fennel-update)
+                                (vim.fs.normalize))
+ :HOTPOT_FENNEL_UPDATE_LUA_ROOT (-> (vim.fn.stdpath :data)
+                                    (vim.fs.joinpath :site :pack :hotpot :opt :hotpot-fennel-update :lua :hotpot :update-fennel)
+                                    (vim.fs.normalize))
  :NVIM_CONFIG_ROOT (let [path (vim.fn.stdpath :config)]
                      (case (-> (vim.fs.normalize path)
                                (vim.uv.fs_realpath))

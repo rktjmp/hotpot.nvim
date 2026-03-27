@@ -11,4 +11,4 @@ do
     _1_ = nil
   end
 end
-return {HOTPOT_CONFIG_CACHE_ROOT = vim.fs.normalize(vim.fs.joinpath(vim.fn.stdpath("data"), "site", "pack", "hotpot", "opt", "hotpot-config-cache")), NVIM_CONFIG_ROOT = _1_}
+return {HOTPOT_CONFIG_CACHE_ROOT = vim.fs.normalize(vim.fs.joinpath(vim.fn.stdpath("data"), "site", "pack", "hotpot", "opt", "hotpot-config-cache")), HOTPOT_FENNEL_UPDATE_ROOT = vim.fs.normalize(vim.fs.joinpath(vim.fn.stdpath("data"), "site", "pack", "hotpot", "opt", "hotpot-fennel-update")), HOTPOT_FENNEL_UPDATE_LUA_ROOT = vim.fs.normalize(vim.fs.joinpath(vim.fn.stdpath("data"), "site", "pack", "hotpot", "opt", "hotpot-fennel-update", "lua", "hotpot", "update-fennel")), NVIM_CONFIG_ROOT = _1_}

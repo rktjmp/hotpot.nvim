@@ -1,4 +1,6 @@
-(let [fennel (require :hotpot.vendor.fennel)
+(let [fennel (case (pcall require :hotpot.update-fennel.fennel)
+               (true fennel) fennel
+               false (require :hotpot.vendor.fennel))
       {: path : macro-path} fennel]
   ;; Fennels default paths dont include "fnl/" directories which are pretty
   ;; core to us so insert them. Note we do not insert any "normal vim rtp"
