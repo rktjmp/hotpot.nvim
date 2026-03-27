@@ -286,7 +286,7 @@ default "api" context is created with no `sync` ability.
 ## `context.compile(string)`
 
 Compiles the given string, using the context compiler options. Returns the
-`compiled string` or `nil, error`
+`true, compiled string` or `false, error`
 
 Does *not* automatically apply any transform, which can be done manually by
 `context.transform` *if one is set for the context*.
@@ -294,7 +294,7 @@ Does *not* automatically apply any transform, which can be done manually by
 ## `context.eval(string)`
 
 Evaluates the given string, using the context compiler options. Returns the
-`evaluated values` or `nil, error`
+`true, ...evaluated values` or `false, error`
 
 Does *not* automatically apply any transform, which can be done manually by
 `context.transform` *if one is set for the context*.
@@ -305,7 +305,10 @@ Syncs the context by compiling files in the context. Returns `report table`.
 
 Supports the following options:
 
-- `force: true|false`: compile all files, even if they are up to date.
+- `force?`: force compilation of all files in the context, even if the `.lua` is up to date.
+- `atomic?`: allow writing successfully compiled files even if others have compiliation errors.
+- `verbose?`: output additional compilation messages.
+- `compiler`: additional fennel compiler options.
 
 Not available for "api" contexts, eg: those without any path given.
 

@@ -3,15 +3,11 @@
 
 (fn bind-compile [ctx]
   (λ [source]
-    (case (pcall R.context.compile-string ctx source {:filename :--hotpot-api-compile})
-      (true lua-code) (values lua-code)
-      (false err) (values nil err))))
+    (pcall R.context.compile-string ctx source {:filename :--hotpot-api-compile})))
 
 (fn bind-eval [ctx]
   (λ [source]
-    (case (R.util.pack (pcall R.context.eval-string ctx source {:filename :--hotpot-api-eval}))
-      [true &as returns] (unpack returns 2 returns.n)
-      [false err] (values nil err))))
+    (pcall R.context.eval-string ctx source {:filename :--hotpot-api-eval})))
 
 (fn bind-sync [ctx]
   (case ctx
