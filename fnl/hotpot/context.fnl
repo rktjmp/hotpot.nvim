@@ -395,10 +395,14 @@
                 ;; root as nearest.
                 path-inside-config R.const.NVIM_CONFIG_ROOT
                 ;; otherwise we actually *do* need to find a directory.
-                nil (vim.fs.root starting-path :.hotpot.fnl))
-    nil (error (string.format
-                 "Unable to find nearest context to %s, does not exist"
-                 starting-path))))
+                nil (case (vim.fs.root starting-path :.hotpot.fnl)
+                      nil (values nil (string.format
+                                        "Unable to find nearest context to %s, no .hotpot.fnl in tree"
+                                        starting-path))
+                      root root))
+    nil (values nil (string.format
+                      "Unable to find nearest context to %s, does not exist"
+                      starting-path))))
 
 
 
