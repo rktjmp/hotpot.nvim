@@ -30,12 +30,13 @@
     (let [augroup-id (vim.api.nvim_create_augroup :hotpot-fnl-ft {:clear true})]
       (vim.api.nvim_create_autocmd [:BufWritePost]
                                    {:pattern [:*.fnl :*.fnlm]
+                                    :group augroup-id
                                     :callback  buf-write-post-callback})
       (set *augroup-id* augroup-id))))
 
 (fn M.disable []
   (when *augroup-id*
-    (vim.api.nvim_delete_augroup_by_id *augroup-id*)
+    (vim.api.nvim_del_augroup_by_id *augroup-id*)
     (set *augroup-id* nil)))
 
 
