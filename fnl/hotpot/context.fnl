@@ -114,7 +114,7 @@
                  ;; eg lua/vendor/*.lua, etc, so we must get the relative path
                  ;; to check against.
                  (let [path (vim.fs.relpath root (vim.fs.joinpath dir name) {})]
-                   (and (~= :.hotpot.fnl name)
+                   (and (not= :.hotpot.fnl name)
                         (name:match extension-pattern)
                         (accumulate [ok? true _ rule (ipairs ignore) &until (not ok?)]
                           (not (rule:match path))))))
@@ -357,7 +357,7 @@
     directory (let [{:const {: NVIM_CONFIG_ROOT}} R
                     dot-hotpot-path (-> (vim.fs.joinpath directory :.hotpot.fnl)
                                         (vim.fs.normalize))
-                    dot-hotpot-exists? (~= nil (vim.uv.fs_realpath dot-hotpot-path))
+                    dot-hotpot-exists? (not= nil (vim.uv.fs_realpath dot-hotpot-path))
                     real-directory (-> (vim.fs.normalize directory)
                                        (vim.uv.fs_realpath))
                     ;; See above, if the real directory does not exist, do an

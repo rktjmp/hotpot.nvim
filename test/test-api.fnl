@@ -34,7 +34,7 @@
 
 (local output (nvim:lua "local val, err = ctx.compile('.. :he :llo)')
                         print(err)"))
-(expect true (~= "" output) "handles compiling bad code")
+(expect true (not= "" output) "handles compiling bad code")
 
 ;; Can eval
 (local output (nvim:lua "local val = ctx.eval('(.. :he :llo)')
@@ -47,7 +47,7 @@
 
 (local output (nvim:lua "local val, err = ctx.eval('.. :he :llo)')
                         print(err)"))
-(expect true (~= "" output) "handles evaling bad code")
+(expect true (not= "" output) "handles evaling bad code")
 
 ;; Can sync
 (local fnl-path (create-file (path :config :fnl/abc.fnl)

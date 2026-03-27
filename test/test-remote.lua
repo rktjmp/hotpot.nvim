@@ -62,12 +62,26 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
       return vim.fn.jobstop(channel)
     end
     local function _11_(this, cmd, ...)
-      return vim.rpcrequest(channel, "nvim_exec2", string.format(cmd, ...), {output = true})
+      local case_12_ = vim.rpcrequest(channel, "nvim_exec2", string.format(cmd, ...), {output = true})
+      if ((_G.type(case_12_) == "table") and (nil ~= case_12_.output)) then
+        local output = case_12_.output
+        return output
+      else
+        local _ = case_12_
+        return nil
+      end
     end
-    local function _12_(this, src)
-      return vim.rpcrequest(channel, "nvim_exec2", table.concat({"lua << EOF", src, "EOF"}, "\n"), {output = true})
+    local function _14_(this, src)
+      local case_15_ = vim.rpcrequest(channel, "nvim_exec2", table.concat({"lua << EOF", src, "EOF"}, "\n"), {output = true})
+      if ((_G.type(case_15_) == "table") and (nil ~= case_15_.output)) then
+        local output = case_15_.output
+        return output
+      else
+        local _ = case_15_
+        return nil
+      end
     end
-    nvim = {channel = channel, close = _10_, cmd = _11_, lua = _12_}
+    nvim = {channel = channel, close = _10_, cmd = _11_, lua = _14_}
     nvim:lua("vim.opt.runtimepath:prepend('/home/user/hotpot')")
     nvim:lua("vim.secure.read = function(path) return table.concat(vim.fn.readfile(path), '\\n') end")
     return nvim
@@ -86,16 +100,16 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
   end
   return {["write-file"] = write_file, ["read-file"] = read_file, ["create-file"] = create_file, path = path, OK = OK, FAIL = FAIL, exit = exit, ["start-nvim"] = start_nvim, NVIM_APPNAME = vim.env.NVIM_APPNAME}
 end
-local _local_14_ = require("test.utils")
-local FAIL = _local_14_.FAIL
-local NVIM_APPNAME = _local_14_.NVIM_APPNAME
-local OK = _local_14_.OK
-local create_file = _local_14_["create-file"]
-local exit = _local_14_.exit
-local path = _local_14_.path
-local read_file = _local_14_["read-file"]
-local start_nvim = _local_14_["start-nvim"]
-local write_file = _local_14_["write-file"]
+local _local_18_ = require("test.utils")
+local FAIL = _local_18_.FAIL
+local NVIM_APPNAME = _local_18_.NVIM_APPNAME
+local OK = _local_18_.OK
+local create_file = _local_18_["create-file"]
+local exit = _local_18_.exit
+local path = _local_18_.path
+local read_file = _local_18_["read-file"]
+local start_nvim = _local_18_["start-nvim"]
+local write_file = _local_18_["write-file"]
 local remote_dir = "/home/user/remote/"
 vim.fn.mkdir((remote_dir .. "/fnl"), "p")
 create_file((remote_dir .. "/.hotpot.fnl"), "{:schema :hotpot/2 :target :colocate}")
@@ -108,11 +122,11 @@ nvim:cmd(("cd " .. path("config")))
 nvim:cmd("write")
 nvim:close()
 do
-  local case_15_ = vim.uv.fs_stat((remote_dir .. "/lua/mod.lua"))
-  if (_G.type(case_15_) == "table") then
+  local case_19_ = vim.uv.fs_stat((remote_dir .. "/lua/mod.lua"))
+  if (_G.type(case_19_) == "table") then
     OK(string.format(("creates lua/mod.lua in non cwd" or "")))
   else
-    local __1_auto = case_15_
+    local __1_auto = case_19_
     FAIL(string.format(("creates lua/mod.lua in non cwd" or "")))
   end
 end
@@ -125,11 +139,11 @@ nvim0:cmd(("cd " .. path("config")))
 nvim0:cmd("write")
 nvim0:close()
 do
-  local case_17_ = read_file((remote_dir .. "/lua/mod.lua"))
-  if (case_17_ == "return \"remote-x\"") then
+  local case_21_ = read_file((remote_dir .. "/lua/mod.lua"))
+  if (case_21_ == "return \"remote-x\"") then
     OK(string.format(("correctly uses remote.macros.x()" or "")))
   else
-    local __1_auto = case_17_
+    local __1_auto = case_21_
     FAIL(string.format(("correctly uses remote.macros.x()" or "")))
   end
 end

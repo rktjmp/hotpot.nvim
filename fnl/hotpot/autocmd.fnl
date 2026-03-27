@@ -39,6 +39,6 @@
     (set *augroup-id* nil)))
 
 (fn M.enabled? []
-  (~= nil *augroup-id*))
+  (not= nil *augroup-id*))
 
 (values M)

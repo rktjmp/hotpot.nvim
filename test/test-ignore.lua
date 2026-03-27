@@ -62,12 +62,26 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
       return vim.fn.jobstop(channel)
     end
     local function _11_(this, cmd, ...)
-      return vim.rpcrequest(channel, "nvim_exec2", string.format(cmd, ...), {output = true})
+      local case_12_ = vim.rpcrequest(channel, "nvim_exec2", string.format(cmd, ...), {output = true})
+      if ((_G.type(case_12_) == "table") and (nil ~= case_12_.output)) then
+        local output = case_12_.output
+        return output
+      else
+        local _ = case_12_
+        return nil
+      end
     end
-    local function _12_(this, src)
-      return vim.rpcrequest(channel, "nvim_exec2", table.concat({"lua << EOF", src, "EOF"}, "\n"), {output = true})
+    local function _14_(this, src)
+      local case_15_ = vim.rpcrequest(channel, "nvim_exec2", table.concat({"lua << EOF", src, "EOF"}, "\n"), {output = true})
+      if ((_G.type(case_15_) == "table") and (nil ~= case_15_.output)) then
+        local output = case_15_.output
+        return output
+      else
+        local _ = case_15_
+        return nil
+      end
     end
-    nvim = {channel = channel, close = _10_, cmd = _11_, lua = _12_}
+    nvim = {channel = channel, close = _10_, cmd = _11_, lua = _14_}
     nvim:lua("vim.opt.runtimepath:prepend('/home/user/hotpot')")
     nvim:lua("vim.secure.read = function(path) return table.concat(vim.fn.readfile(path), '\\n') end")
     return nvim
@@ -86,16 +100,16 @@ package.preload["test.utils"] = package.preload["test.utils"] or function(...)
   end
   return {["write-file"] = write_file, ["read-file"] = read_file, ["create-file"] = create_file, path = path, OK = OK, FAIL = FAIL, exit = exit, ["start-nvim"] = start_nvim, NVIM_APPNAME = vim.env.NVIM_APPNAME}
 end
-local _local_14_ = require("test.utils")
-local FAIL = _local_14_.FAIL
-local NVIM_APPNAME = _local_14_.NVIM_APPNAME
-local OK = _local_14_.OK
-local create_file = _local_14_["create-file"]
-local exit = _local_14_.exit
-local path = _local_14_.path
-local read_file = _local_14_["read-file"]
-local start_nvim = _local_14_["start-nvim"]
-local write_file = _local_14_["write-file"]
+local _local_18_ = require("test.utils")
+local FAIL = _local_18_.FAIL
+local NVIM_APPNAME = _local_18_.NVIM_APPNAME
+local OK = _local_18_.OK
+local create_file = _local_18_["create-file"]
+local exit = _local_18_.exit
+local path = _local_18_.path
+local read_file = _local_18_["read-file"]
+local start_nvim = _local_18_["start-nvim"]
+local write_file = _local_18_["write-file"]
 local config_path = create_file(path("config", ".hotpot.fnl"), "{:schema :hotpot/2\n                                  :target :colocate\n                                  :ignore [:lua/vendor/lib.lua :fnl/dummy.fnl :fnl/dummy.fnlm]}")
 local abc_fnl_path = create_file(path("config", "fnl/abc.fnl"), "{:works true}")
 local abc_lua_path = path("config", "lua/abc.lua")
@@ -106,55 +120,55 @@ local vendor_path = create_file(path("config", "lua/vendor/lib.lua"), "return 'v
 local nvim = start_nvim()
 nvim:lua("require'hotpot'")
 do
-  local case_15_ = vim.uv.fs_stat(abc_lua_path)
-  if ((_G.type(case_15_) == "table") and (_G.type(case_15_.mtime) == "table")) then
+  local case_19_ = vim.uv.fs_stat(abc_lua_path)
+  if ((_G.type(case_19_) == "table") and (_G.type(case_19_.mtime) == "table")) then
     OK(string.format(("created abc-lua" or "")))
   else
-    local __1_auto = case_15_
+    local __1_auto = case_19_
     FAIL(string.format(("created abc-lua" or "")))
   end
 end
 do
-  local case_17_ = vim.uv.fs_stat(vendor_path)
-  if ((_G.type(case_17_) == "table") and (_G.type(case_17_.mtime) == "table")) then
+  local case_21_ = vim.uv.fs_stat(vendor_path)
+  if ((_G.type(case_21_) == "table") and (_G.type(case_21_.mtime) == "table")) then
     OK(string.format(("retained vendor-lua" or "")))
   else
-    local __1_auto = case_17_
+    local __1_auto = case_21_
     FAIL(string.format(("retained vendor-lua" or "")))
   end
 end
 do
-  local case_19_ = vim.uv.fs_stat(dummy_lua_path)
-  if (case_19_ == nil) then
+  local case_23_ = vim.uv.fs_stat(dummy_lua_path)
+  if (case_23_ == nil) then
     OK(string.format(("did not create dummy-lua" or "")))
   else
-    local __1_auto = case_19_
+    local __1_auto = case_23_
     FAIL(string.format(("did not create dummy-lua" or "")))
   end
 end
-local _local_21_ = vim.uv.fs_stat(abc_lua_path)
-local _local_22_ = _local_21_.mtime
-local time1 = _local_22_.sec
+local _local_25_ = vim.uv.fs_stat(abc_lua_path)
+local _local_26_ = _local_25_.mtime
+local time1 = _local_26_.sec
 nvim:cmd(("edit " .. dummy_fnl_path))
 nvim:cmd("write")
-local _local_23_ = vim.uv.fs_stat(abc_lua_path)
-local _local_24_ = _local_23_.mtime
-local time2 = _local_24_.sec
+local _local_27_ = vim.uv.fs_stat(abc_lua_path)
+local _local_28_ = _local_27_.mtime
+local time2 = _local_28_.sec
 do
-  local case_25_ = vim.uv.fs_stat(dummy_lua_path)
-  if (case_25_ == nil) then
+  local case_29_ = vim.uv.fs_stat(dummy_lua_path)
+  if (case_29_ == nil) then
     OK(string.format(("did not create dummy-lua after write" or "")))
   else
-    local __1_auto = case_25_
+    local __1_auto = case_29_
     FAIL(string.format(("did not create dummy-lua after write" or "")))
   end
 end
 do
-  local case_27_ = (time1 == time2)
-  if (case_27_ == true) then
+  local case_31_ = (time1 == time2)
+  if (case_31_ == true) then
     OK(string.format(("did not rebuild abc-lua with no changes" or "")))
   else
-    local __1_auto = case_27_
+    local __1_auto = case_31_
     FAIL(string.format(("did not rebuild abc-lua with no changes" or "")))
   end
 end
