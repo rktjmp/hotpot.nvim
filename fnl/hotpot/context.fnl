@@ -442,18 +442,20 @@
   By default this only compiles stale files, where the .lua counterparts are
   older than the .fnl sources, or if any .fnlm file is newer, all files are
   considered stale."
-  (let [options (or ?options {:force? false})
+  (let [force? (or (?. ?options :force?) false)
+        verbose? (or (?. ?options :verbose?) ctx.verbose? false)
+        atomic? (or (?. ?options :atomic?) ctx.atomic? true)
         report {:format []
                 :summary []
                 :success []
                 :errors []
                 :clean []}
         source-files (m.find-source-files ctx)
-        stale-files (m.sync-plan-compile ctx source-files options.force?)
+        stale-files (m.sync-plan-compile ctx source-files force?)
         clean-files (m.sync-plan-clean ctx source-files)
         {:ok compile-oks :errors compile-errors} (m.sync-compile ctx stale-files)
         has-errors? (< 0 (length compile-errors))
-        atomic-ok? (or (not has-errors?) (not ctx.atomic?))
+        atomic-ok? (or (not has-errors?) (not atomic?))
         success-messages (icollect [_ {: fnl-abs : lua-abs} (ipairs compile-oks)]
                            [(string.format "☑  %s\n-> %s\n" fnl-abs lua-abs) :DiagnosticOk])
         error-messages (icollect [_ {: fnl-abs : lua-abs : error} (ipairs compile-errors)]
@@ -465,7 +467,7 @@
                                            :DiagnosticWarn]
                                           ["`atomic? = true`, no changes were written to disk!\n"
                                            :DiagnosticWarn]]]
-                               (when (not ctx.atomic?) (table.remove summary))
+                               (when (not atomic?) (table.remove summary))
                                summary)
                            [])
         report []]
@@ -476,7 +478,7 @@
       (let [{: compile? : clean?} (m.sync-plan-confirm ctx stale-files clean-files)]
         (when compile?
           (m.sync-write ctx compile-oks)
-          (when ctx.verbose?
+          (when verbose?
             (vim.list_extend report success-messages))
           (vim.list_extend report error-messages))
         (when clean?

@@ -786,23 +786,55 @@ M.sync = function(ctx, _3foptions)
     _G.error("Missing argument ctx on fnl/hotpot/context.fnl:439", 2)
   else
   end
-  local options = (_3foptions or {["force?"] = false})
+  local force_3f
+  local _143_
+  do
+    local t_142_ = _3foptions
+    if (nil ~= t_142_) then
+      t_142_ = t_142_["force?"]
+    else
+    end
+    _143_ = t_142_
+  end
+  force_3f = (_143_ or false)
+  local verbose_3f
+  local _146_
+  do
+    local t_145_ = _3foptions
+    if (nil ~= t_145_) then
+      t_145_ = t_145_["verbose?"]
+    else
+    end
+    _146_ = t_145_
+  end
+  verbose_3f = (_146_ or ctx["verbose?"] or false)
+  local atomic_3f
+  local _149_
+  do
+    local t_148_ = _3foptions
+    if (nil ~= t_148_) then
+      t_148_ = t_148_["atomic?"]
+    else
+    end
+    _149_ = t_148_
+  end
+  atomic_3f = (_149_ or ctx["atomic?"] or true)
   local report = {format = {}, summary = {}, success = {}, errors = {}, clean = {}}
   local source_files = m["find-source-files"](ctx)
-  local stale_files = m["sync-plan-compile"](ctx, source_files, options["force?"])
+  local stale_files = m["sync-plan-compile"](ctx, source_files, force_3f)
   local clean_files = m["sync-plan-clean"](ctx, source_files)
-  local _let_142_ = m["sync-compile"](ctx, stale_files)
-  local compile_oks = _let_142_.ok
-  local compile_errors = _let_142_.errors
+  local _let_151_ = m["sync-compile"](ctx, stale_files)
+  local compile_oks = _let_151_.ok
+  local compile_errors = _let_151_.errors
   local has_errors_3f = (0 < #compile_errors)
-  local atomic_ok_3f = (not has_errors_3f or not ctx["atomic?"])
+  local atomic_ok_3f = (not has_errors_3f or not atomic_3f)
   local success_messages
   do
     local tbl_26_ = {}
     local i_27_ = 0
-    for _, _143_ in ipairs(compile_oks) do
-      local fnl_abs = _143_["fnl-abs"]
-      local lua_abs = _143_["lua-abs"]
+    for _, _152_ in ipairs(compile_oks) do
+      local fnl_abs = _152_["fnl-abs"]
+      local lua_abs = _152_["lua-abs"]
       local val_28_ = {string.format("\226\152\145  %s\n-> %s\n", fnl_abs, lua_abs), "DiagnosticOk"}
       if (nil ~= val_28_) then
         i_27_ = (i_27_ + 1)
@@ -816,10 +848,10 @@ M.sync = function(ctx, _3foptions)
   do
     local tbl_26_ = {}
     local i_27_ = 0
-    for _, _145_ in ipairs(compile_errors) do
-      local fnl_abs = _145_["fnl-abs"]
-      local lua_abs = _145_["lua-abs"]
-      local error = _145_.error
+    for _, _154_ in ipairs(compile_errors) do
+      local fnl_abs = _154_["fnl-abs"]
+      local lua_abs = _154_["lua-abs"]
+      local error = _154_.error
       local val_28_ = {string.format("\226\152\146  %s\n-> %s\n%s\n", fnl_abs, lua_abs, error), "DiagnosticWarn"}
       if (nil ~= val_28_) then
         i_27_ = (i_27_ + 1)
@@ -846,7 +878,7 @@ M.sync = function(ctx, _3foptions)
   local summary_messages
   if has_errors_3f then
     local summary = {{"\nSome files had compilation errors! ", "DiagnosticWarn"}, {"`atomic? = true`, no changes were written to disk!\n", "DiagnosticWarn"}}
-    if not ctx["atomic?"] then
+    if not atomic_3f then
       table.remove(summary)
     else
     end
@@ -856,12 +888,12 @@ M.sync = function(ctx, _3foptions)
   end
   local report0 = {}
   if atomic_ok_3f then
-    local _let_150_ = m["sync-plan-confirm"](ctx, stale_files, clean_files)
-    local compile_3f = _let_150_["compile?"]
-    local clean_3f = _let_150_["clean?"]
+    local _let_159_ = m["sync-plan-confirm"](ctx, stale_files, clean_files)
+    local compile_3f = _let_159_["compile?"]
+    local clean_3f = _let_159_["clean?"]
     if compile_3f then
       m["sync-write"](ctx, compile_oks)
-      if ctx["verbose?"] then
+      if verbose_3f then
         vim.list_extend(report0, success_messages)
       else
       end
@@ -885,7 +917,7 @@ M.sync = function(ctx, _3foptions)
     vim.api.nvim_echo(report0, true, {})
   else
   end
-  local _157_
+  local _166_
   do
     local tbl_26_ = {}
     local i_27_ = 0
@@ -901,8 +933,8 @@ M.sync = function(ctx, _3foptions)
       else
       end
     end
-    _157_ = tbl_26_
+    _166_ = tbl_26_
   end
-  return {sources = source_files, compiled = _157_, errors = compile_errors, cleaned = clean_files}
+  return {sources = source_files, compiled = _166_, errors = compile_errors, cleaned = clean_files}
 end
 return M
