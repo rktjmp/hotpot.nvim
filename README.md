@@ -124,8 +124,8 @@ require("config")
 ;; `performance.rtp.paths` option. If you have configured your config directory
 ;; to use `:target :colocate` (which is *not* the default), you may skip this step.
 (let [lazy (require :lazy)
-      hotpot (require :hotpot)
-      context (hotpot.api.context (vim.stdpath :config))]
+      api (require :hotpot.api)
+      context (api.context (vim.stdpath :config))]
   (lazy.setup {:performance {:rtp {:paths [context.path.destination]}}))
 ```
 
