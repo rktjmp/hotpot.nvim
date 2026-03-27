@@ -223,12 +223,14 @@
                      (table.remove fnl-source-files init-lua-index))))
     fnl-source-files))
 
-(λ m.sync-compile [ctx fnl-files]
+(λ m.sync-compile [ctx fnl-files ?extra-options]
   (accumulate [results {:ok [] :errors []}
                _ {: fnl-abs : fnl-rel : lua-abs} (ipairs fnl-files)]
     (let [fnl-source (read-file fnl-abs)
-          fnl-source (m.apply-transform ctx fnl-source fnl-rel)]
-      (case (pcall M.compile-string ctx fnl-source {:filename fnl-rel})
+          fnl-source (m.apply-transform ctx fnl-source fnl-rel)
+          extra-options (vim.tbl_extend :force (or ?extra-options {})
+                                        {:filename fnl-rel})]
+      (case (pcall M.compile-string ctx fnl-source extra-options)
         (true lua-source) (do
                             (table.insert results.ok {: fnl-abs : lua-abs :source lua-source})
                             results)
@@ -404,6 +406,7 @@
   "Compile the given string with the given context configuration.
 
   Returns lua-source or raises error."
+  (assert options.filename "tried to compile without filename")
   (let [{: fennel} R
         compiler-options (vim.tbl_extend :force
                                          ctx.compiler
@@ -445,6 +448,7 @@
   (let [force? (or (?. ?options :force?) false)
         verbose? (or (?. ?options :verbose?) ctx.verbose? false)
         atomic? (or (?. ?options :atomic?) ctx.atomic? true)
+        extra-compiler-options (or (?. ?options :compiler) {})
         report {:format []
                 :summary []
                 :success []
@@ -453,7 +457,9 @@
         source-files (m.find-source-files ctx)
         stale-files (m.sync-plan-compile ctx source-files force?)
         clean-files (m.sync-plan-clean ctx source-files)
-        {:ok compile-oks :errors compile-errors} (m.sync-compile ctx stale-files)
+        {:ok compile-oks :errors compile-errors} (m.sync-compile ctx
+                                                                 stale-files
+                                                                 extra-compiler-options)
         has-errors? (< 0 (length compile-errors))
         atomic-ok? (or (not has-errors?) (not atomic?))
         success-messages (icollect [_ {: fnl-abs : lua-abs} (ipairs compile-oks)]
