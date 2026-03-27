@@ -264,7 +264,6 @@ have a `.hotpot.fnl` file.
 }
 ```
 
-
 # API
 
 Hotpot provides an API to compile and evaluate arbitrary Fennel code, as well
@@ -320,60 +319,47 @@ Not available if no `transform` has been defined.
 
 # Commands
 
-Hotpot provides 3 commands which behave similarly but not exactly like
-Neovims Lua commands (see `:h lua-commands`).
+## `:Hotpot`
 
-It also allows the `:source` command to work with `.fnl` files.
+The `:Hotpot` command interacts with Hotpot (*surprise!*). It exposes the following subcommands:
 
-:[range]Fnl {expression}
+### `sync`
 
-: Evaluates {expression} or range
+"Sync" a given contexts `.fnl` and `.lua` files. This is the same operation
+that occurs when you save a `.fnl` or `.fnlm` file.
 
-If given form is preceded by `=`, the result is passed through `fennel.view`
-and printed. Multiple return values are separated with `, `.
+`:Hotpot sync` supports the following parameters:
 
-You may also use `=` when providing a range.
+- `context=<path>`: sets the context for the command, if not given, the current working directory is used.
+- `force`: force compilation of all files in the context, even if the `.lua` is up to date.
+- `atomic`: allow writing successfully compiled files even if others have compiliation errors.
+- `verbose`: output additional compilation messages.
 
-If a range and a form is provided, the range is ignored.
+### `watch`
 
-```
-:Fnl (vim.keymap.set ...) ;; evaluates code, no output
-:Fnl (values 99 (+ 1 1)) ;; evaluates code, no output
-:Fnl =(values 99 (+ 1 1)) ;; evaluates code, outputs "99, 2"
-:Fnl=(+ 1 1) ;; You may omit the space
+Enable or disable the compile-on-save behaviour.
 
-:'<,'>Fnl ;; evaluates selection in current buffer
-:1,10Fnl = ;; evaluate lines 1 to 10 in current buffer, prints output
-:'<,'>Fnl= ;; again, the space may be omitted
+`:Hotpot watch` supports the following (mutually exclusive) parameters:
 
-:'<,'>Fnl (print :hello) ;; prints "hello" (range is ignored)
-```
+- `enable`: enable syncing on save for all contexts in this session.
+- `disable`: disable syncing on save for all contexts in this session.
 
-:[range]Fnldo {expression}
+## `:Fnl`
 
-: Evaluates {expression} for each line in [range]
+Evaulate either the command line provided fennel, or a range from the current
+buffer either specified on the commandline or by selection.
 
-The result of the expression replaces each line in turn. Two variables are
-available inside {expression}, `line` and `linenr`.
+This command is analogous to Neovims built in `:lua` command, and supports the
+same `=` output toggle, eg: `:Fnl= (+ 1 2)` will output `3`, where as `:Fnl (+
+1 2)` will silently evaluate the code.
 
-```
-:'<,'>Fnldo (string.format "%d: %s" linenr (line:reverse))
-=> Prepends line number and reverses the contents of line
-```
+## `:Fnlfile {file.fnl}`
 
-:Fnlfile {file}
+Evaluates the given file, also supports `:Fnlfile= file` to output the results.
 
-: Evaluates {file}, see also `:h :source`.
+## `:source {file.fnl}`
 
-```
-:Fnlfile %
-
-:Fnlfile my-file.fnl
-```
-
-:source {file}
-
-: See `:h :source`
+See `:h :source`
 
 # Changes from Version 1
 
@@ -401,6 +387,9 @@ available inside {expression}, `line` and `linenr`.
   - Removed, use `.hotpot.fnl` file + `compiler` key *if needed*.
 - **`hotpot.api.compile|evaluate_[file|selection|...]`**
   - Simplified and context aware, see [API](#API).
+- **Removed `:Fnldo` commands**
+  - This seem to have little value personally, if you really do have a use for
+    it please open an issue.
 
 # Licenses
 
