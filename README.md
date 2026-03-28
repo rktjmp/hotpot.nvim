@@ -435,21 +435,21 @@ Sources given `.fnl` file. See `:h :source`
 # Migrating from Version 1
 
 >[!IMPORTANT]
-> You **must** update all macro files to use the the `.fnlm` extension.
+> You **must** change all macro files to use the the `.fnlm` extension. This
+> does not require any code changes.
 
-For many users who have not explicitly configure Hotpot, after renaming any
-macro files to `.fnlm`, version 2 should work automatically. You should
-re-check the [installation](#installation) instructions if you are using
-*Lazy.nvim* to ensure your settings are correct.
+For many users who have not explicitly configured Hotpot, after renaming any
+macro files to `.fnlm`, version 2 should work without drama.
+
+If you are using *Lazy.nvim*, you should re-check the
+[installation](#installation) instructions to correctly set the `rtp` option.
 
 If you have specifically configured compiler options (via the
 `compiler.macros`/`compiler.modules` setup options) or use a `.hotpot.lua`
 file, you will need to migrate to a `.hotpot.fnl` file. See
-[configuration](#configuration) for details on `.hotpot.fnl`.
-
-You no longer need to provide separate `macros` and `modules` compiler
-tables. Your compiler options are specified in the `compiler` key in your
-`.hotpot.fnl` file.
+[configuration](#configuration) for details on `.hotpot.fnl`. You no longer
+need to provide separate `macros` and `modules` compiler tables. All compiler
+options are specified in the `compiler` key in your `.hotpot.fnl` file.
 
 The [API](#api) has been simplified but with simplification, some previously
 provided functions have been removed, eg: there is now only `eval(source,
