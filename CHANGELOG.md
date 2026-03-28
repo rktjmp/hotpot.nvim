@@ -1,6 +1,24 @@
 # 🍲 Hotpot Changelog
 
+## 2.0.0
+
+- Ahead of Time compiler instead of Just in Time.
+  - Better support for future nvim directories such as `lsp/` that can't
+    effectively hook into the `require` framework.
+- **Macro files must use the extension `.fnlm`**
+- `.hotpot.fnl` instead of `.hotpot.lua` configuration file.
+  - New format, different keys, largely the same functionality.
+  - Better support for working in different "contexts" with independent options.
+- Reduced API with "context" aware functions.
+  - This is the modern Fennel way, no concessions are currently made to support
+    `init-macros.fnl` filenames.
+- Removed diagnostics provider, instead use external LSP server.
+- Removed `setup({...})` options for `.hotpot.fnl`
+  - Provides a consistent single entrypoint to configuration.
+- Removed `:Fnldo` command.
+
 ## 1.0.0
+
 - No functional changes.
 
 ## 0.15.0
