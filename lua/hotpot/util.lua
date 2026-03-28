@@ -133,7 +133,11 @@ local function nest(t, namespace)
       t0[lowkey] = mod
       local case_31_ = type(mod)
       if (case_31_ == "table") then
-        return nest(mod, modname)
+        if ("hotpot.fennel" ~= modname) then
+          return nest(mod, modname)
+        else
+          return mod
+        end
       else
         local _ = case_31_
         return mod
@@ -147,21 +151,21 @@ end
 local R = nest({}, "hotpot")
 local function notify_error(msg, ...)
   if (nil == msg) then
-    _G.error("Missing argument msg on fnl/hotpot/util.fnl:52", 2)
+    _G.error("Missing argument msg on fnl/hotpot/util.fnl:57", 2)
   else
   end
   return vim.notify(string.format(msg, ...), vim.log.levels.ERROR)
 end
 local function notify_warn(msg, ...)
   if (nil == msg) then
-    _G.error("Missing argument msg on fnl/hotpot/util.fnl:53", 2)
+    _G.error("Missing argument msg on fnl/hotpot/util.fnl:58", 2)
   else
   end
   return vim.notify(string.format(msg, ...), vim.log.levels.WARN)
 end
 local function notify_info(msg, ...)
   if (nil == msg) then
-    _G.error("Missing argument msg on fnl/hotpot/util.fnl:54", 2)
+    _G.error("Missing argument msg on fnl/hotpot/util.fnl:59", 2)
   else
   end
   return vim.notify(string.format(msg, ...), vim.log.levels.INFO)

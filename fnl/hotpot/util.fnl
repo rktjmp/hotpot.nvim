@@ -45,7 +45,12 @@
                                             mod (require modname)]
                                         (set (. t lowkey) mod)
                                         (case (type mod)
-                                          :table (nest mod modname)
+                                          ;; Fennel is the only vendored lib we have
+                                          ;; and we dont want to pollute it
+                                          ;; with the meta method.
+                                          :table (if (not= "hotpot.fennel" modname)
+                                                   (nest mod modname)
+                                                   mod)
                                           _ mod)))))}))
 (local R (nest {} :hotpot))
 
