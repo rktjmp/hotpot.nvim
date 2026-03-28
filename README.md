@@ -208,6 +208,10 @@ the `schema` and `target` keys, as shown below.
  :target :colocate}
 ```
 
+> [!TIP]
+> Before saving any changes to your `.hotpot.fnl` file, you might want to run
+> `:trust`, to save yourself being prompted later.
+
 After creating the `.hotpot.fnl` file, open any `.fnl` file and save it to
 trigger a build, or use the `sync` [command](#commands).
 
@@ -231,6 +235,10 @@ same tree.
 Note that if there is no `.hotpot.fnl` file in Neovim's config directory, a
 default configuration is loaded. This is not the case for plugins, which *must*
 have a `.hotpot.fnl` file.
+
+> [!TIP]
+> Before saving any changes to your `.hotpot.fnl` file, you might want to run
+> `:trust`, to save yourself being prompted later.
 
 ```fennel
 ;; .hotpot.fnl
