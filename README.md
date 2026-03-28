@@ -363,7 +363,7 @@ exist if desired.
 
 The `:Hotpot` command interacts with Hotpot (*surprise!*). It exposes the following subcommands:
 
-### `sync`
+### `:Hotpot sync`
 
 Sync a given context's `.fnl` and `.lua` files. This is the same operation that
 occurs when you save a `.fnl` or `.fnlm` file.
@@ -375,7 +375,7 @@ occurs when you save a `.fnl` or `.fnlm` file.
 - `atomic`: allow writing successfully compiled files even if others have compilation errors.
 - `verbose`: output additional compilation messages.
 
-### `watch`
+### `:Hotpot watch`
 
 Enable or disable the compile-on-save behaviour.
 
@@ -383,6 +383,35 @@ Enable or disable the compile-on-save behaviour.
 
 - `enable`: enable syncing on save for all contexts in this session.
 - `disable`: disable syncing on save for all contexts in this session.
+
+### `:Hotpot fennel`
+
+Update or rollback `fennel.lua` to the latest version from [fennel-lang.org](https://fennel-lang.org).
+
+Requires `curl` to be installed.
+
+> [!IMPORTANT]
+> Running this is not without some risk, as an updated version of Fennel *may*
+> be incompatible with Hotpot. This is pretty unlikely unless the API to
+> evaluate or compile fennel code is changed. If a release is only adding new
+> "forms" (eg: `(accumulate ...)`) the update should be safe.
+
+Exposes the following sub commands:
+
+#### `:Hotpot fennel version`
+
+Reports the currently loaded and used version of Fennel.
+
+#### `:Hotpot fennel update`
+
+Supports the following parameters:
+
+- `url=<url>`: use given URL instead of finding the latest from [fennel-lang.org](https://fennel-lang.org).
+- `force`: do not ask whether to update.
+
+#### `:Hotpot fennel rollback`
+
+Remove downloaded Fennel file and use version shipped with Hotpot.
 
 ## `:Fnl`
 
