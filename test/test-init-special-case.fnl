@@ -13,7 +13,7 @@ end")
 (nvim:lua "require'hotpot'")
 (nvim:cmd "edit %s" fnl-path)
 (nvim:cmd "write")
-(local {: output} (nvim:lua "print(_G.called)"))
+(local output (nvim:lua "print(_G.called)"))
 (expect "true" output "Did call ui prompt")
 (nvim:close)
 

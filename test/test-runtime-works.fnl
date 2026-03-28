@@ -16,9 +16,9 @@
 ;; Test that the default cache target works without setup from the user
 ;;
 
-(local {: output} (nvim:cmd "set ft=fyle"))
+(local output (nvim:cmd "set ft=fyle"))
 (expect "loaded-ft-plugin-fyle" output "automatically loads ftplugin for ft on first boot")
-(local {: output} (nvim:cmd "lua require'my.mod'"))
+(local output (nvim:lua "require'my.mod'"))
 (expect "loaded-my-mod" output "can require my.mod")
 
 (nvim:close)

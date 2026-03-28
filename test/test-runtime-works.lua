@@ -115,16 +115,14 @@ local module_file = create_file(path("config", "fnl/my/mod.fnl"), "(print :loade
 local ft_plugin = create_file(path("config", "ftplugin/fyle.fnl"), "(print :loaded-ft-plugin-fyle)")
 local nvim = start_nvim()
 nvim:lua("require'hotpot'")
-local _local_19_ = nvim:cmd("set ft=fyle")
-local output = _local_19_.output
+local output = nvim:cmd("set ft=fyle")
 if (output == "loaded-ft-plugin-fyle") then
   OK(string.format(("automatically loads ftplugin for ft on first boot" or "")))
 else
   local __1_auto = output
   FAIL(string.format(("automatically loads ftplugin for ft on first boot" or "")))
 end
-local _local_21_ = nvim:cmd("lua require'my.mod'")
-local output0 = _local_21_.output
+local output0 = nvim:lua("require'my.mod'")
 if (output0 == "loaded-my-mod") then
   OK(string.format(("can require my.mod" or "")))
 else

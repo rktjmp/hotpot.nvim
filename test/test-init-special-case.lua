@@ -116,8 +116,7 @@ nvim:lua("_G.called = false\n          vim.ui.select = function(choices, options
 nvim:lua("require'hotpot'")
 nvim:cmd("edit %s", fnl_path)
 nvim:cmd("write")
-local _local_19_ = nvim:lua("print(_G.called)")
-local output = _local_19_.output
+local output = nvim:lua("print(_G.called)")
 if (output == "true") then
   OK(string.format(("Did call ui prompt" or "")))
 else
