@@ -16,7 +16,7 @@ local function base_spec()
     end
     _2_ = tbl_26_
   end
-  return {schema = "hotpot/2", ["atomic?"] = true, ["verbose?"] = true, ignore = {}, compiler = {allowedGlobals = _2_, ["error-pinpoint"] = false}}
+  return {schema = "hotpot/2", ["atomic?"] = true, ignore = {}, compiler = {allowedGlobals = _2_, ["error-pinpoint"] = false}, ["verbose?"] = false}
 end
 local function is_init_lua_special_case_3f(ctx, fnl_rel)
   if (nil == fnl_rel) then

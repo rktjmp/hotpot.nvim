@@ -5,7 +5,7 @@
 (fn base-spec []
   {:schema :hotpot/2
    :atomic? true
-   :verbose? true
+   :verbose? false
    :ignore []
    :compiler {:error-pinpoint false
               :allowedGlobals (icollect [k _ (pairs _G)] k)}})
