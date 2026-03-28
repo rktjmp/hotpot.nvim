@@ -15,10 +15,10 @@
 (nvim:lua "ctx = api.context(vim.fn.stdpath('config'))")
 
 ;; Has path details
-(local output (nvim:lua "vim.print(ctx.path.source)"))
+(local output (nvim:lua "vim.print(ctx.locate('source'))"))
 (local config-dir (vim.fn.stdpath :config))
 (expect (= config-dir) output "source is config dir")
-(local output (nvim:lua "vim.print(ctx.path.destination)"))
+(local output (nvim:lua "vim.print(ctx.locate('destination'))"))
 (local data-dir (vim.fs.joinpath (vim.fn.stdpath :data)
                                    :site
                                    :pack
@@ -28,25 +28,31 @@
 (expect (= data-dir) output "destination is cache dir")
 
 ;; Can compile
-(local output (nvim:lua "local val, err = ctx.compile('(.. :he :llo)')
+(local output (nvim:lua "local ok, val = ctx.compile('(.. :he :llo)')
                         print(val)"))
 (expect "return (\"he\" .. \"llo\")" output "compiles code")
 
-(local output (nvim:lua "local val, err = ctx.compile('.. :he :llo)')
+(local output (nvim:lua "local ok, err = ctx.compile('.. :he :llo)')
+                        print(ok)"))
+(expect "false" output  "handles compiling bad code")
+(local output (nvim:lua "local ok, err = ctx.compile('.. :he :llo)')
                         print(err)"))
 (expect true (not= "" output) "handles compiling bad code")
 
 ;; Can eval
-(local output (nvim:lua "local val = ctx.eval('(.. :he :llo)')
+(local output (nvim:lua "local ok, val = ctx.eval('(.. :he :llo)')
                         print(val)"))
 (expect "hello" output "evals code")
 
-(local output (nvim:lua "local a, b, c = ctx.eval('(values 1 2 3)')
+(local output (nvim:lua "local ok, a, b, c = ctx.eval('(values 1 2 3)')
                         print(a,b,c)"))
 (expect "1 2 3" output "evals multi return")
 
-(local output (nvim:lua "local val, err = ctx.eval('.. :he :llo)')
-                        print(err)"))
+(local output (nvim:lua "local ok, err = ctx.eval('.. :he :llo)')
+                        print(ok)"))
+(expect "false" output "handles evaling bad code")
+(local output (nvim:lua "local ok, err = ctx.eval('.. :he :llo)')
+                        print(ok)"))
 (expect true (not= "" output) "handles evaling bad code")
 
 ;; Can sync
