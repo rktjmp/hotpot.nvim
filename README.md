@@ -2,9 +2,9 @@
 <img src="images/logo.png" style="width: 100%" alt="Hotpot Logo"/>
 </div>
 
-# 🍲 Hotpot ![Github Tag Badge](https://img.shields.io/github/v/tag/rktjmp/hotpot.nvim) ![LuaRocks Release Badge](https://img.shields.io/luarocks/v/soup/hotpot.nvim)
-
 <!-- panvimdoc-ignore-start -->
+
+# 🍲 Hotpot ![Github Tag Badge](https://img.shields.io/github/v/tag/rktjmp/hotpot.nvim) ![LuaRocks Release Badge](https://img.shields.io/luarocks/v/soup/hotpot.nvim)
 
 > You take this home, throw it in a pot, add some broth, some neovim... baby,
 > you got a stew going!
@@ -30,6 +30,8 @@ broth, some neovim...  baby, you got a stew going!
 
                    ~ Fennel Programmers (probably)
 ```
+
+# Hotpot
 
 -->
 
@@ -136,7 +138,7 @@ require("config")
 updates. You may be able to lazy-load Hotpot by `fnl` and `fnlm` filetype but
 this is untested.*
 
-```fnl
+```fennel
 ;; fnl/config/init.fnl
 
 ;; When calling `lazy.setup` you must include hotpots output directory in the
@@ -189,7 +191,7 @@ To enable Fennel compilation for a plugin, we must place a `.hotpot.fnl` file
 in the root of the plugin directory. At a bare minimum, this file must specify
 the `schema` and `target` keys, as shown below.
 
-```fnl
+```fennel
 ;; projects/my-plugin/.hotpot.fnl
 {:schema :hotpot/2
  :target :colocate}
