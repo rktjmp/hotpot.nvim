@@ -227,17 +227,21 @@
   (each [key _ (pairs R.fennel.macro-loaded)]
     (set (. R.fennel.macro-loaded key) nil))
   (accumulate [results {:ok [] :errors []}
-               _ {: fnl-abs : fnl-rel : lua-abs} (ipairs fnl-files)]
+               _ {: fnl-abs : fnl-rel : lua-abs : lua-rel} (ipairs fnl-files)]
     (let [fnl-source (R.util.file-read fnl-abs)
           fnl-source (m.apply-transform ctx fnl-source fnl-rel)
           extra-options (vim.tbl_extend :force (or ?extra-options {})
                                         {:filename fnl-rel})]
       (case (pcall M.compile-string ctx fnl-source extra-options)
         (true lua-source) (do
-                            (table.insert results.ok {: fnl-abs : lua-abs :source lua-source})
+                            (table.insert results.ok {: fnl-abs : fnl-rel
+                                                      : lua-abs : lua-rel
+                                                      :source lua-source})
                             results)
         (false err) (do
-                      (table.insert results.errors {: fnl-abs : lua-abs :error err})
+                      (table.insert results.errors {: fnl-abs : fnl-rel
+                                                    : lua-abs : lua-rel
+                                                    :error err})
                       results)))))
 
 (λ m.sync-write [ctx output-files]
