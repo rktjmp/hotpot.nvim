@@ -2,6 +2,30 @@
   (doto [...]
     (tset :n (select :# ...))))
 
+(λ file-mtime [path]
+  (case (vim.uv.fs_stat path)
+    {:mtime {: sec : nsec}} {:equal? (fn [this other]
+                                       (and (= sec other.sec) (= nsec other.nsec)))
+                             :after? (fn [this other]
+                                       (or (< other.sec sec)
+                                           (and (= other.sec sec) (< other.nsec nsec))))
+                             :before? (fn [this other]
+                                        (or (< sec other.sec)
+                                            (and (= sec other.sec) (< nsec other.nsec))))
+                             : path
+                             : sec
+                             : nsec}
+    (nil err) nil))
+
+(λ file-read [path]
+  (with-open [fh (assert (io.open path :r) (.. "read io.open failed:" path))]
+    (fh:read :*a)))
+
+(λ file-write [path lines]
+  (assert (= :string (type lines)) "write file expects string")
+  (with-open [fh (assert (io.open path :w) (.. "write io.open failed:" path))]
+    (fh:write lines)))
+
 ;; Controversial?
 ;; Provides an interface to `require` via key so we dont have to ...
 ;; write require a lot? Instead of having `{: y} (require :hotpot.x)`
@@ -22,4 +46,7 @@
                                           _ mod)))))}))
 (local R (nest {} :hotpot))
 
-{: pack : R}
+{: file-read
+ : file-write
+ : file-mtime
+ : pack : R}

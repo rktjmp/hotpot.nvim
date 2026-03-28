@@ -67,8 +67,8 @@
   (fn install-update [update-url]
     (let [source (http-get update-url)]
       (case (loadstring source)
-        func (with-open [fh (assert (io.open download-to-path :w) (.. "io.open failed:" download-to-path))]
-               (fh:write source)
+        func (do
+               (R.util.file-write download-to-path source)
                (vim.notify "Updated Fennel. You must restart Neovim." vim.log.levels.INFO {}))
         (nil err) (vim.notify (string.format "Invalid lua %s..." err) vim.log.levels.ERROR {}))))
 

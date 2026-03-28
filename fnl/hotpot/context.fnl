@@ -2,30 +2,6 @@
 
 (local (M m) (values {} {}))
 
-(fn file-mtime [path]
-  (case (vim.uv.fs_stat path)
-    {:mtime {: sec : nsec}} {:equal? (fn [this other]
-                                       (and (= sec other.sec) (= nsec other.nsec)))
-                             :after? (fn [this other]
-                                       (or (< other.sec sec)
-                                           (and (= other.sec sec) (< other.nsec nsec))))
-                             :before? (fn [this other]
-                                        (or (< sec other.sec)
-                                            (and (= sec other.sec) (< nsec other.nsec))))
-                             : path
-                             : sec
-                             : nsec}
-    (nil err) nil))
-
-(fn read-file [path]
-  (with-open [fh (assert (io.open path :r) (.. "fs.read-file! io.open failed:" path))]
-    (fh:read :*a)))
-
-(fn write-file [path lines]
-  (assert (= :string (type lines)) "write file expects string")
-  (with-open [fh (assert (io.open path :w) (.. "fs.write-file io.open failed:" path))]
-    (fh:write lines)))
-
 (fn base-spec []
   {:schema :hotpot/2
    :atomic? true
@@ -159,6 +135,7 @@
 
 (λ m.filter-stale-source-files [files]
   (let [{: fnl : fnlm} files
+        {:util {: file-mtime}} R
         fnlm-mtime (accumulate [newest-mtime {:sec 0 :nsec 0 :after? #false} _ {: fnl-abs} (ipairs fnlm)]
                      (let [this-mtime (file-mtime fnl-abs)]
                        (if (this-mtime:after? newest-mtime)
@@ -226,7 +203,7 @@
 (λ m.sync-compile [ctx fnl-files ?extra-options]
   (accumulate [results {:ok [] :errors []}
                _ {: fnl-abs : fnl-rel : lua-abs} (ipairs fnl-files)]
-    (let [fnl-source (read-file fnl-abs)
+    (let [fnl-source (R.util.file-read fnl-abs)
           fnl-source (m.apply-transform ctx fnl-source fnl-rel)
           extra-options (vim.tbl_extend :force (or ?extra-options {})
                                         {:filename fnl-rel})]
@@ -241,7 +218,7 @@
 (λ m.sync-write [ctx output-files]
   (each [_ {: lua-abs : source} (ipairs output-files)]
     (vim.fn.mkdir (vim.fs.dirname lua-abs) "p")
-    (write-file lua-abs source)))
+    (R.util.file-write lua-abs source)))
 
 (λ m.sync-plan-clean [ctx source-files]
   (m.find-orphaned-files ctx source-files))
