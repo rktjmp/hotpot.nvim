@@ -201,6 +201,31 @@
     fnl-source-files))
 
 (λ m.sync-compile [ctx fnl-files ?extra-options]
+  ;; Fennel caches macro modules by module name which causes two problems for us:
+  ;;
+  ;; - If you compile then edit a macro file, then save, we'll recompile but use
+  ;;   the old macro definition from the cache.
+  ;;
+  ;; - If you compile from two different contexts with the same macro module
+  ;;   name, you will only use the first one, using the *wrong macro in the other
+  ;;   project!* eg: project1/test/macros.fnlm and project2/test/macros.fnlm
+  ;;   will both try to save a `test.macros` macro module.
+  ;;
+  ;; It would not be impossible to keep some mapping of seen macro modules to
+  ;; files, clear the ones that dont match the current context + those that we
+  ;; define as stale in some way (eg mtime newer than fnl/lua files) OR hack
+  ;; the fennel table in memory with a `__index` proxy that is context aware
+  ;; but both are a fair amount of complexity for not a whole lot of gain vs
+  ;; nuking the cache each compile and paying the reparse cost.
+  ;;
+  ;; Just how painful the reparse is depends on the size and number of macro
+  ;; modules.
+  ;;
+  ;; One day we may return to the __index proxy idea as a way to track
+  ;; dependencies like we used to in v1 but without requring the patched in
+  ;; hook.
+  (each [key _ (pairs R.fennel.macro-loaded)]
+    (set (. R.fennel.macro-loaded key) nil))
   (accumulate [results {:ok [] :errors []}
                _ {: fnl-abs : fnl-rel : lua-abs} (ipairs fnl-files)]
     (let [fnl-source (R.util.file-read fnl-abs)

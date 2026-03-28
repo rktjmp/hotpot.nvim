@@ -412,6 +412,9 @@ m["sync-compile"] = function(ctx, fnl_files, _3fextra_options)
     _G.error("Missing argument ctx on fnl/hotpot/context.fnl:203", 2)
   else
   end
+  for key, _ in pairs(R.fennel["macro-loaded"]) do
+    R.fennel["macro-loaded"][key] = nil
+  end
   local results = {ok = {}, errors = {}}
   for _, _66_ in ipairs(fnl_files) do
     local fnl_abs = _66_["fnl-abs"]
@@ -437,11 +440,11 @@ m["sync-compile"] = function(ctx, fnl_files, _3fextra_options)
 end
 m["sync-write"] = function(ctx, output_files)
   if (nil == output_files) then
-    _G.error("Missing argument output-files on fnl/hotpot/context.fnl:218", 2)
+    _G.error("Missing argument output-files on fnl/hotpot/context.fnl:243", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:218", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:243", 2)
   else
   end
   for _, _72_ in ipairs(output_files) do
@@ -454,22 +457,22 @@ m["sync-write"] = function(ctx, output_files)
 end
 m["sync-plan-clean"] = function(ctx, source_files)
   if (nil == source_files) then
-    _G.error("Missing argument source-files on fnl/hotpot/context.fnl:223", 2)
+    _G.error("Missing argument source-files on fnl/hotpot/context.fnl:248", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:223", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:248", 2)
   else
   end
   return m["find-orphaned-files"](ctx, source_files)
 end
 m["sync-clean"] = function(ctx, orphan_files)
   if (nil == orphan_files) then
-    _G.error("Missing argument orphan-files on fnl/hotpot/context.fnl:226", 2)
+    _G.error("Missing argument orphan-files on fnl/hotpot/context.fnl:251", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:226", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:251", 2)
   else
   end
   for _, orphan in ipairs(orphan_files) do
@@ -479,15 +482,15 @@ m["sync-clean"] = function(ctx, orphan_files)
 end
 m["sync-plan-confirm"] = function(ctx, source_files, orphan_files)
   if (nil == orphan_files) then
-    _G.error("Missing argument orphan-files on fnl/hotpot/context.fnl:230", 2)
+    _G.error("Missing argument orphan-files on fnl/hotpot/context.fnl:255", 2)
   else
   end
   if (nil == source_files) then
-    _G.error("Missing argument source-files on fnl/hotpot/context.fnl:230", 2)
+    _G.error("Missing argument source-files on fnl/hotpot/context.fnl:255", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:230", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:255", 2)
   else
   end
   if (5 < #orphan_files) then
@@ -523,11 +526,11 @@ m["sync-plan-confirm"] = function(ctx, source_files, orphan_files)
 end
 m["make-fennel-path-modifiers"] = function(ctx, fennel)
   if (nil == fennel) then
-    _G.error("Missing argument fennel on fnl/hotpot/context.fnl:260", 2)
+    _G.error("Missing argument fennel on fnl/hotpot/context.fnl:285", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:260", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:285", 2)
   else
   end
   if ("api" == ctx.kind) then
@@ -598,7 +601,7 @@ M.new = function(_3fdirectory)
 end
 M.nearest = function(starting_path)
   if (nil == starting_path) then
-    _G.error("Missing argument starting-path on fnl/hotpot/context.fnl:366", 2)
+    _G.error("Missing argument starting-path on fnl/hotpot/context.fnl:391", 2)
   else
   end
   local case_100_ = vim.uv.fs_realpath(starting_path)
@@ -629,15 +632,15 @@ M.nearest = function(starting_path)
 end
 M["compile-string"] = function(ctx, fnl_source, options)
   if (nil == options) then
-    _G.error("Missing argument options on fnl/hotpot/context.fnl:386", 2)
+    _G.error("Missing argument options on fnl/hotpot/context.fnl:411", 2)
   else
   end
   if (nil == fnl_source) then
-    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:386", 2)
+    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:411", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:386", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:411", 2)
   else
   end
   assert(options.filename, "tried to compile without filename")
@@ -662,15 +665,15 @@ M["compile-string"] = function(ctx, fnl_source, options)
 end
 M["eval-string"] = function(ctx, fnl_source, options)
   if (nil == options) then
-    _G.error("Missing argument options on fnl/hotpot/context.fnl:405", 2)
+    _G.error("Missing argument options on fnl/hotpot/context.fnl:430", 2)
   else
   end
   if (nil == fnl_source) then
-    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:405", 2)
+    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:430", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:405", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:430", 2)
   else
   end
   local fennel = R.fennel
@@ -694,7 +697,7 @@ M["eval-string"] = function(ctx, fnl_source, options)
 end
 M.sync = function(ctx, _3foptions)
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:423", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:448", 2)
   else
   end
   local function option_if_set(key)
