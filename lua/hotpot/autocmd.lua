@@ -1,5 +1,6 @@
 local _local_1_ = require("hotpot.util")
 local R = _local_1_.R
+local notify_error = _local_1_["notify-error"]
 local M, m = {}, {}
 local function buf_write_post_callback(event)
   local Context = R.Context
@@ -19,7 +20,7 @@ local function buf_write_post_callback(event)
               return nil
             elseif ((case_7_ == false) and (nil ~= case_8_)) then
               local err = case_8_
-              return vim.notify(err, vim.log.levels.ERROR, {})
+              return notify_error(err)
             else
               return nil
             end
@@ -27,7 +28,7 @@ local function buf_write_post_callback(event)
           return _6_(pcall(Context.sync, ctx))
         elseif ((case_4_ == false) and (nil ~= case_5_)) then
           local err = case_5_
-          return vim.notify(err, vim.log.levels.ERROR, {})
+          return notify_error(err)
         else
           return nil
         end

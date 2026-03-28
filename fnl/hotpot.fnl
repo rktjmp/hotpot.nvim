@@ -1,6 +1,6 @@
 (when (= nil _G.__hotpot_disable_version_check)
   (assert (= 1 (vim.fn.has "nvim-0.11.6")) "Hotpot requires neovim 0.11.6"))
-(local {: R} (require :hotpot.util))
+(local {: R : notify-error : notify-warn : notify-info} (require :hotpot.util))
 
 (local {: HOTPOT_CONFIG_CACHE_ROOT
         : HOTPOT_FENNEL_UPDATE_ROOT
@@ -18,15 +18,15 @@
           (values :ok)
           (catch
             (false err) (do
-                          (vim.notify "Hotpot encountered an error syncing during first-time startup." vim.log.levels.WARN)
-                          (vim.notify "You should still be able to edit fnl files to fixe the issue." vim.log.levels.WARN)
-                          (vim.notify err vim.log.levels.ERR)))))
+                          (notify-warn "Hotpot encountered an error syncing during first-time startup.")
+                          (notify-warn "You should still be able to edit fnl files to fixe the issue.")
+                          (notify-error err)))))
   ;; exists, do nothing
   {:type :directory} nil
   ;; wrong type
-  {:type t} (let [msg (table.concat ["Hotpot: %s exists but is not directory, is %s, consider removing it?"
-                                     "Hotpot probably wont function correctly."] "\n")]
-              (vim.notify (string.format msg HOTPOT_CONFIG_CACHE_ROOT t) vim.log.levels.ERROR {})))
+  {:type t} (notify-error (table.concat ["Hotpot: %s exists but is not directory, is %s, consider removing it?"
+                                         "Hotpot probably wont function correctly."] "\n")
+                          HOTPOT_CONFIG_CACHE_ROOT t))
 
 (case (vim.uv.fs_stat HOTPOT_FENNEL_UPDATE_LUA_ROOT)
   nil (vim.fn.mkdir HOTPOT_FENNEL_UPDATE_LUA_ROOT "p"))

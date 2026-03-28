@@ -1,3 +1,6 @@
+;; Note this file is currently required in every other file for `R`, so keep it
+;; light and dont require anything else directly.
+
 (fn pack [...]
   (doto [...]
     (tset :n (select :# ...))))
@@ -46,7 +49,14 @@
                                           _ mod)))))}))
 (local R (nest {} :hotpot))
 
-{: file-read
+(λ notify-error [msg ...] (vim.notify (string.format msg ...) vim.log.levels.ERROR))
+(λ notify-warn [msg ...] (vim.notify (string.format msg ...) vim.log.levels.WARN))
+(λ notify-info [msg ...] (vim.notify (string.format msg ...) vim.log.levels.INFO))
+
+{: notify-error
+ : notify-warn
+ : notify-info
+ : file-read
  : file-write
  : file-mtime
  : pack : R}

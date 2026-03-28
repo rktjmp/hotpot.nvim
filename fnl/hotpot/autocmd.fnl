@@ -1,4 +1,4 @@
-(local {: R} (require :hotpot.util))
+(local {: R : notify-error} (require :hotpot.util))
 (local (M m) (values {} {}))
 
 (fn buf-write-post-callback [event]
@@ -15,7 +15,7 @@
              (pcall Context.sync ctx) (true _report)
              nil
              (catch
-               (false err) (vim.notify  err vim.log.levels.ERROR {})))
+               (false err) (notify-error err)))
       ;; we may be saving just some random fennel file, so not finding a
       ;; nearest context doesn't matter.
       nil nil)

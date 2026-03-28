@@ -1,5 +1,8 @@
 local _local_1_ = require("hotpot.util")
 local R = _local_1_.R
+local notify_info = _local_1_["notify-info"]
+local notify_error = _local_1_["notify-error"]
+local notify_warn = _local_1_["notify-warn"]
 local function parse_args(args)
   local tbl_21_ = {}
   for _, arg in ipairs(args) do
@@ -54,7 +57,7 @@ local function hotpot_command_sync_handler(params)
             local case_16_, case_17_ = report, not opts["verbose?"]
             if (((_G.type(case_16_) == "table") and ((_G.type(case_16_.errors) == "table") and (case_16_.errors[1] == nil))) and (case_17_ == true)) then
               local msg = string.format("Synced %s", root)
-              vim.notify(msg, vim.log.levels.INFO, {})
+              notify_info(msg)
               return nil
             else
               local _ = case_16_
@@ -62,7 +65,7 @@ local function hotpot_command_sync_handler(params)
             end
           elseif ((case_14_ == false) and (nil ~= case_15_)) then
             local err = case_15_
-            return vim.notify(err, vim.log.levels.ERROR, {})
+            return notify_error(err)
           else
             return nil
           end
@@ -70,7 +73,7 @@ local function hotpot_command_sync_handler(params)
         return _13_(pcall(R.context.sync, ctx, opts))
       elseif ((case_11_ == false) and (nil ~= case_12_)) then
         local err = case_12_
-        return vim.notify(err, vim.log.levels.ERROR, {})
+        return notify_error(err)
       else
         return nil
       end
@@ -78,7 +81,7 @@ local function hotpot_command_sync_handler(params)
     return _10_(pcall(R.context.new, root))
   elseif ((case_8_ == nil) and (nil ~= case_9_)) then
     local err = case_9_
-    return vim.notify(err, vim.log.levels.ERROR, {})
+    return notify_error(err)
   else
     return nil
   end
@@ -86,10 +89,10 @@ end
 local function hotpot_command_watch_handler(params)
   if ((_G.type(params) == "table") and (params.enable == true)) then
     R.autocmd.enable()
-    return vim.notify("Enabled Hotpot autocommand", vim.log.levels.INFO, {})
+    return notify_info("Enabled Hotpot autocommand")
   elseif ((_G.type(params) == "table") and (params.disable == true)) then
     R.autocmd.disable()
-    return vim.notify("Disabled Hotpot autocommand", vim.log.levels.INFO, {})
+    return notify_info("Disabled Hotpot autocommand")
   else
     local _ = params
     return vim.notify("Usage: Hotpot watch enable|disable")
@@ -100,26 +103,26 @@ local function hotpot_command_fennel_rollback_handler(download_to_path, params)
   if (_G.type(case_23_) == "table") then
     local case_24_, case_25_ = vim.uv.fs_unlink(download_to_path)
     if (case_24_ == true) then
-      return vim.notify("Removed downloaded Fennel, please restart Neovim.", vim.log.levels.INFO)
+      return notify_info("Removed downloaded Fennel, please restart Neovim.")
     elseif ((case_24_ == nil) and (nil ~= case_25_)) then
       local err = case_25_
-      return vim.notify(string.format("Unable to remove %s: %s", download_to_path, err), vim.log.levels.error)
+      return notify_error("Unable to remove %s: %s", download_to_path, err)
     else
       return nil
     end
   elseif (case_23_ == nil) then
-    return vim.notify("Unable to rollback, nothing to remove", vim.log.levels.ERROR)
+    return notify_error("Unable to rollback, nothing to remove")
   else
     return nil
   end
 end
 local function hotpot_command_fennel_version_handler(download_to_path, params)
-  return vim.notify(string.format("Fennel version: %s", R.fennel.version), vim.log.levels.INFO)
+  return notify_info("Fennel version: %s", R.fennel.version)
 end
 local function hotpot_command_fennel_update_handler(download_to_path, params)
   local function http_get(url)
     local curl_opts = "-sL"
-    vim.notify(string.format("Fetching %s...", url), vim.log.levels.INFO, {})
+    notify_info("Fetching %s...", url)
     return vim.fn.system(table.concat({"curl", curl_opts, url}, " "))
   end
   local function install_update(update_url)
@@ -128,10 +131,10 @@ local function hotpot_command_fennel_update_handler(download_to_path, params)
     if (nil ~= case_28_) then
       local func = case_28_
       R.util["file-write"](download_to_path, source)
-      return vim.notify("Updated Fennel. You must restart Neovim.", vim.log.levels.INFO, {})
+      return notify_info("Updated Fennel. You must restart Neovim.")
     elseif ((case_28_ == nil) and (nil ~= case_29_)) then
       local err = case_29_
-      return vim.notify(string.format("Invalid lua %s...", err), vim.log.levels.ERROR, {})
+      return notify_error("Invalid lua %s...", err)
     else
       return nil
     end
@@ -139,7 +142,7 @@ local function hotpot_command_fennel_update_handler(download_to_path, params)
   local function check_latest_online(force_3f)
     local url = "https://fennel-lang.org/downloads/"
     local index = http_get(url)
-    local _ = vim.notify("Finding latest version...", vim.log.levels.INFO, {})
+    local _ = notify_info("Finding latest version...")
     local versions
     do
       local tbl_26_ = {}
@@ -164,7 +167,7 @@ local function hotpot_command_fennel_update_handler(download_to_path, params)
       local latest = versions[1]
       local case_33_, case_34_ = string.match(latest, "fennel%-([0-9%.]+)%.lua")
       if (case_33_ == installed_version) then
-        vim.notify(string.format("Already at version %s", installed_version), vim.log.levels.INFO, {})
+        notify_info("Already at version %s", installed_version)
         return nil
       elseif (nil ~= case_33_) then
         local online_version = case_33_
@@ -183,7 +186,7 @@ local function hotpot_command_fennel_update_handler(download_to_path, params)
           if (answer["ok?"] == "Yes") then
             return final_url
           else
-            vim.notify("Ok, doing nothing.", vim.log.levels.INFO, {})
+            notify_info("Ok, doing nothing.")
             return nil
           end
         end
@@ -191,7 +194,7 @@ local function hotpot_command_fennel_update_handler(download_to_path, params)
         return nil
       end
     elseif ((_G.type(versions) == "table") and (versions[1] == nil)) then
-      vim.notify("Could not find any versions...", vim.log.levels.ERROR, {})
+      notify_error("Could not find any versions...")
       return nil
     else
       return nil
@@ -216,7 +219,7 @@ local function hotpot_command_fennel_handler(params)
     return hotpot_command_fennel_version_handler(download_to_path, params)
   else
     local _ = params
-    return vim.notify("Unrecognised sub command", vim.log.levels.ERROR)
+    return notify_error("Unrecognised sub command")
   end
 end
 local function hotpot_command_handler(_42_)
@@ -238,7 +241,7 @@ local function hotpot_command_handler(_42_)
   end
   local usage
   local function _46_()
-    return vim.notify("Usage: Hotpot sync|autocmd params...", vim.log.levels.WARN)
+    return notify_warn("Usage: Hotpot sync|autocmd params...")
   end
   usage = _46_
   if params then
@@ -255,7 +258,7 @@ local function hotpot_command_handler(_42_)
       return usage()
     end
   else
-    return vim.notify(parse_error, vim.log.levels.ERROR, {})
+    return notify_error(parse_error)
   end
 end
 local function filter(prefix, options)
@@ -283,15 +286,15 @@ local function filter(prefix, options)
 end
 local function filter_param_options_no_duplicates(possible_params, existing_params, current_param)
   if (nil == current_param) then
-    _G.error("Missing argument current-param on fnl/hotpot/command.fnl:146", 2)
+    _G.error("Missing argument current-param on fnl/hotpot/command.fnl:143", 2)
   else
   end
   if (nil == existing_params) then
-    _G.error("Missing argument existing-params on fnl/hotpot/command.fnl:146", 2)
+    _G.error("Missing argument existing-params on fnl/hotpot/command.fnl:143", 2)
   else
   end
   if (nil == possible_params) then
-    _G.error("Missing argument possible-params on fnl/hotpot/command.fnl:146", 2)
+    _G.error("Missing argument possible-params on fnl/hotpot/command.fnl:143", 2)
   else
   end
   local function filter0(options, prefix)
@@ -453,11 +456,11 @@ local function pack(...)
 end
 local function make_output_flag_aware_eval(ctx, args)
   if (nil == args) then
-    _G.error("Missing argument args on fnl/hotpot/command.fnl:223", 2)
+    _G.error("Missing argument args on fnl/hotpot/command.fnl:220", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/command.fnl:223", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/command.fnl:220", 2)
   else
   end
   local output
@@ -479,7 +482,7 @@ local function make_output_flag_aware_eval(ctx, args)
     if (ok_3f == true) then
       return output(unpack(returns, 1, (returns.n - 1)))
     elseif (ok_3f == false) then
-      return vim.notify(returns[1], vim.log.levels.ERROR, {})
+      return notify_error(returns[1])
     else
       return nil
     end
@@ -592,7 +595,7 @@ local function fnlfile_command_handler(_90_)
     end
     return eval(file_contents)
   else
-    return vim.notify(string.format("Cant read file %s", path), vim.log.levels.ERROR, {})
+    return notify_error("Cant read file %s", path)
   end
 end
 local function define_hotpot()
@@ -654,7 +657,7 @@ local function support_source_command()
         end
         return ctx.eval(file_contents)
       else
-        return vim.notify(string.format("Cant read file %s", path), vim.log.levels.ERROR, {})
+        return notify_error("Cant read file %s", path)
       end
     end
     vim.api.nvim_create_autocmd({"SourceCmd"}, {pattern = {"*.fnl"}, group = augroup_id, callback = callback})

@@ -4,6 +4,9 @@ else
 end
 local _local_2_ = require("hotpot.util")
 local R = _local_2_.R
+local notify_error = _local_2_["notify-error"]
+local notify_warn = _local_2_["notify-warn"]
+local notify_info = _local_2_["notify-info"]
 local HOTPOT_CONFIG_CACHE_ROOT = R.const.HOTPOT_CONFIG_CACHE_ROOT
 local HOTPOT_FENNEL_UPDATE_ROOT = R.const.HOTPOT_FENNEL_UPDATE_ROOT
 local HOTPOT_FENNEL_UPDATE_LUA_ROOT = R.const.HOTPOT_FENNEL_UPDATE_LUA_ROOT
@@ -22,9 +25,9 @@ do
             return "ok"
           elseif ((case_8_ == false) and (nil ~= case_9_)) then
             local err = case_9_
-            vim.notify("Hotpot encountered an error syncing during first-time startup.", vim.log.levels.WARN)
-            vim.notify("You should still be able to edit fnl files to fixe the issue.", vim.log.levels.WARN)
-            return vim.notify(err, vim.log.levels.ERR)
+            notify_warn("Hotpot encountered an error syncing during first-time startup.")
+            notify_warn("You should still be able to edit fnl files to fixe the issue.")
+            return notify_error(err)
           else
             return nil
           end
@@ -32,9 +35,9 @@ do
         return _7_(pcall(Context.sync, ctx))
       elseif ((case_5_ == false) and (nil ~= case_6_)) then
         local err = case_6_
-        vim.notify("Hotpot encountered an error syncing during first-time startup.", vim.log.levels.WARN)
-        vim.notify("You should still be able to edit fnl files to fixe the issue.", vim.log.levels.WARN)
-        return vim.notify(err, vim.log.levels.ERR)
+        notify_warn("Hotpot encountered an error syncing during first-time startup.")
+        notify_warn("You should still be able to edit fnl files to fixe the issue.")
+        return notify_error(err)
       else
         return nil
       end
@@ -43,8 +46,7 @@ do
   elseif ((_G.type(case_3_) == "table") and (case_3_.type == "directory")) then
   elseif ((_G.type(case_3_) == "table") and (nil ~= case_3_.type)) then
     local t = case_3_.type
-    local msg = table.concat({"Hotpot: %s exists but is not directory, is %s, consider removing it?", "Hotpot probably wont function correctly."}, "\n")
-    vim.notify(string.format(msg, HOTPOT_CONFIG_CACHE_ROOT, t), vim.log.levels.ERROR, {})
+    notify_error(table.concat({"Hotpot: %s exists but is not directory, is %s, consider removing it?", "Hotpot probably wont function correctly."}, "\n"), HOTPOT_CONFIG_CACHE_ROOT, t)
   else
   end
 end

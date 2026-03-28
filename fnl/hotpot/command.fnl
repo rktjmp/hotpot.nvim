@@ -1,4 +1,4 @@
-(local {: R} (require :hotpot.util))
+(local {: R : notify-info : notify-error : notify-warn} (require :hotpot.util))
 
 (fn parse-args [args]
   "Extract `key=value` from command line arguments, automatically convert
@@ -27,41 +27,38 @@
                ;; *something* ran.
                ({:errors [nil]} true)
                (let [msg (string.format "Synced %s" root)]
-                 (vim.notify msg vim.log.levels.INFO {})
+                 (notify-info msg)
                  nil)
                ;; Otherwise rely on verbose doing the reporting.
                _ nil)
              (catch
-               (false err) (vim.notify err vim.log.levels.ERROR {})))
-      (nil err) (vim.notify err vim.log.levels.ERROR {}))))
+               (false err) (notify-error err)))
+      (nil err) (notify-error err))))
 
 (fn hotpot-command-watch-handler [params]
   (case params
     {:enable true} (do
                      (R.autocmd.enable)
-                     (vim.notify "Enabled Hotpot autocommand" vim.log.levels.INFO {}))
+                     (notify-info "Enabled Hotpot autocommand"))
     {:disable true} (do
                       (R.autocmd.disable)
-                      (vim.notify "Disabled Hotpot autocommand" vim.log.levels.INFO {}))
+                      (notify-info "Disabled Hotpot autocommand"))
     _ (vim.notify "Usage: Hotpot watch enable|disable")))
 
 (fn hotpot-command-fennel-rollback-handler [download-to-path params]
   (case (vim.uv.fs_stat download-to-path)
     {} (case (vim.uv.fs_unlink download-to-path)
-         true (vim.notify "Removed downloaded Fennel, please restart Neovim."
-                          vim.log.levels.INFO)
-         (nil err) (vim.notify (string.format "Unable to remove %s: %s" download-to-path err)
-                               vim.log.levels.error))
-    nil (vim.notify "Unable to rollback, nothing to remove" vim.log.levels.ERROR)))
+         true (notify-info "Removed downloaded Fennel, please restart Neovim.")
+         (nil err) (notify-error "Unable to remove %s: %s" download-to-path err))
+    nil (notify-error "Unable to rollback, nothing to remove")))
 
 (fn hotpot-command-fennel-version-handler [download-to-path params]
-  (-> (string.format "Fennel version: %s" R.fennel.version)
-      (vim.notify vim.log.levels.INFO)))
+  (notify-info "Fennel version: %s" R.fennel.version))
 
 (fn hotpot-command-fennel-update-handler [download-to-path params]
   (fn http-get [url]
     (let [curl-opts "-sL"]
-      (vim.notify (string.format "Fetching %s..." url) vim.log.levels.INFO {})
+      (notify-info "Fetching %s..." url)
       (vim.fn.system (table.concat ["curl" curl-opts url] " "))))
 
   (fn install-update [update-url]
@@ -69,13 +66,13 @@
       (case (loadstring source)
         func (do
                (R.util.file-write download-to-path source)
-               (vim.notify "Updated Fennel. You must restart Neovim." vim.log.levels.INFO {}))
-        (nil err) (vim.notify (string.format "Invalid lua %s..." err) vim.log.levels.ERROR {}))))
+               (notify-info "Updated Fennel. You must restart Neovim."))
+        (nil err) (notify-error "Invalid lua %s..." err))))
 
   (fn check-latest-online [force?]
     (let [url "https://fennel-lang.org/downloads/"
           index (http-get url)
-          _ (vim.notify "Finding latest version..." vim.log.levels.INFO {})
+          _ (notify-info "Finding latest version...")
           versions (icollect [version (string.gmatch index "href=[\"'](fennel%-[0-9]+%.[0-9]+%.[0-9]+%.lua)[\"']")]
                      version)
           _ (table.sort versions #(> $1 $2))]
@@ -86,7 +83,7 @@
             ;; already at latest
             (where (= installed-version))
             (do
-              (vim.notify (string.format "Already at version %s" installed-version) vim.log.levels.INFO {})
+              (notify-info "Already at version %s" installed-version)
               (values nil))
             ;; prompt update
             online-version
@@ -100,11 +97,11 @@
                   (if (= answer.ok? "Yes")
                     (values final-url)
                     (do
-                      (vim.notify "Ok, doing nothing." vim.log.levels.INFO {})
+                      (notify-info "Ok, doing nothing.")
                       (values nil)))))))
           [nil]
           (do
-            (vim.notify "Could not find any versions..." vim.log.levels.ERROR {})
+            (notify-error "Could not find any versions...")
             (values nil))))))
 
   (let [{:force ?force? :url ?url} params
@@ -119,14 +116,14 @@
       {:rollback true} (hotpot-command-fennel-rollback-handler download-to-path params)
       {:update true} (hotpot-command-fennel-update-handler download-to-path params)
       {:version true} (hotpot-command-fennel-version-handler download-to-path params)
-      _ (vim.notify "Unrecognised sub command" vim.log.levels.ERROR))))
+      _ (notify-error "Unrecognised sub command"))))
 
 (fn hotpot-command-handler [{: fargs}]
   (let [[command & args] fargs
         (params parse-error) (case (pcall parse-args args)
                                (true params) params
                                (false err) (values nil err))
-        usage #(vim.notify "Usage: Hotpot sync|autocmd params..." vim.log.levels.WARN)]
+        usage #(notify-warn "Usage: Hotpot sync|autocmd params...")]
     (if params
       (case command
         nil (usage)
@@ -134,7 +131,7 @@
         :sync (hotpot-command-sync-handler params)
         :watch (hotpot-command-watch-handler params)
         _ (usage))
-      (vim.notify parse-error vim.log.levels.ERROR {}))))
+      (notify-error parse-error))))
 
 (fn filter [prefix options]
   (case prefix
@@ -229,7 +226,7 @@
             ok? (table.remove returns 1)]
         (case ok?
           true (output (unpack returns 1 (- returns.n 1)))
-          false (vim.notify (. returns 1) vim.log.levels.ERROR {}))))))
+          false (notify-error (. returns 1)))))))
 
 (fn fnl-command-handler [{: range : line1 : line2 : count : args &as opts}]
   (let [ctx (fetch-context)
@@ -288,7 +285,7 @@
         ;; which isn't *great* but .. idk, i'd rather use the API here instead of
         ;; context directly.
         (eval file-contents))
-      (vim.notify (string.format "Cant read file %s" path) vim.log.levels.ERROR {}))))
+      (notify-error "Cant read file %s" path))))
 
 (fn define-hotpot []
   (vim.api.nvim_create_user_command
@@ -327,7 +324,7 @@
             ;; which isn't *great* but .. idk, i'd rather use the API here instead of
             ;; context directly.
             (ctx.eval file-contents))
-          (vim.notify (string.format "Cant read file %s" path) vim.log.levels.ERROR {})))
+          (notify-error "Cant read file %s" path)))
       (vim.api.nvim_create_autocmd [:SourceCmd]
                                    {:pattern [:*.fnl]
                                     :group augroup-id

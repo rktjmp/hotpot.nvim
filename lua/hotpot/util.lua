@@ -5,7 +5,7 @@ local function pack(...)
 end
 local function file_mtime(path)
   if (nil == path) then
-    _G.error("Missing argument path on fnl/hotpot/util.fnl:5", 2)
+    _G.error("Missing argument path on fnl/hotpot/util.fnl:8", 2)
   else
   end
   local case_2_, case_3_ = vim.uv.fs_stat(path)
@@ -31,7 +31,7 @@ local function file_mtime(path)
 end
 local function file_read(path)
   if (nil == path) then
-    _G.error("Missing argument path on fnl/hotpot/util.fnl:20", 2)
+    _G.error("Missing argument path on fnl/hotpot/util.fnl:23", 2)
   else
   end
   local fh = assert(io.open(path, "r"), ("read io.open failed:" .. path))
@@ -74,11 +74,11 @@ local function file_read(path)
 end
 local function file_write(path, lines)
   if (nil == lines) then
-    _G.error("Missing argument lines on fnl/hotpot/util.fnl:24", 2)
+    _G.error("Missing argument lines on fnl/hotpot/util.fnl:27", 2)
   else
   end
   if (nil == path) then
-    _G.error("Missing argument path on fnl/hotpot/util.fnl:24", 2)
+    _G.error("Missing argument path on fnl/hotpot/util.fnl:27", 2)
   else
   end
   assert(("string" == type(lines)), "write file expects string")
@@ -145,4 +145,25 @@ local function nest(t, namespace)
   return setmetatable(t, {__index = _29_})
 end
 local R = nest({}, "hotpot")
-return {["file-read"] = file_read, ["file-write"] = file_write, ["file-mtime"] = file_mtime, pack = pack, R = R}
+local function notify_error(msg, ...)
+  if (nil == msg) then
+    _G.error("Missing argument msg on fnl/hotpot/util.fnl:52", 2)
+  else
+  end
+  return vim.notify(string.format(msg, ...), vim.log.levels.ERROR)
+end
+local function notify_warn(msg, ...)
+  if (nil == msg) then
+    _G.error("Missing argument msg on fnl/hotpot/util.fnl:53", 2)
+  else
+  end
+  return vim.notify(string.format(msg, ...), vim.log.levels.WARN)
+end
+local function notify_info(msg, ...)
+  if (nil == msg) then
+    _G.error("Missing argument msg on fnl/hotpot/util.fnl:54", 2)
+  else
+  end
+  return vim.notify(string.format(msg, ...), vim.log.levels.INFO)
+end
+return {["notify-error"] = notify_error, ["notify-warn"] = notify_warn, ["notify-info"] = notify_info, ["file-read"] = file_read, ["file-write"] = file_write, ["file-mtime"] = file_mtime, pack = pack, R = R}
