@@ -7,7 +7,12 @@
     (case (string.match arg "^([^=]+)=(.+)$")
       (key :true) (values key true)
       (key :false) (values key false)
-      (key val) (values key val)
+      (key val) (case (string.find val "%" 1 true)
+                  ;; we could try to check the validity of the "%format" but
+                  ;; vim is actually super permissive, so we'll act the same,
+                  ;; if it has a % at the start do whatever vim would.
+                  1 (values key (vim.fn.expand val))
+                  _ (values key val))
       nil (case (string.match arg "^([^=]+)=$")
             name (error (string.format "Param error: gave key %s but no value assigned." arg) 0)
             nil (values arg true)))))
