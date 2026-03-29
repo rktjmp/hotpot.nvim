@@ -1,6 +1,6 @@
 local fennel
 do
-  local case_1_, case_2_ = pcall(require, "hotpot.update-fennel.fennel")
+  local case_1_, case_2_ = pcall(require, "hotpot.fennel-update.fennel")
   if ((case_1_ == true) and (nil ~= case_2_)) then
     local fennel0 = case_2_
     fennel = fennel0

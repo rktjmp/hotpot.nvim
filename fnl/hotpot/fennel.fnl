@@ -1,4 +1,4 @@
-(let [fennel (case (pcall require :hotpot.update-fennel.fennel)
+(let [fennel (case (pcall require :hotpot.fennel-update.fennel)
                (true fennel) fennel
                false (require :hotpot.vendor.fennel))
       {: path : macro-path} fennel]
