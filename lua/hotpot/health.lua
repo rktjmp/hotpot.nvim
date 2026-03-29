@@ -24,34 +24,46 @@ local function fennel_update_report()
     else
     end
   end
-  vim.health.start(":Hotpot fennel version")
-  local case_5_, case_6_ = pcall(require, "hotpot.update-fennel.fennel")
-  if ((case_5_ == true) and (nil ~= case_6_)) then
-    local mod = case_6_
-    return vim.health.info(string.format("Using custom Fennel version: `%s`", mod.version))
-  elseif (case_5_ == false) then
-    return vim.health.info(string.format("Using default Fennel version: `%s`", R.fennel.version))
+  do
+    local case_5_ = vim.uv.fs_stat(R.const.HOTPOT_FENNEL_UPDATE_ROOT)
+    if (case_5_ == nil) then
+      vim.health.error(string.format("Target directory missing: `%s`", R.const.HOTPOT_FENNEL_UPDATE_ROOT), "Should be automatically created on load, check parent directory permissions?")
+    elseif (_G.type(case_5_) == "table") then
+      vim.health.ok(string.format("Target directory exists: `%s`", R.const.HOTPOT_FENNEL_UPDATE_ROOT))
+    else
+    end
+  end
+  local lua_mod = vim.fs.joinpath(R.const.HOTPOT_FENNEL_UPDATE_LUA_ROOT, "fennel.lua")
+  if vim.uv.fs_stat(lua_mod) then
+    vim.health.ok(string.format("Downloaded lua module exists: `%s`", lua_mod))
+    local case_7_, case_8_ = pcall(require, "hotpot.fennel-update.fennel")
+    if ((case_7_ == true) and (nil ~= case_8_)) then
+      local mod = case_8_
+      return vim.health.ok(string.format("Using custom Fennel version: `%s`", mod.version))
+    elseif ((case_7_ == false) and (nil ~= case_8_)) then
+      local err = case_8_
+      return vim.health.error("Downloaded fennel could not be loaded.", err)
+    else
+      return nil
+    end
   else
-    return nil
+    return vim.health.info(string.format("Using default Fennel version: `%s`", R.fennel.version))
   end
 end
 local function check()
   do
     local config = vim.fn.stdpath("config")
     local ctx = R.context.new(config)
+    local nearest = R.context.nearest(vim.uv.cwd())
     context_report(config, ctx)
-  end
-  do
-    local case_8_ = R.context.nearest(vim.uv.cwd())
-    if (nil ~= case_8_) then
-      local root = case_8_
-      local case_9_, case_10_ = pcall(R.context.new, root)
-      if ((case_9_ == true) and (nil ~= case_10_)) then
-        local ctx = case_10_
-        context_report(root, ctx)
-      elseif ((case_9_ == nil) and (nil ~= case_10_)) then
-        local err = case_10_
-        context_report(root, nil, err)
+    if (nearest and (config ~= nearest)) then
+      local case_11_, case_12_ = pcall(R.context.new, nearest)
+      if ((case_11_ == true) and (nil ~= case_12_)) then
+        local ctx0 = case_12_
+        context_report(nearest, ctx0)
+      elseif ((case_11_ == nil) and (nil ~= case_12_)) then
+        local err = case_12_
+        context_report(nearest, nil, err)
       else
       end
     else

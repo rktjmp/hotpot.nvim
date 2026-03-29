@@ -12,25 +12,34 @@
 
 (fn fennel-update-report []
   (vim.health.start ":Hotpot fennel update")
-
   (case (= 1 (vim.fn.executable :curl))
     true (vim.health.ok "`curl` is executable")
     false (vim.health.warn "`curl` is not executable" "Install curl to run `:Hotpot fennel update`"))
 
-  (vim.health.start ":Hotpot fennel version")
-  (case (pcall require :hotpot.update-fennel.fennel)
-    (true mod) (vim.health.info (string.format "Using custom Fennel version: `%s`" mod.version))
-    false (vim.health.info (string.format "Using default Fennel version: `%s`" R.fennel.version))))
+  (case (vim.uv.fs_stat R.const.HOTPOT_FENNEL_UPDATE_ROOT)
+    nil (vim.health.error (string.format "Target directory missing: `%s`" R.const.HOTPOT_FENNEL_UPDATE_ROOT)
+                          "Should be automatically created on load, check parent directory permissions?")
+    {} (vim.health.ok (string.format "Target directory exists: `%s`" R.const.HOTPOT_FENNEL_UPDATE_ROOT)))
+
+  (let [lua-mod (vim.fs.joinpath R.const.HOTPOT_FENNEL_UPDATE_LUA_ROOT :fennel.lua)]
+    (if (vim.uv.fs_stat lua-mod)
+      (do
+        (vim.health.ok (string.format "Downloaded lua module exists: `%s`" lua-mod))
+        (case (pcall require :hotpot.fennel-update.fennel)
+          (true mod) (vim.health.ok (string.format "Using custom Fennel version: `%s`" mod.version))
+          (false err) (vim.health.error "Downloaded fennel could not be loaded." err)))
+      (do
+        (vim.health.info (string.format "Using default Fennel version: `%s`" R.fennel.version))))))
 
 (fn check []
   (let [config (vim.fn.stdpath :config)
-        ctx (R.context.new config)]
-    (context-report config ctx))
-
-  (case (R.context.nearest (vim.uv.cwd))
-    root (case (pcall R.context.new root)
-           (true ctx) (context-report root ctx)
-           (nil err) (context-report root nil err)))
+        ctx (R.context.new config)
+        nearest (R.context.nearest (vim.uv.cwd))]
+    (context-report config ctx)
+    (when (and nearest (not= config nearest))
+      (case (pcall R.context.new nearest)
+        (true ctx) (context-report nearest ctx)
+        (nil err) (context-report nearest nil err))))
 
   (fennel-update-report))
 
