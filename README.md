@@ -146,8 +146,13 @@ this is untested.*
 ;; to use `:target :colocate` (which is *not* the default), you may skip this step.
 (let [lazy (require :lazy)
       api (require :hotpot.api)
-      context (api.context (vim.stdpath :config))]
-  (lazy.setup {:performance {:rtp {:paths [context.locate("destination")]}}))
+      context (api.context (vim.fn.stdpath :config))]
+  (lazy.setup {:performance {:rtp {:paths [(context.locate :destination)]}}))
+
+;; If you wish to use `Hotpot fennel update` to download fennel new versions of
+;; fennel from the internet, you will also have to add the `target directory`
+;; path, as listed in `:checkhealth hotpot` under the `Hotpot fennel update`
+;; section.
 ```
 
 </details>
