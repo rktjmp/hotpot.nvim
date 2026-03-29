@@ -2,6 +2,44 @@
 
 (local (M m) (values {} {}))
 
+(fn validate-user-spec [user-spec path]
+  ;; return nil so we can collect unknow keys
+  (fn assert-value [key want has]
+    (assert (= want has) (string.format "%s `%s` must be `%s`" path key want))
+    nil)
+  (fn assert-type [key want value]
+    (assert (= want (type value)) (string.format "%s `%s` must have type `%s`" path key want))
+    nil)
+
+  (assert (= :table (type user-spec)) (string.format "%s must return a table" path))
+
+  (let [known-keys {:schema #(assert-value :schema :hotpot/2 $1)
+                    :target #(do
+                               (assert (or (= :cache $1) (= :colocate $1))
+                                       (string.format "%s `target` must be `cache` or `colocate`" path))
+                               nil)
+                    :atomic? #(assert-type :atomic? :boolean $1)
+                    :verbose? #(assert-type :verbose? :boolean $1)
+                    :ignore #(do
+                               (assert-type :ignore :table $1)
+                               (each [_ v (ipairs $1)]
+                                 (assert-type :ignore.values :string v))
+                               nil)
+                    :transform #(assert-type :transform :function $1)
+                    ;; :userdata #(assert-type :userdata :table $1)
+                    ;; :behaviour #(assert-type :behaviour :table $1)
+                    :compiler #(assert-type :compiler :table $1)}
+        unknown-keys (icollect [key value (pairs user-spec)]
+                       (case (. known-keys key)
+                         func (func value)
+                         nil key))]
+    (assert (= 0 (length unknown-keys))
+            (string.format "\n.%s had invalid keys: %s.\nMust be one of: %s."
+                           path
+                           (table.concat unknown-keys ", ")
+                           (table.concat (vim.tbl_keys known-keys) ", ")))
+    true))
+
 (fn base-spec []
   ;; Note we mostly tbl_extend this with the users spec, but handle :compiler
   ;; separately as we want to retain any defaults we set and just update the
@@ -55,10 +93,7 @@
         (ok? def) (pcall fennel.eval content)
         _ (restore-fennel-path)]
     (assert ok? (err-msg-unable-to-load path def))
-    (assert (= :table (type def)) (err-msg-unable-to-load path "must return table"))
-    (assert (= def.schema :hotpot/2) (err-msg-unable-to-load path "must define schema key as hotpot/2"))
-    (assert (or (= def.target :cache) (= def.target :colocate))
-            (err-msg-unable-to-load path "must define target key as cache or colocate"))
+    (validate-user-spec def path)
     def))
 
 (λ user-spec->context [user-spec meta]
