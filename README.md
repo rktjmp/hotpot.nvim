@@ -79,8 +79,9 @@ vim.pack.add({
   {src = "https://github.com/rktjmp/hotpot.nvim",
    version = vim.version.range("^2.0.0")}
 })
+require("hotpot")
+
 -- then most users will require their "config" module stored in `fnl/config/...`
--- there is no need to call `require("hotpot")`.
 require("config")
 ```
 
