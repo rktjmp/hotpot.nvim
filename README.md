@@ -86,6 +86,8 @@ require("hotpot")
 require("config")
 ```
 
+*Nb*: Advanced configurations can also use `vim.pack.add({..}, {load=true})` or
+`vim.cmd.packadd("hotpot.nvim")` instead of `require(hotpot)`.
 
 <details>
 <summary>Lazy.nvim</summary>
