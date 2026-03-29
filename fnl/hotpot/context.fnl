@@ -231,18 +231,24 @@
     (let [fnl-source (R.util.file-read fnl-abs)
           fnl-source (m.apply-transform ctx fnl-source fnl-rel)
           extra-options (vim.tbl_extend :force (or ?extra-options {})
-                                        {:filename fnl-rel})]
-      (case (pcall M.compile-string ctx fnl-source extra-options)
+                                        {:filename fnl-rel})
+          time-start (vim.uv.hrtime)
+          (ok? result) (pcall M.compile-string ctx fnl-source extra-options)
+          time-stop (vim.uv.hrtime)
+          duration-ms (/ (- time-stop time-start) 1_000_000)]
+      (case (values ok? result)
         (true lua-source) (do
                             (table.insert results.ok {: fnl-abs : fnl-rel
                                                       : lua-abs : lua-rel
+                                                      : duration-ms
                                                       :source lua-source})
                             results)
-        (false err) (do
-                      (table.insert results.errors {: fnl-abs : fnl-rel
-                                                    : lua-abs : lua-rel
-                                                    :error err})
-                      results)))))
+      (false err) (do
+                    (table.insert results.errors {: fnl-abs : fnl-rel
+                                                  : lua-abs : lua-rel
+                                                  : duration-ms
+                                                  :error err})
+                    results)))))
 
 (λ m.sync-write [ctx output-files]
   (each [_ {: lua-abs : source} (ipairs output-files)]
@@ -471,25 +477,31 @@
         source-files (m.find-source-files ctx)
         stale-files (m.sync-plan-compile ctx source-files force?)
         clean-files (m.sync-plan-clean ctx source-files)
+        time-start (vim.uv.hrtime)
         {:ok compile-oks :errors compile-errors} (m.sync-compile ctx
                                                                  stale-files
                                                                  extra-compiler-options)
+        time-stop (vim.uv.hrtime)
+        duration-ms (/ (- time-stop time-start) 1_000_000)
         has-errors? (< 0 (length compile-errors))
         atomic-ok? (or (not has-errors?) (not atomic?))
-        success-messages (icollect [_ {: fnl-abs : lua-abs} (ipairs compile-oks)]
-                           [(string.format "☑  %s\n-> %s\n" fnl-abs lua-abs) :DiagnosticOk])
+        success-messages (icollect [_ {: fnl-abs : lua-abs : duration-ms} (ipairs compile-oks)]
+                           [(string.format "☑  %s (%.2fms)\n-> %s\n" fnl-abs duration-ms lua-abs) :DiagnosticOk])
         error-messages (icollect [_ {: fnl-abs : lua-abs : error} (ipairs compile-errors)]
                          [(string.format "☒  %s\n-> %s\n%s\n" fnl-abs lua-abs error) :DiagnosticWarn])
         clean-messages (icollect [_ lua-abs (ipairs clean-files)]
                          [(string.format "rm %s\n" lua-abs) :DiagnosticInfo])
-        summary-messages (if has-errors?
-                           (let [summary [["\nSome files had compilation errors! "
-                                           :DiagnosticWarn]
-                                          ["`atomic? = true`, no changes were written to disk!\n"
-                                           :DiagnosticWarn]]]
-                               (when (not atomic?) (table.remove summary))
-                               summary)
-                           [])
+        summary-messages (let [summary []]
+                           (when verbose?
+                             (table.insert summary [(string.format "\nDuration: %.2fms" duration-ms)
+                                                    :DiagnosticInfo]))
+                           (when has-errors?
+                             (table.insert summary ["\nSome files had compilation errors! "
+                                                    :DiagnosticWarn])
+                             (when atomic?
+                               (table.insert summary ["`atomic? = true`, no changes were written to disk!\n"
+                                                      :DiagnosticWarn])))
+                           summary)
         report []]
 
     (if atomic-ok?

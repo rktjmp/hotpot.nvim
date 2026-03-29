@@ -101,7 +101,8 @@ local function emit_report(client_id, ctx, report)
     local i_27_ = 0
     for _, _13_ in ipairs(report.compiled) do
       local fnl_rel = _13_["fnl-rel"]
-      local val_28_ = string.format("Sync: %s", fnl_rel)
+      local duration_ms = _13_["duration-ms"]
+      local val_28_ = string.format("Sync: %s (%.2fms)", fnl_rel, duration_ms)
       if (nil ~= val_28_) then
         i_27_ = (i_27_ + 1)
         tbl_26_[i_27_] = val_28_
@@ -110,6 +111,14 @@ local function emit_report(client_id, ctx, report)
     end
     _12_ = tbl_26_
   end
-  return send_progress(("hotpot-sync-compiled-" .. ctx_token_id), "Sync: compiling", "Syncing...", _12_, string.format("Synced %d files", #report.compiled))
+  local function _15_()
+    local sum = 0
+    for _, _16_ in ipairs(report.compiled) do
+      local duration_ms = _16_["duration-ms"]
+      sum = (sum + duration_ms)
+    end
+    return sum
+  end
+  return send_progress(("hotpot-sync-compiled-" .. ctx_token_id), "Sync: compiling", "Syncing...", _12_, string.format("Synced %d files (%.2fms)", #report.compiled, _15_()))
 end
 return {["start-lsp"] = start_lsp, ["emit-report"] = emit_report}

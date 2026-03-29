@@ -104,9 +104,12 @@
     (send-progress (.. :hotpot-sync-compiled- ctx-token-id)
                    "Sync: compiling"
                    "Syncing..."
-                   (icollect [_ {: fnl-rel} (ipairs report.compiled)]
-                     (string.format "Sync: %s" fnl-rel))
-                   (string.format "Synced %d files" (length report.compiled)))))
+                   (icollect [_ {: fnl-rel : duration-ms} (ipairs report.compiled)]
+                     (string.format "Sync: %s (%.2fms)" fnl-rel duration-ms))
+                   (string.format "Synced %d files (%.2fms)"
+                                  (length report.compiled)
+                                  (accumulate [sum 0 _ {: duration-ms} (ipairs report.compiled)]
+                                    (+ sum duration-ms))))))
 
 {: start-lsp
  : emit-report}
