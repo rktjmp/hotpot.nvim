@@ -3,51 +3,13 @@
 
 (local home-path (vim.fs.normalize "~"))
 
-(fn silly-lsp-notification [buf ctx-root report]
-  (let [client-id (R.lsp.start-lsp (case (vim.fs.relpath home-path ctx-root)
-                                            nil ctx-root
+(fn silly-lsp-notification [buf ctx report]
+  (let [client-id (R.lsp.start-lsp (case (vim.fs.relpath home-path ctx.path.source)
+                                            nil ctx.path.source
                                             ctx-rel (.. "~/" ctx-rel)))]
     (case (vim.lsp.buf_attach_client buf client-id)
-      true (let [client (vim.lsp.get_client_by_id client-id)
-                 handler (or (. client.handlers :$/progress)
-                             (. vim.lsp.handlers :$/progress))
-                 lsp-ctx {:method :$/progress :client_id client-id}]
-             (fn send-progress [token title begin-msg report-msgs end-msg]
-               (when (< 0 (length report-msgs))
-                 (handler nil
-                          {: token :value {:kind :begin
-                                           :message begin-msg
-                                           :_percentage 0}}
-                          lsp-ctx)
-                 (for [i 1 (length report-msgs)]
-                   (handler nil
-                            {: token :value {:kind :report
-                                             :message (. report-msgs i)
-                                             :_percentage (* 100 (/ i (length report-msgs)))}}
-                            lsp-ctx))
-                 (handler nil
-                          {: token :value {:kind :end
-                                           :message end-msg
-                                           :_percentage 100}}
-                          lsp-ctx)))
-             (send-progress (.. :hotpot-sync-errored- ctx-root)
-                            "Sync: errors"
-                            "Errors..."
-                            (icollect [_ {: fnl-rel} (ipairs report.errors)]
-                              (string.format "Error: %s" fnl-rel))
-                            (string.format "Errors for %d files" (length report.errors)))
-             (send-progress (.. :hotpot-sync-cleaned- ctx-root)
-                            "Sync: cleaning"
-                            "Cleaning..."
-                            (icollect [_ {: lua-abs} (ipairs report.cleaned)]
-                              (string.format "Clean: %s" lua-abs))
-                            (string.format "Cleaned %d files" (length report.cleaned)))
-             (send-progress (.. :hotpot-sync-compiled- ctx-root)
-                            "Sync: compiling"
-                            "Syncing..."
-                            (icollect [_ {: fnl-rel} (ipairs report.compiled)]
-                              (string.format "Sync: %s" fnl-rel))
-                            (string.format "Synced %d files" (length report.compiled)))
+      true (let [client (vim.lsp.get_client_by_id client-id)]
+             (R.lsp.emit-report client-id ctx report)
              (vim.lsp.buf_detach_client buf client-id)
              ;; stop immediately as we dont actually do much else and dont want
              ;; to pollute the LSP client list.
@@ -64,7 +26,7 @@
       root (case-try
              (pcall Context.new root) (true ctx)
              (pcall Context.sync ctx) (true report)
-             (silly-lsp-notification buf root report)
+             (silly-lsp-notification buf ctx report)
              (catch
                (false err) (notify-error err)))
       ;; we may be saving just some random fennel file, so not finding a
