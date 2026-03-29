@@ -77,7 +77,7 @@ Install with your package manager.
 -- init.lua
 vim.pack.add({
   {src = "https://github.com/rktjmp/hotpot.nvim",
-   version = vim.version.range("~2.0.0")}
+   version = vim.version.range("^2.0.0")}
 })
 -- then most users will require their "config" module stored in `fnl/config/...`
 -- there is no need to call `require("hotpot")`.
@@ -134,25 +134,31 @@ require("hotpot")
 require("config")
 ```
 
-*You must also include Hotpot in your plugins list for Lazy.nvim to correctly manage
-updates. You may be able to lazy-load Hotpot by `fnl` and `fnlm` filetype but
-this is untested.*
+You must also include Hotpot in your plugins list for Lazy.nvim to correctly manage
+updates. It is recommended you do not aplly any lazy loading methods to Hotpot.
 
 ```fennel
 ;; fnl/config/init.fnl
 
-;; When calling `lazy.setup` you must include hotpots output directory in the
-;; `performance.rtp.paths` option. If you have configured your config directory
-;; to use `:target :colocate` (which is *not* the default), you may skip this step.
 (let [lazy (require :lazy)
       api (require :hotpot.api)
-      context (assert (api.context (vim.fn.stdpath :config))]
-  (lazy.setup {:performance {:rtp {:paths [(context.locate :destination)]}}))
+      context (assert (api.context (vim.fn.stdpath :config)))]
+  (lazy.setup
+    ;; Define your package specs in any way you like, this is just an example.
+    ;; Be sure to include hotpot, as calling `lazy.setup` interferes with lua module
+    ;; loading, which will cause hotpot to malfunction when loads further parts
+    ;; of itself on demand.
+    {:spec [{:url "https://github.com/folke/lazy.nvim" :branch :stable}
+            {:url "https://github.com/rktjmp/hotpot.nvim" :version "^2.0.0"}]
+     ;; You must include hotpots output directory in `performance.rtp.paths`!
+     :performance {:rtp {:paths [(context.locate :destination)]}}}))
 
 ;; If you wish to use `Hotpot fennel update` to download fennel new versions of
 ;; fennel from the internet, you will also have to add the `target directory`
 ;; path, as listed in `:checkhealth hotpot` under the `Hotpot fennel update`
 ;; section.
+;; If you have configured your config directory to use `:target :colocate`
+;; (which is *not* the default), you may skip the `performance.rtp.paths` step.
 ```
 
 </details>
