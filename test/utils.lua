@@ -55,7 +55,7 @@ local function exit()
   return os.exit(results.fails)
 end
 local function start_nvim()
-  local channel = vim.fn.jobstart({"nvim", "--embed", "--headless"}, {rpc = true})
+  local channel = vim.fn.jobstart({(vim.env.NVIM_BIN or "nvim"), "--embed", "--headless"}, {rpc = true})
   local nvim
   local function _10_(this)
     return vim.fn.jobstop(channel)
@@ -81,7 +81,7 @@ local function start_nvim()
     end
   end
   nvim = {channel = channel, close = _10_, cmd = _11_, lua = _14_}
-  nvim:lua("vim.opt.runtimepath:prepend('/home/user/hotpot')")
+  nvim:lua("vim.opt.runtimepath:prepend(vim.uv.cwd())")
   nvim:lua("vim.secure.read = function(path) return table.concat(vim.fn.readfile(path), '\\n') end")
   return nvim
 end

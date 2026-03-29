@@ -12,7 +12,7 @@ jobs:
     - name: Install tooling
       run: |
         sudo apt-get update
-        sudo apt-get install uuid-runtime curl jq
+        sudo apt-get install uuid-runtime curl jq tree
         curl -sL https://api.github.com/repos/neovim/neovim/releases/latest | \
         jq -r '.assets[].browser_download_url' | \
         grep nvim-linux-x86_64.tar.gz | \

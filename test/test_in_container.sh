@@ -16,7 +16,10 @@ test_image_id=$($podman_command build $podman_flags --quiet \
 echo "Image id: $test_image_id"
 
 echo "Running tests in $test_image_id"
-$podman_command run --rm -it $test_image_id test/test.sh $only_test
+$podman_command run --rm \
+  -it \
+  --env NVIM_BIN=nvim \
+  $test_image_id test/test.sh $only_test
 failed=$?
 
 # finish_at=$(date +%s)

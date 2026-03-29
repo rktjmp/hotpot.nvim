@@ -22,7 +22,7 @@
   (os.exit results.fails))
 
 (fn start-nvim []
-  (let [channel (vim.fn.jobstart [:nvim :--embed :--headless] {:rpc true})
+  (let [channel (vim.fn.jobstart [(or vim.env.NVIM_BIN :nvim) :--embed :--headless] {:rpc true})
         nvim {: channel
               :close (fn [this] (vim.fn.jobstop channel))
               :cmd (fn [this cmd ...]
@@ -39,7 +39,9 @@
                                            {:output true})
                        {: output} output
                        _ nil))}]
-    (nvim:lua "vim.opt.runtimepath:prepend('/home/user/hotpot')")
+    ;; (nvim:lua "vim.opt.runtimepath:prepend('/home/user/hotpot')")
+    (nvim:lua "vim.opt.runtimepath:prepend(vim.uv.cwd())")
+
     (nvim:lua "vim.secure.read = function(path) return table.concat(vim.fn.readfile(path), '\\n') end")
     nvim))
 

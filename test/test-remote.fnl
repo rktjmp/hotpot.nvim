@@ -1,7 +1,8 @@
 (import-macros {: setup : expect} :test.macros)
 (setup)
 
-(local remote-dir :/home/user/remote/)
+;; using normalise ~ so this will resolve correctly on windows too
+(local remote-dir (vim.fs.normalize "~/remote"))
 (vim.fn.mkdir (.. remote-dir :/fnl) :p)
 
 ;;

@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 set -u
 
-nvim_bin=${NVIM_BIN:-nvim}
 failed_count=0
 tests=(test/test-*.lua)
 if [ $# -eq 1 ]; then
@@ -12,7 +11,9 @@ for t in ${tests[@]};
 do
   echo "SUITE START  $t..."
   NVIM_APPNAME="nvim-$(uuidgen)"
-  NVIM_APPNAME=$NVIM_APPNAME $nvim_bin +"set columns=1000" --headless -l "${t}"
+  NVIM_BIN=$NVIM_BIN \
+    NVIM_APPNAME=$NVIM_APPNAME \
+    $NVIM_BIN +"set columns=1000" --headless -l "${t}"
   if [ $? -ne 0 ]; then
     echo "SUITE FAILED $t"
     failed_count=1
