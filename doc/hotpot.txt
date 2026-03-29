@@ -1,4 +1,4 @@
-*hotpot.txt*            For NVIM v0.11.1            Last change: 2026 March 28
+*hotpot.txt*            For NVIM v0.11.1            Last change: 2026 March 29
 
 ==============================================================================
 Table of Contents                                   *hotpot-table-of-contents*
@@ -474,21 +474,20 @@ Sources given `.fnl` file. See |:source|
 9. Migrating from Version 1                  *hotpot-migrating-from-version-1*
 
 
-  [!IMPORTANT] You **must** update all macro files to use the the `.fnlm`
-  extension.
-For many users who have not explicitly configure Hotpot, after renaming any
-macro files to `.fnlm`, version 2 should work automatically. You should
-re-check the |hotpot-installation| instructions if you are using _Lazy.nvim_ to
-ensure your settings are correct.
+  [!IMPORTANT] You **must** change all macro files to use the the `.fnlm`
+  extension. This does not require any code changes.
+For many users who have not explicitly configured Hotpot, after renaming any
+macro files to `.fnlm`, version 2 should work without drama.
+
+If you are using _Lazy.nvim_, you should re-check the |hotpot-installation|
+instructions to correctly set the `rtp` option.
 
 If you have specifically configured compiler options (via the
 `compiler.macros`/`compiler.modules` setup options) or use a `.hotpot.lua`
 file, you will need to migrate to a `.hotpot.fnl` file. See
-|hotpot-configuration| for details on `.hotpot.fnl`.
-
-You no longer need to provide separate `macros` and `modules` compiler tables.
-Your compiler options are specified in the `compiler` key in your `.hotpot.fnl`
-file.
+|hotpot-configuration| for details on `.hotpot.fnl`. You no longer need to
+provide separate `macros` and `modules` compiler tables. All compiler options
+are specified in the `compiler` key in your `.hotpot.fnl` file.
 
 The |hotpot-api| has been simplified but with simplification, some previously
 provided functions have been removed, eg: there is now only `eval(source,
