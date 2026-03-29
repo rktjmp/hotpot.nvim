@@ -81,7 +81,8 @@ vim.pack.add({
 })
 require("hotpot")
 
--- then most users will require their "config" module stored in `fnl/config/...`
+-- Most users will then require their "config" module stored
+-- somewhere like `fnl/config/init.fnl`...
 require("config")
 ```
 
@@ -131,7 +132,8 @@ vim.opt.runtimepath:prepend({hotpot_path, lazy_path})
 -- lazy.nvim altering neovims behaviour.
 require("hotpot")
 
--- require the rest of your config
+-- Most users will then require their "config" module stored
+-- somewhere like `fnl/config/init.fnl`...
 require("config")
 ```
 
