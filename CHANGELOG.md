@@ -1,12 +1,17 @@
 # 🍲 Hotpot Changelog
 
+## 2.0.3
+
+- Fix hidden `nvim.notify` mesages in Neovim 0.12.
+- Show Fennel compiler *warnings* (not *errors*) via `nvim.notify`.
+
 ## 2.0.2
 
-- Include missing lua files from 2.0.1
+- Include missing lua files from 2.0.1.
 
 ## 2.0.1
 
-- Fix `:write` report messages being hidden in neovim 0.12.
+- Fix hidden `:write` event `nvim_echo` report messages in Neovim 0.12.
 
 ## 2.0.0
 
@@ -14,11 +19,11 @@
   - Better support for future nvim directories such as `lsp/` that can't
     effectively hook into the `require` framework.
 - Added `:Hotpot` command with subcommands:
-  - `watch`: enable/disable autocmd that triggers the compiler
-  - `sync`: access `Context.sync`
-  - `fennel update|rollback|version`: update fennel version from online
+  - `watch`: enable/disable autocmd that triggers the compiler.
+  - `sync`: access `Context.sync`.
+  - `fennel update|rollback|version`: update fennel version from online.
 - Emit `$/progress` LSP messages when compiling for rendering by plugins such
-  as `figet.nivm`
+  as `figet.nvim`.
 - **Macro files must use the extension `.fnlm`**
 - `.hotpot.fnl` instead of `.hotpot.lua` configuration file.
   - New format, different keys, largely the same functionality.
@@ -27,7 +32,7 @@
   - This is the modern Fennel way, no concessions are currently made to support
     `init-macros.fnl` filenames.
 - Removed diagnostics provider, instead use external LSP server.
-- Removed `setup({...})` options for `.hotpot.fnl`
+- Removed `setup({...})` options for `.hotpot.fnl`.
   - Provides a consistent single entrypoint to configuration.
 - Removed `:Fnldo` command.
 
