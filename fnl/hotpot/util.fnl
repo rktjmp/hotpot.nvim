@@ -54,9 +54,23 @@
                                           _ mod)))))}))
 (local R (nest {} :hotpot))
 
-(λ notify-error [msg ...] (vim.notify (string.format msg ...) vim.log.levels.ERROR))
-(λ notify-warn [msg ...] (vim.notify (string.format msg ...) vim.log.levels.WARN))
-(λ notify-info [msg ...] (vim.notify (string.format msg ...) vim.log.levels.INFO))
+;; We vim.schedule these due to behaviour in vim-0.12 where perhaps before ever
+;; calling `:messages`, these notifications are not reliably shown, assumingly
+;; due to a race between outputting `written <path>`, clearing the cmd line and
+;; showing the vim.notify output.
+;;
+;; Seems reliably reproduced by adding (local x"badwarning") to a file and saving it
+;; to trigger a compile (without previously having run :messages)
+;; (local x"badwarning")
+(λ notify-error [msg ...]
+  (let [str (string.format msg ...)]
+    (vim.schedule #(vim.notify str vim.log.levels.ERROR))))
+(λ notify-warn [msg ...]
+  (let [str (string.format msg ...)]
+    (vim.schedule #(vim.notify str vim.log.levels.WARN))))
+(λ notify-info [msg ...]
+  (let [str (string.format msg ...)]
+    (vim.schedule #(vim.notify str vim.log.levels.INFO))))
 
 {: notify-error
  : notify-warn

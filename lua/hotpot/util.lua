@@ -151,23 +151,35 @@ end
 local R = nest({}, "hotpot")
 local function notify_error(msg, ...)
   if (nil == msg) then
-    _G.error("Missing argument msg on fnl/hotpot/util.fnl:57", 2)
+    _G.error("Missing argument msg on fnl/hotpot/util.fnl:65", 2)
   else
   end
-  return vim.notify(string.format(msg, ...), vim.log.levels.ERROR)
+  local str = string.format(msg, ...)
+  local function _36_()
+    return vim.notify(str, vim.log.levels.ERROR)
+  end
+  return vim.schedule(_36_)
 end
 local function notify_warn(msg, ...)
   if (nil == msg) then
-    _G.error("Missing argument msg on fnl/hotpot/util.fnl:58", 2)
+    _G.error("Missing argument msg on fnl/hotpot/util.fnl:68", 2)
   else
   end
-  return vim.notify(string.format(msg, ...), vim.log.levels.WARN)
+  local str = string.format(msg, ...)
+  local function _38_()
+    return vim.notify(str, vim.log.levels.WARN)
+  end
+  return vim.schedule(_38_)
 end
 local function notify_info(msg, ...)
   if (nil == msg) then
-    _G.error("Missing argument msg on fnl/hotpot/util.fnl:59", 2)
+    _G.error("Missing argument msg on fnl/hotpot/util.fnl:71", 2)
   else
   end
-  return vim.notify(string.format(msg, ...), vim.log.levels.INFO)
+  local str = string.format(msg, ...)
+  local function _40_()
+    return vim.notify(str, vim.log.levels.INFO)
+  end
+  return vim.schedule(_40_)
 end
 return {["notify-error"] = notify_error, ["notify-warn"] = notify_warn, ["notify-info"] = notify_info, ["file-read"] = file_read, ["file-write"] = file_write, ["file-mtime"] = file_mtime, pack = pack, R = R}
