@@ -1,5 +1,10 @@
 # 🍲 Hotpot Changelog
 
+## 2.0.4
+
+- Use correctly resolved path when performing nearest context lookups.
+- Remove leftover `vim.print` in command param parser.
+
 ## 2.0.3
 
 - Fix hidden `nvim.notify` mesages in Neovim 0.12.
