@@ -1,5 +1,5 @@
 (local {: R} (require :hotpot.util))
-
+(local {: R : notify-error : notify-warn : notify-info} (require :hotpot.util))
 (local (M m) (values {} {}))
 
 (fn validate-user-spec [user-spec path]
@@ -485,6 +485,9 @@
                       starting-path))))
 
 
+(λ make-warn-impl [filename]
+  (fn [warning]
+    (notify-warn "Fennel compiler warning for %s: %s" filename warning)))
 
 (λ M.compile-string [ctx fnl-source options]
   "Compile the given string with the given context configuration.
@@ -496,6 +499,7 @@
                                          ctx.compiler
                                          options
                                          {:filename options.filename
+                                          :warn (make-warn-impl options.filename)
                                           :error-pinpoint false})
         {: update-fennel-path : restore-fennel-path} (m.make-fennel-path-modifiers ctx fennel)
         _ (update-fennel-path)
@@ -514,6 +518,7 @@
                                          ctx.compiler
                                          options
                                          {:filename options.filename
+                                          :warn (make-warn-impl options.filename)
                                           :error-pinpoint false})
         {: update-fennel-path : restore-fennel-path} (m.make-fennel-path-modifiers ctx fennel)
         _ (update-fennel-path)
