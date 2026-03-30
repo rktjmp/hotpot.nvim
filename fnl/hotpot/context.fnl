@@ -592,7 +592,7 @@
         (vim.list_extend report summary-messages)))
 
     (when (< 0 (length report))
-      (vim.api.nvim_echo report true {}))
+      (vim.schedule #(vim.api.nvim_echo report true {})))
 
     {:sources source-files
      :compiled (icollect [_ v (ipairs compile-oks)]
