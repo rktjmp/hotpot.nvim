@@ -326,7 +326,6 @@ local function filter_param_options_no_duplicates(possible_params, existing_para
       return tbl_26_
     end
   end
-  vim.print({possible_params, existing_params, current_param})
   local existing_names
   do
     local tbl_26_ = {}
@@ -462,11 +461,11 @@ local function pack(...)
 end
 local function make_output_flag_aware_eval(ctx, args)
   if (nil == args) then
-    _G.error("Missing argument args on fnl/hotpot/command.fnl:225", 2)
+    _G.error("Missing argument args on fnl/hotpot/command.fnl:224", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/command.fnl:225", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/command.fnl:224", 2)
   else
   end
   local output

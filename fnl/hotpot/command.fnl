@@ -152,7 +152,6 @@
       _ (icollect [_ opt (ipairs options)]
           (when (vim.startswith opt prefix)
             opt))))
-  (vim.print [possible-params existing-params current-param])
   (let [existing-names (icollect [_ arg (ipairs existing-params)]
                          (string.match arg "([a-z]+=?).*"))
         unused-names (icollect [_ param (ipairs possible-params)]
