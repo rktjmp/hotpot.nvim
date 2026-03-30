@@ -1,4 +1,4 @@
-*hotpot.txt*            For NVIM v0.11.1            Last change: 2026 March 29
+*hotpot.txt*            For NVIM v0.11.1            Last change: 2026 March 30
 
 ==============================================================================
 Table of Contents                                   *hotpot-table-of-contents*
@@ -90,12 +90,17 @@ Install with your package manager.
     -- init.lua
     vim.pack.add({
       {src = "https://github.com/rktjmp/hotpot.nvim",
-       version = vim.version.range("~2.0.0")}
+       version = vim.version.range("^2.0.0")}
     })
-    -- then most users will require their "config" module stored in `fnl/config/...`
-    -- there is no need to call `require("hotpot")`.
+    require("hotpot")
+    
+    -- Most users will then require their "config" module stored
+    -- somewhere like `fnl/config/init.fnl`...
     require("config")
 <
+
+_Nb_: Advanced configurations can also use `vim.pack.add({..}, {load=true})` or
+`vim.cmd.packadd("hotpot.nvim")` instead of `require(hotpot)`.
 
 Lazy.nvim ~
 
@@ -141,24 +146,37 @@ Lazy.nvim ~
     -- lazy.nvim altering neovims behaviour.
     require("hotpot")
     
-    -- require the rest of your config
+    -- Most users will then require their "config" module stored
+    -- somewhere like `fnl/config/init.fnl`...
     require("config")
 <
 
-_You must also include Hotpot in your plugins list for Lazy.nvim to correctly
-manage updates. You may be able to lazy-load Hotpot by fnl and fnlm filetype
-but this is untested._
+You must also include Hotpot in your plugins list for Lazy.nvim to correctly
+manage updates. It is recommended you do not aplly any lazy loading methods to
+Hotpot.
 
 >fennel
     ;; fnl/config/init.fnl
     
-    ;; When calling `lazy.setup` you must include hotpots output directory in the
-    ;; `performance.rtp.paths` option. If you have configured your config directory
-    ;; to use `:target :colocate` (which is *not* the default), you may skip this step.
     (let [lazy (require :lazy)
           api (require :hotpot.api)
-          context (api.context (vim.stdpath :config))]
-      (lazy.setup {:performance {:rtp {:paths [context.locate("destination")]}}))
+          context (assert (api.context (vim.fn.stdpath :config)))]
+      (lazy.setup
+        ;; Define your package specs in any way you like, this is just an example.
+        ;; Be sure to include hotpot, as calling `lazy.setup` interferes with lua module
+        ;; loading, which will cause hotpot to malfunction when loads further parts
+        ;; of itself on demand.
+        {:spec [{:url "https://github.com/folke/lazy.nvim" :branch :stable}
+                {:url "https://github.com/rktjmp/hotpot.nvim" :version "^2.0.0"}]
+         ;; You must include hotpots output directory in `performance.rtp.paths`!
+         :performance {:rtp {:paths [(context.locate :destination)]}}}))
+    
+    ;; If you wish to use `Hotpot fennel update` to download fennel new versions of
+    ;; fennel from the internet, you will also have to add the `target directory`
+    ;; path, as listed in `:checkhealth hotpot` under the `Hotpot fennel update`
+    ;; section.
+    ;; If you have configured your config directory to use `:target :colocate`
+    ;; (which is *not* the default), you may skip the `performance.rtp.paths` step.
 <
 
 
@@ -210,6 +228,9 @@ the `schema` and `target` keys, as shown below.
      :target :colocate}
 <
 
+
+  [!TIP] Before saving any changes to your `.hotpot.fnl` file, you might want to
+  run `:trust`, to save yourself being prompted later.
 After creating the `.hotpot.fnl` file, open any `.fnl` file and save it to
 trigger a build, or use the `sync` |hotpot-command|.
 
@@ -236,6 +257,9 @@ Note that if there is no `.hotpot.fnl` file in Neovim’s config directory, a
 default configuration is loaded. This is not the case for plugins, which _must_
 have a `.hotpot.fnl` file.
 
+
+  [!TIP] Before saving any changes to your `.hotpot.fnl` file, you might want to
+  run `:trust`, to save yourself being prompted later.
 >fennel
     ;; .hotpot.fnl
     {
