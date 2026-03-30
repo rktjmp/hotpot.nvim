@@ -342,18 +342,18 @@ require disk paths, such as `sync`.
 ## `context.compile(string, compiler-options)`
 
 Compiles the given string, using the context compiler options. Returns `true,
-compiled string` or `false, error`>
+compiled string` or `false, error`.
 
-Does *not* automatically apply any transform, which can be done manually by
-`context.transform` *if one is set for the context*.
+Does *not* automatically apply any transform specified for by the context
+configuration. If one was specified, it can be called by `context.transform`.
 
 ## `context.eval(string, compiler-options)`
 
 Evaluates the given string, using the context compiler options. Returns `true,
 ...evaluated values` or `false, error`.
 
-Does *not* automatically apply any transform, which can be done manually by
-`context.transform` *if one is set for the context*.
+Does *not* automatically apply any transform specified for by the context
+configuration. If one was specified, it can be called by `context.transform`.
 
 ## `context.sync(options|nil)`
 
