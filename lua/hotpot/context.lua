@@ -916,10 +916,13 @@ M.sync = function(ctx, _3foptions)
     vim.list_extend(report0, summary_messages)
   end
   if (0 < #report0) then
-    vim.api.nvim_echo(report0, true, {})
+    local function _154_()
+      return vim.api.nvim_echo(report0, true, {})
+    end
+    vim.schedule(_154_)
   else
   end
-  local _155_
+  local _156_
   do
     local tbl_26_ = {}
     local i_27_ = 0
@@ -935,8 +938,8 @@ M.sync = function(ctx, _3foptions)
       else
       end
     end
-    _155_ = tbl_26_
+    _156_ = tbl_26_
   end
-  return {sources = source_files, compiled = _155_, errors = compile_errors, cleaned = clean_files}
+  return {sources = source_files, compiled = _156_, errors = compile_errors, cleaned = clean_files}
 end
 return M
