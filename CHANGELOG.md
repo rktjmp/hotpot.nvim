@@ -1,5 +1,9 @@
 # 🍲 Hotpot Changelog
 
+## 2.0.2
+
+- Include missing lua files from 2.0.1
+
 ## 2.0.1
 
 - Fix `:write` report messages being hidden in neovim 0.12.
