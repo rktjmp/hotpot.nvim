@@ -689,13 +689,13 @@ M.nearest = function(starting_path)
   end
   local case_112_ = vim.uv.fs_realpath(starting_path)
   if (nil ~= case_112_) then
-    local real_path = case_112_
-    local case_113_ = vim.fs.relpath(R0.const.NVIM_CONFIG_ROOT, starting_path)
+    local real_starting_path = case_112_
+    local case_113_ = vim.fs.relpath(R0.const.NVIM_CONFIG_ROOT, real_starting_path)
     if (nil ~= case_113_) then
       local path_inside_config = case_113_
       return R0.const.NVIM_CONFIG_ROOT
     elseif (case_113_ == nil) then
-      local case_114_ = vim.fs.root(starting_path, ".hotpot.fnl")
+      local case_114_ = vim.fs.root(real_starting_path, ".hotpot.fnl")
       if (case_114_ == nil) then
         return nil, string.format("Unable to find nearest context to %s, no .hotpot.fnl in tree", starting_path)
       elseif (nil ~= case_114_) then
@@ -715,7 +715,7 @@ M.nearest = function(starting_path)
 end
 local function make_warn_impl(filename)
   if (nil == filename) then
-    _G.error("Missing argument filename on fnl/hotpot/context.fnl:488", 2)
+    _G.error("Missing argument filename on fnl/hotpot/context.fnl:487", 2)
   else
   end
   local function _119_(warning)
@@ -725,15 +725,15 @@ local function make_warn_impl(filename)
 end
 M["compile-string"] = function(ctx, fnl_source, options)
   if (nil == options) then
-    _G.error("Missing argument options on fnl/hotpot/context.fnl:492", 2)
+    _G.error("Missing argument options on fnl/hotpot/context.fnl:491", 2)
   else
   end
   if (nil == fnl_source) then
-    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:492", 2)
+    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:491", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:492", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:491", 2)
   else
   end
   assert(options.filename, "tried to compile without filename")
@@ -758,15 +758,15 @@ M["compile-string"] = function(ctx, fnl_source, options)
 end
 M["eval-string"] = function(ctx, fnl_source, options)
   if (nil == options) then
-    _G.error("Missing argument options on fnl/hotpot/context.fnl:512", 2)
+    _G.error("Missing argument options on fnl/hotpot/context.fnl:511", 2)
   else
   end
   if (nil == fnl_source) then
-    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:512", 2)
+    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:511", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:512", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:511", 2)
   else
   end
   local fennel = R0.fennel
@@ -790,7 +790,7 @@ M["eval-string"] = function(ctx, fnl_source, options)
 end
 M.sync = function(ctx, _3foptions)
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:531", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:530", 2)
   else
   end
   local function option_if_set(key)

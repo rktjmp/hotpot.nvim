@@ -469,17 +469,17 @@
 (λ M.nearest [starting-path]
   "Find the nearest context root for given path, returns path to context root"
   (case (vim.uv.fs_realpath starting-path)
-    real-path (case (vim.fs.relpath R.const.NVIM_CONFIG_ROOT starting-path)
-                ;; if the given path is inside our config, we dont actually
-                ;; need to find a .hotpot.fnl file and can just call the config
-                ;; root as nearest.
-                path-inside-config R.const.NVIM_CONFIG_ROOT
-                ;; otherwise we actually *do* need to find a directory.
-                nil (case (vim.fs.root starting-path :.hotpot.fnl)
-                      nil (values nil (string.format
-                                        "Unable to find nearest context to %s, no .hotpot.fnl in tree"
-                                        starting-path))
-                      root root))
+    real-starting-path (case (vim.fs.relpath R.const.NVIM_CONFIG_ROOT real-starting-path)
+                         ;; if the given path is inside our config, we dont actually
+                         ;; need to find a .hotpot.fnl file and can just call the config
+                         ;; root as nearest.
+                         path-inside-config R.const.NVIM_CONFIG_ROOT
+                         ;; otherwise we actually *do* need to find a directory.
+                         nil (case (vim.fs.root real-starting-path :.hotpot.fnl)
+                               nil (values nil (string.format
+                                                 "Unable to find nearest context to %s, no .hotpot.fnl in tree"
+                                                 starting-path))
+                               root root))
     nil (values nil (string.format
                       "Unable to find nearest context to %s, does not exist"
                       starting-path))))
