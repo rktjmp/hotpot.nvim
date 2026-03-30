@@ -1,10 +1,20 @@
 # 🍲 Hotpot Changelog
 
+## 2.0.1
+
+- Fix `:write` report messages being hidden in neovim 0.12.
+
 ## 2.0.0
 
 - Ahead of Time compiler instead of Just in Time.
   - Better support for future nvim directories such as `lsp/` that can't
     effectively hook into the `require` framework.
+- Added `:Hotpot` command with subcommands:
+  - `watch`: enable/disable autocmd that triggers the compiler
+  - `sync`: access `Context.sync`
+  - `fennel update|rollback|version`: update fennel version from online
+- Emit `$/progress` LSP messages when compiling for rendering by plugins such
+  as `figet.nivm`
 - **Macro files must use the extension `.fnlm`**
 - `.hotpot.fnl` instead of `.hotpot.lua` configuration file.
   - New format, different keys, largely the same functionality.
