@@ -449,17 +449,17 @@
                   ;; .hotpot.fnl exists in current nvim config dir
                   (true true) (-> (load-spec-file dot-hotpot-path)
                                   (user-spec->context {:root NVIM_CONFIG_ROOT
-                                                  :kind :config
-                                                  :source dot-hotpot-path}))
+                                                       :kind :config
+                                                       :source dot-hotpot-path}))
                   ;; .hotpot.fnl does not exist but the dir is nvim config
                   (false true) (-> (default-config-spec)
                                    (user-spec->context {:root NVIM_CONFIG_ROOT
-                                                   :kind :config}))
+                                                        :kind :config}))
                   ;; .hotpot.fnl exists in non-config directory
                   (true false) (-> (load-spec-file dot-hotpot-path)
                                    (user-spec->context {:root real-directory
-                                                   :kind :plugin
-                                                   :source dot-hotpot-path}))
+                                                        :kind :plugin
+                                                        :source dot-hotpot-path}))
                   ;; no .hotpot.fnl and not config so no default fallback
                   (false false) (-> (error (err-msg-unable-to-load
                                              dot-hotpot-path "does not exist")))))
@@ -483,7 +483,6 @@
     nil (values nil (string.format
                       "Unable to find nearest context to %s, does not exist"
                       starting-path))))
-
 
 (λ make-warn-impl [filename]
   (fn [warning]
