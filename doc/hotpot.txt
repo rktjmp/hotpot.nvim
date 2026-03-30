@@ -362,10 +362,10 @@ require disk paths, such as `sync`.
 CONTEXT.COMPILE(STRING, COMPILER-OPTIONS)*hotpot-api-context.compile(string,-compiler-options)*
 
 Compiles the given string, using the context compiler options. Returns `true,
-compiled string` or `false, error`>
+compiled string` or `false, error`.
 
-Does _not_ automatically apply any transform, which can be done manually by
-`context.transform` _if one is set for the context_.
+Does _not_ automatically apply any transform specified for by the context
+configuration. If one was specified, it can be called by `context.transform`.
 
 
 CONTEXT.EVAL(STRING, COMPILER-OPTIONS)*hotpot-api-context.eval(string,-compiler-options)*
@@ -373,8 +373,8 @@ CONTEXT.EVAL(STRING, COMPILER-OPTIONS)*hotpot-api-context.eval(string,-compiler-
 Evaluates the given string, using the context compiler options. Returns `true,
 ...evaluated values` or `false, error`.
 
-Does _not_ automatically apply any transform, which can be done manually by
-`context.transform` _if one is set for the context_.
+Does _not_ automatically apply any transform specified for by the context
+configuration. If one was specified, it can be called by `context.transform`.
 
 
 CONTEXT.SYNC(OPTIONS|NIL)               *hotpot-api-context.sync(options|nil)*
