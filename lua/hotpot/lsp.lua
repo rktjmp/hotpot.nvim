@@ -7,7 +7,7 @@ end
 m.shutdown = function(_params, callback)
   return callback(nil, nil)
 end
-M.cmd = function(dispatchers)
+m.cmd = function(dispatchers)
   if (nil == dispatchers) then
     _G.error("Missing argument dispatchers on fnl/hotpot/lsp.fnl:12", 2)
   else
@@ -17,8 +17,7 @@ M.cmd = function(dispatchers)
   res.request = function(method, params, callback)
     do
       local case_2_ = m[method]
-      if (case_2_ == nil) then
-      elseif (nil ~= case_2_) then
+      if (nil ~= case_2_) then
         local func = case_2_
         func(params, callback)
       else
@@ -43,15 +42,43 @@ M.cmd = function(dispatchers)
   end
   return res
 end
-local function start_lsp(root)
-  local client_id = vim.lsp.start({cmd = M.cmd, name = string.format("hotpot@%s", root), root_dir = root}, {attach = false})
+M["start-lsp"] = function(_5_)
+  local root = _5_.root
+  if (nil == root) then
+    _G.error("Missing argument root on fnl/hotpot/lsp.fnl:37", 2)
+  else
+  end
+  local home_path = vim.fs.normalize("~")
+  local name_path
+  do
+    local case_7_ = vim.fs.relpath(home_path, root)
+    if (case_7_ == nil) then
+      name_path = root
+    elseif (nil ~= case_7_) then
+      local ctx_rel = case_7_
+      name_path = ("~/" .. ctx_rel)
+    else
+      name_path = nil
+    end
+  end
+  local client_id = vim.lsp.start({cmd = m.cmd, name = string.format("hotpot@%s", name_path), root_dir = root}, {attach = false})
   return client_id
 end
-local function emit_report(client_id, ctx, report)
+local report_id = 0
+M["emit-report"] = function(client_id, report)
+  if (nil == report) then
+    _G.error("Missing argument report on fnl/hotpot/lsp.fnl:80", 2)
+  else
+  end
+  if (nil == client_id) then
+    _G.error("Missing argument client-id on fnl/hotpot/lsp.fnl:80", 2)
+  else
+  end
   local client = vim.lsp.get_client_by_id(client_id)
   local handler = (client.handlers["$/progress"] or vim.lsp.handlers["$/progress"])
-  local ctx_token_id = ctx.path.source
+  local ctx_token_id = client.config.root_dir
   local lsp_ctx = {method = "$/progress", client_id = client_id}
+  report_id = (1 + report_id)
   local function send_progress(token, title, begin_msg, report_msgs, end_msg)
     if (0 < #report_msgs) then
       handler(nil, {token = token, value = {kind = "begin", message = begin_msg, _percentage = 0}}, lsp_ctx)
@@ -63,46 +90,13 @@ local function emit_report(client_id, ctx, report)
       return nil
     end
   end
-  local _6_
-  do
-    local tbl_26_ = {}
-    local i_27_ = 0
-    for _, _7_ in ipairs(report.errors) do
-      local fnl_rel = _7_["fnl-rel"]
-      local val_28_ = string.format("Error: %s", fnl_rel)
-      if (nil ~= val_28_) then
-        i_27_ = (i_27_ + 1)
-        tbl_26_[i_27_] = val_28_
-      else
-      end
-    end
-    _6_ = tbl_26_
-  end
-  send_progress(("hotpot-sync-errored-" .. ctx_token_id), "Sync: errors", "Errors...", _6_, string.format("Errors for %d files", #report.errors))
-  local _9_
-  do
-    local tbl_26_ = {}
-    local i_27_ = 0
-    for _, _10_ in ipairs(report.cleaned) do
-      local lua_abs = _10_["lua-abs"]
-      local val_28_ = string.format("Clean: %s", lua_abs)
-      if (nil ~= val_28_) then
-        i_27_ = (i_27_ + 1)
-        tbl_26_[i_27_] = val_28_
-      else
-      end
-    end
-    _9_ = tbl_26_
-  end
-  send_progress(("hotpot-sync-cleaned-" .. ctx_token_id), "Sync: cleaning", "Cleaning...", _9_, string.format("Cleaned %d files", #report.cleaned))
   local _12_
   do
     local tbl_26_ = {}
     local i_27_ = 0
-    for _, _13_ in ipairs(report.compiled) do
+    for _, _13_ in ipairs(report.errors) do
       local fnl_rel = _13_["fnl-rel"]
-      local duration_ms = _13_["duration-ms"]
-      local val_28_ = string.format("Sync: %s (%.2fms)", fnl_rel, duration_ms)
+      local val_28_ = string.format("Error: %s", fnl_rel)
       if (nil ~= val_28_) then
         i_27_ = (i_27_ + 1)
         tbl_26_[i_27_] = val_28_
@@ -111,14 +105,47 @@ local function emit_report(client_id, ctx, report)
     end
     _12_ = tbl_26_
   end
-  local function _15_()
+  send_progress(("hotpot-sync-errored-" .. ctx_token_id .. report_id), "Sync: errors", "Errors...", _12_, string.format("Errors for %d files", #report.errors))
+  local _15_
+  do
+    local tbl_26_ = {}
+    local i_27_ = 0
+    for _, _16_ in ipairs(report.cleaned) do
+      local lua_abs = _16_["lua-abs"]
+      local val_28_ = string.format("Clean: %s", lua_abs)
+      if (nil ~= val_28_) then
+        i_27_ = (i_27_ + 1)
+        tbl_26_[i_27_] = val_28_
+      else
+      end
+    end
+    _15_ = tbl_26_
+  end
+  send_progress(("hotpot-sync-cleaned-" .. ctx_token_id .. report_id), "Sync: cleaning", "Cleaning...", _15_, string.format("Cleaned %d files", #report.cleaned))
+  local _18_
+  do
+    local tbl_26_ = {}
+    local i_27_ = 0
+    for _, _19_ in ipairs(report.compiled) do
+      local fnl_rel = _19_["fnl-rel"]
+      local duration_ms = _19_["duration-ms"]
+      local val_28_ = string.format("Sync: %s (%.2fms)", fnl_rel, duration_ms)
+      if (nil ~= val_28_) then
+        i_27_ = (i_27_ + 1)
+        tbl_26_[i_27_] = val_28_
+      else
+      end
+    end
+    _18_ = tbl_26_
+  end
+  local function _21_()
     local sum = 0
-    for _, _16_ in ipairs(report.compiled) do
-      local duration_ms = _16_["duration-ms"]
+    for _, _22_ in ipairs(report.compiled) do
+      local duration_ms = _22_["duration-ms"]
       sum = (sum + duration_ms)
     end
     return sum
   end
-  return send_progress(("hotpot-sync-compiled-" .. ctx_token_id), "Sync: compiling", "Syncing...", _12_, string.format("Synced %d files (%.2fms)", #report.compiled, _15_()))
+  return send_progress(("hotpot-sync-compiled-" .. ctx_token_id .. report_id), "Sync: compiling", "Syncing...", _18_, string.format("Synced %d files (%.2fms)", #report.compiled, _21_()))
 end
-return {["start-lsp"] = start_lsp, ["emit-report"] = emit_report}
+return M

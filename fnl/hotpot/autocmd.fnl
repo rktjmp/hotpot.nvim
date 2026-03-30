@@ -1,25 +1,11 @@
 (local {: R : notify-error} (require :hotpot.util))
 (local (M m) (values {} {}))
 
-(local home-path (vim.fs.normalize "~"))
-
 (fn silly-lsp-notification [buf ctx report]
-  (let [client-id (R.lsp.start-lsp (case (vim.fs.relpath home-path ctx.path.source)
-                                            nil ctx.path.source
-                                            ctx-rel (.. "~/" ctx-rel)))]
-    (case (vim.lsp.buf_attach_client buf client-id)
-      true (let [client (vim.lsp.get_client_by_id client-id)]
-             (R.lsp.emit-report client-id ctx report)
-             (vim.lsp.buf_detach_client buf client-id)
-             ;; stop immediately as we dont actually do much else and dont want
-             ;; to pollute the LSP client list.
-             (client:stop)))))
+  (let [client-id (R.lsp.start-lsp {:root ctx.path.source})]
+    (R.lsp.emit-report client-id report)))
 
 (fn buf-write-post-callback [event]
-  ;; Two paths: We're saving inside the config, if so set that to the context dir
-  ;; otherwise look upwards for a `.hotpot.fnl` file, if it exists, set the
-  ;; containing dir as the context dir.
-  ;; If both of these fail then do nothing.
   (let [{: Context} R
         {:match path : buf} event]
     (case (Context.nearest path)
