@@ -1,5 +1,22 @@
 (local {: R : notify-info : notify-error : notify-warn} (require :hotpot.util))
 
+(fn fetch-context [?path ]
+  ;; Try to load context for use with `Fnl:` commands
+  ;; which will be the context for the open file, or the context for the
+  ;; current working dir, or just an API context.
+  (let [try-path (case-try
+                   (vim.uv.fs_realpath (or ?path "")) nil
+                   (-> (vim.api.nvim_buf_get_name 0)
+                       (vim.uv.fs_realpath)) nil
+                   (vim.uv.cwd)
+                   (catch
+                     path path))]
+    ;; This may throw if the root has a bad .hotpot.fnl file but I think that's
+    ;; preferable to silently creating an api context.
+    ;; Otherwise if nearest returns nil we just get an API context.
+    (-> (R.context.nearest try-path)
+        (R.api.context))))
+
 (fn parse-args [args]
   "Extract `key=value` from command line arguments, automatically convert
   `x=true|false` to booleans and set `x` arguments to `x=true`."
@@ -123,7 +140,37 @@
       {:version true} (hotpot-command-fennel-version-handler download-to-path params)
       _ (notify-error "Unrecognised sub command"))))
 
-(fn hotpot-command-handler [{: fargs}]
+(fn hotpot-command-locate-handler [params opts]
+  (let [usage "Usage: Hotpot locate <file?> -- <commands ....>"
+        (data err) (case params
+                     {:-- true} (case opts.fargs
+                                  [:locate file :-- nil] (values nil usage)
+                                  [:locate file :-- ""] (values nil usage)
+                                  [:locate :-- ""] (values nil usage)
+                                  [:locate :-- nil] (values nil usage)
+                                  [:locate :-- & actions] (let [command (table.concat actions " ")]
+                                                            {:file :% : command})
+                                  [:locate file :-- & actions] (let [command (table.concat actions " ")]
+                                                                 {: file : command})
+                                  _ (values nil usage))
+                     _ (case opts.fargs
+                         [:locate nil] {:file "%"}
+                         [:locate "" nil] {:file "%"}
+                         [:locate file nil] {: file}
+                         _ (values nil "Usage: :Hotpot locate <file> -- <commands ...>")))]
+    (case data
+      {: file} (let [file (vim.fn.expand file)
+                     (file err) (case (fetch-context file)
+                                  {:locate nil} (values nil "path was not in any context")
+                                  {: locate} (locate file))]
+                 (if file
+                   (case data
+                     {: command} (vim.cmd (.. command " " file))
+                     _ (notify-info file))
+                   (notify-error err)))
+      nil (notify-info err))))
+
+(fn hotpot-command-handler [{: fargs &as opts}]
   (let [[command & args] fargs
         (params parse-error) (case (pcall parse-args args)
                                (true params) params
@@ -132,9 +179,10 @@
     (if params
       (case command
         nil (usage)
-        :fennel (hotpot-command-fennel-handler params)
-        :sync (hotpot-command-sync-handler params)
-        :watch (hotpot-command-watch-handler params)
+        :locate (hotpot-command-locate-handler params opts)
+        :fennel (hotpot-command-fennel-handler params opts)
+        :sync (hotpot-command-sync-handler params opts)
+        :watch (hotpot-command-watch-handler params opts)
         _ (usage))
       (notify-error parse-error))))
 
@@ -164,12 +212,20 @@
     (case (vim.split cmd-line "%s+")
       ;; root commands
       [:Hotpot current-partial nil]
-      (filter-param-options-no-duplicates [:sync :watch :fennel] [] current-partial)
+      (filter-param-options-no-duplicates [:sync :locate :watch :fennel] [] current-partial)
 
       ;; watch only suggest valid option
       [:Hotpot :watch current-partial nil]
       (filter-param-options-no-duplicates [(if R.autocmd.enabled? :disable :enable)]
                                           [] current-partial)
+
+      ;; locate is probably the most complicated to parse
+      [:Hotpot :locate & current-params]
+      (case current-params
+        [""] (vim.fn.getcompletion "" :file)
+        [partial-path] (vim.fn.getcompletion partial-path :file)
+        [path ""] [:--]
+        [path :-- ""] [:new :vnew :tabnew])
 
       ;; fennel subcommand has its own sub commands
       [:Hotpot :fennel & current-params]
@@ -200,22 +256,6 @@
           (filter-param-options-no-duplicates [:context= :force :verbose :atomic]
                                               current-params current-partial)))))
 
-(fn fetch-context [?path]
-  ;; Try to load context for use with `Fnl:` commands
-  ;; which will be the context for the open file, or the context for the
-  ;; current working dir, or just an API context.
-  (let [try-path (case-try
-                   (vim.uv.fs_realpath (or ?path "")) nil
-                   (-> (vim.api.nvim_buf_get_name 0)
-                       (vim.uv.fs_realpath)) nil
-                   (vim.uv.cwd)
-                   (catch
-                     path path))]
-    ;; This may throw if the root has a bad .hotpot.fnl file but I think that's
-    ;; preferable to silently creating an api context.
-    ;; Otherwise if nearest returns nil we just get an API context.
-    (-> (R.context.nearest try-path)
-        (R.api.context))))
 
 (fn make-ctx-action-handler [ctx args]
   (fn make [output]

@@ -100,7 +100,8 @@ local function bind_locate(ctx)
             local ext0 = case_12_
             return nil, string.format("Unsupported extension %s, must be .fnl, .fnlm and .lua", ext0)
           else
-            return nil
+            local _0 = case_11_
+            return nil, string.format("Could not locate %s, perhaps its a directory or does not exist?", path)
           end
         end
       else
@@ -115,7 +116,7 @@ local function bind_context(ctx)
   if ctx.transform then
     local function _24_(source, _3ffilename)
       if (nil == source) then
-        _G.error("Missing argument source on fnl/hotpot/api.fnl:70", 2)
+        _G.error("Missing argument source on fnl/hotpot/api.fnl:71", 2)
       else
       end
       return ctx.transform(source, (_3ffilename or "--hotpot-api-transform"))

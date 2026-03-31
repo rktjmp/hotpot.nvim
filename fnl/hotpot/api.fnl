@@ -58,7 +58,8 @@
                                                 (string.gsub "%.lua$" ".fnl"))]
                                 (vim.fs.joinpath ctx.path.source renamed))
                      nil (values nil (string.format "%s not under context destination %s" path ctx.path.dest)))
-                   (_ ext) (values nil (string.format "Unsupported extension %s, must be .fnl, .fnlm and .lua" ext))))))))
+                   (_ ext) (values nil (string.format "Unsupported extension %s, must be .fnl, .fnlm and .lua" ext))
+                   _ (values nil (string.format "Could not locate %s, perhaps its a directory or does not exist?" path))))))))
 
 (fn bind-context [ctx]
   (let [base {:compile (bind-compile ctx)

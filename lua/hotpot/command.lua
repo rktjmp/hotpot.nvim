@@ -3,34 +3,61 @@ local R = _local_1_.R
 local notify_info = _local_1_["notify-info"]
 local notify_error = _local_1_["notify-error"]
 local notify_warn = _local_1_["notify-warn"]
+local function fetch_context(_3fpath)
+  local try_path
+  local function _2_(...)
+    local case_3_ = ...
+    if (case_3_ == nil) then
+      local function _4_(...)
+        local case_5_ = ...
+        if (case_5_ == nil) then
+          return vim.uv.cwd()
+        elseif (nil ~= case_5_) then
+          local path = case_5_
+          return path
+        else
+          return nil
+        end
+      end
+      return _4_(vim.uv.fs_realpath(vim.api.nvim_buf_get_name(0)))
+    elseif (nil ~= case_3_) then
+      local path = case_3_
+      return path
+    else
+      return nil
+    end
+  end
+  try_path = _2_(vim.uv.fs_realpath((_3fpath or "")))
+  return R.api.context(R.context.nearest(try_path))
+end
 local function parse_args(args)
   local tbl_21_ = {}
   for _, arg in ipairs(args) do
     local k_22_, v_23_
     do
-      local case_2_, case_3_ = string.match(arg, "^([^=]+)=(.+)$")
-      if ((nil ~= case_2_) and (case_3_ == "true")) then
-        local key = case_2_
+      local case_8_, case_9_ = string.match(arg, "^([^=]+)=(.+)$")
+      if ((nil ~= case_8_) and (case_9_ == "true")) then
+        local key = case_8_
         k_22_, v_23_ = key, true
-      elseif ((nil ~= case_2_) and (case_3_ == "false")) then
-        local key = case_2_
+      elseif ((nil ~= case_8_) and (case_9_ == "false")) then
+        local key = case_8_
         k_22_, v_23_ = key, false
-      elseif ((nil ~= case_2_) and (nil ~= case_3_)) then
-        local key = case_2_
-        local val = case_3_
-        local case_4_ = string.find(val, "%", 1, true)
-        if (case_4_ == 1) then
+      elseif ((nil ~= case_8_) and (nil ~= case_9_)) then
+        local key = case_8_
+        local val = case_9_
+        local case_10_ = string.find(val, "%", 1, true)
+        if (case_10_ == 1) then
           k_22_, v_23_ = key, vim.fn.expand(val)
         else
-          local _0 = case_4_
+          local _0 = case_10_
           k_22_, v_23_ = key, val
         end
-      elseif (case_2_ == nil) then
-        local case_6_ = string.match(arg, "^([^=]+)=$")
-        if (nil ~= case_6_) then
-          local name = case_6_
+      elseif (case_8_ == nil) then
+        local case_12_ = string.match(arg, "^([^=]+)=$")
+        if (nil ~= case_12_) then
+          local name = case_12_
           k_22_, v_23_ = error(string.format("Param error: gave key %s but no value assigned.", arg), 0)
-        elseif (case_6_ == nil) then
+        elseif (case_12_ == nil) then
           k_22_, v_23_ = arg, true
         else
           k_22_, v_23_ = nil
@@ -49,44 +76,44 @@ end
 local function hotpot_command_sync_handler(params)
   local path = (params.context or vim.uv.cwd())
   local opts = {["force?"] = params.force, ["verbose?"] = params.verbose, ["atomic?"] = params.atomic}
-  local case_10_, case_11_ = R.context.nearest(path)
-  if (nil ~= case_10_) then
-    local root = case_10_
-    local function _12_(...)
-      local case_13_, case_14_ = ...
-      if ((case_13_ == true) and (nil ~= case_14_)) then
-        local ctx = case_14_
-        local function _15_(...)
-          local case_16_, case_17_ = ...
-          if ((case_16_ == true) and (nil ~= case_17_)) then
-            local report = case_17_
-            local case_18_, case_19_ = report, not opts["verbose?"]
-            if (((_G.type(case_18_) == "table") and ((_G.type(case_18_.errors) == "table") and (case_18_.errors[1] == nil))) and (case_19_ == true)) then
+  local case_16_, case_17_ = R.context.nearest(path)
+  if (nil ~= case_16_) then
+    local root = case_16_
+    local function _18_(...)
+      local case_19_, case_20_ = ...
+      if ((case_19_ == true) and (nil ~= case_20_)) then
+        local ctx = case_20_
+        local function _21_(...)
+          local case_22_, case_23_ = ...
+          if ((case_22_ == true) and (nil ~= case_23_)) then
+            local report = case_23_
+            local case_24_, case_25_ = report, not opts["verbose?"]
+            if (((_G.type(case_24_) == "table") and ((_G.type(case_24_.errors) == "table") and (case_24_.errors[1] == nil))) and (case_25_ == true)) then
               local msg = string.format("Synced %s", root)
               notify_info(msg)
               return nil
             else
-              local _ = case_18_
+              local _ = case_24_
               return nil
             end
-          elseif ((case_16_ == false) and (nil ~= case_17_)) then
-            local err = case_17_
+          elseif ((case_22_ == false) and (nil ~= case_23_)) then
+            local err = case_23_
             return notify_error(err)
           else
             return nil
           end
         end
-        return _15_(pcall(R.context.sync, ctx, opts))
-      elseif ((case_13_ == false) and (nil ~= case_14_)) then
-        local err = case_14_
+        return _21_(pcall(R.context.sync, ctx, opts))
+      elseif ((case_19_ == false) and (nil ~= case_20_)) then
+        local err = case_20_
         return notify_error(err)
       else
         return nil
       end
     end
-    return _12_(pcall(R.context.new, root))
-  elseif ((case_10_ == nil) and (nil ~= case_11_)) then
-    local err = case_11_
+    return _18_(pcall(R.context.new, root))
+  elseif ((case_16_ == nil) and (nil ~= case_17_)) then
+    local err = case_17_
     return notify_error(err)
   else
     return nil
@@ -105,18 +132,18 @@ local function hotpot_command_watch_handler(params)
   end
 end
 local function hotpot_command_fennel_rollback_handler(download_to_path, params)
-  local case_25_ = vim.uv.fs_stat(download_to_path)
-  if (_G.type(case_25_) == "table") then
-    local case_26_, case_27_ = vim.uv.fs_unlink(download_to_path)
-    if (case_26_ == true) then
+  local case_31_ = vim.uv.fs_stat(download_to_path)
+  if (_G.type(case_31_) == "table") then
+    local case_32_, case_33_ = vim.uv.fs_unlink(download_to_path)
+    if (case_32_ == true) then
       return notify_info("Removed downloaded Fennel, please restart Neovim.")
-    elseif ((case_26_ == nil) and (nil ~= case_27_)) then
-      local err = case_27_
+    elseif ((case_32_ == nil) and (nil ~= case_33_)) then
+      local err = case_33_
       return notify_error("Unable to remove %s: %s", download_to_path, err)
     else
       return nil
     end
-  elseif (case_25_ == nil) then
+  elseif (case_31_ == nil) then
     return notify_error("Unable to rollback, nothing to remove")
   else
     return nil
@@ -133,18 +160,19 @@ local function hotpot_command_fennel_update_handler(download_to_path, params)
   end
   local function install_update(update_url)
     local source = http_get(update_url)
-    local case_30_, case_31_ = loadstring(source)
-    if (nil ~= case_30_) then
-      local func = case_30_
+    local case_36_, case_37_ = loadstring(source)
+    if (nil ~= case_36_) then
+      local func = case_36_
       R.util["file-write"](download_to_path, source)
       return notify_info("Updated Fennel. You must restart Neovim.")
-    elseif ((case_30_ == nil) and (nil ~= case_31_)) then
-      local err = case_31_
+    elseif ((case_36_ == nil) and (nil ~= case_37_)) then
+      local err = case_37_
       return notify_error("Invalid lua %s...", err)
     else
       return nil
     end
   end
+  assert((1 == vim.fn.executable("curl")), "must have curl installed")
   local function check_latest_online(force_3f)
     local url = "https://fennel-lang.org/downloads/"
     local index = http_get(url)
@@ -164,19 +192,19 @@ local function hotpot_command_fennel_update_handler(download_to_path, params)
       versions = tbl_26_
     end
     local _0
-    local function _34_(_241, _242)
+    local function _40_(_241, _242)
       return (_241 > _242)
     end
-    _0 = table.sort(versions, _34_)
+    _0 = table.sort(versions, _40_)
     local installed_version = R.fennel.version
     if ((_G.type(versions) == "table") and (nil ~= versions[1])) then
       local latest = versions[1]
-      local case_35_, case_36_ = string.match(latest, "fennel%-([0-9%.]+)%.lua")
-      if (case_35_ == installed_version) then
+      local case_41_, case_42_ = string.match(latest, "fennel%-([0-9%.]+)%.lua")
+      if (case_41_ == installed_version) then
         notify_info("Already at version %s", installed_version)
         return nil
-      elseif (nil ~= case_35_) then
-        local online_version = case_35_
+      elseif (nil ~= case_41_) then
+        local online_version = case_41_
         local final_url = (url .. latest)
         if force_3f then
           return final_url
@@ -184,11 +212,11 @@ local function hotpot_command_fennel_update_handler(download_to_path, params)
           local choices = {"Yes", "No"}
           local prompt = string.format("Download version %s?", online_version)
           local answer = {["ok?"] = false}
-          local function _37_(_241)
+          local function _43_(_241)
             answer["ok?"] = _241
             return nil
           end
-          R.ui["ui-select-sync"](choices, {prompt = prompt}, _37_)
+          R.ui["ui-select-sync"](choices, {prompt = prompt}, _43_)
           if (answer["ok?"] == "Yes") then
             return final_url
           else
@@ -228,37 +256,115 @@ local function hotpot_command_fennel_handler(params)
     return notify_error("Unrecognised sub command")
   end
 end
-local function hotpot_command_handler(_44_)
-  local fargs = _44_.fargs
+local function hotpot_command_locate_handler(params, opts)
+  local usage = "Usage: Hotpot locate <file?> -- <commands ....>"
+  local data, err
+  if ((_G.type(params) == "table") and (params["--"] == true)) then
+    local case_50_ = opts.fargs
+    if ((_G.type(case_50_) == "table") and (case_50_[1] == "locate") and (nil ~= case_50_[2]) and (case_50_[3] == "--") and (case_50_[4] == nil)) then
+      local file = case_50_[2]
+      data, err = nil, usage
+    elseif ((_G.type(case_50_) == "table") and (case_50_[1] == "locate") and (nil ~= case_50_[2]) and (case_50_[3] == "--") and (case_50_[4] == "")) then
+      local file = case_50_[2]
+      data, err = nil, usage
+    elseif ((_G.type(case_50_) == "table") and (case_50_[1] == "locate") and (case_50_[2] == "--") and (case_50_[3] == "")) then
+      data, err = nil, usage
+    elseif ((_G.type(case_50_) == "table") and (case_50_[1] == "locate") and (case_50_[2] == "--") and (case_50_[3] == nil)) then
+      data, err = nil, usage
+    elseif ((_G.type(case_50_) == "table") and (case_50_[1] == "locate") and (case_50_[2] == "--")) then
+      local actions = {select(3, (table.unpack or _G.unpack)(case_50_))}
+      local command = table.concat(actions, " ")
+      data, err = {file = "%", command = command}
+    elseif ((_G.type(case_50_) == "table") and (case_50_[1] == "locate") and (nil ~= case_50_[2]) and (case_50_[3] == "--")) then
+      local file = case_50_[2]
+      local actions = {select(4, (table.unpack or _G.unpack)(case_50_))}
+      local command = table.concat(actions, " ")
+      data, err = {file = file, command = command}
+    else
+      local _ = case_50_
+      data, err = nil, usage
+    end
+  else
+    local _ = params
+    local case_52_ = opts.fargs
+    if ((_G.type(case_52_) == "table") and (case_52_[1] == "locate") and (case_52_[2] == nil)) then
+      data, err = {file = "%"}
+    elseif ((_G.type(case_52_) == "table") and (case_52_[1] == "locate") and (case_52_[2] == "") and (case_52_[3] == nil)) then
+      data, err = {file = "%"}
+    elseif ((_G.type(case_52_) == "table") and (case_52_[1] == "locate") and (nil ~= case_52_[2]) and (case_52_[3] == nil)) then
+      local file = case_52_[2]
+      data, err = {file = file}
+    else
+      local _0 = case_52_
+      data, err = nil, "Usage: :Hotpot locate <file> -- <commands ...>"
+    end
+  end
+  if ((_G.type(data) == "table") and (nil ~= data.file)) then
+    local file = data.file
+    local file0 = vim.fn.expand(file)
+    local file1, err0
+    do
+      local case_55_ = fetch_context(file0)
+      if ((_G.type(case_55_) == "table") and (case_55_.locate == nil)) then
+        file1, err0 = nil, "path was not in any context"
+      elseif ((_G.type(case_55_) == "table") and (nil ~= case_55_.locate)) then
+        local locate = case_55_.locate
+        file1, err0 = locate(file0)
+      else
+        file1, err0 = nil
+      end
+    end
+    if file1 then
+      if ((_G.type(data) == "table") and (nil ~= data.command)) then
+        local command = data.command
+        return vim.cmd((command .. " " .. file1))
+      else
+        local _ = data
+        return notify_info(file1)
+      end
+    else
+      return notify_error(err0)
+    end
+  elseif (data == nil) then
+    return notify_info(err)
+  else
+    return nil
+  end
+end
+local function hotpot_command_handler(_60_)
+  local fargs = _60_.fargs
+  local opts = _60_
   local command = fargs[1]
   local args = (function (t, k) return ((getmetatable(t) or {}).__fennelrest or function (t, k) return {(table.unpack or unpack)(t, k)} end)(t, k) end)(fargs, 2)
   local params, parse_error
   do
-    local case_45_, case_46_ = pcall(parse_args, args)
-    if ((case_45_ == true) and (nil ~= case_46_)) then
-      local params0 = case_46_
+    local case_61_, case_62_ = pcall(parse_args, args)
+    if ((case_61_ == true) and (nil ~= case_62_)) then
+      local params0 = case_62_
       params, parse_error = params0
-    elseif ((case_45_ == false) and (nil ~= case_46_)) then
-      local err = case_46_
+    elseif ((case_61_ == false) and (nil ~= case_62_)) then
+      local err = case_62_
       params, parse_error = nil, err
     else
       params, parse_error = nil
     end
   end
   local usage
-  local function _48_()
+  local function _64_()
     return notify_warn("Usage: Hotpot sync|autocmd params...")
   end
-  usage = _48_
+  usage = _64_
   if params then
     if (command == nil) then
       return usage()
+    elseif (command == "locate") then
+      return hotpot_command_locate_handler(params, opts)
     elseif (command == "fennel") then
-      return hotpot_command_fennel_handler(params)
+      return hotpot_command_fennel_handler(params, opts)
     elseif (command == "sync") then
-      return hotpot_command_sync_handler(params)
+      return hotpot_command_sync_handler(params, opts)
     elseif (command == "watch") then
-      return hotpot_command_watch_handler(params)
+      return hotpot_command_watch_handler(params, opts)
     else
       local _ = command
       return usage()
@@ -292,15 +398,15 @@ local function filter(prefix, options)
 end
 local function filter_param_options_no_duplicates(possible_params, existing_params, current_param)
   if (nil == current_param) then
-    _G.error("Missing argument current-param on fnl/hotpot/command.fnl:148", 2)
+    _G.error("Missing argument current-param on fnl/hotpot/command.fnl:196", 2)
   else
   end
   if (nil == existing_params) then
-    _G.error("Missing argument existing-params on fnl/hotpot/command.fnl:148", 2)
+    _G.error("Missing argument existing-params on fnl/hotpot/command.fnl:196", 2)
   else
   end
   if (nil == possible_params) then
-    _G.error("Missing argument possible-params on fnl/hotpot/command.fnl:148", 2)
+    _G.error("Missing argument possible-params on fnl/hotpot/command.fnl:196", 2)
   else
   end
   local function filter0(options, prefix)
@@ -369,22 +475,38 @@ local function filter_param_options_no_duplicates(possible_params, existing_para
   return filter0(unused_names, current_param)
 end
 local function hotpot_command_completion(arg_lead, cmd_line, cursor_pos)
-  local case_63_ = vim.split(cmd_line, "%s+")
-  if ((_G.type(case_63_) == "table") and (case_63_[1] == "Hotpot") and (nil ~= case_63_[2]) and (case_63_[3] == nil)) then
-    local current_partial = case_63_[2]
-    return filter_param_options_no_duplicates({"sync", "watch", "fennel"}, {}, current_partial)
-  elseif ((_G.type(case_63_) == "table") and (case_63_[1] == "Hotpot") and (case_63_[2] == "watch") and (nil ~= case_63_[3]) and (case_63_[4] == nil)) then
-    local current_partial = case_63_[3]
-    local function _64_()
+  local case_79_ = vim.split(cmd_line, "%s+")
+  if ((_G.type(case_79_) == "table") and (case_79_[1] == "Hotpot") and (nil ~= case_79_[2]) and (case_79_[3] == nil)) then
+    local current_partial = case_79_[2]
+    return filter_param_options_no_duplicates({"sync", "locate", "watch", "fennel"}, {}, current_partial)
+  elseif ((_G.type(case_79_) == "table") and (case_79_[1] == "Hotpot") and (case_79_[2] == "watch") and (nil ~= case_79_[3]) and (case_79_[4] == nil)) then
+    local current_partial = case_79_[3]
+    local function _80_()
       if R.autocmd["enabled?"] then
         return "disable"
       else
         return "enable"
       end
     end
-    return filter_param_options_no_duplicates({_64_()}, {}, current_partial)
-  elseif ((_G.type(case_63_) == "table") and (case_63_[1] == "Hotpot") and (case_63_[2] == "fennel")) then
-    local current_params = {select(3, (table.unpack or _G.unpack)(case_63_))}
+    return filter_param_options_no_duplicates({_80_()}, {}, current_partial)
+  elseif ((_G.type(case_79_) == "table") and (case_79_[1] == "Hotpot") and (case_79_[2] == "locate")) then
+    local current_params = {select(3, (table.unpack or _G.unpack)(case_79_))}
+    if ((_G.type(current_params) == "table") and (current_params[1] == "")) then
+      return vim.fn.getcompletion("", "file")
+    elseif ((_G.type(current_params) == "table") and (nil ~= current_params[1])) then
+      local partial_path = current_params[1]
+      return vim.fn.getcompletion(partial_path, "file")
+    elseif ((_G.type(current_params) == "table") and (nil ~= current_params[1]) and (current_params[2] == "")) then
+      local path = current_params[1]
+      return {"--"}
+    elseif ((_G.type(current_params) == "table") and (nil ~= current_params[1]) and (current_params[2] == "--") and (current_params[3] == "")) then
+      local path = current_params[1]
+      return {"new", "vnew", "tabnew"}
+    else
+      return nil
+    end
+  elseif ((_G.type(case_79_) == "table") and (case_79_[1] == "Hotpot") and (case_79_[2] == "fennel")) then
+    local current_params = {select(3, (table.unpack or _G.unpack)(case_79_))}
     if ((_G.type(current_params) == "table") and (current_params[1] == "update")) then
       local current_params0 = {select(2, (table.unpack or _G.unpack)(current_params))}
       local current_partial = table.remove(current_params0)
@@ -399,12 +521,12 @@ local function hotpot_command_completion(arg_lead, cmd_line, cursor_pos)
     else
       return nil
     end
-  elseif ((_G.type(case_63_) == "table") and (case_63_[1] == "Hotpot") and (case_63_[2] == "sync")) then
-    local current_params = {select(3, (table.unpack or _G.unpack)(case_63_))}
-    local case_66_, case_67_ = string.find(arg_lead, "^context=")
-    if (true and (nil ~= case_67_)) then
-      local _start = case_66_
-      local ends = case_67_
+  elseif ((_G.type(case_79_) == "table") and (case_79_[1] == "Hotpot") and (case_79_[2] == "sync")) then
+    local current_params = {select(3, (table.unpack or _G.unpack)(case_79_))}
+    local case_83_, case_84_ = string.find(arg_lead, "^context=")
+    if (true and (nil ~= case_84_)) then
+      local _start = case_83_
+      local ends = case_84_
       local partial_path = string.sub(arg_lead, (ends + 1))
       local paths = vim.fn.getcompletion(partial_path, "dir")
       local tbl_26_ = {}
@@ -419,7 +541,7 @@ local function hotpot_command_completion(arg_lead, cmd_line, cursor_pos)
       end
       return tbl_26_
     else
-      local _ = case_66_
+      local _ = case_83_
       local current_partial = table.remove(current_params)
       return filter_param_options_no_duplicates({"context=", "force", "verbose", "atomic"}, current_params, current_partial)
     end
@@ -427,102 +549,75 @@ local function hotpot_command_completion(arg_lead, cmd_line, cursor_pos)
     return nil
   end
 end
-local function fetch_context(_3fpath)
-  local try_path
-  local function _71_(...)
-    local case_72_ = ...
-    if (case_72_ == nil) then
-      local function _73_(...)
-        local case_74_ = ...
-        if (case_74_ == nil) then
-          return vim.uv.cwd()
-        elseif (nil ~= case_74_) then
-          local path = case_74_
-          return path
-        else
-          return nil
-        end
-      end
-      return _73_(vim.uv.fs_realpath(vim.api.nvim_buf_get_name(0)))
-    elseif (nil ~= case_72_) then
-      local path = case_72_
-      return path
-    else
-      return nil
-    end
-  end
-  try_path = _71_(vim.uv.fs_realpath((_3fpath or "")))
-  return R.api.context(R.context.nearest(try_path))
-end
 local function make_ctx_action_handler(ctx, args)
   local function make(output)
-    local function _77_(ok_3f, ...)
+    local function _88_(ok_3f, ...)
       if ok_3f then
         return output(...)
       else
         return notify_error(...)
       end
     end
-    return _77_
+    return _88_
   end
-  local case_79_ = string.sub(args, 1, 2)
-  if (case_79_ == "=") then
-    local function _80_(source)
+  local case_90_ = string.sub(args, 1, 1)
+  if (case_90_ == "=") then
+    local function _91_(source)
       return make(vim.print)(ctx.eval(source))
     end
-    return _80_
-  elseif (case_79_ == "-") then
-    local function _81_(source)
+    return _91_
+  elseif (case_90_ == "-") then
+    local function _92_(source)
       return make(vim.print)(ctx.compile(source))
     end
-    return _81_
+    return _92_
   else
-    local _ = case_79_
-    local function _82_(source)
-      local function _83_()
+    local _ = case_90_
+    local function _93_(source)
+      local function _94_()
         return nil
       end
-      return make(_83_)(ctx.eval(source))
+      return make(_94_)(ctx.eval(source))
     end
-    return _82_
+    return _93_
   end
 end
-local function fnl_command_handler(_85_)
-  local range = _85_.range
-  local line1 = _85_.line1
-  local line2 = _85_.line2
-  local count = _85_.count
-  local args = _85_.args
-  local opts = _85_
+local function fnl_command_handler(_96_)
+  local range = _96_.range
+  local line1 = _96_.line1
+  local line2 = _96_.line2
+  local count = _96_.count
+  local args = _96_.args
+  local opts = _96_
   local ctx = fetch_context()
   local ctx_handler = make_ctx_action_handler(ctx, args)
   if ((args == "") or (args == "=") or (args == "-")) then
-    local case_86_ = {range = range, line1 = line1, line2 = line2, count = count}
-    if ((case_86_.range == 1) and (nil ~= case_86_.line1) and (case_86_.line1 == case_86_.line2) and (case_86_.line1 == case_86_.count)) then
-      local n = case_86_.line1
+    local case_97_ = {range = range, line1 = line1, line2 = line2, count = count}
+    if ((case_97_.range == 1) and (nil ~= case_97_.line1) and (case_97_.line1 == case_97_.line2) and (case_97_.line1 == case_97_.count)) then
+      local n = case_97_.line1
       local from = vim.fn.line(".")
       local text = table.concat(vim.api.nvim_buf_get_lines(0, (from - 1), (from + count + -1), false), "\n")
       return ctx_handler(text)
-    elseif ((case_86_.range == 2) and (nil ~= case_86_.line1) and (nil ~= case_86_.line2)) then
-      local a = case_86_.line1
-      local b = case_86_.line2
+    elseif ((case_97_.range == 2) and (nil ~= case_97_.line1) and (nil ~= case_97_.line2)) then
+      local a = case_97_.line1
+      local b = case_97_.line2
       local last_cmd = vim.fn.histget("cmd", -1)
-      local case_87_ = string.find(last_cmd, "'<,'>", 1, true)
-      if (case_87_ == 1) then
-        local _let_88_ = vim.fn.getcharpos("'<")
-        local _buf = _let_88_[1]
-        local _line = _let_88_[2]
-        local start_col = _let_88_[3]
-        local _virt = _let_88_[4]
-        local _let_89_ = vim.fn.getcharpos("'>")
-        local _buf0 = _let_89_[1]
-        local _line0 = _let_89_[2]
-        local end_col = _let_89_[3]
-        local _virt0 = _let_89_[4]
+      local case_98_ = string.find(last_cmd, "'<,'>", 1, true)
+      if (case_98_ == 1) then
+        local _let_99_ = vim.fn.getcharpos("'<")
+        local _buf = _let_99_[1]
+        local _line = _let_99_[2]
+        local start_col = _let_99_[3]
+        local _virt = _let_99_[4]
+        local _let_100_ = vim.fn.getcharpos("'>")
+        local _buf0 = _let_100_[1]
+        local _line0 = _let_100_[2]
+        local end_col = _let_100_[3]
+        local _virt0 = _let_100_[4]
         local text = table.concat(vim.api.nvim_buf_get_text(0, (line1 - 1), (start_col - 1), (line2 - 1), (end_col - 0), {}), "\n")
         return ctx_handler(text)
       else
-        local _ = case_87_
+        local _ = case_98_
         local text = table.concat(vim.api.nvim_buf_get_lines(0, (line1 - 1), line2, false), "\n")
         return ctx_handler(text)
       end
@@ -531,20 +626,31 @@ local function fnl_command_handler(_85_)
     end
   else
     local _ = args
-    local source = string.sub(args, 2)
+    local source
+    do
+      local case_103_ = string.sub(args, 1, 1)
+      if ((case_103_ == "-") or (case_103_ == "=")) then
+        source = vim.trim(string.sub(args, 2))
+      else
+        local _0 = case_103_
+        source = args
+      end
+    end
     return ctx_handler(source)
   end
 end
-local function fnlfile_command_handler(_93_)
-  local args = _93_.args
-  local fargs = _93_.fargs
+local function fnlfile_command_handler(_106_)
+  local args = _106_.args
+  local fargs = _106_.fargs
   local path
   do
-    local case_94_ = string.find(args, "=", 1, true)
-    if (case_94_ == 1) then
+    local case_107_ = string.sub(args, 1, 1)
+    if (case_107_ == "=") then
+      path = vim.trim(string.sub(args, 2))
+    elseif (case_107_ == "-") then
       path = vim.trim(string.sub(args, 2))
     else
-      local _ = case_94_
+      local _ = case_107_
       path = args
     end
   end
@@ -562,34 +668,34 @@ local function fnlfile_command_handler(_93_)
           return error(..., 0)
         end
       end
-      local function _97_()
+      local function _110_()
         return fh:read("*a")
       end
-      local _99_
+      local _112_
       do
-        local t_98_ = _G
-        if (nil ~= t_98_) then
-          t_98_ = t_98_.package
+        local t_111_ = _G
+        if (nil ~= t_111_) then
+          t_111_ = t_111_.package
         else
         end
-        if (nil ~= t_98_) then
-          t_98_ = t_98_.loaded
+        if (nil ~= t_111_) then
+          t_111_ = t_111_.loaded
         else
         end
-        if (nil ~= t_98_) then
-          t_98_ = t_98_.fennel
+        if (nil ~= t_111_) then
+          t_111_ = t_111_.fennel
         else
         end
-        _99_ = t_98_
+        _112_ = t_111_
       end
-      local or_103_ = _99_ or _G.debug
-      if not or_103_ then
-        local function _104_()
+      local or_116_ = _112_ or _G.debug
+      if not or_116_ then
+        local function _117_()
           return ""
         end
-        or_103_ = {traceback = _104_}
+        or_116_ = {traceback = _117_}
       end
-      file_contents = close_handlers_13_(_G.xpcall(_97_, or_103_.traceback))
+      file_contents = close_handlers_13_(_G.xpcall(_110_, or_116_.traceback))
     end
     return ctx_handler(file_contents)
   else
@@ -603,54 +709,58 @@ local function define_fnl()
   return vim.api.nvim_create_user_command("Fnl", fnl_command_handler, {nargs = "*", range = true, desc = "Evaluate string of fnl or range, with = to print output"})
 end
 local function define_fnl_eval()
-  local function _107_(_106_)
-    local args = _106_.args
-    local fargs = _106_.fargs
-    local opts = _106_
-    local case_108_ = string.find(args, "=", 1, true)
-    if (case_108_ == 1) then
+  local function _120_(_119_)
+    local args = _119_.args
+    local fargs = _119_.fargs
+    local opts = _119_
+    local case_121_ = string.sub(args, 1, 1)
+    if (case_121_ == "=") then
       return fnl_command_handler(opts)
+    elseif (case_121_ == "-") then
+      return notify_error(":FnlEval does not support `-` flag, use :Fnl- or :FnlCompile")
     else
-      local _ = case_108_
-      local function _109_()
+      local _ = case_121_
+      local function _122_()
         opts["args"] = ("=" .. args)
-        local _110_
+        local _123_
         do
           table.insert(fargs, 1, "=")
-          _110_ = fargs
+          _123_ = fargs
         end
-        opts["fargs"] = _110_
+        opts["fargs"] = _123_
         return opts
       end
-      return fnl_command_handler(_109_())
+      return fnl_command_handler(_122_())
     end
   end
-  return vim.api.nvim_create_user_command("FnlEval", _107_, {range = true, nargs = "*", desc = "Alias for :<range?>Fnl=`"})
+  return vim.api.nvim_create_user_command("FnlEval", _120_, {range = true, nargs = "*", desc = "Alias for :<range?>Fnl=`"})
 end
 local function define_fnl_compile()
-  local function _113_(_112_)
-    local args = _112_.args
-    local fargs = _112_.fargs
-    local opts = _112_
-    local case_114_ = string.find(args, "-", 1, true)
-    if (case_114_ == 1) then
+  local function _126_(_125_)
+    local args = _125_.args
+    local fargs = _125_.fargs
+    local opts = _125_
+    local case_127_ = string.sub(args, 1, 1)
+    if (case_127_ == "-") then
       return fnl_command_handler(opts)
+    elseif (case_127_ == "=") then
+      return notify_error(":FnlCompile does not support `=` flag, use :Fnl= or :FnlEval")
     else
-      local _ = case_114_
-      local function _115_()
+      local _ = case_127_
+      local function _128_()
         opts["args"] = ("-" .. args)
-        local _116_
+        local _129_
         do
           table.insert(fargs, 1, "-")
-          _116_ = fargs
+          _129_ = fargs
         end
-        opts["fargs"] = _116_
+        opts["fargs"] = _129_
         return opts
       end
-      return fnl_command_handler(_115_())
+      return fnl_command_handler(_128_())
     end
   end
-  return vim.api.nvim_create_user_command("FnlCompile", _113_, {range = true, nargs = "*", desc = "Alias for :<range?>Fnl-`"})
+  return vim.api.nvim_create_user_command("FnlCompile", _126_, {range = true, nargs = "*", desc = "Alias for :<range?>Fnl-`"})
 end
 local function define_fnlfile()
   return vim.api.nvim_create_user_command("Fnlfile", fnlfile_command_handler, {nargs = 1, complete = "file", desc = "Evaluate given fennel file"})
@@ -659,8 +769,8 @@ local _2aaugroup_id_2a = nil
 local function support_source_command()
   if not _2aaugroup_id_2a then
     local augroup_id = vim.api.nvim_create_augroup("hotpot-source-cmd", {clear = true})
-    local function callback(_118_)
-      local path = _118_.file
+    local function callback(_131_)
+      local path = _131_.file
       if vim.uv.fs_access(path, "r") then
         local ctx = fetch_context(path)
         local file_contents
@@ -674,34 +784,34 @@ local function support_source_command()
               return error(..., 0)
             end
           end
-          local function _120_()
+          local function _133_()
             return fh:read("*a")
           end
-          local _122_
+          local _135_
           do
-            local t_121_ = _G
-            if (nil ~= t_121_) then
-              t_121_ = t_121_.package
+            local t_134_ = _G
+            if (nil ~= t_134_) then
+              t_134_ = t_134_.package
             else
             end
-            if (nil ~= t_121_) then
-              t_121_ = t_121_.loaded
+            if (nil ~= t_134_) then
+              t_134_ = t_134_.loaded
             else
             end
-            if (nil ~= t_121_) then
-              t_121_ = t_121_.fennel
+            if (nil ~= t_134_) then
+              t_134_ = t_134_.fennel
             else
             end
-            _122_ = t_121_
+            _135_ = t_134_
           end
-          local or_126_ = _122_ or _G.debug
-          if not or_126_ then
-            local function _127_()
+          local or_139_ = _135_ or _G.debug
+          if not or_139_ then
+            local function _140_()
               return ""
             end
-            or_126_ = {traceback = _127_}
+            or_139_ = {traceback = _140_}
           end
-          file_contents = close_handlers_13_(_G.xpcall(_120_, or_126_.traceback))
+          file_contents = close_handlers_13_(_G.xpcall(_133_, or_139_.traceback))
         end
         return ctx.eval(file_contents)
       else
