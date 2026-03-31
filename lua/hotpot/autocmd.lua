@@ -3,47 +3,43 @@ local R = _local_1_.R
 local notify_error = _local_1_["notify-error"]
 local M, m = {}, {}
 local function silly_lsp_notification(buf, ctx, report)
-  if _G.__hotpot_lsp then
-    local client_id = R.lsp["start-lsp"]({root = ctx.path.source})
-    return R.lsp["emit-report"](client_id, report)
-  else
-    return nil
-  end
+  local client_id = R.lsp["start-lsp"]({root = ctx.path.source})
+  return R.lsp["emit-report"](client_id, report)
 end
 local function buf_write_post_callback(event)
   local Context = R.Context
   local path = event.match
   local buf = event.buf
   do
-    local case_3_ = Context.nearest(path)
-    if (nil ~= case_3_) then
-      local root = case_3_
-      local function _4_(...)
-        local case_5_, case_6_ = ...
-        if ((case_5_ == true) and (nil ~= case_6_)) then
-          local ctx = case_6_
-          local function _7_(...)
-            local case_8_, case_9_ = ...
-            if ((case_8_ == true) and (nil ~= case_9_)) then
-              local report = case_9_
+    local case_2_ = Context.nearest(path)
+    if (nil ~= case_2_) then
+      local root = case_2_
+      local function _3_(...)
+        local case_4_, case_5_ = ...
+        if ((case_4_ == true) and (nil ~= case_5_)) then
+          local ctx = case_5_
+          local function _6_(...)
+            local case_7_, case_8_ = ...
+            if ((case_7_ == true) and (nil ~= case_8_)) then
+              local report = case_8_
               return silly_lsp_notification(buf, ctx, report)
-            elseif ((case_8_ == false) and (nil ~= case_9_)) then
-              local err = case_9_
+            elseif ((case_7_ == false) and (nil ~= case_8_)) then
+              local err = case_8_
               return notify_error(err)
             else
               return nil
             end
           end
-          return _7_(pcall(Context.sync, ctx))
-        elseif ((case_5_ == false) and (nil ~= case_6_)) then
-          local err = case_6_
+          return _6_(pcall(Context.sync, ctx))
+        elseif ((case_4_ == false) and (nil ~= case_5_)) then
+          local err = case_5_
           return notify_error(err)
         else
           return nil
         end
       end
-      _4_(pcall(Context.new, root))
-    elseif (case_3_ == nil) then
+      _3_(pcall(Context.new, root))
+    elseif (case_2_ == nil) then
     else
     end
   end

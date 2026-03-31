@@ -84,48 +84,41 @@
         ctx-token-id client.config.root_dir
         lsp-ctx {:method :$/progress :client_id client-id}]
     (set report-id (+ 1 report-id))
-    (λ send-progress [token title begin-msg report-msgs end-msg]
-      (when (< 0 (length report-msgs))
-        (handler nil
-                 {: token
-                  :value {:kind :begin
-                          : title
-                          :message begin-msg
-                          :_percentage 0}}
-                 lsp-ctx)
-        (for [i 1 (length report-msgs)]
-          (handler nil
-                   {: token
-                    :value {:kind :report
-                            :message (. report-msgs i)
-                            :_percentage (* 100 (/ i (length report-msgs)))}}
-                   lsp-ctx))
-        (handler nil
-                 {: token
-                  :value {:kind :end
-                          :message end-msg
-                          :_percentage 100}}
-                 lsp-ctx)))
-    (send-progress (.. :hotpot-sync-errored- ctx-token-id report-id)
-                   "Sync: errors"
-                   "Errors..."
-                   (icollect [_ {: fnl-rel} (ipairs report.errors)]
-                     (string.format "Error: %s" fnl-rel))
-                   (string.format "Errors for %d files" (length report.errors)))
-    (send-progress (.. :hotpot-sync-cleaned- ctx-token-id report-id)
-                   "Sync: cleaning"
-                   "Cleaning..."
-                   (icollect [_ {: lua-abs} (ipairs report.cleaned)]
-                     (string.format "Clean: %s" lua-abs))
-                   (string.format "Cleaned %d files" (length report.cleaned)))
-    (send-progress (.. :hotpot-sync-compiled- ctx-token-id report-id)
-                   "Sync: compiling"
-                   "Syncing..."
-                   (icollect [_ {: fnl-rel : duration-ms} (ipairs report.compiled)]
-                     (string.format "Sync: %s (%.2fms)" fnl-rel duration-ms))
-                   (string.format "Synced %d files (%.2fms)"
-                                  (length report.compiled)
-                                  (accumulate [sum 0 _ {: duration-ms} (ipairs report.compiled)]
-                                    (+ sum duration-ms))))))
+    (λ send-progress [token title message]
+      (handler nil {: token :value {:kind :begin : title : message}} lsp-ctx)
+      (handler nil {: token :value {:kind :end : message}} lsp-ctx))
+    (let [(count duration) (accumulate [(count duration) (values 0 0)
+                                        i {: fnl-rel : duration-ms} (ipairs report.compiled)]
+                             (do
+                               (send-progress (.. :hotpot-sync-compiled- ctx-token-id :- i)
+                                              "Compile"
+                                              (string.format "%s (%.2fms)" fnl-rel duration-ms))
+                               (values (+ 1 count) (+ duration duration-ms))))]
+      (when (< 1 count)
+        (send-progress (.. :hotpot-sync-compiled- ctx-token-id :-sum)
+                       "Compile"
+                       (string.format "Compiled %d files (%.2fms)" count duration))))
+
+    (let [count (accumulate [count 0 i {: fnl-rel} (ipairs report.errors)]
+                             (do
+                               (send-progress (.. :hotpot-sync-errors- ctx-token-id :- i)
+                                              "Error"
+                                              (string.format "%s" fnl-rel))
+                               (+ 1 count)))]
+      (when (< 1 count)
+        (send-progress (.. :hotpot-sync-errors- ctx-token-id :-sum)
+                       "Error"
+                       (string.format "Error compiling %d files" count))))
+
+    (let [count (accumulate [count 0 i {: fnl-rel} (ipairs report.cleaned)]
+                             (do
+                               (send-progress (.. :hotpot-sync-cleaned- ctx-token-id :- i)
+                                              "Clean"
+                                              (string.format "%s" fnl-rel))
+                               (+ 1 count)))]
+      (when (< 1 count)
+        (send-progress (.. :hotpot-sync-cleaned- ctx-token-id :-sum)
+                       "Clean"
+                       (string.format "Cleaned %d files" count))))))
 
 M
