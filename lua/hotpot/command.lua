@@ -602,6 +602,56 @@ end
 local function define_fnl()
   return vim.api.nvim_create_user_command("Fnl", fnl_command_handler, {nargs = "*", range = true, desc = "Evaluate string of fnl or range, with = to print output"})
 end
+local function define_fnl_eval()
+  local function _107_(_106_)
+    local args = _106_.args
+    local fargs = _106_.fargs
+    local opts = _106_
+    local case_108_ = string.find(args, "=", 1, true)
+    if (case_108_ == 1) then
+      return fnl_command_handler(opts)
+    else
+      local _ = case_108_
+      local function _109_()
+        opts["args"] = ("=" .. args)
+        local _110_
+        do
+          table.insert(fargs, 1, "=")
+          _110_ = fargs
+        end
+        opts["fargs"] = _110_
+        return opts
+      end
+      return fnl_command_handler(_109_())
+    end
+  end
+  return vim.api.nvim_create_user_command("FnlEval", _107_, {range = true, nargs = "*", desc = "Alias for :<range?>Fnl=`"})
+end
+local function define_fnl_compile()
+  local function _113_(_112_)
+    local args = _112_.args
+    local fargs = _112_.fargs
+    local opts = _112_
+    local case_114_ = string.find(args, "-", 1, true)
+    if (case_114_ == 1) then
+      return fnl_command_handler(opts)
+    else
+      local _ = case_114_
+      local function _115_()
+        opts["args"] = ("-" .. args)
+        local _116_
+        do
+          table.insert(fargs, 1, "-")
+          _116_ = fargs
+        end
+        opts["fargs"] = _116_
+        return opts
+      end
+      return fnl_command_handler(_115_())
+    end
+  end
+  return vim.api.nvim_create_user_command("FnlCompile", _113_, {range = true, nargs = "*", desc = "Alias for :<range?>Fnl-`"})
+end
 local function define_fnlfile()
   return vim.api.nvim_create_user_command("Fnlfile", fnlfile_command_handler, {nargs = 1, complete = "file", desc = "Evaluate given fennel file"})
 end
@@ -669,6 +719,8 @@ local function define_commands()
   define_hotpot()
   define_fnl()
   define_fnlfile()
+  define_fnl_eval()
+  define_fnl_compile()
   return support_source_command()
 end
 return {enable = define_commands}

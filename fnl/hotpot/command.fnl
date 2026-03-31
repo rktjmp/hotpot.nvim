@@ -312,6 +312,36 @@
      :range true
      :desc "Evaluate string of fnl or range, with = to print output"}))
 
+(fn define-fnl-eval []
+  (vim.api.nvim_create_user_command
+    :FnlEval
+    (fn [{: args : fargs &as opts}]
+      (case (string.sub args 1 1)
+        "=" (fnl-command-handler opts)
+        "-" (notify-error ":FnlEval does not support `-` flag, use :Fnl- or :FnlCompile")
+        _ (fnl-command-handler (doto opts
+                                 (tset :args (.. "=" args))
+                                 (tset :fargs (doto fargs
+                                                (table.insert 1 "=")))))))
+    {:range true
+     :nargs :*
+     :desc "Alias for :<range?>Fnl=`"}))
+
+(fn define-fnl-compile []
+  (vim.api.nvim_create_user_command
+    :FnlCompile
+    (fn [{: args : fargs &as opts}]
+      (case (string.sub args 1 1)
+        "-" (fnl-command-handler opts)
+        "=" (notify-error ":FnlCompile does not support `=` flag, use :Fnl= or :FnlEval")
+        _ (fnl-command-handler (doto opts
+                                 (tset :args (.. "-" args))
+                                 (tset :fargs (doto fargs
+                                                (table.insert 1 "-")))))))
+    {:range true
+     :nargs :*
+     :desc "Alias for :<range?>Fnl-`"}))
+
 (fn define-fnlfile []
   (vim.api.nvim_create_user_command
     :Fnlfile
@@ -344,6 +374,8 @@
   (define-hotpot)
   (define-fnl)
   (define-fnlfile)
+  (define-fnl-eval)
+  (define-fnl-compile)
   (support-source-command))
 
 {:enable define-commands}
