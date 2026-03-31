@@ -74,6 +74,7 @@
                (notify-info "Updated Fennel. You must restart Neovim."))
         (nil err) (notify-error "Invalid lua %s..." err))))
 
+  (assert (= 1 (vim.fn.executable :curl)) "must have curl installed")
   (fn check-latest-online [force?]
     (let [url "https://fennel-lang.org/downloads/"
           index (http-get url)
@@ -115,7 +116,6 @@
       (install-update version-url))))
 
 (fn hotpot-command-fennel-handler [params]
-  ;; TODO: check curl exists
   (let [download-to-path (vim.fs.joinpath R.const.HOTPOT_FENNEL_UPDATE_LUA_ROOT :fennel.lua)]
     (case params
       {:rollback true} (hotpot-command-fennel-rollback-handler download-to-path params)
