@@ -1,4 +1,4 @@
-*hotpot.txt*            For NVIM v0.11.1            Last change: 2026 March 30
+*hotpot.txt*            For NVIM v0.11.1            Last change: 2026 April 01
 
 ==============================================================================
 Table of Contents                                   *hotpot-table-of-contents*
@@ -9,21 +9,23 @@ Table of Contents                                   *hotpot-table-of-contents*
 4. Installation                                          |hotpot-installation|
 5. Usage                                                        |hotpot-usage|
   - ~/.config/nvim                               |hotpot-usage-~/.config/nvim|
-  - Plugins                                             |hotpot-usage-plugins|
   - Macros                                               |hotpot-usage-macros|
-6. Configuration                                        |hotpot-configuration|
-7. API                                                            |hotpot-api|
+  - Plugins                                             |hotpot-usage-plugins|
+6. Commands                                                  |hotpot-commands|
+  - :Hotpot                                          |hotpot-commands-:hotpot|
+  - :Fnl                                                |hotpot-commands-:fnl|
+  - :FnlEval                                        |hotpot-commands-:fnleval|
+  - :FnlCompile                                  |hotpot-commands-:fnlcompile|
+  - :Fnlfile {file.fnl}                  |hotpot-commands-:fnlfile-{file.fnl}|
+  - :source {file.fnl}                    |hotpot-commands-:source-{file.fnl}|
+7. Configuration                                        |hotpot-configuration|
+8. API                                                            |hotpot-api|
   - context(path|nil)                           |hotpot-api-context(path|nil)|
   - context.compile(string, compiler-options)|hotpot-api-context.compile(string,-compiler-options)|
   - context.eval(string, compiler-options)|hotpot-api-context.eval(string,-compiler-options)|
   - context.sync(options|nil)           |hotpot-api-context.sync(options|nil)|
   - context.transform(string, filename|nil)|hotpot-api-context.transform(string,-filename|nil)|
   - context.locate(string)                 |hotpot-api-context.locate(string)|
-8. Commands                                                  |hotpot-commands|
-  - :Hotpot                                          |hotpot-commands-:hotpot|
-  - :Fnl                                                |hotpot-commands-:fnl|
-  - :Fnlfile {file.fnl}                  |hotpot-commands-:fnlfile-{file.fnl}|
-  - :source {file.fnl}                    |hotpot-commands-:source-{file.fnl}|
 9. Migrating from Version 1                  |hotpot-migrating-from-version-1|
 10. Changes from Version 1                     |hotpot-changes-from-version-1|
 11. Licenses                                                 |hotpot-licenses|
@@ -75,9 +77,8 @@ allows you to write your Neovim config and plugins in Fennel.
 3. Requirements                                          *hotpot-requirements*
 
 - Neovim 0.11.6+
-    - Probably it works on `~0.10.x+` but it’s untested. If you’re unable to
-        upgrade, you can set `_G.__hotpot_disable_version_check = true` before
-        `require('hotpot')`.
+    - Probably it works on `~0.10.x+` but it’s untested.
+    - If you’re unable to upgrade, you can set `_G.__hotpot_disable_version_check = true` before `require('hotpot')`.
 - ~Fanatical devotion to parentheses.~
 
 
@@ -175,6 +176,7 @@ Hotpot.
     ;; fennel from the internet, you will also have to add the `target directory`
     ;; path, as listed in `:checkhealth hotpot` under the `Hotpot fennel update`
     ;; section.
+    ;;
     ;; If you have configured your config directory to use `:target :colocate`
     ;; (which is *not* the default), you may skip the `performance.rtp.paths` step.
 <
@@ -183,21 +185,12 @@ Hotpot.
 ==============================================================================
 5. Usage                                                        *hotpot-usage*
 
-In general, anything you would put in `lua/` should be put in `fnl/`,
-otherwise, put `.fnl` files in the standard runtime directories such as `lsp/`
-or `ftplugin/`.
-
 
 ~/.CONFIG/NVIM                                   *hotpot-usage-~/.config/nvim*
 
-By default, Hotpot stores any compiled `.lua` files in a separate location to
-maintain a clean directory tree, so you won’t see any `.lua` files.
-
-There is one special exception to the above: **.config/nvim/init.fnl will
-always compile to .config/nvim/init.lua.**
-
-You should be set to begin writing Fennel code by placing `.fnl` files inside
-`fnl/` or other runtime directories.
+Anything you would put in `lua/` should be put in `fnl/`, otherwise, put `.fnl`
+files in the standard runtime directories such as `lsp/` or `ftplugin/`. Saving
+`.fnl` files will sync any updates required to any `.lua` files.
 
 >fennel
     ;; ~/.config/nvim/fnl/my-config/hello.fnl
@@ -209,18 +202,34 @@ You should be set to begin writing Fennel code by placing `.fnl` files inside
     (print :setup-some-lsp)
 <
 
+By default for Neovim’s `config` directory, Hotpot stores any compiled `.lua`
+files in a separate location to maintain a clean directory tree, so you won’t
+see any `.lua` files.
+
+There is one special exception to the above: **.config/nvim/init.fnl will
+always compile to .config/nvim/init.lua.**
+
+See the |hotpot-commands| for some helper commands.
+
 To configure some of Hotpot’s behaviour such as colocating `.lua`, ignoring
 files or configuring the Fennel compiler, see |hotpot-configuration|.
 
 
+MACROS                                                   *hotpot-usage-macros*
+
+
+  [!IMPORTANT] Hotpot requires that Fennel macro files (those that you call
+  `import-macros` for) **must** use the modern `.fnlm` extension. Regular Fennel
+  modules (those that you call `require` for) should use the `.fnl` extension.
+
 PLUGINS                                                 *hotpot-usage-plugins*
 
-When writing plugins in Fennel, you’ll want to ship `.lua` code to users, so
-we must "colocate" the `.fnl` and `.lua` files.
-
-To enable Fennel compilation for a plugin, we must place a `.hotpot.fnl` file
+To enable Fennel compilation for a plugin, you must place a `.hotpot.fnl` file
 in the root of the plugin directory. At a bare minimum, this file must specify
 the `schema` and `target` keys, as shown below.
+
+When writing plugins in Fennel, you’ll want to ship `.lua` code to users, so
+you must "colocate" the `.fnl` and `.lua` files.
 
 >fennel
     ;; projects/my-plugin/.hotpot.fnl
@@ -238,24 +247,165 @@ See |hotpot-configuration| for details on customising Hotpot’s behaviour,
 ignoring files or configuring the Fennel compiler.
 
 
-MACROS                                                   *hotpot-usage-macros*
+==============================================================================
+6. Commands                                                  *hotpot-commands*
+
+Use |hotpot-`:hotpot`| to interact with Hotpot, |hotpot-`:fnl`| and its related
+commands to evaluate or compile Fennel code from the buffer or command line.
 
 
-  [!IMPORTANT] Hotpot requires that Fennel macro files **must** use the modern
-  `.fnlm` extension. Regular Fennel modules should use the `.fnl` extension.
+:HOTPOT                                              *hotpot-commands-:hotpot*
+
+The `:Hotpot` command exposes the following subcommands:
+
+- |hotpot-`sync`|: manually trigger a compile & clean cycle.
+- |hotpot-`locate`|: find or open a files `.lua` or `.fnl` counterpart.
+- |hotpot-`watch`|: enable or disable compile-on-save.
+- |hotpot-`fennel`|: update the bundled fennel version with the latest
+    from fennel-lang.org <https://fennel-lang.org>.
+
+
+:HOTPOT SYNC ~
+
+Sync a given context’s `.fnl` and `.lua` files. This is the same operation
+that occurs when you save a `.fnl` or `.fnlm` file.
+
+`:Hotpot sync` supports the following parameters:
+
+- `context=<path>`: sets the context for the command, if not given, the current working directory is used.
+- `force`: force compilation of all files in the context, even if the `.lua` is up to date.
+- `atomic`: allow writing successfully compiled files even if others have compilation errors.
+- `verbose`: output additional compilation messages.
+
+See also the |hotpot-context.sync| function exposed by the [API][#api].
+
+
+:HOTPOT LOCATE ~
+
+Find or open a counterpart file, supports the following invocations:
+
+**:Hotpot locate <path> -- <commands ...>**
+
+Find counterpart file path for `<path>` and append it to `<commands ...>`, eg:
+`:Hotpot locate fnl/my-file.fnl -- vnew` would open the counterpart `.lua` file
+in a `vnew` split.
+
+If path is not given, the current buffer path is used instead, eg: `:Hotpot
+locate -- <commands ...>` is equivalent to `:Hotpot locate % -- <commands
+...>`.
+
+**:Hotpot locate <path>**
+
+Prints the counterpart path, again, if no `<path>` is given, the current buffer
+path is used.
+
+See also the |hotpot-context.locate| function exposed by the [API][#api].
+
+
+:HOTPOT WATCH ~
+
+Enable or disable the compile-on-save behaviour.
+
+`:Hotpot watch` supports the following (mutually exclusive) parameters:
+
+- `enable`: enable syncing on save for all contexts in this session.
+- `disable`: disable syncing on save for all contexts in this session.
+
+
+:HOTPOT FENNEL ~
+
+Update or rollback `fennel.lua` to the latest version from fennel-lang.org
+<https://fennel-lang.org>.
+
+Requires `curl` to be installed.
+
+
+  [!IMPORTANT] Running this is not without some risk, as an updated version of
+  Fennel _may_ be incompatible with Hotpot. This is pretty unlikely unless the
+  API to evaluate or compile fennel code is changed. If a release is only adding
+  new "forms" (eg: `(accumulate ...)`) the update should be safe.
+Exposes the following sub commands:
+
+
+:Hotpot fennel version                         *hotpot-:Hotpot-fennel-version*
+
+Reports the currently loaded and used version of Fennel.
+
+
+:Hotpot fennel update                           *hotpot-:Hotpot-fennel-update*
+
+Supports the following parameters:
+
+- `url=<url>`: use given URL instead of finding the latest from fennel-lang.org <https://fennel-lang.org>.
+- `force`: do not ask whether to update.
+
+
+:Hotpot fennel rollback                       *hotpot-:Hotpot-fennel-rollback*
+
+Remove downloaded Fennel file and use version shipped with Hotpot.
+
+
+:FNL                                                    *hotpot-commands-:fnl*
+
+Operate on either the command line provided Fennel, or a range from the current
+buffer either specified on the command line or by selection.
+
+You may always provide a `range` (`:'<,'>Fnl`, `:%Fnl`, etc) _or_ `source`
+string (`:Fnl (+ 1 1)`). If given both, `range` always takes precedence.
+
+This command is analogous to Neovim’s built in `:lua` command, and supports
+the following flags:
+
+**:Fnl**
+
+Evaluate the input range or string. Outputs nothing unless the source itself
+does.
+
+`:Fnl=`
+
+Evaluate the input range or string and `vim.print` the result of the
+expressions.
+
+`:Fnl-`
+
+Compile the input range or string and `vim.print` the result of the
+compilation.
+
+
+:FNLEVAL                                            *hotpot-commands-:fnleval*
+
+Alias for `:Fnl=`
+
+
+:FNLCOMPILE                                      *hotpot-commands-:fnlcompile*
+
+Alias for `:Fnl-`
+
+
+:FNLFILE {FILE.FNL}                      *hotpot-commands-:fnlfile-{file.fnl}*
+
+Evaluates the given file, also supports `:Fnlfile= file` (output evaluation)
+and `:Fnlfile- file` (output compilation).
+
+
+:SOURCE {FILE.FNL}                        *hotpot-commands-:source-{file.fnl}*
+
+Sources given `.fnl` file. See |:source|
+
 
 ==============================================================================
-6. Configuration                                        *hotpot-configuration*
+7. Configuration                                        *hotpot-configuration*
 
 All of Hotpot’s behaviour is configured by a `.hotpot.fnl` file, placed in
-the root of your config or plugin directory.
+the root of your config or plugin directory. These files define a `context` for
+operations in that directory tree.
 
-These files are independent of one another and only alter behaviour in the same
-tree.
+These contexts are independent of one another and only alter behaviour in the
+same tree.
 
-Note that if there is no `.hotpot.fnl` file in Neovim’s config directory, a
-default configuration is loaded. This is not the case for plugins, which _must_
-have a `.hotpot.fnl` file.
+If there is no `.hotpot.fnl` file in Neovim’s config directory, a default
+configuration is loaded. This is not the case for plugins, which _must_ have a
+`.hotpot.fnl` file.
 
 
   [!TIP] Before saving any changes to your `.hotpot.fnl` file, you might want to
@@ -301,7 +451,8 @@ have a `.hotpot.fnl` file.
      :transform (fn [src path] src)
     
      ;; Optional, list of strings
-     ;; Glob patterns to ignore when performing compile and clean operations.
+     ;; Glob patterns to ignore when performing compile and clean operations,
+     ;; relative to the .hotpot.fnl file.
      ;;
      ;; Files matching `.lua` patterns are never considered orphans and never removed.
      ;; Files matching `.fnl` patterns are never compiled.
@@ -329,7 +480,7 @@ have a `.hotpot.fnl` file.
 
 
 ==============================================================================
-7. API                                                            *hotpot-api*
+8. API                                                            *hotpot-api*
 
 Hotpot provides an API to compile and evaluate arbitrary Fennel code, as well
 as compiling files in a project. All interaction is done via a `context`
@@ -388,7 +539,7 @@ Supports the following options:
 - `verbose?`: output additional compilation messages.
 - `compiler`: additional Fennel compiler options.
 
-Not available for "api" contexts, eg: those without any path given.
+Not available for "api" contexts, eg: those created without any path given.
 
 
 CONTEXT.TRANSFORM(STRING, FILENAME|NIL)*hotpot-api-context.transform(string,-filename|nil)*
@@ -407,91 +558,7 @@ destination.
 Accepts `.fnl` or `.lua` file paths. Will construct paths for files that do not
 exist if desired.
 
-
-==============================================================================
-8. Commands                                                  *hotpot-commands*
-
-
-:HOTPOT                                              *hotpot-commands-:hotpot*
-
-The `:Hotpot` command interacts with Hotpot (_surprise!_). It exposes the
-following subcommands:
-
-
-:HOTPOT SYNC ~
-
-Sync a given context’s `.fnl` and `.lua` files. This is the same operation
-that occurs when you save a `.fnl` or `.fnlm` file.
-
-`:Hotpot sync` supports the following parameters:
-
-- `context=<path>`: sets the context for the command, if not given, the current working directory is used.
-- `force`: force compilation of all files in the context, even if the `.lua` is up to date.
-- `atomic`: allow writing successfully compiled files even if others have compilation errors.
-- `verbose`: output additional compilation messages.
-
-
-:HOTPOT WATCH ~
-
-Enable or disable the compile-on-save behaviour.
-
-`:Hotpot watch` supports the following (mutually exclusive) parameters:
-
-- `enable`: enable syncing on save for all contexts in this session.
-- `disable`: disable syncing on save for all contexts in this session.
-
-
-:HOTPOT FENNEL ~
-
-Update or rollback `fennel.lua` to the latest version from fennel-lang.org
-<https://fennel-lang.org>.
-
-Requires `curl` to be installed.
-
-
-  [!IMPORTANT] Running this is not without some risk, as an updated version of
-  Fennel _may_ be incompatible with Hotpot. This is pretty unlikely unless the
-  API to evaluate or compile fennel code is changed. If a release is only adding
-  new "forms" (eg: `(accumulate ...)`) the update should be safe.
-Exposes the following sub commands:
-
-
-:Hotpot fennel version                         *hotpot-:Hotpot-fennel-version*
-
-Reports the currently loaded and used version of Fennel.
-
-
-:Hotpot fennel update                           *hotpot-:Hotpot-fennel-update*
-
-Supports the following parameters:
-
-- `url=<url>`: use given URL instead of finding the latest from fennel-lang.org <https://fennel-lang.org>.
-- `force`: do not ask whether to update.
-
-
-:Hotpot fennel rollback                       *hotpot-:Hotpot-fennel-rollback*
-
-Remove downloaded Fennel file and use version shipped with Hotpot.
-
-
-:FNL                                                    *hotpot-commands-:fnl*
-
-Evaluates either the command line provided Fennel, or a range from the current
-buffer either specified on the command line or by selection.
-
-This command is analogous to Neovim’s built in `:lua` command, and supports
-the same `=` output toggle, eg: `:Fnl= (+ 1 2)` will output `3`, where as `:Fnl
-(+ 1 2)` will silently evaluate the code.
-
-
-:FNLFILE {FILE.FNL}                      *hotpot-commands-:fnlfile-{file.fnl}*
-
-Evaluates the given file, also supports `:Fnlfile= file` to output the results.
-
-
-:SOURCE {FILE.FNL}                        *hotpot-commands-:source-{file.fnl}*
-
-Sources given `.fnl` file. See |:source|
+Not available for "api" contexts, eg: those created without any path given.
 
 
 ==============================================================================
