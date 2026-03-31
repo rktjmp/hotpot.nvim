@@ -217,24 +217,26 @@
     (-> (R.context.nearest try-path)
         (R.api.context))))
 
-(fn pack [...]
-  (doto [...]
-    (tset :n (select :# ...))))
-
-(λ make-output-flag-aware-eval [ctx args]
-  (let [output (case (string.find args "=" 1 true)
-                 1 vim.print
-                 _ (fn [...] (values ...)))]
-    (fn [source]
-      (let [returns (pack (ctx.eval source))
-            ok? (table.remove returns 1)]
-        (case ok?
-          true (output (unpack returns 1 (- returns.n 1)))
-          false (notify-error (. returns 1)))))))
+(fn make-ctx-action-handler [ctx args]
+  (fn make [output]
+    (fn [ok? ...]
+      (if ok?
+        (output ...)
+        (notify-error ...))))
+  (case (string.sub args 1 1)
+    "=" (fn [source]
+          (-> (ctx.eval source)
+              ((make vim.print))))
+    "-" (fn [source]
+          (-> (ctx.compile source)
+              ((make vim.print))))
+    _ (fn [source]
+          (-> (ctx.eval source)
+              ((make #nil))))))
 
 (fn fnl-command-handler [{: range : line1 : line2 : count : args &as opts}]
   (let [ctx (fetch-context)
-        eval (make-output-flag-aware-eval ctx args)]
+        ctx-handler (make-ctx-action-handler ctx args)]
     (case args
       ;; no args beyond possibly `=`, so just use the range and eval contents
       ;; Detecting range intent is a bit messy
@@ -244,14 +246,14 @@
       ;; :'<,'>Fnl with lines 2,4 selected will set {:line1 2 :line2 4 :count 5 :range 2}
       ;; :'<,'> does not differentiate between what kind of visual selection (line or character)
       ;;
-      (where (or "" "="))
+      (where (or "" "=" "-"))
       (case {: range : line1 : line2 : count}
         ;; 8Fnl, eval from current line (not given!) to +count
         {:range 1 :line1 n :line2 n :count n}
         (let [from (vim.fn.line :.)
               text (-> (vim.api.nvim_buf_get_lines 0 (- from 1) (+ from count -1) false)
                        (table.concat "\n"))]
-          (eval text))
+          (ctx-handler text))
         ;; 1,8Fnl OR :'<,'>, we must check mode
         {:range 2 :line1 a :line2 b}
         (let [last-cmd (vim.fn.histget :cmd -1)]
@@ -265,15 +267,18 @@
                                                     (- line2 1) (- end-col 0)
                                                     {})
                              (table.concat "\n"))]
-                (eval text))
+                (ctx-handler text))
             ;; raw range 1,8
             _ (let [text (-> (vim.api.nvim_buf_get_lines 0 (- line1 1) line2 false)
                              (table.concat "\n"))]
-                (eval text)))))
+                (ctx-handler text)))))
 
       ;; otherwise we have command line in put, eval that and ignore the range
-      _ (let [source (string.sub args 2)]
-          (eval source)))))
+      _ (let [source (case (string.sub args 1 1)
+                       (where (or "-" "=")) (-> (string.sub args 2)
+                                                (vim.trim))
+                       _ args)]
+          (ctx-handler source)))))
 
 (fn fnlfile-command-handler [{: args : fargs}]
   (let [path (case (string.find args "=" 1 true)
@@ -282,13 +287,13 @@
                _ args)]
     (if (vim.uv.fs_access path :r)
       (let [ctx (fetch-context path)
-            eval (make-output-flag-aware-eval ctx args)
+            ctx-handler (make-ctx-action-handler ctx args)
             file-contents (with-open [fh (io.open path :r)]
                             (fh:read :*a))]
         ;; TODO: this will set the filename to --hotpot-.. instead of arg
         ;; which isn't *great* but .. idk, i'd rather use the API here instead of
         ;; context directly.
-        (eval file-contents))
+        (ctx-handler file-contents))
       (notify-error "Cant read file %s" path))))
 
 (fn define-hotpot []

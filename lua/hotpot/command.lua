@@ -454,84 +454,77 @@ local function fetch_context(_3fpath)
   try_path = _71_(vim.uv.fs_realpath((_3fpath or "")))
   return R.api.context(R.context.nearest(try_path))
 end
-local function pack(...)
-  local tmp_9_ = {...}
-  tmp_9_["n"] = select("#", ...)
-  return tmp_9_
-end
-local function make_output_flag_aware_eval(ctx, args)
-  if (nil == args) then
-    _G.error("Missing argument args on fnl/hotpot/command.fnl:224", 2)
-  else
-  end
-  if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/command.fnl:224", 2)
-  else
-  end
-  local output
-  do
-    local case_79_ = string.find(args, "=", 1, true)
-    if (case_79_ == 1) then
-      output = vim.print
-    else
-      local _ = case_79_
-      local function _80_(...)
-        return ...
+local function make_ctx_action_handler(ctx, args)
+  local function make(output)
+    local function _77_(ok_3f, ...)
+      if ok_3f then
+        return output(...)
+      else
+        return notify_error(...)
       end
-      output = _80_
     end
+    return _77_
   end
-  local function _82_(source)
-    local returns = pack(ctx.eval(source))
-    local ok_3f = table.remove(returns, 1)
-    if (ok_3f == true) then
-      return output(unpack(returns, 1, (returns.n - 1)))
-    elseif (ok_3f == false) then
-      return notify_error(returns[1])
-    else
-      return nil
+  local case_79_ = string.sub(args, 1, 2)
+  if (case_79_ == "=") then
+    local function _80_(source)
+      return make(vim.print)(ctx.eval(source))
     end
+    return _80_
+  elseif (case_79_ == "-") then
+    local function _81_(source)
+      return make(vim.print)(ctx.compile(source))
+    end
+    return _81_
+  else
+    local _ = case_79_
+    local function _82_(source)
+      local function _83_()
+        return nil
+      end
+      return make(_83_)(ctx.eval(source))
+    end
+    return _82_
   end
-  return _82_
 end
-local function fnl_command_handler(_84_)
-  local range = _84_.range
-  local line1 = _84_.line1
-  local line2 = _84_.line2
-  local count = _84_.count
-  local args = _84_.args
-  local opts = _84_
+local function fnl_command_handler(_85_)
+  local range = _85_.range
+  local line1 = _85_.line1
+  local line2 = _85_.line2
+  local count = _85_.count
+  local args = _85_.args
+  local opts = _85_
   local ctx = fetch_context()
-  local eval = make_output_flag_aware_eval(ctx, args)
-  if ((args == "") or (args == "=")) then
-    local case_85_ = {range = range, line1 = line1, line2 = line2, count = count}
-    if ((case_85_.range == 1) and (nil ~= case_85_.line1) and (case_85_.line1 == case_85_.line2) and (case_85_.line1 == case_85_.count)) then
-      local n = case_85_.line1
+  local ctx_handler = make_ctx_action_handler(ctx, args)
+  if ((args == "") or (args == "=") or (args == "-")) then
+    local case_86_ = {range = range, line1 = line1, line2 = line2, count = count}
+    if ((case_86_.range == 1) and (nil ~= case_86_.line1) and (case_86_.line1 == case_86_.line2) and (case_86_.line1 == case_86_.count)) then
+      local n = case_86_.line1
       local from = vim.fn.line(".")
       local text = table.concat(vim.api.nvim_buf_get_lines(0, (from - 1), (from + count + -1), false), "\n")
-      return eval(text)
-    elseif ((case_85_.range == 2) and (nil ~= case_85_.line1) and (nil ~= case_85_.line2)) then
-      local a = case_85_.line1
-      local b = case_85_.line2
+      return ctx_handler(text)
+    elseif ((case_86_.range == 2) and (nil ~= case_86_.line1) and (nil ~= case_86_.line2)) then
+      local a = case_86_.line1
+      local b = case_86_.line2
       local last_cmd = vim.fn.histget("cmd", -1)
-      local case_86_ = string.find(last_cmd, "'<,'>", 1, true)
-      if (case_86_ == 1) then
-        local _let_87_ = vim.fn.getcharpos("'<")
-        local _buf = _let_87_[1]
-        local _line = _let_87_[2]
-        local start_col = _let_87_[3]
-        local _virt = _let_87_[4]
-        local _let_88_ = vim.fn.getcharpos("'>")
-        local _buf0 = _let_88_[1]
-        local _line0 = _let_88_[2]
-        local end_col = _let_88_[3]
-        local _virt0 = _let_88_[4]
+      local case_87_ = string.find(last_cmd, "'<,'>", 1, true)
+      if (case_87_ == 1) then
+        local _let_88_ = vim.fn.getcharpos("'<")
+        local _buf = _let_88_[1]
+        local _line = _let_88_[2]
+        local start_col = _let_88_[3]
+        local _virt = _let_88_[4]
+        local _let_89_ = vim.fn.getcharpos("'>")
+        local _buf0 = _let_89_[1]
+        local _line0 = _let_89_[2]
+        local end_col = _let_89_[3]
+        local _virt0 = _let_89_[4]
         local text = table.concat(vim.api.nvim_buf_get_text(0, (line1 - 1), (start_col - 1), (line2 - 1), (end_col - 0), {}), "\n")
-        return eval(text)
+        return ctx_handler(text)
       else
-        local _ = case_86_
+        local _ = case_87_
         local text = table.concat(vim.api.nvim_buf_get_lines(0, (line1 - 1), line2, false), "\n")
-        return eval(text)
+        return ctx_handler(text)
       end
     else
       return nil
@@ -539,25 +532,25 @@ local function fnl_command_handler(_84_)
   else
     local _ = args
     local source = string.sub(args, 2)
-    return eval(source)
+    return ctx_handler(source)
   end
 end
-local function fnlfile_command_handler(_92_)
-  local args = _92_.args
-  local fargs = _92_.fargs
+local function fnlfile_command_handler(_93_)
+  local args = _93_.args
+  local fargs = _93_.fargs
   local path
   do
-    local case_93_ = string.find(args, "=", 1, true)
-    if (case_93_ == 1) then
+    local case_94_ = string.find(args, "=", 1, true)
+    if (case_94_ == 1) then
       path = vim.trim(string.sub(args, 2))
     else
-      local _ = case_93_
+      local _ = case_94_
       path = args
     end
   end
   if vim.uv.fs_access(path, "r") then
     local ctx = fetch_context(path)
-    local eval = make_output_flag_aware_eval(ctx, args)
+    local ctx_handler = make_ctx_action_handler(ctx, args)
     local file_contents
     do
       local fh = io.open(path, "r")
@@ -569,36 +562,36 @@ local function fnlfile_command_handler(_92_)
           return error(..., 0)
         end
       end
-      local function _96_()
+      local function _97_()
         return fh:read("*a")
       end
-      local _98_
+      local _99_
       do
-        local t_97_ = _G
-        if (nil ~= t_97_) then
-          t_97_ = t_97_.package
+        local t_98_ = _G
+        if (nil ~= t_98_) then
+          t_98_ = t_98_.package
         else
         end
-        if (nil ~= t_97_) then
-          t_97_ = t_97_.loaded
+        if (nil ~= t_98_) then
+          t_98_ = t_98_.loaded
         else
         end
-        if (nil ~= t_97_) then
-          t_97_ = t_97_.fennel
+        if (nil ~= t_98_) then
+          t_98_ = t_98_.fennel
         else
         end
-        _98_ = t_97_
+        _99_ = t_98_
       end
-      local or_102_ = _98_ or _G.debug
-      if not or_102_ then
-        local function _103_()
+      local or_103_ = _99_ or _G.debug
+      if not or_103_ then
+        local function _104_()
           return ""
         end
-        or_102_ = {traceback = _103_}
+        or_103_ = {traceback = _104_}
       end
-      file_contents = close_handlers_13_(_G.xpcall(_96_, or_102_.traceback))
+      file_contents = close_handlers_13_(_G.xpcall(_97_, or_103_.traceback))
     end
-    return eval(file_contents)
+    return ctx_handler(file_contents)
   else
     return notify_error("Cant read file %s", path)
   end
@@ -616,8 +609,8 @@ local _2aaugroup_id_2a = nil
 local function support_source_command()
   if not _2aaugroup_id_2a then
     local augroup_id = vim.api.nvim_create_augroup("hotpot-source-cmd", {clear = true})
-    local function callback(_105_)
-      local path = _105_.file
+    local function callback(_118_)
+      local path = _118_.file
       if vim.uv.fs_access(path, "r") then
         local ctx = fetch_context(path)
         local file_contents
@@ -631,34 +624,34 @@ local function support_source_command()
               return error(..., 0)
             end
           end
-          local function _107_()
+          local function _120_()
             return fh:read("*a")
           end
-          local _109_
+          local _122_
           do
-            local t_108_ = _G
-            if (nil ~= t_108_) then
-              t_108_ = t_108_.package
+            local t_121_ = _G
+            if (nil ~= t_121_) then
+              t_121_ = t_121_.package
             else
             end
-            if (nil ~= t_108_) then
-              t_108_ = t_108_.loaded
+            if (nil ~= t_121_) then
+              t_121_ = t_121_.loaded
             else
             end
-            if (nil ~= t_108_) then
-              t_108_ = t_108_.fennel
+            if (nil ~= t_121_) then
+              t_121_ = t_121_.fennel
             else
             end
-            _109_ = t_108_
+            _122_ = t_121_
           end
-          local or_113_ = _109_ or _G.debug
-          if not or_113_ then
-            local function _114_()
+          local or_126_ = _122_ or _G.debug
+          if not or_126_ then
+            local function _127_()
               return ""
             end
-            or_113_ = {traceback = _114_}
+            or_126_ = {traceback = _127_}
           end
-          file_contents = close_handlers_13_(_G.xpcall(_107_, or_113_.traceback))
+          file_contents = close_handlers_13_(_G.xpcall(_120_, or_126_.traceback))
         end
         return ctx.eval(file_contents)
       else
