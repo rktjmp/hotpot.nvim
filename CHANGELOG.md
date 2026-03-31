@@ -1,5 +1,10 @@
 # 🍲 Hotpot Changelog
 
+## 2.0.6
+
+- Fix `title is nil` errors when using `vim.lsp.status()` and possibly other
+  consumers by disabling LSP `$/progress` messages while UX is explored.
+
 ## 2.0.5
 
 - Prevent LSP `$/progress` messages from clearing prematurely in Neovim 0.12.
