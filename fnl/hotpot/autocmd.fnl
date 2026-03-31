@@ -2,8 +2,9 @@
 (local (M m) (values {} {}))
 
 (fn silly-lsp-notification [buf ctx report]
-  (let [client-id (R.lsp.start-lsp {:root ctx.path.source})]
-    (R.lsp.emit-report client-id report)))
+  (when _G.__hotpot_lsp
+    (let [client-id (R.lsp.start-lsp {:root ctx.path.source})]
+      (R.lsp.emit-report client-id report))))
 
 (fn buf-write-post-callback [event]
   (let [{: Context} R

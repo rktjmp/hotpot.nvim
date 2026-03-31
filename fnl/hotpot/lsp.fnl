@@ -84,23 +84,27 @@
         ctx-token-id client.config.root_dir
         lsp-ctx {:method :$/progress :client_id client-id}]
     (set report-id (+ 1 report-id))
-    (fn send-progress [token title begin-msg report-msgs end-msg]
+    (λ send-progress [token title begin-msg report-msgs end-msg]
       (when (< 0 (length report-msgs))
         (handler nil
-                 {: token :value {:kind :begin
-                                  :message begin-msg
-                                  :_percentage 0}}
+                 {: token
+                  :value {:kind :begin
+                          : title
+                          :message begin-msg
+                          :_percentage 0}}
                  lsp-ctx)
         (for [i 1 (length report-msgs)]
           (handler nil
-                   {: token :value {:kind :report
-                                    :message (. report-msgs i)
-                                    :_percentage (* 100 (/ i (length report-msgs)))}}
+                   {: token
+                    :value {:kind :report
+                            :message (. report-msgs i)
+                            :_percentage (* 100 (/ i (length report-msgs)))}}
                    lsp-ctx))
         (handler nil
-                 {: token :value {:kind :end
-                                  :message end-msg
-                                  :_percentage 100}}
+                 {: token
+                  :value {:kind :end
+                          :message end-msg
+                          :_percentage 100}}
                  lsp-ctx)))
     (send-progress (.. :hotpot-sync-errored- ctx-token-id report-id)
                    "Sync: errors"

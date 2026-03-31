@@ -80,8 +80,28 @@ M["emit-report"] = function(client_id, report)
   local lsp_ctx = {method = "$/progress", client_id = client_id}
   report_id = (1 + report_id)
   local function send_progress(token, title, begin_msg, report_msgs, end_msg)
+    if (nil == end_msg) then
+      _G.error("Missing argument end-msg on fnl/hotpot/lsp.fnl:87", 2)
+    else
+    end
+    if (nil == report_msgs) then
+      _G.error("Missing argument report-msgs on fnl/hotpot/lsp.fnl:87", 2)
+    else
+    end
+    if (nil == begin_msg) then
+      _G.error("Missing argument begin-msg on fnl/hotpot/lsp.fnl:87", 2)
+    else
+    end
+    if (nil == title) then
+      _G.error("Missing argument title on fnl/hotpot/lsp.fnl:87", 2)
+    else
+    end
+    if (nil == token) then
+      _G.error("Missing argument token on fnl/hotpot/lsp.fnl:87", 2)
+    else
+    end
     if (0 < #report_msgs) then
-      handler(nil, {token = token, value = {kind = "begin", message = begin_msg, _percentage = 0}}, lsp_ctx)
+      handler(nil, {token = token, value = {kind = "begin", title = title, message = begin_msg, _percentage = 0}}, lsp_ctx)
       for i = 1, #report_msgs do
         handler(nil, {token = token, value = {kind = "report", message = report_msgs[i], _percentage = (100 * (i / #report_msgs))}}, lsp_ctx)
       end
@@ -90,12 +110,12 @@ M["emit-report"] = function(client_id, report)
       return nil
     end
   end
-  local _12_
+  local _17_
   do
     local tbl_26_ = {}
     local i_27_ = 0
-    for _, _13_ in ipairs(report.errors) do
-      local fnl_rel = _13_["fnl-rel"]
+    for _, _18_ in ipairs(report.errors) do
+      local fnl_rel = _18_["fnl-rel"]
       local val_28_ = string.format("Error: %s", fnl_rel)
       if (nil ~= val_28_) then
         i_27_ = (i_27_ + 1)
@@ -103,15 +123,15 @@ M["emit-report"] = function(client_id, report)
       else
       end
     end
-    _12_ = tbl_26_
+    _17_ = tbl_26_
   end
-  send_progress(("hotpot-sync-errored-" .. ctx_token_id .. report_id), "Sync: errors", "Errors...", _12_, string.format("Errors for %d files", #report.errors))
-  local _15_
+  send_progress(("hotpot-sync-errored-" .. ctx_token_id .. report_id), "Sync: errors", "Errors...", _17_, string.format("Errors for %d files", #report.errors))
+  local _20_
   do
     local tbl_26_ = {}
     local i_27_ = 0
-    for _, _16_ in ipairs(report.cleaned) do
-      local lua_abs = _16_["lua-abs"]
+    for _, _21_ in ipairs(report.cleaned) do
+      local lua_abs = _21_["lua-abs"]
       local val_28_ = string.format("Clean: %s", lua_abs)
       if (nil ~= val_28_) then
         i_27_ = (i_27_ + 1)
@@ -119,16 +139,16 @@ M["emit-report"] = function(client_id, report)
       else
       end
     end
-    _15_ = tbl_26_
+    _20_ = tbl_26_
   end
-  send_progress(("hotpot-sync-cleaned-" .. ctx_token_id .. report_id), "Sync: cleaning", "Cleaning...", _15_, string.format("Cleaned %d files", #report.cleaned))
-  local _18_
+  send_progress(("hotpot-sync-cleaned-" .. ctx_token_id .. report_id), "Sync: cleaning", "Cleaning...", _20_, string.format("Cleaned %d files", #report.cleaned))
+  local _23_
   do
     local tbl_26_ = {}
     local i_27_ = 0
-    for _, _19_ in ipairs(report.compiled) do
-      local fnl_rel = _19_["fnl-rel"]
-      local duration_ms = _19_["duration-ms"]
+    for _, _24_ in ipairs(report.compiled) do
+      local fnl_rel = _24_["fnl-rel"]
+      local duration_ms = _24_["duration-ms"]
       local val_28_ = string.format("Sync: %s (%.2fms)", fnl_rel, duration_ms)
       if (nil ~= val_28_) then
         i_27_ = (i_27_ + 1)
@@ -136,16 +156,16 @@ M["emit-report"] = function(client_id, report)
       else
       end
     end
-    _18_ = tbl_26_
+    _23_ = tbl_26_
   end
-  local function _21_()
+  local function _26_()
     local sum = 0
-    for _, _22_ in ipairs(report.compiled) do
-      local duration_ms = _22_["duration-ms"]
+    for _, _27_ in ipairs(report.compiled) do
+      local duration_ms = _27_["duration-ms"]
       sum = (sum + duration_ms)
     end
     return sum
   end
-  return send_progress(("hotpot-sync-compiled-" .. ctx_token_id .. report_id), "Sync: compiling", "Syncing...", _18_, string.format("Synced %d files (%.2fms)", #report.compiled, _21_()))
+  return send_progress(("hotpot-sync-compiled-" .. ctx_token_id .. report_id), "Sync: compiling", "Syncing...", _23_, string.format("Synced %d files (%.2fms)", #report.compiled, _26_()))
 end
 return M
