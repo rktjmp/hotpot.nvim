@@ -281,9 +281,9 @@
           (ctx-handler source)))))
 
 (fn fnlfile-command-handler [{: args : fargs}]
-  (let [path (case (string.find args "=" 1 true)
-               1 (-> (string.sub args 2)
-                     (vim.trim))
+  (let [path (case (string.sub args 1 1)
+               "=" (-> (string.sub args 2) (vim.trim))
+               "-" (-> (string.sub args 2) (vim.trim))
                _ args)]
     (if (vim.uv.fs_access path :r)
       (let [ctx (fetch-context path)
