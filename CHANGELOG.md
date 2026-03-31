@@ -1,5 +1,9 @@
 # 🍲 Hotpot Changelog
 
+## 2.0.5
+
+- Prevent LSP `$/progress` messages from clearing prematurely in Neovim 0.12.
+
 ## 2.0.4
 
 - Use correctly resolved path when performing nearest context lookups.
