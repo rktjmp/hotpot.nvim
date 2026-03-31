@@ -1,5 +1,12 @@
 # 🍲 Hotpot Changelog
 
+## 2.0.7
+
+- Re-enable LSP progress messages.
+- Added `:Fnl-` and `:Fnlfile-` which compiles instead of evaluates, always outputs result.
+- Added `:FnlCompile` and `:FnlEvaluate` commands, aliases to `:Fnl-` and `:Fnl=`.
+- Added `:Hotpot locate` command to find/open counterpart file.
+
 ## 2.0.6
 
 - Fix `title is nil` errors when using `vim.lsp.status()` and possibly other
