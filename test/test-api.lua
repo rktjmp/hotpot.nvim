@@ -210,11 +210,12 @@ do
     FAIL(string.format(("can sync" or "")))
   end
 end
-local output10 = nvim:lua("local ctx, err = api.context()\n                        vim.print(ctx.eval('(+ 1 1)'))")
+local output10 = nvim:lua("local ctx, err = api.context()\n                         local ok, val = ctx.eval('(+ 1 1)')\n                         vim.print(val)")
 if (output10 == "2") then
   OK(string.format(("API context works" or "")))
 else
   local __1_auto = output10
   FAIL(string.format(("API context works" or "")))
 end
-return nvim:close()
+nvim:close()
+return exit()

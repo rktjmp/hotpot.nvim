@@ -66,7 +66,9 @@
 
 ;; can create api context
 (local output (nvim:lua "local ctx, err = api.context()
-                        vim.print(ctx.eval('(+ 1 1)'))"))
+                         local ok, val = ctx.eval('(+ 1 1)')
+                         vim.print(val)"))
 (expect "2" output "API context works")
 
 (nvim:close)
+(exit)
