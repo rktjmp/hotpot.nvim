@@ -252,7 +252,7 @@ The `:Hotpot` command exposes the following subcommands:
 Sync a given context's `.fnl` and `.lua` files. This is the same operation that
 occurs when you save a `.fnl` or `.fnlm` file.
 
-`:Hotpot sync` supports the following parameters:
+Supports the following parameters:
 
 - `context=<path>`: sets the context for the command, if not given, the current working directory is used.
 - `force`: force compilation of all files in the context, even if the `.lua` is up to date.
@@ -286,7 +286,7 @@ See also the [context.locate](#context-locate-string) function exposed by the [A
 
 Enable or disable the compile-on-save behaviour.
 
-`:Hotpot watch` supports the following (mutually exclusive) parameters:
+Supports the following (mutually exclusive) parameters:
 
 - `enable`: enable syncing on save for all contexts in this session.
 - `disable`: disable syncing on save for all contexts in this session.
@@ -335,11 +335,11 @@ following flags:
 
 Evaluate the input range or string. Outputs nothing unless the source itself does.
 
-`:Fnl=`
+**`:Fnl=`**
 
 Evaluate the input range or string and `vim.print` the result of the expressions.
 
-`:Fnl-`
+**`:Fnl-`**
 
 Compile the input range or string and `vim.print` the result of the compilation.
 
