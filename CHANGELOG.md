@@ -1,5 +1,10 @@
 # 🍲 Hotpot Changelog
 
+## 2.0.8
+
+- Disable strict global checking when compiling with `Fnl-` for better
+  ergonomics.
+
 ## 2.0.7
 
 - Re-enable LSP progress messages.
