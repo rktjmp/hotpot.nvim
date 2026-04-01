@@ -343,6 +343,12 @@ Evaluate the input range or string and `vim.print` the result of the expressions
 
 Compile the input range or string and `vim.print` the result of the compilation.
 
+Note that `allowedGlobals = false` when compling source via `:Fnl-`, as most
+often it's used to compile small snippets for inspection where its common to
+reference out-of-selection variables. This means you will not see any warnings
+when referencing misspelled or unknown variable as you would during normal
+compilation.
+
 ## `:FnlEval`
 
 Alias for `:Fnl=`

@@ -268,7 +268,7 @@
           (-> (ctx.eval source)
               ((make vim.print))))
     "-" (fn [source]
-          (-> (ctx.compile source)
+          (-> (ctx.compile source {:allowedGlobals false})
               ((make vim.print))))
     _ (fn [source]
           (-> (ctx.eval source)

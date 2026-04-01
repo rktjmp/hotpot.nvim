@@ -568,7 +568,7 @@ local function make_ctx_action_handler(ctx, args)
     return _91_
   elseif (case_90_ == "-") then
     local function _92_(source)
-      return make(vim.print)(ctx.compile(source))
+      return make(vim.print)(ctx.compile(source, {allowedGlobals = false}))
     end
     return _92_
   else
