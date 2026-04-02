@@ -541,14 +541,12 @@
         atomic? (option-if-set :atomic?)
         verbose? (option-if-set :verbose?)
         extra-compiler-options (or (?. ?options :compiler) {})
-        report {:format []
-                :summary []
-                :success []
-                :errors []
-                :clean []}
+        ;; Find all un-ignored files, plan what we want to compile and clean
         source-files (m.find-source-files ctx)
         stale-files (m.sync-plan-compile ctx source-files force?)
         clean-files (m.sync-plan-clean ctx source-files)
+        ;; Peform any compiles but write nothing, write afer preparing some
+        ;; reports and checking for errors & atomic.
         time-start (vim.uv.hrtime)
         {:ok compile-oks :errors compile-errors} (m.sync-compile ctx
                                                                  stale-files
@@ -556,7 +554,7 @@
         time-stop (vim.uv.hrtime)
         duration-ms (/ (- time-stop time-start) 1_000_000)
         has-errors? (< 0 (length compile-errors))
-        atomic-ok? (or (not has-errors?) (not atomic?))
+        write-ok? (or (not has-errors?) (not atomic?))
         success-messages (icollect [_ {: fnl-abs : lua-abs : duration-ms} (ipairs compile-oks)]
                            [(string.format "☑  %s (%.2fms)\n-> %s\n" fnl-abs duration-ms lua-abs) :DiagnosticOk])
         error-messages (icollect [_ {: fnl-abs : lua-abs : error} (ipairs compile-errors)]
@@ -576,7 +574,7 @@
                            summary)
         report []]
 
-    (if atomic-ok?
+    (if write-ok?
       ;; We actually have one last check before proceeding, when we have
       ;; some larger number of orphans, we confirm the user is OK with this.
       (let [{: compile? : clean?} (m.sync-plan-confirm ctx stale-files clean-files)]
@@ -596,11 +594,14 @@
         (vim.list_extend report summary-messages)))
 
     (when (< 0 (length report))
+      ;; schedule print to avoid nvim-12 output clobbering
       (vim.schedule #(vim.api.nvim_echo report true {})))
 
     {:sources source-files
-     :compiled (icollect [_ v (ipairs compile-oks)]
-                 (doto v (tset :source nil)))
+     :compiled (if write-ok?
+                 (icollect [_ v (ipairs compile-oks)]
+                   (doto v (tset :source nil)))
+                   [])
      :errors compile-errors
      :cleaned clean-files}))
 

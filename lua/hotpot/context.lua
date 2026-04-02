@@ -826,7 +826,6 @@ M.sync = function(ctx, _3foptions)
     _140_ = t_139_
   end
   extra_compiler_options = (_140_ or {})
-  local report = {format = {}, summary = {}, success = {}, errors = {}, clean = {}}
   local source_files = m["find-source-files"](ctx)
   local stale_files = m["sync-plan-compile"](ctx, source_files, force_3f)
   local clean_files = m["sync-plan-clean"](ctx, source_files)
@@ -837,7 +836,7 @@ M.sync = function(ctx, _3foptions)
   local time_stop = vim.uv.hrtime()
   local duration_ms = ((time_stop - time_start) / 1000000)
   local has_errors_3f = (0 < #compile_errors)
-  local atomic_ok_3f = (not has_errors_3f or not atomic_3f)
+  local write_ok_3f = (not has_errors_3f or not atomic_3f)
   local success_messages
   do
     local tbl_26_ = {}
@@ -903,42 +902,42 @@ M.sync = function(ctx, _3foptions)
     end
     summary_messages = summary
   end
-  local report0 = {}
-  if atomic_ok_3f then
+  local report = {}
+  if write_ok_3f then
     local _let_151_ = m["sync-plan-confirm"](ctx, stale_files, clean_files)
     local compile_3f = _let_151_["compile?"]
     local clean_3f = _let_151_["clean?"]
     if compile_3f then
       m["sync-write"](ctx, compile_oks)
       if verbose_3f then
-        vim.list_extend(report0, success_messages)
+        vim.list_extend(report, success_messages)
       else
       end
-      vim.list_extend(report0, error_messages)
+      vim.list_extend(report, error_messages)
     else
     end
     if clean_3f then
       m["sync-clean"](ctx, clean_files)
-      vim.list_extend(report0, clean_messages)
+      vim.list_extend(report, clean_messages)
     else
     end
     if compile_3f then
-      vim.list_extend(report0, summary_messages)
+      vim.list_extend(report, summary_messages)
     else
     end
   else
-    vim.list_extend(report0, error_messages)
-    vim.list_extend(report0, summary_messages)
+    vim.list_extend(report, error_messages)
+    vim.list_extend(report, summary_messages)
   end
-  if (0 < #report0) then
+  if (0 < #report) then
     local function _157_()
-      return vim.api.nvim_echo(report0, true, {})
+      return vim.api.nvim_echo(report, true, {})
     end
     vim.schedule(_157_)
   else
   end
   local _159_
-  do
+  if write_ok_3f then
     local tbl_26_ = {}
     local i_27_ = 0
     for _, v in ipairs(compile_oks) do
@@ -954,6 +953,8 @@ M.sync = function(ctx, _3foptions)
       end
     end
     _159_ = tbl_26_
+  else
+    _159_ = {}
   end
   return {sources = source_files, compiled = _159_, errors = compile_errors, cleaned = clean_files}
 end
