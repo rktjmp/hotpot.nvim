@@ -51,24 +51,29 @@ do
   end
 end
 do
-  local case_13_ = vim.uv.fs_stat(HOTPOT_FENNEL_UPDATE_LUA_ROOT)
-  if (case_13_ == nil) then
-    vim.fn.mkdir(HOTPOT_FENNEL_UPDATE_LUA_ROOT, "p")
-  else
-  end
-end
-vim.cmd.packadd(vim.fs.basename(HOTPOT_CONFIG_CACHE_ROOT))
-vim.cmd.packadd(vim.fs.basename(HOTPOT_FENNEL_UPDATE_ROOT))
-do
   local autocmd = R.autocmd
   local command = R.command
   autocmd.enable()
   command.enable()
 end
-local function _15_()
-  return require("hotpot.fennel")
+do
+  local function _13_()
+    return require("hotpot.fennel")
+  end
+  package.preload["fennel"] = _13_
 end
-package.preload["fennel"] = _15_
+do
+  local bang = (0 == vim.v.vim_did_init)
+  do
+    local case_14_ = vim.uv.fs_stat(HOTPOT_FENNEL_UPDATE_LUA_ROOT)
+    if (case_14_ == nil) then
+      vim.fn.mkdir(HOTPOT_FENNEL_UPDATE_LUA_ROOT, "p")
+    else
+    end
+  end
+  vim.cmd.packadd({vim.fs.basename(HOTPOT_FENNEL_UPDATE_ROOT), bang = bang})
+  vim.cmd.packadd({vim.fs.basename(HOTPOT_CONFIG_CACHE_ROOT), bang = bang})
+end
 local function setup(_3foptions)
   return true
 end
