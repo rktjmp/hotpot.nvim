@@ -337,41 +337,74 @@
     (R.util.file-write lua-abs source)))
 
 (λ m.sync-plan-clean [ctx source-files]
-  (m.find-orphaned-files ctx source-files))
+  ;; We find any lua files that have no counterpart fnl file, some of these may
+  ;; be artefacts from ourselves, some may be files added by the user.
+  (let [all-orphan-files (m.find-orphaned-files ctx source-files)
+        ;; check files for ownership headers
+        (owned-orphans unowned-orphans) (accumulate [(owned unowned) (values [] [])
+                                                     _ path (ipairs all-orphan-files)]
+                                          (if (we-own-file? path)
+                                            (values (doto owned (table.insert path)) unowned)
+                                            (values owned (doto unowned (table.insert path)))))]
+    {:owned owned-orphans
+     :unowned unowned-orphans}))
 
 (λ m.sync-clean [ctx orphan-files]
   (each [_ orphan (ipairs orphan-files)]
     (vim.uv.fs_unlink orphan)))
 
 (λ m.sync-plan-confirm [ctx source-files orphan-files]
-  (if (< 5 (length orphan-files))
-    (let [{: ui-select-sync} R.ui
-          confirmations {:clean? false :compile? false}
-          ;; put the list of files first, incase there are so many it bumps the prompt off.
-          prompt (string.format "\n%s\nFound %d orphaned files, delete all?"
-                                (table.concat orphan-files "\n")
-                                (length orphan-files))
-          confirm "Ok: Compile as normal and remove orphaned files"
-          compile-only "Safe: Compile as normal but do not remove orphan files"
-          cancel "Cancel: Do not compile, do not remove orphans"]
-      (ui-select-sync [confirm compile-only cancel]
-                      {: prompt}
-                      (fn [choice]
-                        (case choice
-                          (where (= confirm))
-                          (do
-                            (set confirmations.compile? true)
-                            (set confirmations.clean? true))
-                          (where (= compile-only))
-                          (do
-                            (set confirmations.compile? true)
-                            (set confirmations.clean? false))
-                          (where (= cancel))
-                          (do
-                            (set confirmations.compile? false)
-                            (set confirmations.clean? false)))))
-      (values confirmations))
-    (values {:compile? true :clean? true})))
+  (fn pluck-files [keys]
+    (accumulate [l [] _ key (ipairs keys)]
+      (icollect [_ f (ipairs (. orphan-files key)) &into l]
+        f)))
+  (case ctx
+    {:kind :api} (error "unable to sync-plan-confirm in context.kind == api")
+    ;; Cache is "our" domain, all lua there should be from us, remove anything old.
+    {:target :cache} {:compile? true :clean? (pluck-files [:unowned :owned])}
+    ;; Colocate will have mixed ownership check all orphans to see if we wrote
+    ;; them, if we did, we can remove them, otherwise prompt the user.
+    {:target :colocate}
+    (case orphan-files
+      {:unowned [nil]} {:compile? true :clean? (pluck-files [:unowned :owned])}
+      ;; We have some number of (unowned && unignored) files, and we should ask
+      ;; the user what to do. The default impl is pretty good, it just shows
+      ;; the whole message with line breaks, unfortunately most `vim.ui.select`
+      ;; drop-ins don't seem to support multi-line prompts very well or at all
+      ;; (mini-pick, snacks) and there is no effective way to tell if the
+      ;; default implementation has been overriden.
+      ;; So we'll show the "look out" prompt, with an option to show the list
+      ;; of files where selecting any file does nothing.
+      ;; We must cycle between these until the user selects something or cancels.
+      {: unowned} (let [{: ui-select-sync} R.ui
+                        show-file-prompt #(let [prompt "Return to query"
+                                                choices unowned
+                                                callback #nil]
+                                            (ui-select-sync choices {: prompt} callback))
+                        show-confirm-prompt (fn show-confirm-prompt []
+                                              (let [choices [(string.format
+                                                               "View list of %d orphaned files then return to this prompt"
+                                                               (length unowned))
+                                                             "Ok: Remove orphaned files and compile as normal"
+                                                             "Safe: Keep orphaned files but compile as normal"
+                                                             "Cancel: Do not remove files or compile"]
+                                                    prompt (string.format "Found %d orphaned files, delete all?"
+                                                                          (length unowned))
+                                                    callback (fn [choice-word choice-int]
+                                                               (case choice-int
+                                                                 1 nil
+                                                                 2 {:clean? (pluck-files [:unowned :owned]) :compile? true}
+                                                                 3 {:clean? (pluck-files [:owned]) :compile? true}
+                                                                 4 {:clean? [] :compile? false}
+                                                                 nil {:clean? [] :compile? false}
+                                                                 _ (error "bad choice int for show-prompt-confirm")))]
+                                                (case (ui-select-sync choices {: prompt} callback)
+                                                  choice choice
+                                                  nil (do
+                                                        (show-file-prompt)
+                                                        (show-confirm-prompt)))))]
+                    (show-confirm-prompt)))
+    _ (error (string.format "internal error: unknown ctx %s" (vim.inspect ctx)))))
 
 (λ m.make-fennel-path-modifiers [ctx fennel]
   ;; Insert the context source root into the search path, so our working
@@ -572,8 +605,13 @@
                            [(string.format "☑  %s (%.2fms)\n-> %s\n" fnl-abs duration-ms lua-abs) :DiagnosticOk])
         error-messages (icollect [_ {: fnl-abs : lua-abs : error} (ipairs compile-errors)]
                          [(string.format "☒  %s\n-> %s\n%s\n" fnl-abs lua-abs error) :DiagnosticWarn])
-        clean-messages (icollect [_ lua-abs (ipairs clean-files)]
-                         [(string.format "rm %s\n" lua-abs) :DiagnosticInfo])
+        clean-messages (let [messages []]
+                         ;; debatable if we care to tell people we're deleting owned files?
+                         (icollect [_ lua-abs (ipairs clean-files.owned) &into messages]
+                           [(string.format "rm %s\n" lua-abs) :DiagnosticInfo])
+                         (icollect [_ lua-abs (ipairs clean-files.unowned) &into messages]
+                           [(string.format "rm %s\n" lua-abs) :DiagnosticInfo])
+                         messages)
         summary-messages (let [summary []]
                            (when verbose?
                              (table.insert summary [(string.format "\nDuration: %.2fms" duration-ms)
@@ -589,9 +627,7 @@
         return-report {:sources source-files
                        :compiled []
                        :cleaned []
-                       :errors compile-errors}
-        ]
-
+                       :errors compile-errors}]
     (if write-ok?
       ;; We actually have one last check before proceeding, when we have
       ;; some larger number of orphans, we confirm the user is OK with this.
@@ -603,9 +639,10 @@
           (when verbose?
             (vim.list_extend printable-report success-messages))
           (vim.list_extend printable-report error-messages))
-        (when clean?
-          (m.sync-clean ctx clean-files)
-          (set return-report.cleaned clean-files)
+        (when (< 0 (length clean?))
+          (m.sync-clean ctx clean?)
+          ;; TODO: dont report cleaning owned files?
+          (set return-report.cleaned clean?)
           (vim.list_extend printable-report clean-messages))
         (when compile?
           (vim.list_extend printable-report summary-messages)))
