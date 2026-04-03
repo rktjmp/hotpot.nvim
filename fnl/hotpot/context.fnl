@@ -572,7 +572,12 @@
                                (table.insert summary ["`atomic? = true`, no changes were written to disk!\n"
                                                       :DiagnosticWarn])))
                            summary)
-        report []]
+        printable-report []
+        return-report {:sources source-files
+                       :compiled []
+                       :cleaned []
+                       :errors compile-errors}
+        ]
 
     (if write-ok?
       ;; We actually have one last check before proceeding, when we have
@@ -580,29 +585,25 @@
       (let [{: compile? : clean?} (m.sync-plan-confirm ctx stale-files clean-files)]
         (when compile?
           (m.sync-write ctx compile-oks)
+          (set return-report.compiled (icollect [_ v (ipairs compile-oks)]
+                                        (doto v (tset :source nil))))
           (when verbose?
-            (vim.list_extend report success-messages))
-          (vim.list_extend report error-messages))
+            (vim.list_extend printable-report success-messages))
+          (vim.list_extend printable-report error-messages))
         (when clean?
           (m.sync-clean ctx clean-files)
-          (vim.list_extend report clean-messages))
+          (set return-report.cleaned clean-files)
+          (vim.list_extend printable-report clean-messages))
         (when compile?
-          (vim.list_extend report summary-messages)))
-      ;; We still want to report compilation errors
+          (vim.list_extend printable-report summary-messages)))
+      ;; We still want to printable-report compilation errors
       (do
-        (vim.list_extend report error-messages)
-        (vim.list_extend report summary-messages)))
+        (vim.list_extend printable-report error-messages)
+        (vim.list_extend printable-report summary-messages)))
 
-    (when (< 0 (length report))
+    (when (< 0 (length printable-report))
       ;; schedule print to avoid nvim-12 output clobbering
-      (vim.schedule #(vim.api.nvim_echo report true {})))
-
-    {:sources source-files
-     :compiled (if write-ok?
-                 (icollect [_ v (ipairs compile-oks)]
-                   (doto v (tset :source nil)))
-                   [])
-     :errors compile-errors
-     :cleaned clean-files}))
+      (vim.schedule #(vim.api.nvim_echo printable-report true {})))
+    return-report))
 
 M
