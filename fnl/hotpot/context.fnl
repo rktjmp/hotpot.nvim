@@ -241,12 +241,12 @@
     (when init-lua-index
       (when (not init-lua-choice)
         (let [{: ui-select-sync} R.ui
-              yes-once "Yes (ask again later)"
-              no-once "No (ask again later)"
-              yes-always "Yes (always for this session)"
-              no-always "No (always for this session)"
-              prompt (string.format "Will any existing `%s/init.lua` with output from `init.fnl, is this ok?"
-                                    ctx.path.source)
+              yes-once "Overwite init.lua with init.fnl (ask again next time)"
+              no-once "Leave init.lua as it is (ask again next time)"
+              yes-always "Overwite init.lua with init.fnl (always for this session)"
+              no-always "Leave init.lua as it is (always for this session)"
+              prompt (string.format "Overwrite any existing `%s/init.lua` with output from `%s/init.fnl?"
+                                    ctx.path.source ctx.path.source)
               callback (fn [choice]
                          (case choice
                            (where (= yes-once)) (set init-lua-choice :yes-once)

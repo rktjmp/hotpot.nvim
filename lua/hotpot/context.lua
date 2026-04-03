@@ -441,7 +441,7 @@ m["sync-plan-compile"] = function(ctx, source_files, force_3f)
       local no_once = "No (ask again later)"
       local yes_always = "Yes (always for this session)"
       local no_always = "No (always for this session)"
-      local prompt = string.format("Will any existing `%s/init.lua` with output from `init.fnl, is this ok?", ctx.path.source)
+      local prompt = string.format("Will overwrite any existing `%s/init.lua` with output from `%s/init.fnl, is this ok?", ctx.path.source, ctx.path.source)
       local callback
       local function _69_(choice)
         local case_70_, case_71_ = choice
