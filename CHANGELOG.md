@@ -1,5 +1,10 @@
 # 🍲 Hotpot Changelog
 
+## 2.0.9
+
+- Fix Neovim executing `config/plugin/*` files twice,
+  [gh-issue#147](https://github.com/rktjmp/hotpot.nvim/issues/147).
+
 ## 2.0.8
 
 - Disable strict global checking when compiling with `Fnl-` for better
