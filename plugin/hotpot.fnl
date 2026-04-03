@@ -1,4 +1,2 @@
-;; Automatically require hotpot for the user.
-;; Since we no longer to much fancy things, there is little need to run this
-;; "immediately" as before.
+;; Automatically require hotpot for the user if they have not done so yet.
 (require :hotpot)

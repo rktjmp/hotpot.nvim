@@ -71,7 +71,7 @@ allows you to write your Neovim config and plugins in Fennel.
 
 # Installation
 
-Install with your package manager.
+## Installing with `vim.pack`
 
 ```lua
 -- init.lua
@@ -86,8 +86,13 @@ require("hotpot")
 require("config")
 ```
 
-*Nb*: Advanced configurations can also use `vim.pack.add({..}, {load=true})` or
-`vim.cmd.packadd("hotpot.nvim")` instead of `require(hotpot)`.
+Avoid lazy-loading Hotpot unless you are only using it for plugin development.
+Hotpot performs the minimum amount of work on demand internally. Users
+configuring `vim.pack.add`'s behaviour via its options table should read the
+[advanced `vim.pack` configuration](advanced-vim-pack-add-configuration.md)
+notes. **Most users should use the above instructions.**
+
+## Installing with Lazy.nvim
 
 <details>
 <summary>Lazy.nvim</summary>
