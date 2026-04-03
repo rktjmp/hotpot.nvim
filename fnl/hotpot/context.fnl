@@ -224,9 +224,9 @@
 (λ m.apply-transform [ctx source path]
   (case ctx.transform
     transform (let [new-src (transform source path)]
-                (assert (= :string (type new-src))
-                        (string.format "%s `transform` did not return string" ctx.source))
-                new-src)
+                (case (type new-src)
+                  :string new-src
+                  other (error (string.format "%s `transform` returned %s instead of string" ctx.source other))))
     _ source))
 
 (var init-lua-choice nil)
