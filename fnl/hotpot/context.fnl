@@ -262,14 +262,14 @@
                                     ctx.path.source ctx.path.source)
               callback (fn [choice]
                          (case choice
-                           (where (= yes-once)) (set init-lua-choice :yes-once)
-                           (where (= no-once)) (set init-lua-choice :no-once)
-                           (where (= yes-always)) (set init-lua-choice :yes-always)
-                           (where (= no-always)) (set init-lua-choice :no-always)
-                           _ (set init-lua-choice :no-once)))]
-          (ui-select-sync [yes-once no-once yes-always no-always]
-                          {: prompt}
-                          callback)))
+                           (where (= yes-once)) :yes-once
+                           (where (= no-once))  :no-once
+                           (where (= yes-always)) :yes-always
+                           (where (= no-always)) :no-always
+                           _ :no-once))]
+          (set init-lua-choice (ui-select-sync [yes-once no-once yes-always no-always]
+                                               {: prompt}
+                                               callback))))
       (case init-lua-choice
         :yes-once (set init-lua-choice nil)
         :yes-always nil
