@@ -111,41 +111,48 @@ local path = _local_18_.path
 local read_file = _local_18_["read-file"]
 local start_nvim = _local_18_["start-nvim"]
 local write_file = _local_18_["write-file"]
-local remote_dir = vim.fs.normalize("~/remote")
-vim.fn.mkdir((remote_dir .. "/fnl"), "p")
-create_file((remote_dir .. "/.hotpot.fnl"), "{:schema :hotpot/2 :target :colocate}")
-create_file((remote_dir .. "/fnl/mod.fnl"), "(import-macros {: x} :macros) (x)")
-create_file(path("config", "/fnl/macros.fnlm"), "{:x (fn [] `:config-x)}")
+local fnl_path = create_file(path("config", "fnl/user/init.fnl"), "{:works true}")
+local lua_path = path("cache", "lua/user/init.lua")
+local config_lua_path = create_file(path("config", "lua/user/something.lua"), "print'hi'")
+local cache_lua_path = create_file(path("cache", "lua/mod.lua"), "print'hi'")
 local nvim = start_nvim()
+nvim:lua("_G.called = false\n          vim.ui.select = function(choices, options, callback)\n  _G.called = true\n  callback('yes', 1)\nend")
 nvim:lua("require'hotpot'")
-nvim:cmd(("edit " .. (remote_dir .. "/fnl/mod.fnl")))
-nvim:cmd(("cd " .. path("config")))
+nvim:cmd("edit %s", fnl_path)
 nvim:cmd("write")
-nvim:close()
 do
-  local case_19_ = vim.uv.fs_stat((remote_dir .. "/lua/mod.lua"))
+  local case_19_ = vim.uv.fs_stat(lua_path)
   if (_G.type(case_19_) == "table") then
-    OK(string.format(("creates lua/mod.lua in non cwd" or "")))
+    OK(string.format(("did create cache lua file" or "")))
   else
     local __1_auto = case_19_
-    FAIL(string.format(("creates lua/mod.lua in non cwd" or "")))
+    FAIL(string.format(("did create cache lua file" or "")))
   end
 end
-vim.uv.sleep(5)
-create_file((remote_dir .. "/fnl/macros.fnlm"), "{:x (fn [] `:remote-x)}")
-local nvim0 = start_nvim()
-nvim0:lua("require'hotpot'")
-nvim0:cmd(("edit " .. (remote_dir .. "/fnl/mod.fnl")))
-nvim0:cmd(("cd " .. path("config")))
-nvim0:cmd("write")
-nvim0:close()
 do
-  local case_21_ = read_file((remote_dir .. "/lua/mod.lua"))
-  if (case_21_ == "return \"remote-x\"") then
-    OK(string.format(("correctly uses remote.macros.x()" or "")))
+  local case_21_ = vim.uv.fs_stat(config_lua_path)
+  if (_G.type(case_21_) == "table") then
+    OK(string.format(("did not remove config lua file" or "")))
   else
     local __1_auto = case_21_
-    FAIL(string.format(("correctly uses remote.macros.x()" or "")))
+    FAIL(string.format(("did not remove config lua file" or "")))
   end
 end
+do
+  local case_23_ = vim.uv.fs_stat(cache_lua_path)
+  if (case_23_ == nil) then
+    OK(string.format(("did remove cache lua file" or "")))
+  else
+    local __1_auto = case_23_
+    FAIL(string.format(("did remove cache lua file" or "")))
+  end
+end
+local output = nvim:lua("print(_G.called)")
+if (output == "false") then
+  OK(string.format(("did not show any confirm prompt" or "")))
+else
+  local __1_auto = output
+  FAIL(string.format(("did not show any confirm prompt" or "")))
+end
+nvim:close()
 return exit()
