@@ -47,10 +47,9 @@
              (case (values report (not opts.verbose?))
                ;; If no errors and not verbose, let the user know
                ;; *something* ran.
-               ({:errors [nil]} true)
-               (let [msg (string.format "Synced %s" root)]
-                 (notify-info msg)
-                 nil)
+               ({:errors [nil]} true) (let [msg (string.format "Synced %s" root)]
+                                        (notify-info msg)
+                                        nil)
                ;; Otherwise rely on verbose doing the reporting.
                _ nil)
              (catch

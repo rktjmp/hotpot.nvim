@@ -324,12 +324,12 @@
                                                       : duration-ms
                                                       :source (mark-ownership lua-source)})
                             results)
-      (false err) (do
-                    (table.insert results.errors {: fnl-abs : fnl-rel
-                                                  : lua-abs : lua-rel
-                                                  : duration-ms
-                                                  :error err})
-                    results)))))
+        (false err) (do
+                      (table.insert results.errors {: fnl-abs : fnl-rel
+                                                    : lua-abs : lua-rel
+                                                    : duration-ms
+                                                    :error err})
+                      results)))))
 
 (λ m.sync-write [ctx output-files]
   (each [_ {: lua-abs : source} (ipairs output-files)]
