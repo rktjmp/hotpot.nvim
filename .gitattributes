@@ -1,3 +1,4 @@
-lua/** linguist-vendored
-test/**/*.lua linguist-vendored
-deps/** linguist-vendored
+lua/hotpot/vendor/**/*.lua linguist-vendored
+lua/**/*.lua linguist-generated
+test/**/*.lua linguist-generated
+plugin/**/*.lua linguist-generated
