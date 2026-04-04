@@ -110,11 +110,15 @@
                        "Error"
                        (string.format "Error compiling %d files" count))))
 
-    (let [count (accumulate [count 0 i {: fnl-rel} (ipairs report.cleaned)]
+    (let [count (accumulate [count 0 i {: lua-rel} (ipairs report.cleaned)]
                              (do
+                               ;; Use lua-rel instead of lua-abs path here as
+                               ;; the context is implicit in the server name
+                               ;; and context given by the user (directly or by
+                               ;; current buffer).
                                (send-progress (.. :hotpot-sync-cleaned- ctx-token-id :- i)
                                               "Clean"
-                                              (string.format "%s" fnl-rel))
+                                              (string.format "%s" lua-rel))
                                (+ 1 count)))]
       (when (< 1 count)
         (send-progress (.. :hotpot-sync-cleaned- ctx-token-id :-sum)
