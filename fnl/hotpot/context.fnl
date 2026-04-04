@@ -203,14 +203,15 @@
 
 (λ m.find-orphaned-files [ctx source-files]
   "Find files in dest directory that have no source counterpart"
-  ;; Find all lua files in dest directory, remove any not in our source-files list.
   (let [{:path {: dest} : ignore} ctx
-        known-lua-files (collect [_ {: lua-abs} (ipairs source-files.fnl)]
-                         (values  lua-abs true))
-        existing-lua-files (m.find-files dest "%.lua$" ignore)
-        orphans (icollect [_ path (ipairs existing-lua-files)]
-                  (if (not (. known-lua-files path))
-                    path))]
+        lua-files-with-counterparts (collect [_ {: lua-abs} (ipairs source-files.fnl)]
+                                      (values  lua-abs true))
+        all-dest-lua-filse (m.find-files dest "%.lua$" ignore)
+        orphans (icollect [_ path (ipairs all-dest-lua-filse)]
+                  (case (. lua-files-with-counterparts path)
+                    nil (let [lua-abs path
+                              lua-rel (vim.fs.relpath dest lua-abs)]
+                          {: lua-abs : lua-rel})))]
     orphans))
 
 (λ m.filter-stale-source-files [files]
@@ -342,16 +343,16 @@
   (let [all-orphan-files (m.find-orphaned-files ctx source-files)
         ;; check files for ownership headers
         (owned-orphans unowned-orphans) (accumulate [(owned unowned) (values [] [])
-                                                     _ path (ipairs all-orphan-files)]
-                                          (if (we-own-file? path)
-                                            (values (doto owned (table.insert path)) unowned)
-                                            (values owned (doto unowned (table.insert path)))))]
+                                                     _ {: lua-abs &as file} (ipairs all-orphan-files)]
+                                          (if (we-own-file? lua-abs)
+                                            (values (doto owned (table.insert file)) unowned)
+                                            (values owned (doto unowned (table.insert file)))))]
     {:owned owned-orphans
      :unowned unowned-orphans}))
 
 (λ m.sync-clean [ctx orphan-files]
-  (each [_ orphan (ipairs orphan-files)]
-    (vim.uv.fs_unlink orphan)))
+  (each [_ {: lua-abs} (ipairs orphan-files)]
+    (vim.uv.fs_unlink lua-abs)))
 
 (λ m.sync-plan-confirm [ctx source-files orphan-files]
   (fn pluck-files [keys]
@@ -378,7 +379,8 @@
       ;; We must cycle between these until the user selects something or cancels.
       {: unowned} (let [{: ui-select-sync} R.ui
                         show-file-prompt #(let [prompt "Return to query"
-                                                choices unowned
+                                                choices (icollect [_ {: lua-abs} (ipairs unowned)]
+                                                          lua-abs)
                                                 callback #nil]
                                             (ui-select-sync choices {: prompt} callback))
                         show-confirm-prompt (fn show-confirm-prompt []
@@ -607,9 +609,9 @@
                          [(string.format "☒  %s\n-> %s\n%s\n" fnl-abs lua-abs error) :DiagnosticWarn])
         clean-messages (let [messages []]
                          ;; debatable if we care to tell people we're deleting owned files?
-                         (icollect [_ lua-abs (ipairs clean-files.owned) &into messages]
+                         (icollect [_ {: lua-abs} (ipairs clean-files.owned) &into messages]
                            [(string.format "rm %s\n" lua-abs) :DiagnosticInfo])
-                         (icollect [_ lua-abs (ipairs clean-files.unowned) &into messages]
+                         (icollect [_ {: lua-abs} (ipairs clean-files.unowned) &into messages]
                            [(string.format "rm %s\n" lua-abs) :DiagnosticInfo])
                          messages)
         summary-messages (let [summary []]
