@@ -399,15 +399,15 @@ local function filter(prefix, options)
 end
 local function filter_param_options_no_duplicates(possible_params, existing_params, current_param)
   if (nil == current_param) then
-    _G.error("Missing argument current-param on fnl/hotpot/command.fnl:196", 2)
+    _G.error("Missing argument current-param on fnl/hotpot/command.fnl:195", 2)
   else
   end
   if (nil == existing_params) then
-    _G.error("Missing argument existing-params on fnl/hotpot/command.fnl:196", 2)
+    _G.error("Missing argument existing-params on fnl/hotpot/command.fnl:195", 2)
   else
   end
   if (nil == possible_params) then
-    _G.error("Missing argument possible-params on fnl/hotpot/command.fnl:196", 2)
+    _G.error("Missing argument possible-params on fnl/hotpot/command.fnl:195", 2)
   else
   end
   local function filter0(options, prefix)

@@ -17,10 +17,10 @@ end
 local function fennel_update_report()
   vim.health.start(":Hotpot fennel update")
   do
-    local case_3_ = (1 == vim.fn.executable("curl"))
-    if (case_3_ == true) then
+    local case_3_ = vim.fn.executable("curl")
+    if (case_3_ == 1) then
       vim.health.ok("`curl` is executable")
-    elseif (case_3_ == false) then
+    elseif (case_3_ == 0) then
       vim.health.warn("`curl` is not executable", "Install curl to run `:Hotpot fennel update`")
     else
     end

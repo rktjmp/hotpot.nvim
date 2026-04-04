@@ -499,25 +499,20 @@ m["sync-plan-compile"] = function(ctx, source_files, force_3f)
       local function _80_(choice)
         local case_81_, case_82_ = choice
         if (case_81_ == yes_once) then
-          init_lua_choice = "yes-once"
-          return nil
+          return "yes-once"
         elseif (case_81_ == no_once) then
-          init_lua_choice = "no-once"
-          return nil
+          return "no-once"
         elseif (case_81_ == yes_always) then
-          init_lua_choice = "yes-always"
-          return nil
+          return "yes-always"
         elseif (case_81_ == no_always) then
-          init_lua_choice = "no-always"
-          return nil
+          return "no-always"
         else
           local _ = case_81_
-          init_lua_choice = "no-once"
-          return nil
+          return "no-once"
         end
       end
       callback = _80_
-      ui_select_sync({yes_once, no_once, yes_always, no_always}, {prompt = prompt}, callback)
+      init_lua_choice = ui_select_sync({yes_once, no_once, yes_always, no_always}, {prompt = prompt}, callback)
     else
     end
     if (init_lua_choice == "yes-once") then
@@ -730,11 +725,11 @@ m["sync-plan-confirm"] = function(ctx, source_files, orphan_files)
 end
 m["make-fennel-path-modifiers"] = function(ctx, fennel)
   if (nil == fennel) then
-    _G.error("Missing argument fennel on fnl/hotpot/context.fnl:427", 2)
+    _G.error("Missing argument fennel on fnl/hotpot/context.fnl:409", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:427", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:409", 2)
   else
   end
   if ("api" == ctx.kind) then
@@ -805,7 +800,7 @@ M.new = function(_3fdirectory)
 end
 M.nearest = function(starting_path)
   if (nil == starting_path) then
-    _G.error("Missing argument starting-path on fnl/hotpot/context.fnl:533", 2)
+    _G.error("Missing argument starting-path on fnl/hotpot/context.fnl:515", 2)
   else
   end
   local case_129_ = vim.uv.fs_realpath(starting_path)
@@ -836,7 +831,7 @@ M.nearest = function(starting_path)
 end
 local function make_warn_impl(filename)
   if (nil == filename) then
-    _G.error("Missing argument filename on fnl/hotpot/context.fnl:551", 2)
+    _G.error("Missing argument filename on fnl/hotpot/context.fnl:533", 2)
   else
   end
   local function _136_(warning)
@@ -846,15 +841,15 @@ local function make_warn_impl(filename)
 end
 M["compile-string"] = function(ctx, fnl_source, options)
   if (nil == options) then
-    _G.error("Missing argument options on fnl/hotpot/context.fnl:555", 2)
+    _G.error("Missing argument options on fnl/hotpot/context.fnl:537", 2)
   else
   end
   if (nil == fnl_source) then
-    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:555", 2)
+    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:537", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:555", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:537", 2)
   else
   end
   assert(options.filename, "tried to compile without filename")
@@ -879,15 +874,15 @@ M["compile-string"] = function(ctx, fnl_source, options)
 end
 M["eval-string"] = function(ctx, fnl_source, options)
   if (nil == options) then
-    _G.error("Missing argument options on fnl/hotpot/context.fnl:575", 2)
+    _G.error("Missing argument options on fnl/hotpot/context.fnl:557", 2)
   else
   end
   if (nil == fnl_source) then
-    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:575", 2)
+    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:557", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:575", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:557", 2)
   else
   end
   local fennel = R0.fennel
@@ -911,7 +906,7 @@ M["eval-string"] = function(ctx, fnl_source, options)
 end
 M.sync = function(ctx, _3foptions)
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:594", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:576", 2)
   else
   end
   local function option_if_set(key)
