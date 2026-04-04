@@ -12,9 +12,9 @@
 
 (fn fennel-update-report []
   (vim.health.start ":Hotpot fennel update")
-  (case (= 1 (vim.fn.executable :curl))
-    true (vim.health.ok "`curl` is executable")
-    false (vim.health.warn "`curl` is not executable" "Install curl to run `:Hotpot fennel update`"))
+  (case (vim.fn.executable :curl)
+    1 (vim.health.ok "`curl` is executable")
+    0 (vim.health.warn "`curl` is not executable" "Install curl to run `:Hotpot fennel update`"))
 
   (case (vim.uv.fs_stat R.const.HOTPOT_FENNEL_UPDATE_ROOT)
     nil (vim.health.error (string.format "Target directory missing: `%s`" R.const.HOTPOT_FENNEL_UPDATE_ROOT)
