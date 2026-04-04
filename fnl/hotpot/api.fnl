@@ -33,7 +33,8 @@
           :destination ctx.path.dest
           ;; We support resolving made up files as this may be useful so try to
           ;; get the real path but if we can't just use what was given.
-          path (let [real-path (or (vim.uv.fs_realpath path) path)
+          (where path (= :string (type path)))
+          (let [real-path (or (vim.uv.fs_realpath path) path)
                      {:const {: NVIM_CONFIG_ROOT}} R
                      init-fnl (vim.fs.joinpath NVIM_CONFIG_ROOT :init.fnl)
                      init-lua (vim.fs.joinpath NVIM_CONFIG_ROOT :init.lua)
@@ -59,7 +60,8 @@
                                 (vim.fs.joinpath ctx.path.source renamed))
                      nil (values nil (string.format "%s not under context destination %s" path ctx.path.dest)))
                    (_ ext) (values nil (string.format "Unsupported extension %s, must be .fnl, .fnlm and .lua" ext))
-                   _ (values nil (string.format "Could not locate %s, perhaps its a directory or does not exist?" path))))))))
+                   _ (values nil (string.format "Could not locate %s, perhaps its a directory or does not exist?" path))))
+          _ (values nil (string.format "Must give string to locate, got type %s " (type what)))))))
 
 (fn bind-context [ctx]
   (let [base {:compile (bind-compile ctx)
