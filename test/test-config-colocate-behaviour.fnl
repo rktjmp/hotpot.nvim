@@ -11,6 +11,6 @@
 (nvim:lua "require'hotpot'")
 (nvim:close)
 
-(expect "return {works = true}" (read-file lua-path) "created lua file in colocate")
+(expect [_ "return {works = true}"] (read-file lua-path) "created lua file in colocate")
 
 (exit)

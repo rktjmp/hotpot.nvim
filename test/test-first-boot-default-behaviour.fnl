@@ -12,6 +12,6 @@
 (nvim:close)
 
 (expect {:mtime {}} (vim.uv.fs_stat first-boot-sigil) "created first-boot-sigil")
-(expect "return {works = true}" (read-file lua-path) "created lua file in cache")
+(expect [_ "return {works = true}"] (read-file lua-path) "created lua file in cache")
 
 (exit)

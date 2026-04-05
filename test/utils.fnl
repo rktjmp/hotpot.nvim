@@ -1,6 +1,5 @@
 (fn read-file [path]
-  (-> (vim.fn.readfile path)
-      (table.concat :\n)))
+  (vim.fn.readfile path))
 
 (fn write-file [path lines]
   (vim.fn.mkdir (vim.fs.dirname path) :p)

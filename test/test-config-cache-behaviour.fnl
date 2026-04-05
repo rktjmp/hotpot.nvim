@@ -16,8 +16,8 @@
 ;;
 ;; Compiles to cache as instructed, automatically on first boot
 ;;
-(expect "return {works = true}" (read-file lua-path) "first boot created lua file in cache")
-(expect "return 'vendor lib'" (read-file vendor-path) "first boot left vendor file untouched")
+(expect [_ "return {works = true}"] (read-file lua-path) "first boot created lua file in cache")
+(expect ["return 'vendor lib'"] (read-file vendor-path) "first boot left vendor file untouched")
 
 ;;
 ;; Will not compile other files automatically at boot without saving
@@ -29,18 +29,18 @@
 (local nvim (start-nvim))
 (nvim:lua "require'hotpot'")
 
-(expect "return {works = true}" (read-file lua-path) "second boot kept lua file in cache")
+(expect [_ "return {works = true}"] (read-file lua-path) "second boot kept lua file in cache")
 (expect nil (vim.uv.fs_stat lua-path2) "second boot did not create second file in cache")
-(expect "return 'vendor lib'" (read-file vendor-path) "second boot left vendor file untouched")
+(expect ["return 'vendor lib'"] (read-file vendor-path) "second boot left vendor file untouched")
 
 ;;
 ;; Saving fnl file triggers rebuild
 ;;
 (nvim:cmd (.. "edit " fnl-path2))
 (nvim:cmd :write)
-(expect "return {works = true}" (read-file lua-path) "saving file kept lua file in cache")
-(expect "return {works = \"also\"}" (read-file lua-path2) "saving file created lua file 2 in cache")
-(expect "return 'vendor lib'" (read-file vendor-path) "saving file left vendor file untouched")
+(expect [_ "return {works = true}"] (read-file lua-path) "saving file kept lua file in cache")
+(expect [_ "return {works = \"also\"}"] (read-file lua-path2) "saving file created lua file 2 in cache")
+(expect ["return 'vendor lib'"] (read-file vendor-path) "saving file left vendor file untouched")
 
 ;;
 ;; Orphaned files are removed
@@ -48,8 +48,8 @@
 (vim.fn.delete fnl-path)
 (nvim:cmd :write)
 (expect nil (vim.uv.fs_stat lua-path) "saving file removed orphaned file")
-(expect "return {works = \"also\"}" (read-file lua-path2) "saving file retained lua file 2 in cache")
-(expect "return 'vendor lib'" (read-file vendor-path) "saving file left vendor file untouched")
+(expect [_ "return {works = \"also\"}"] (read-file lua-path2) "saving file retained lua file 2 in cache")
+(expect ["return 'vendor lib'"] (read-file vendor-path) "saving file left vendor file untouched")
 
 (nvim:close)
 

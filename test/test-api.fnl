@@ -61,8 +61,8 @@
 (local lua-path (path :cache :/lua/abc.lua))
 (local output (nvim:lua "local ok, val = ctx.sync()
                         print(ok)"))
-(expect "return {works = true}" (read-file lua-path)
-        "can sync")
+(let [[_marker line] (read-file lua-path)]
+  (expect "return {works = true}" line "can sync"))
 
 ;; can create api context
 (local output (nvim:lua "local ctx, err = api.context()

@@ -44,7 +44,7 @@
 (nvim:cmd (.. "cd " (path :config)))
 (nvim:cmd :write)
 (nvim:close)
-(expect "return \"remote-x\"" (read-file (.. remote-dir :/lua/mod.lua))
+(expect [_ "return \"remote-x\""] (read-file (.. remote-dir :/lua/mod.lua))
         "correctly uses remote.macros.x()")
 
 (exit)
