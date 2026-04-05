@@ -1,17 +1,14 @@
 FROM debian:bookworm-20251208-slim
+ARG NVIM_VERSION=v0.11.7
 
 # install latest nvim
 RUN apt-get update && \
     apt-get install -y curl jq uuid-runtime git tree && \
-    curl -sL https://api.github.com/repos/neovim/neovim/releases/latest | \
-    jq -r '.assets[].browser_download_url' | \
-    grep nvim-linux-x86_64.tar.gz | \
-    head -n 1 | \
-    xargs curl -LO && \
-    tar zxf nvim-linux-x86_64.tar.gz && \
     useradd -ms /bin/bash user
 
-RUN ln -s /nvim-linux-x86_64/bin/nvim /bin/nvim
+RUN curl -LO "https://github.com/neovim/neovim/releases/download/${NVIM_VERSION}/nvim-linux-x86_64.tar.gz" && \
+    tar xzf nvim-linux-x86_64.tar.gz --strip-components=1 -C /usr/local && \
+    rm nvim-linux-x86_64.tar.gz
 
 # convenience
 RUN mkdir -p /home/user/.config/nvim/lua

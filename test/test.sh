@@ -7,6 +7,8 @@ if [ $# -eq 1 ]; then
   tests=($1)
 fi
 
+$NVIM_BIN --version
+
 for t in ${tests[@]};
 do
   echo "SUITE START  $t..."
