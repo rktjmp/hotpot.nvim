@@ -641,38 +641,26 @@ m["sync-clean"] = function(ctx, orphan_files)
   end
   return nil
 end
-m["sync-plan-confirm"] = function(ctx, source_files, orphan_files)
+m["sync-plan-confirm"] = function(ctx, compiled_files, orphan_files)
   if (nil == orphan_files) then
     _G.error("Missing argument orphan-files on fnl/hotpot/context.fnl:357", 2)
   else
   end
-  if (nil == source_files) then
-    _G.error("Missing argument source-files on fnl/hotpot/context.fnl:357", 2)
+  if (nil == compiled_files) then
+    _G.error("Missing argument compiled-files on fnl/hotpot/context.fnl:357", 2)
   else
   end
   if (nil == ctx) then
     _G.error("Missing argument ctx on fnl/hotpot/context.fnl:357", 2)
   else
   end
-  local function pluck_files(keys)
-    local l = {}
-    for _, key in ipairs(keys) do
-      local tbl_24_ = l
-      for _0, f in ipairs(orphan_files[key]) do
-        local val_25_ = f
-        table.insert(tbl_24_, val_25_)
-      end
-      l = tbl_24_
-    end
-    return l
-  end
   if ((_G.type(ctx) == "table") and (ctx.kind == "api")) then
     return error("unable to sync-plan-confirm in context.kind == api")
   elseif ((_G.type(ctx) == "table") and (ctx.target == "cache")) then
-    return {["compile?"] = true, ["clean?"] = pluck_files({"unowned", "owned"})}
+    return {write = compiled_files, clean = {unowned = orphan_files.unowned, owned = orphan_files.owned}}
   elseif ((_G.type(ctx) == "table") and (ctx.target == "colocate")) then
     if ((_G.type(orphan_files) == "table") and ((_G.type(orphan_files.unowned) == "table") and (orphan_files.unowned[1] == nil))) then
-      return {["compile?"] = true, ["clean?"] = pluck_files({"unowned", "owned"})}
+      return {write = compiled_files, clean = {unowned = orphan_files.unowned, owned = orphan_files.owned}}
     elseif ((_G.type(orphan_files) == "table") and (nil ~= orphan_files.unowned)) then
       local unowned = orphan_files.unowned
       local ui_select_sync = R0.ui["ui-select-sync"]
@@ -711,13 +699,13 @@ m["sync-plan-confirm"] = function(ctx, source_files, orphan_files)
           if (choice_int == 1) then
             return nil
           elseif (choice_int == 2) then
-            return {["clean?"] = pluck_files({"unowned", "owned"}), ["compile?"] = true}
+            return {write = compiled_files, clean = {unowned = orphan_files.unowned, owned = orphan_files.owned}}
           elseif (choice_int == 3) then
-            return {["clean?"] = pluck_files({"owned"}), ["compile?"] = true}
+            return {write = compiled_files, clean = {unowned = {}, owned = orphan_files.owned}}
           elseif (choice_int == 4) then
-            return {["clean?"] = {}, ["compile?"] = false}
+            return {write = {}, clean = {unowned = {}, owned = {}}}
           elseif (choice_int == nil) then
-            return {["clean?"] = {}, ["compile?"] = false}
+            return {write = {}, clean = {unowned = {}, owned = {}}}
           else
             local _ = choice_int
             return error("bad choice int for show-prompt-confirm")
@@ -966,99 +954,44 @@ M.sync = function(ctx, _3foptions)
   extra_compiler_options = (_162_ or {})
   local source_files = m["find-source-files"](ctx)
   local stale_files = m["sync-plan-compile"](ctx, source_files, force_3f)
-  local clean_files = m["sync-plan-clean"](ctx, source_files)
+  local orphan_files = m["sync-plan-clean"](ctx, source_files)
   local time_start = vim.uv.hrtime()
   local _let_164_ = m["sync-compile"](ctx, stale_files, extra_compiler_options)
   local compile_oks = _let_164_.ok
   local compile_errors = _let_164_.errors
   local time_stop = vim.uv.hrtime()
-  local duration_ms = ((time_stop - time_start) / 1000000)
+  local total_duration_ms = ((time_stop - time_start) / 1000000)
   local has_errors_3f = (0 < #compile_errors)
-  local write_ok_3f = (not has_errors_3f or not atomic_3f)
-  local success_messages
-  do
-    local tbl_26_ = {}
-    local i_27_ = 0
-    for _, _165_ in ipairs(compile_oks) do
-      local fnl_abs = _165_["fnl-abs"]
-      local lua_abs = _165_["lua-abs"]
-      local duration_ms0 = _165_["duration-ms"]
-      local val_28_ = {string.format("\226\152\145  %s (%.2fms)\n-> %s\n", fnl_abs, duration_ms0, lua_abs), "DiagnosticOk"}
-      if (nil ~= val_28_) then
-        i_27_ = (i_27_ + 1)
-        tbl_26_[i_27_] = val_28_
-      else
-      end
-    end
-    success_messages = tbl_26_
-  end
-  local error_messages
-  do
-    local tbl_26_ = {}
-    local i_27_ = 0
-    for _, _167_ in ipairs(compile_errors) do
-      local fnl_abs = _167_["fnl-abs"]
-      local lua_abs = _167_["lua-abs"]
-      local error = _167_.error
-      local val_28_ = {string.format("\226\152\146  %s\n-> %s\n%s\n", fnl_abs, lua_abs, error), "DiagnosticWarn"}
-      if (nil ~= val_28_) then
-        i_27_ = (i_27_ + 1)
-        tbl_26_[i_27_] = val_28_
-      else
-      end
-    end
-    error_messages = tbl_26_
-  end
-  local clean_messages
-  do
-    local messages = {}
-    do
-      local tbl_24_ = messages
-      for _, _169_ in ipairs(clean_files.owned) do
-        local lua_abs = _169_["lua-abs"]
-        local val_25_ = {string.format("rm %s\n", lua_abs), "DiagnosticInfo"}
-        table.insert(tbl_24_, val_25_)
-      end
-    end
-    do
-      local tbl_24_ = messages
-      for _, _170_ in ipairs(clean_files.unowned) do
-        local lua_abs = _170_["lua-abs"]
-        local val_25_ = {string.format("rm %s\n", lua_abs), "DiagnosticInfo"}
-        table.insert(tbl_24_, val_25_)
-      end
-    end
-    clean_messages = messages
-  end
-  local summary_messages
-  do
-    local summary = {}
-    if verbose_3f then
-      table.insert(summary, {string.format("\nDuration: %.2fms", duration_ms), "DiagnosticInfo"})
-    else
-    end
-    if has_errors_3f then
-      table.insert(summary, {"\nSome files had compilation errors! ", "DiagnosticWarn"})
-      if atomic_3f then
-        table.insert(summary, {"`atomic? = true`, no changes were written to disk!\n", "DiagnosticWarn"})
-      else
-      end
-    else
-    end
-    summary_messages = summary
-  end
   local printable_report = {}
-  local return_report = {sources = source_files, compiled = {}, cleaned = {}, errors = compile_errors}
-  if write_ok_3f then
-    local _let_174_ = m["sync-plan-confirm"](ctx, stale_files, clean_files)
-    local compile_3f = _let_174_["compile?"]
-    local clean_3f = _let_174_["clean?"]
-    if compile_3f then
-      m["sync-write"](ctx, compile_oks)
+  local data_report = {sources = source_files, compiled = {}, cleaned = {}, errors = compile_errors}
+  local extend_report
+  local function _165_(t, line_fn)
+    local function _166_()
+      local tbl_26_ = {}
+      local i_27_ = 0
+      for _, el in ipairs(t) do
+        local val_28_ = line_fn(el)
+        if (nil ~= val_28_) then
+          i_27_ = (i_27_ + 1)
+          tbl_26_[i_27_] = val_28_
+        else
+        end
+      end
+      return tbl_26_
+    end
+    return vim.list_extend(printable_report, _166_())
+  end
+  extend_report = _165_
+  if (not has_errors_3f or not atomic_3f) then
+    local _let_168_ = m["sync-plan-confirm"](ctx, compile_oks, orphan_files)
+    local write = _let_168_.write
+    local clean = _let_168_.clean
+    do
+      m["sync-write"](ctx, write)
       do
         local tbl_26_ = {}
         local i_27_ = 0
-        for _, v in ipairs(compile_oks) do
+        for _, v in ipairs(write) do
           local val_28_
           do
             v["source"] = nil
@@ -1070,36 +1003,71 @@ M.sync = function(ctx, _3foptions)
           else
           end
         end
-        return_report.compiled = tbl_26_
+        data_report.compiled = tbl_26_
       end
-      if verbose_3f then
-        vim.list_extend(printable_report, success_messages)
+      if ((0 < #write) and verbose_3f) then
+        local function _171_(_170_)
+          local fnl_abs = _170_["fnl-abs"]
+          local lua_abs = _170_["lua-abs"]
+          local duration_ms = _170_["duration-ms"]
+          return {string.format("\226\152\145  %s (%.2fms)\n-> %s\n", fnl_abs, duration_ms, lua_abs), "DiagnosticOk"}
+        end
+        extend_report(write, _171_)
+        local function _172_(_241)
+          return _241
+        end
+        extend_report({{string.format("Duration: %.2fms\n", total_duration_ms), "DiagnosticInfo"}}, _172_)
       else
       end
-      vim.list_extend(printable_report, error_messages)
-    else
     end
-    if (0 < #clean_3f) then
-      m["sync-clean"](ctx, clean_3f)
-      return_report.cleaned = clean_3f
-      vim.list_extend(printable_report, clean_messages)
-    else
-    end
-    if compile_3f then
-      vim.list_extend(printable_report, summary_messages)
+    local unowned = clean.unowned
+    local owned = clean.owned
+    m["sync-clean"](ctx, owned)
+    m["sync-clean"](ctx, unowned)
+    data_report.cleaned = clean
+    if verbose_3f then
+      local function _175_(_174_)
+        local lua_abs = _174_["lua-abs"]
+        return {string.format("rm %s\n", lua_abs), "DiagnosticInfo"}
+      end
+      extend_report(unowned, _175_)
+      local function _177_(_176_)
+        local lua_abs = _176_["lua-abs"]
+        return {string.format("rm %s\n", lua_abs), "DiagnosticInfo"}
+      end
+      extend_report(owned, _177_)
     else
     end
   else
-    vim.list_extend(printable_report, error_messages)
-    vim.list_extend(printable_report, summary_messages)
+  end
+  if has_errors_3f then
+    local function _181_(_180_)
+      local fnl_abs = _180_["fnl-abs"]
+      local lua_abs = _180_["lua-abs"]
+      local error = _180_.error
+      return {string.format("\226\152\146  %s\n-> %s\n%s\n", fnl_abs, lua_abs, error), "DiagnosticError"}
+    end
+    extend_report(compile_errors, _181_)
+    local function _182_()
+      if atomic_3f then
+        return {"`atomic? = true`, no changes were written to disk!\n", "DiagnosticWarn"}
+      else
+        return nil
+      end
+    end
+    local function _183_(_241)
+      return _241
+    end
+    extend_report({{"\nSome files had compilation errors! ", "DiagnosticWarn"}, _182_()}, _183_)
+  else
   end
   if (0 < #printable_report) then
-    local function _181_()
+    local function _185_()
       return vim.api.nvim_echo(printable_report, true, {})
     end
-    vim.schedule(_181_)
+    vim.schedule(_185_)
   else
   end
-  return return_report
+  return data_report
 end
 return M

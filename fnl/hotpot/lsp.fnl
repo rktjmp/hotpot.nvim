@@ -110,7 +110,7 @@
                        "Error"
                        (string.format "Error compiling %d files" count))))
 
-    (let [count (accumulate [count 0 i {: lua-rel} (ipairs report.cleaned)]
+    (let [count (accumulate [count 0 i {: lua-rel} (ipairs (or report.cleaned.unowned []))]
                              (do
                                ;; Use lua-rel instead of lua-abs path here as
                                ;; the context is implicit in the server name

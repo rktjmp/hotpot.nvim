@@ -354,20 +354,18 @@
   (each [_ {: lua-abs} (ipairs orphan-files)]
     (vim.uv.fs_unlink lua-abs)))
 
-(λ m.sync-plan-confirm [ctx source-files orphan-files]
-  (fn pluck-files [keys]
-    (accumulate [l [] _ key (ipairs keys)]
-      (icollect [_ f (ipairs (. orphan-files key)) &into l]
-        f)))
+(λ m.sync-plan-confirm [ctx compiled-files orphan-files]
   (case ctx
     {:kind :api} (error "unable to sync-plan-confirm in context.kind == api")
     ;; Cache is "our" domain, all lua there should be from us, remove anything old.
-    {:target :cache} {:compile? true :clean? (pluck-files [:unowned :owned])}
+    {:target :cache} {:write compiled-files
+                      :clean {:unowned orphan-files.unowned :owned orphan-files.owned}}
     ;; Colocate will have mixed ownership check all orphans to see if we wrote
     ;; them, if we did, we can remove them, otherwise prompt the user.
     {:target :colocate}
     (case orphan-files
-      {:unowned [nil]} {:compile? true :clean? (pluck-files [:unowned :owned])}
+      {:unowned [nil]} {:write compiled-files
+                        :clean {:unowned orphan-files.unowned :owned orphan-files.owned}}
       ;; We have some number of (unowned && unignored) files, and we should ask
       ;; the user what to do. The default impl is pretty good, it just shows
       ;; the whole message with line breaks, unfortunately most `vim.ui.select`
@@ -395,10 +393,12 @@
                                                     callback (fn [choice-word choice-int]
                                                                (case choice-int
                                                                  1 nil
-                                                                 2 {:clean? (pluck-files [:unowned :owned]) :compile? true}
-                                                                 3 {:clean? (pluck-files [:owned]) :compile? true}
-                                                                 4 {:clean? [] :compile? false}
-                                                                 nil {:clean? [] :compile? false}
+                                                                 2 {:write compiled-files
+                                                                    :clean {:unowned orphan-files.unowned :owned orphan-files.owned}}
+                                                                 3 {:write compiled-files
+                                                                    :clean {:unowned [] :owned orphan-files.owned}}
+                                                                 4 {:write [] :clean {:unowned [] :owned []}}
+                                                                 nil {:write [] :clean {:unowned [] :owned []}}
                                                                  _ (error "bad choice int for show-prompt-confirm")))]
                                                 (case (ui-select-sync choices {: prompt} callback)
                                                   choice choice
@@ -592,7 +592,7 @@
         ;; Find all un-ignored files, plan what we want to compile and clean
         source-files (m.find-source-files ctx)
         stale-files (m.sync-plan-compile ctx source-files force?)
-        clean-files (m.sync-plan-clean ctx source-files)
+        orphan-files (m.sync-plan-clean ctx source-files)
         ;; Peform any compiles but write nothing, write afer preparing some
         ;; reports and checking for errors & atomic.
         time-start (vim.uv.hrtime)
@@ -600,62 +600,56 @@
                                                                  stale-files
                                                                  extra-compiler-options)
         time-stop (vim.uv.hrtime)
-        duration-ms (/ (- time-stop time-start) 1_000_000)
+        total-duration-ms (/ (- time-stop time-start) 1_000_000)
         has-errors? (< 0 (length compile-errors))
-        write-ok? (or (not has-errors?) (not atomic?))
-        success-messages (icollect [_ {: fnl-abs : lua-abs : duration-ms} (ipairs compile-oks)]
-                           [(string.format "☑  %s (%.2fms)\n-> %s\n" fnl-abs duration-ms lua-abs) :DiagnosticOk])
-        error-messages (icollect [_ {: fnl-abs : lua-abs : error} (ipairs compile-errors)]
-                         [(string.format "☒  %s\n-> %s\n%s\n" fnl-abs lua-abs error) :DiagnosticWarn])
-        clean-messages (let [messages []]
-                         ;; debatable if we care to tell people we're deleting owned files?
-                         (icollect [_ {: lua-abs} (ipairs clean-files.owned) &into messages]
-                           [(string.format "rm %s\n" lua-abs) :DiagnosticInfo])
-                         (icollect [_ {: lua-abs} (ipairs clean-files.unowned) &into messages]
-                           [(string.format "rm %s\n" lua-abs) :DiagnosticInfo])
-                         messages)
-        summary-messages (let [summary []]
-                           (when verbose?
-                             (table.insert summary [(string.format "\nDuration: %.2fms" duration-ms)
-                                                    :DiagnosticInfo]))
-                           (when has-errors?
-                             (table.insert summary ["\nSome files had compilation errors! "
-                                                    :DiagnosticWarn])
-                             (when atomic?
-                               (table.insert summary ["`atomic? = true`, no changes were written to disk!\n"
-                                                      :DiagnosticWarn])))
-                           summary)
+        ;; output when we have errors or if verbose? = true
         printable-report []
-        return-report {:sources source-files
-                       :compiled []
-                       :cleaned []
-                       :errors compile-errors}]
-    (if write-ok?
-      ;; We actually have one last check before proceeding, when we have
-      ;; some larger number of orphans, we confirm the user is OK with this.
-      (let [{: compile? : clean?} (m.sync-plan-confirm ctx stale-files clean-files)]
-        (when compile?
-          (m.sync-write ctx compile-oks)
-          (set return-report.compiled (icollect [_ v (ipairs compile-oks)]
-                                        (doto v (tset :source nil))))
-          (when verbose?
-            (vim.list_extend printable-report success-messages))
-          (vim.list_extend printable-report error-messages))
-        (when (< 0 (length clean?))
-          (m.sync-clean ctx clean?)
-          ;; TODO: dont report cleaning owned files?
-          (set return-report.cleaned clean?)
-          (vim.list_extend printable-report clean-messages))
-        (when compile?
-          (vim.list_extend printable-report summary-messages)))
-      ;; We still want to printable-report compilation errors
-      (do
-        (vim.list_extend printable-report error-messages)
-        (vim.list_extend printable-report summary-messages)))
+        ;; return value to caller
+        data-report {:sources source-files
+                     :compiled []
+                     :cleaned []
+                     :errors compile-errors}
+        extend-report (fn [t line-fn]
+                        (vim.list_extend printable-report (icollect [_ el (ipairs t)] (line-fn el))))]
 
+    (when (or (not has-errors?) (not atomic?))
+      ;; No errors, or not atomic, so we are allowed to write, but we also need
+      ;; to check the clean action and possibly query the user before executing
+      ;; the plan.
+      (let [{: write : clean} (m.sync-plan-confirm ctx compile-oks orphan-files)]
+        (do
+          (m.sync-write ctx write)
+          (set data-report.compiled (icollect [_ v (ipairs write)] (doto v (tset :source nil))))
+          (when (and (< 0 (length write)) verbose?)
+            (extend-report write (fn [{: fnl-abs : lua-abs : duration-ms}]
+                                           [(string.format "☑  %s (%.2fms)\n-> %s\n" fnl-abs duration-ms lua-abs)
+                                            :DiagnosticOk]))
+            (extend-report [[(string.format "Duration: %.2fms\n" total-duration-ms) :DiagnosticInfo]] #$1)))
+        (let [{: unowned : owned} clean]
+          (m.sync-clean ctx owned)
+          (m.sync-clean ctx unowned)
+          (set data-report.cleaned clean)
+          (when verbose?
+            (extend-report unowned (fn [{: lua-abs }] [(string.format "rm %s\n" lua-abs) :DiagnosticInfo]))
+            (extend-report owned (fn [{: lua-abs }] [(string.format "rm %s\n" lua-abs) :DiagnosticInfo]))))))
+
+    ;; If an error happens during compilation, we always output it.
+    (when has-errors?
+      (extend-report compile-errors (fn [{: fnl-abs : lua-abs : error}]
+                                      [(string.format "☒  %s\n-> %s\n%s\n" fnl-abs lua-abs error) :DiagnosticError]))
+      (extend-report [["\nSome files had compilation errors! " :DiagnosticWarn]
+                      (when atomic?
+                        ["`atomic? = true`, no changes were written to disk!\n" :DiagnosticWarn])]
+                     #$1))
+
+    ;; either verbose = true or we had errors.
     (when (< 0 (length printable-report))
       ;; schedule print to avoid nvim-12 output clobbering
+      ;; TODO: nvim_echo does support `progress-message` type, but currently
+      ;; Fidget and probably other UI plugins dont seem to pay attention to
+      ;; these specifically, at least not without configuration, so using LSP
+      ;; $/progress is still the preferred method for non-verbose reports.
       (vim.schedule #(vim.api.nvim_echo printable-report true {})))
-    return-report))
+    data-report))
 
 M

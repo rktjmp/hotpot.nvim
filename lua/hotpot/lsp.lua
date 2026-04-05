@@ -132,7 +132,7 @@ M["emit-report"] = function(client_id, report)
   local count
   do
     local count0 = 0
-    for i, _18_ in ipairs(report.cleaned) do
+    for i, _18_ in ipairs((report.cleaned.unowned or {})) do
       local lua_rel = _18_["lua-rel"]
       send_progress(("hotpot-sync-cleaned-" .. ctx_token_id .. "-" .. i), "Clean", string.format("%s", lua_rel))
       count0 = (1 + count0)
