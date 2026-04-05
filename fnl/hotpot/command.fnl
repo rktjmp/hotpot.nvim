@@ -44,14 +44,14 @@
       root (case-try
              (pcall R.context.new root) (true ctx)
              (pcall R.context.sync ctx opts) (true report)
-             (case (values report (not opts.verbose?))
-               ;; If no errors and not verbose, let the user know
-               ;; *something* ran.
-               ({:errors [nil]} true) (let [msg (string.format "Synced %s" root)]
-                                        (notify-info msg)
-                                        nil)
-               ;; Otherwise rely on verbose doing the reporting.
-               _ nil)
+             (let [client-id (R.lsp.start-lsp {:root ctx.path.source})]
+               (R.lsp.emit-report client-id report)
+               (case (values report (not opts.verbose?))
+                 ;; If no errors and not verbose, let the user know
+                 ;; *something* ran.
+                 ({:errors [nil]} true) (do
+                                          (notify-info (string.format "Synced %s" root))
+                                          nil)))
              (catch
                (false err) (notify-error err)))
       (nil err) (notify-error err))))

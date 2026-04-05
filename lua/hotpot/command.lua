@@ -88,13 +88,13 @@ local function hotpot_command_sync_handler(params)
           local case_22_, case_23_ = ...
           if ((case_22_ == true) and (nil ~= case_23_)) then
             local report = case_23_
+            local client_id = R.lsp["start-lsp"]({root = ctx.path.source})
+            R.lsp["emit-report"](client_id, report)
             local case_24_, case_25_ = report, not opts["verbose?"]
             if (((_G.type(case_24_) == "table") and ((_G.type(case_24_.errors) == "table") and (case_24_.errors[1] == nil))) and (case_25_ == true)) then
-              local msg = string.format("Synced %s", root)
-              notify_info(msg)
+              notify_info(string.format("Synced %s", root))
               return nil
             else
-              local _ = case_24_
               return nil
             end
           elseif ((case_22_ == false) and (nil ~= case_23_)) then
