@@ -63,10 +63,9 @@ allows you to write your Neovim config and plugins in Fennel.
 
 # Requirements
 
-- Neovim 0.11.6+
-  - Probably it works on `~0.10.x+` but it's untested.
-  - If you're unable to upgrade, you can set `_G.__hotpot_disable_version_check
-    = true` before `require('hotpot')`.
+- Neovim 0.11.6+ to run *Hotpot*
+  - The compiled output will run on any version of Neovim
+    that *your code* is written to support.
 - ~~Fanatical devotion to parentheses.~~
 
 # Installation

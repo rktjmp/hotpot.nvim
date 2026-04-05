@@ -1,5 +1,4 @@
-(when (= nil _G.__hotpot_disable_version_check)
-  (assert (= 1 (vim.fn.has "nvim-0.11.6")) "Hotpot requires neovim 0.11.6"))
+(assert (= 1 (vim.fn.has "nvim-0.11.6")) "Hotpot requires neovim 0.11.6+")
 (local {: R : notify-error : notify-warn : notify-info} (require :hotpot.util))
 
 (local {: HOTPOT_CONFIG_CACHE_ROOT
