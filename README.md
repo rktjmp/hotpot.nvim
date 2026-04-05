@@ -68,6 +68,10 @@ allows you to write your Neovim config and plugins in Fennel.
     that *your code* is written to support.
 - ~~Fanatical devotion to parentheses.~~
 
+You may also want an LSP `$/progress` notification renderer, eg
+[fidget.nivm](https://github.com/j-hui/fidget.nvim) for event notifications, or
+otherwise enable `verbose` mode.
+
 # Installation
 
 ## Installing with `vim.pack`
