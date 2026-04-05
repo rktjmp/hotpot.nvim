@@ -49,7 +49,7 @@
                (case (values report (not opts.verbose?))
                  ;; If no errors and not verbose, let the user know
                  ;; *something* ran.
-                 ({:errors [nil]} true) (do
+                 ({:errors [nil]} _) (do
                                           (notify-info (string.format "Synced %s" root))
                                           nil)))
              (catch

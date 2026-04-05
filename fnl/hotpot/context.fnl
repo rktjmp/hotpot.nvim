@@ -9,7 +9,7 @@
                  *hotpot-ownership-marker* R.fennel.version)
       source))
 
-(fn we-own-file? [file]
+(fn hotpot-generated? [file]
   (with-open [fd (io.open file :r)]
     (let [header (-> (or (fd:read 256) "") ;; nil NOT "" when file is empty
                      (string.sub 1 (length *hotpot-ownership-marker*)))]
@@ -204,11 +204,11 @@
 (λ m.find-orphaned-files [ctx source-files]
   "Find files in dest directory that have no source counterpart"
   (let [{:path {: dest} : ignore} ctx
-        lua-files-with-counterparts (collect [_ {: lua-abs} (ipairs source-files.fnl)]
+        known-lua-files (collect [_ {: lua-abs} (ipairs source-files.fnl)]
                                       (values  lua-abs true))
-        all-dest-lua-filse (m.find-files dest "%.lua$" ignore)
-        orphans (icollect [_ path (ipairs all-dest-lua-filse)]
-                  (case (. lua-files-with-counterparts path)
+        lua-files-in-dest (m.find-files dest "%.lua$" ignore)
+        orphans (icollect [_ path (ipairs lua-files-in-dest)]
+                  (case (. known-lua-files path)
                     nil (let [lua-abs path
                               lua-rel (vim.fs.relpath dest lua-abs)]
                           {: lua-abs : lua-rel})))]
@@ -344,7 +344,7 @@
         ;; check files for ownership headers
         (owned-orphans unowned-orphans) (accumulate [(owned unowned) (values [] [])
                                                      _ {: lua-abs &as file} (ipairs all-orphan-files)]
-                                          (if (we-own-file? lua-abs)
+                                          (if (hotpot-generated? lua-abs)
                                             (values (doto owned (table.insert file)) unowned)
                                             (values owned (doto unowned (table.insert file)))))]
     {:owned owned-orphans
@@ -376,7 +376,7 @@
       ;; of files where selecting any file does nothing.
       ;; We must cycle between these until the user selects something or cancels.
       {: unowned} (let [{: ui-select-sync} R.ui
-                        show-file-prompt #(let [prompt "Return to query"
+                        show-file-prompt #(let [prompt "Select any file or cancel to return to previous menu."
                                                 choices (icollect [_ {: lua-abs} (ipairs unowned)]
                                                           lua-abs)
                                                 callback #nil]
@@ -388,7 +388,7 @@
                                                              "Ok: Remove orphaned files and compile as normal"
                                                              "Safe: Keep orphaned files but compile as normal"
                                                              "Cancel: Do not remove files or compile"]
-                                                    prompt (string.format "Found %d orphaned files, delete all?"
+                                                    prompt (string.format "Found %d un-ignored lua files with no fnl source, delete all?"
                                                                           (length unowned))
                                                     callback (fn [choice-word choice-int]
                                                                (case choice-int
@@ -636,7 +636,7 @@
     ;; If an error happens during compilation, we always output it.
     (when has-errors?
       (extend-report compile-errors (fn [{: fnl-abs : lua-abs : error}]
-                                      [(string.format "☒  %s\n-> %s\n%s\n" fnl-abs lua-abs error) :DiagnosticError]))
+                                      [(string.format "☒  %s\n%s\n" fnl-abs error) :DiagnosticError]))
       (extend-report [["\nSome files had compilation errors! " :DiagnosticWarn]
                       (when atomic?
                         ["`atomic? = true`, no changes were written to disk!\n" :DiagnosticWarn])]

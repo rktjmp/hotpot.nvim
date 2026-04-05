@@ -91,7 +91,8 @@ local function hotpot_command_sync_handler(params)
             local client_id = R.lsp["start-lsp"]({root = ctx.path.source})
             R.lsp["emit-report"](client_id, report)
             local case_24_, case_25_ = report, not opts["verbose?"]
-            if (((_G.type(case_24_) == "table") and ((_G.type(case_24_.errors) == "table") and (case_24_.errors[1] == nil))) and (case_25_ == true)) then
+            if (((_G.type(case_24_) == "table") and ((_G.type(case_24_.errors) == "table") and (case_24_.errors[1] == nil))) and true) then
+              local _ = case_25_
               notify_info(string.format("Synced %s", root))
               return nil
             else

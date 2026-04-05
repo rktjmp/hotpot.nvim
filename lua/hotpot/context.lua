@@ -12,7 +12,7 @@ local _2ahotpot_ownership_marker_length_2a = #_2ahotpot_ownership_marker_2a
 local function mark_ownership(source)
   return (string.format("%s using fennel %s, edits to this file may be lost\n", _2ahotpot_ownership_marker_2a, R0.fennel.version) .. source)
 end
-local function we_own_file_3f(file)
+local function hotpot_generated_3f(file)
   local fd = io.open(file, "r")
   local function close_handlers_13_(ok_14_, ...)
     fd:close()
@@ -332,7 +332,7 @@ m["find-orphaned-files"] = function(ctx, source_files)
   local _let_54_ = ctx.path
   local dest = _let_54_.dest
   local ignore = ctx.ignore
-  local lua_files_with_counterparts
+  local known_lua_files
   do
     local tbl_21_ = {}
     for _, _55_ in ipairs(source_files.fnl) do
@@ -343,17 +343,17 @@ m["find-orphaned-files"] = function(ctx, source_files)
       else
       end
     end
-    lua_files_with_counterparts = tbl_21_
+    known_lua_files = tbl_21_
   end
-  local all_dest_lua_filse = m["find-files"](dest, "%.lua$", ignore)
+  local lua_files_in_dest = m["find-files"](dest, "%.lua$", ignore)
   local orphans
   do
     local tbl_26_ = {}
     local i_27_ = 0
-    for _, path in ipairs(all_dest_lua_filse) do
+    for _, path in ipairs(lua_files_in_dest) do
       local val_28_
       do
-        local case_57_ = lua_files_with_counterparts[path]
+        local case_57_ = known_lua_files[path]
         if (case_57_ == nil) then
           local lua_abs = path
           local lua_rel = vim.fs.relpath(dest, lua_abs)
@@ -607,7 +607,7 @@ m["sync-plan-clean"] = function(ctx, source_files)
     for _, _99_ in ipairs(all_orphan_files) do
       local lua_abs = _99_["lua-abs"]
       local file = _99_
-      if we_own_file_3f(lua_abs) then
+      if hotpot_generated_3f(lua_abs) then
         local _100_
         do
           table.insert(owned, file)
@@ -666,7 +666,7 @@ m["sync-plan-confirm"] = function(ctx, compiled_files, orphan_files)
       local ui_select_sync = R0.ui["ui-select-sync"]
       local show_file_prompt
       local function _109_()
-        local prompt = "Return to query"
+        local prompt = "Select any file or cancel to return to previous menu."
         local choices
         do
           local tbl_26_ = {}
@@ -693,7 +693,7 @@ m["sync-plan-confirm"] = function(ctx, compiled_files, orphan_files)
       local show_confirm_prompt
       local function show_confirm_prompt0()
         local choices = {string.format("View list of %d orphaned files then return to this prompt", #unowned), "Ok: Remove orphaned files and compile as normal", "Safe: Keep orphaned files but compile as normal", "Cancel: Do not remove files or compile"}
-        local prompt = string.format("Found %d orphaned files, delete all?", #unowned)
+        local prompt = string.format("Found %d un-ignored lua files with no fnl source, delete all?", #unowned)
         local callback
         local function _113_(choice_word, choice_int)
           if (choice_int == 1) then
@@ -1045,7 +1045,7 @@ M.sync = function(ctx, _3foptions)
       local fnl_abs = _180_["fnl-abs"]
       local lua_abs = _180_["lua-abs"]
       local error = _180_.error
-      return {string.format("\226\152\146  %s\n-> %s\n%s\n", fnl_abs, lua_abs, error), "DiagnosticError"}
+      return {string.format("\226\152\146  %s\n%s\n", fnl_abs, error), "DiagnosticError"}
     end
     extend_report(compile_errors, _181_)
     local function _182_()
