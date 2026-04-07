@@ -55,7 +55,7 @@
                    ;; and updating any leading /lua/ to /fnl/.
                    (_ :lua)
                    (case (vim.fs.relpath ctx.path.dest path)
-                     rel-path (let [renamed (-> (string.gsub "^lua/" "fnl/")
+                     rel-path (let [renamed (-> (string.gsub rel-path "^lua/" "fnl/")
                                                 (string.gsub "%.lua$" ".fnl"))]
                                 (vim.fs.joinpath ctx.path.source renamed))
                      nil (values nil (string.format "%s not under context destination %s" path ctx.path.dest)))

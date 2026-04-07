@@ -95,7 +95,7 @@ local function bind_locate(ctx)
               local case_21_ = vim.fs.relpath(ctx.path.dest, path)
               if (nil ~= case_21_) then
                 local rel_path = case_21_
-                local renamed = string.gsub(string.gsub("^lua/", "fnl/"), "%.lua$", ".fnl")
+                local renamed = string.gsub(string.gsub(rel_path, "^lua/", "fnl/"), "%.lua$", ".fnl")
                 return vim.fs.joinpath(ctx.path.source, renamed)
               elseif (case_21_ == nil) then
                 return nil, string.format("%s not under context destination %s", path, ctx.path.dest)
