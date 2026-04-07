@@ -14,42 +14,90 @@ local fnl_path = create_file(path("config", "fnl/mymod.fnl"), "{:works true}")
 local lua_path = path("config", "lua/mymod.lua")
 local nvim = start_nvim()
 nvim:lua("require'hotpot'")
-local output = nvim:cmd("Hotpot locate %s", fnl_path)
-if (nil ~= output) then
-  local lua_path0 = output
-  OK(string.format((":Hotpot locate <path> echos counterpart path" or "")))
-else
-  local __1_auto = output
-  FAIL(string.format((":Hotpot locate <path> echos counterpart path" or "")))
+nvim:lua("NOTIFY_INPUT = {}\nvim.notify = function(s, level, opts)\n  NOTIFY_INPUT[1] = s\nend\nLAST = function() print(NOTIFY_INPUT[1]) end")
+nvim:cmd("Hotpot locate %s", fnl_path)
+local output = nvim:lua("LAST()")
+do
+  local case_2_ = (lua_path == output)
+  if (case_2_ == true) then
+    OK(string.format((":Hotpot locate <path> echos counterpart path" or "")))
+  else
+    local __1_auto = case_2_
+    FAIL(string.format((":Hotpot locate <path> echos counterpart path" or "")))
+  end
 end
 nvim:cmd("edit %s", fnl_path)
-local output0 = nvim:cmd("Hotpot locate")
-if (nil ~= output0) then
-  local lua_path0 = output0
-  OK(string.format((":Hotpot locate echos counterpart path for current file" or "")))
-else
-  local __1_auto = output0
-  FAIL(string.format((":Hotpot locate echos counterpart path for current file" or "")))
+nvim:cmd("Hotpot locate")
+local output0 = nvim:lua("LAST()")
+do
+  local case_4_ = (lua_path == output0)
+  if (case_4_ == true) then
+    OK(string.format((":Hotpot locate echos counterpart path for current file" or "")))
+  else
+    local __1_auto = case_4_
+    FAIL(string.format((":Hotpot locate echos counterpart path for current file" or "")))
+  end
+end
+local output1 = nvim:cmd("Hotpot locate -- echo '%%%%'")
+do
+  local case_6_ = (lua_path == output1)
+  if (case_6_ == true) then
+    OK(string.format((":Hotpot locate -- command supports `%%` expansion" or "")))
+  else
+    local __1_auto = case_6_
+    FAIL(string.format((":Hotpot locate -- command supports `%%` expansion" or "")))
+  end
 end
 nvim:cmd("Hotpot locate -- vnew")
 local buf_name = nvim:lua("print(vim.api.nvim_buf_get_name(0))")
-if (nil ~= buf_name) then
-  local lua_path0 = buf_name
-  OK(string.format((":Hotpot locate <fnl-path> -- vnew opens lua counterpart in new window" or "")))
-else
-  local __1_auto = buf_name
-  FAIL(string.format((":Hotpot locate <fnl-path> -- vnew opens lua counterpart in new window" or "")))
+do
+  local case_8_ = (lua_path == buf_name)
+  if (case_8_ == true) then
+    OK(string.format((":Hotpot locate <fnl-path> -- vnew opens lua counterpart in new window" or "")))
+  else
+    local __1_auto = case_8_
+    FAIL(string.format((":Hotpot locate <fnl-path> -- vnew opens lua counterpart in new window" or "")))
+  end
+end
+nvim:cmd("Hotpot locate")
+local output2 = nvim:lua("LAST()")
+do
+  local case_10_ = (fnl_path == output2)
+  if (case_10_ == true) then
+    OK(string.format((":Hotpot locate <lua-path> returns fnl path in colocate context" or "")))
+  else
+    local __1_auto = case_10_
+    FAIL(string.format((":Hotpot locate <lua-path> returns fnl path in colocate context" or "")))
+  end
+end
+create_file(path("config", ".hotpot.fnl"), "{:schema :hotpot/2 :target :cache}")
+vim.uv.fs_unlink(fnl_path)
+vim.uv.fs_unlink(lua_path)
+local fnl_path0 = create_file(path("config", "fnl/mymod.fnl"), "{:works true}")
+local lua_path0 = path("cache", "lua/mymod.lua")
+nvim:cmd("edit %s", fnl_path0)
+nvim:cmd("w")
+nvim:cmd("Hotpot locate -- vnew")
+local buf_name0 = nvim:lua("print(vim.api.nvim_buf_get_name(0))")
+do
+  local case_12_ = (lua_path0 == buf_name0)
+  if (case_12_ == true) then
+    OK(string.format((":Hotpot locate <fnl-path> -- vnew opens cache lua counterpart in cache context" or "")))
+  else
+    local __1_auto = case_12_
+    FAIL(string.format((":Hotpot locate <fnl-path> -- vnew opens cache lua counterpart in cache context" or "")))
+  end
 end
 nvim:cmd("Hotpot locate -- vnew")
-local output1 = nvim:cmd("Hotpot locate")
-if (nil ~= output1) then
-  local fnl_path0 = output1
-  OK(string.format((":Hotpot locate <lua-path> returns fnl path in colocate context" or "")))
-else
-  local __1_auto = output1
-  FAIL(string.format((":Hotpot locate <lua-path> returns fnl path in colocate context" or "")))
+local buf_name1 = nvim:lua("print(vim.api.nvim_buf_get_name(0))")
+do
+  local case_14_ = (fnl_path0 == buf_name1)
+  if (case_14_ == true) then
+    OK(string.format((":Hotpot locate <lua-path> -- vnew opens config fnl counterpart in cache context" or "")))
+  else
+    local __1_auto = case_14_
+    FAIL(string.format((":Hotpot locate <lua-path> -- vnew opens config fnl counterpart in cache context" or "")))
+  end
 end
-local output2 = nvim:cmd("Hotpot locate", fnl_path)
-vim.print(output2)
 nvim:close()
 return exit()
