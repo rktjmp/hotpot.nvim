@@ -76,8 +76,15 @@
 
 (λ M.context [?path]
   "Build a context object that exposes bound API functions."
-  (case (pcall R.context.new ?path)
-    (true ctx) (bind-context ctx)
-    (false err) (values nil err)))
+  (case ?path
+    ;; no path -> api context, dont try finding anything
+    nil (-> (R.Context.new)
+            (bind-context))
+    ;; try to find nearest root for give path
+    path (case (R.Context.nearest path)
+           root (case (pcall R.Context.new root)
+                  (true ctx) (bind-context ctx)
+                  (false err) (values nil err))
+           (nil err) (values nil err))))
 
 M

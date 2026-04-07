@@ -136,13 +136,29 @@ local function bind_context(ctx)
   return base
 end
 M.context = function(_3fpath)
-  local case_29_, case_30_ = pcall(R.context.new, _3fpath)
-  if ((case_29_ == true) and (nil ~= case_30_)) then
-    local ctx = case_30_
-    return bind_context(ctx)
-  elseif ((case_29_ == false) and (nil ~= case_30_)) then
-    local err = case_30_
-    return nil, err
+  if (_3fpath == nil) then
+    return bind_context(R.Context.new())
+  elseif (nil ~= _3fpath) then
+    local path = _3fpath
+    local case_29_, case_30_ = R.Context.nearest(path)
+    if (nil ~= case_29_) then
+      local root = case_29_
+      local case_31_, case_32_ = pcall(R.Context.new, root)
+      if ((case_31_ == true) and (nil ~= case_32_)) then
+        local ctx = case_32_
+        return bind_context(ctx)
+      elseif ((case_31_ == false) and (nil ~= case_32_)) then
+        local err = case_32_
+        return nil, err
+      else
+        return nil
+      end
+    elseif ((case_29_ == nil) and (nil ~= case_30_)) then
+      local err = case_30_
+      return nil, err
+    else
+      return nil
+    end
   else
     return nil
   end
