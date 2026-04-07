@@ -5,7 +5,7 @@ local M, m = {}, {}
 local function bind_compile(ctx)
   local function _2_(source, _3foptions)
     if (nil == source) then
-      _G.error("Missing argument source on fnl/hotpot/api.fnl:5", 2)
+      _G.error("Missing argument source on fnl/hotpot/api.fnl:9", 2)
     else
     end
     return pcall(R.context["compile-string"], ctx, source, vim.tbl_extend("force", (_3foptions or {}), {filename = "--hotpot-api-compile"}))
@@ -15,7 +15,7 @@ end
 local function bind_eval(ctx)
   local function _4_(source, _3foptions)
     if (nil == source) then
-      _G.error("Missing argument source on fnl/hotpot/api.fnl:13", 2)
+      _G.error("Missing argument source on fnl/hotpot/api.fnl:17", 2)
     else
     end
     return pcall(R.context["eval-string"], ctx, source, vim.tbl_extend("force", (_3foptions or {}), {filename = "--hotpot-api-eval"}))
@@ -28,7 +28,16 @@ local function bind_sync(ctx)
   else
     local _ = ctx
     local function _6_(_3foptions)
-      return pcall(R.context.sync, ctx, _3foptions)
+      local case_7_, case_8_ = pcall(R.context.sync, ctx, _3foptions)
+      if ((case_7_ == true) and (nil ~= case_8_)) then
+        local report = case_8_
+        return R.runtime["invoke-sync-report-handler"](ctx, report, {source = "api"})
+      elseif ((case_7_ == false) and true) then
+        local _3ferr = case_8_
+        return false, _3ferr
+      else
+        return nil
+      end
     end
     return _6_
   end
@@ -38,9 +47,9 @@ local function bind_locate(ctx)
     return nil
   else
     local _ = ctx
-    local function _8_(what)
+    local function _11_(what)
       if (nil == what) then
-        _G.error("Missing argument what on fnl/hotpot/api.fnl:30", 2)
+        _G.error("Missing argument what on fnl/hotpot/api.fnl:35", 2)
       else
       end
       if (what == "source") then
@@ -48,66 +57,66 @@ local function bind_locate(ctx)
       elseif (what == "destination") then
         return ctx.path.dest
       else
-        local and_10_ = (nil ~= what)
-        if and_10_ then
+        local and_13_ = (nil ~= what)
+        if and_13_ then
           local path = what
-          and_10_ = ("string" == type(path))
+          and_13_ = ("string" == type(path))
         end
-        if and_10_ then
+        if and_13_ then
           local path = what
           local real_path = (vim.uv.fs_realpath(path) or path)
-          local _let_12_ = R.const
-          local NVIM_CONFIG_ROOT = _let_12_.NVIM_CONFIG_ROOT
+          local _let_15_ = R.const
+          local NVIM_CONFIG_ROOT = _let_15_.NVIM_CONFIG_ROOT
           local init_fnl = vim.fs.joinpath(NVIM_CONFIG_ROOT, "init.fnl")
           local init_lua = vim.fs.joinpath(NVIM_CONFIG_ROOT, "init.lua")
           local ext = string.match(real_path, "%.([^%.]+)$")
-          local case_13_, case_14_ = real_path, ext
-          local and_15_ = (case_13_ == init_fnl)
-          if and_15_ then
-            and_15_ = _
+          local case_16_, case_17_ = real_path, ext
+          local and_18_ = (case_16_ == init_fnl)
+          if and_18_ then
+            and_18_ = _
           end
-          if and_15_ then
+          if and_18_ then
             return init_lua
           else
-            local and_17_ = (case_13_ == init_lua)
-            if and_17_ then
-              and_17_ = _
+            local and_20_ = (case_16_ == init_lua)
+            if and_20_ then
+              and_20_ = _
             end
-            if and_17_ then
+            if and_20_ then
               return init_fnl
-            elseif (true and (case_14_ == "fnlm")) then
-              local _0 = case_13_
+            elseif (true and (case_17_ == "fnlm")) then
+              local _0 = case_16_
               return real_path
-            elseif (true and (case_14_ == "fnl")) then
-              local _0 = case_13_
-              local case_19_ = vim.fs.relpath(ctx.path.source, path)
-              if (nil ~= case_19_) then
-                local rel_path = case_19_
+            elseif (true and (case_17_ == "fnl")) then
+              local _0 = case_16_
+              local case_22_ = vim.fs.relpath(ctx.path.source, path)
+              if (nil ~= case_22_) then
+                local rel_path = case_22_
                 local renamed = string.gsub(string.gsub(rel_path, "^fnl/", "lua/"), "%.fnl$", ".lua")
                 return vim.fs.joinpath(ctx.path.dest, renamed)
-              elseif (case_19_ == nil) then
+              elseif (case_22_ == nil) then
                 return nil, string.format("%s not under context source %s", path, ctx.path.source)
               else
                 return nil
               end
-            elseif (true and (case_14_ == "lua")) then
-              local _0 = case_13_
-              local case_21_ = vim.fs.relpath(ctx.path.dest, path)
-              if (nil ~= case_21_) then
-                local rel_path = case_21_
+            elseif (true and (case_17_ == "lua")) then
+              local _0 = case_16_
+              local case_24_ = vim.fs.relpath(ctx.path.dest, path)
+              if (nil ~= case_24_) then
+                local rel_path = case_24_
                 local renamed = string.gsub(string.gsub(rel_path, "^lua/", "fnl/"), "%.lua$", ".fnl")
                 return vim.fs.joinpath(ctx.path.source, renamed)
-              elseif (case_21_ == nil) then
+              elseif (case_24_ == nil) then
                 return nil, string.format("%s not under context destination %s", path, ctx.path.dest)
               else
                 return nil
               end
-            elseif (true and (nil ~= case_14_)) then
-              local _0 = case_13_
-              local ext0 = case_14_
+            elseif (true and (nil ~= case_17_)) then
+              local _0 = case_16_
+              local ext0 = case_17_
               return nil, string.format("Unsupported extension %s, must be .fnl, .fnlm and .lua", ext0)
             else
-              local _0 = case_13_
+              local _0 = case_16_
               return nil, string.format("Could not locate %s, perhaps its a directory or does not exist?", path)
             end
           end
@@ -117,73 +126,73 @@ local function bind_locate(ctx)
         end
       end
     end
-    return _8_
+    return _11_
   end
 end
 local function bind_metadata(ctx)
   if ((_G.type(ctx) == "table") and (ctx.kind == "api")) then
-    local function _26_()
+    local function _29_()
       return {kind = "api"}
     end
-    return _26_
+    return _29_
   else
     local _ = ctx
-    local function _27_()
+    local function _30_()
       return {target = ctx.target, kind = ctx.kind, source = ctx.path.source, destination = ctx.path.dest}
     end
-    return _27_
+    return _30_
   end
 end
 local function bind_context(ctx)
   local base = {compile = bind_compile(ctx), eval = bind_eval(ctx), sync = bind_sync(ctx), metadata = bind_metadata(ctx), locate = bind_locate(ctx)}
   if ctx.transform then
-    local function _29_(source, _3ffilename)
+    local function _32_(source, _3ffilename)
       if (nil == source) then
-        _G.error("Missing argument source on fnl/hotpot/api.fnl:82", 2)
+        _G.error("Missing argument source on fnl/hotpot/api.fnl:87", 2)
       else
       end
       return ctx.transform(source, (_3ffilename or "--hotpot-api-transform"))
     end
-    base.transform = _29_
+    base.transform = _32_
   else
   end
   return base
 end
-M.context = function(_3fpath)
-  if (_3fpath == nil) then
+M.context = function(_3ftarget)
+  if (_3ftarget == nil) then
     return bind_context(R.Context.new())
-  elseif ((_G.type(_3fpath) == "table") and (_3fpath.__type == "context")) then
-    local internal = _3fpath
+  elseif ((_G.type(_3ftarget) == "table") and (_3ftarget.__type == "context")) then
+    local internal = _3ftarget
     return bind_context(internal)
   else
-    local and_32_ = (nil ~= _3fpath)
-    if and_32_ then
-      local path = _3fpath
-      and_32_ = ("string" == type(path))
+    local and_35_ = (nil ~= _3ftarget)
+    if and_35_ then
+      local path = _3ftarget
+      and_35_ = ("string" == type(path))
     end
-    if and_32_ then
-      local path = _3fpath
-      local case_34_, case_35_ = R.Context.nearest(path)
-      if (nil ~= case_34_) then
-        local root = case_34_
-        local case_36_, case_37_ = pcall(R.Context.new, root)
-        if ((case_36_ == true) and (nil ~= case_37_)) then
-          local ctx = case_37_
+    if and_35_ then
+      local path = _3ftarget
+      local case_37_, case_38_ = R.Context.nearest(path)
+      if (nil ~= case_37_) then
+        local root = case_37_
+        local case_39_, case_40_ = pcall(R.Context.new, root)
+        if ((case_39_ == true) and (nil ~= case_40_)) then
+          local ctx = case_40_
           return bind_context(ctx)
-        elseif ((case_36_ == false) and (nil ~= case_37_)) then
-          local err = case_37_
+        elseif ((case_39_ == false) and (nil ~= case_40_)) then
+          local err = case_40_
           return nil, err
         else
           return nil
         end
-      elseif ((case_34_ == nil) and (nil ~= case_35_)) then
-        local err = case_35_
+      elseif ((case_37_ == nil) and (nil ~= case_38_)) then
+        local err = case_38_
         return nil, err
       else
         return nil
       end
-    elseif (nil ~= _3fpath) then
-      local other = _3fpath
+    elseif (nil ~= _3ftarget) then
+      local other = _3ftarget
       return nil, string.format("api.context: bad argument type %s", type(other))
     else
       return nil

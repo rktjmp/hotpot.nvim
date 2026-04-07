@@ -1,6 +1,10 @@
 (local {: R} (require :hotpot.util))
 (local (M m) (values {} {}))
 
+;; We intentionally dont convert `lua_options` into `fnl-options?`
+;; as we also pass the given options to the fennel compiler which have mixed
+;; formatting. Users must just give `["verbose?] = true` if accessing from lua.
+
 (fn bind-compile [ctx]
   (λ [source ?options]
     (pcall R.context.compile-string
@@ -21,8 +25,9 @@
   (case ctx
     {:kind :api} nil
     _ (λ [?options]
-        ;; TODO: whitelist options?
-        (pcall R.context.sync ctx ?options))))
+        (case (pcall R.context.sync ctx ?options)
+          (true report) (R.runtime.invoke-sync-report-handler ctx report {:source :api})
+          (false ?err) (values false ?err)))))
 
 (fn bind-locate [ctx]
   (case ctx
@@ -83,9 +88,9 @@
              (ctx.transform source (or ?filename :--hotpot-api-transform)))))
     base))
 
-(λ M.context [?path]
+(λ M.context [?target]
   "Build a context object that exposes bound API functions."
-  (case ?path
+  (case ?target
     ;; no path -> api context, dont try finding anything
     nil (-> (R.Context.new)
             (bind-context))

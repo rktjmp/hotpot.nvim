@@ -1,10 +1,6 @@
 (local {: R : notify-error} (require :hotpot.util))
 (local (M m) (values {} {}))
 
-(fn silly-lsp-notification [buf ctx report]
-  (let [client-id (R.lsp.start-lsp {:root ctx.path.source})]
-    (R.lsp.emit-report client-id report)))
-
 (fn buf-write-post-callback [event]
   (let [{: Context} R
         {:match path : buf} event]
@@ -12,7 +8,7 @@
       root (case-try
              (pcall Context.new root) (true ctx)
              (pcall Context.sync ctx) (true report)
-             (silly-lsp-notification buf ctx report)
+             (R.runtime.invoke-sync-report-handler ctx report {:source :autocommand})
              (catch
                (false err) (notify-error err)))
       ;; we may be saving just some random fennel file, so not finding a
@@ -29,6 +25,7 @@
       (set *augroup-id* augroup-id)
       (vim.api.nvim_create_autocmd [:BufWritePost]
                                    {:pattern [:*.fnl :*.fnlm]
+                                    :desc "Hotpot sync on-save"
                                     :group augroup-id
                                     :callback  buf-write-post-callback}))))
 

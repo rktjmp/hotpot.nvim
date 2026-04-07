@@ -3,10 +3,6 @@ local _local_1_ = require("hotpot.util")
 local R = _local_1_.R
 local notify_error = _local_1_["notify-error"]
 local M, m = {}, {}
-local function silly_lsp_notification(buf, ctx, report)
-  local client_id = R.lsp["start-lsp"]({root = ctx.path.source})
-  return R.lsp["emit-report"](client_id, report)
-end
 local function buf_write_post_callback(event)
   local Context = R.Context
   local path = event.match
@@ -23,7 +19,7 @@ local function buf_write_post_callback(event)
             local case_7_, case_8_ = ...
             if ((case_7_ == true) and (nil ~= case_8_)) then
               local report = case_8_
-              return silly_lsp_notification(buf, ctx, report)
+              return R.runtime["invoke-sync-report-handler"](ctx, report, {source = "autocommand"})
             elseif ((case_7_ == false) and (nil ~= case_8_)) then
               local err = case_8_
               return notify_error(err)
@@ -51,7 +47,7 @@ M.enable = function()
   if not _2aaugroup_id_2a then
     local augroup_id = vim.api.nvim_create_augroup("hotpot-fnl-ft", {clear = true})
     _2aaugroup_id_2a = augroup_id
-    return vim.api.nvim_create_autocmd({"BufWritePost"}, {pattern = {"*.fnl", "*.fnlm"}, group = augroup_id, callback = buf_write_post_callback})
+    return vim.api.nvim_create_autocmd({"BufWritePost"}, {pattern = {"*.fnl", "*.fnlm"}, desc = "Hotpot sync on-save", group = augroup_id, callback = buf_write_post_callback})
   else
     return nil
   end

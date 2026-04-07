@@ -44,17 +44,14 @@
       root (case-try
              (pcall R.context.new root) (true ctx)
              (pcall R.context.sync ctx opts) (true report)
-             (let [client-id (R.lsp.start-lsp {:root ctx.path.source})]
-               (R.lsp.emit-report client-id report)
-               (case (values report (not opts.verbose?))
-                 ;; If no errors and not verbose, let the user know
-                 ;; *something* ran.
-                 ({:errors [nil]} _) (do
-                                          (notify-info (string.format "Synced %s" root))
-                                          nil)))
+             (R.runtime.invoke-sync-report-handler ctx report {:source :command}) _
+             (case report
+               ;; If no errors and not verbose, let the user know *something* ran.
+               {:errors [nil]} (notify-info (string.format "Synced %s" root)))
              (catch
                (false err) (notify-error err)))
-      (nil err) (notify-error err))))
+      (nil err) (notify-error err))
+    (values nil)))
 
 (fn hotpot-command-watch-handler [params]
   (case params
