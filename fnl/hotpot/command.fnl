@@ -160,7 +160,8 @@
     (case data
       {: file} (let [file (vim.fn.expand file)
                      (file err) (case (fetch-context file)
-                                  {:locate nil} (values nil "path was not in any context")
+                                  {:locate nil} (let [msg (string.format "path '%s' was not in any context" file)]
+                                                  (values nil msg))
                                   {: locate} (locate file))]
                  (if file
                    (case data
