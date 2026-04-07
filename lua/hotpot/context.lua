@@ -816,67 +816,65 @@ M.nearest = function(starting_path)
   local case_134_ = vim.uv.fs_realpath(starting_path)
   if (nil ~= case_134_) then
     local real_starting_path = case_134_
-    local case_135_ = vim.fs.relpath(R0.const.NVIM_CONFIG_ROOT, real_starting_path)
-    if (nil ~= case_135_) then
-      local path_inside_config = case_135_
+    local inside_config_3f = (nil ~= vim.fs.relpath(R0.const.NVIM_CONFIG_ROOT, real_starting_path))
+    local inside_cache_3f = (nil ~= vim.fs.relpath(R0.const.HOTPOT_CONFIG_CACHE_ROOT, real_starting_path))
+    if (inside_config_3f or inside_cache_3f) then
       return R0.const.NVIM_CONFIG_ROOT
-    elseif (case_135_ == nil) then
-      local case_136_ = vim.fs.root(real_starting_path, ".hotpot.fnl")
-      if (case_136_ == nil) then
-        return nil, string.format("Unable to find nearest context to %s, no .hotpot.fnl in tree", starting_path)
-      elseif (nil ~= case_136_) then
-        local root = case_136_
+    else
+      local case_135_ = vim.fs.root(real_starting_path, ".hotpot.fnl")
+      if (case_135_ == nil) then
+        return nil, string.format("Unable to find nearest context to '%s': no .hotpot.fnl in tree", starting_path)
+      elseif (nil ~= case_135_) then
+        local root = case_135_
         return root
       else
         return nil
       end
-    else
-      return nil
     end
   elseif (case_134_ == nil) then
-    return nil, string.format("Unable to find nearest context to %s, does not exist", starting_path)
+    return nil, string.format("Unable to find nearest context to '%s': does not exist", starting_path)
   else
     return nil
   end
 end
 local function make_warn_impl(filename)
   if (nil == filename) then
-    _G.error("Missing argument filename on fnl/hotpot/context.fnl:535", 2)
+    _G.error("Missing argument filename on fnl/hotpot/context.fnl:538", 2)
   else
   end
-  local function _141_(warning)
+  local function _140_(warning)
     return notify_warn("Fennel compiler warning for %s: %s", filename, warning)
   end
-  return _141_
+  return _140_
 end
 M["compile-string"] = function(ctx, fnl_source, options)
   if (nil == options) then
-    _G.error("Missing argument options on fnl/hotpot/context.fnl:539", 2)
+    _G.error("Missing argument options on fnl/hotpot/context.fnl:542", 2)
   else
   end
   if (nil == fnl_source) then
-    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:539", 2)
+    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:542", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:539", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:542", 2)
   else
   end
   assert(options.filename, "tried to compile without filename")
   local fennel = R0.fennel
   local compiler_options = vim.tbl_extend("force", ctx.compiler, options, {filename = options.filename, warn = make_warn_impl(options.filename), ["error-pinpoint"] = false})
-  local _let_145_ = m["make-fennel-path-modifiers"](ctx, fennel)
-  local update_fennel_path = _let_145_["update-fennel-path"]
-  local restore_fennel_path = _let_145_["restore-fennel-path"]
+  local _let_144_ = m["make-fennel-path-modifiers"](ctx, fennel)
+  local update_fennel_path = _let_144_["update-fennel-path"]
+  local restore_fennel_path = _let_144_["restore-fennel-path"]
   local _ = update_fennel_path()
   local ok_3f, val = pcall(fennel["compile-string"], fnl_source, compiler_options)
   local _0 = restore_fennel_path()
-  local case_146_, case_147_ = ok_3f, val
-  if ((case_146_ == true) and (nil ~= case_147_)) then
-    local src = case_147_
+  local case_145_, case_146_ = ok_3f, val
+  if ((case_145_ == true) and (nil ~= case_146_)) then
+    local src = case_146_
     return src
-  elseif ((case_146_ == false) and (nil ~= case_147_)) then
-    local err = case_147_
+  elseif ((case_145_ == false) and (nil ~= case_146_)) then
+    local err = case_146_
     return error(err)
   else
     return nil
@@ -884,31 +882,31 @@ M["compile-string"] = function(ctx, fnl_source, options)
 end
 M["eval-string"] = function(ctx, fnl_source, options)
   if (nil == options) then
-    _G.error("Missing argument options on fnl/hotpot/context.fnl:559", 2)
+    _G.error("Missing argument options on fnl/hotpot/context.fnl:562", 2)
   else
   end
   if (nil == fnl_source) then
-    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:559", 2)
+    _G.error("Missing argument fnl-source on fnl/hotpot/context.fnl:562", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:559", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:562", 2)
   else
   end
   local fennel = R0.fennel
-  local _let_152_ = R0.util
-  local pack = _let_152_.pack
+  local _let_151_ = R0.util
+  local pack = _let_151_.pack
   local compiler_options = vim.tbl_extend("force", ctx.compiler, options, {filename = options.filename, warn = make_warn_impl(options.filename), ["error-pinpoint"] = false})
-  local _let_153_ = m["make-fennel-path-modifiers"](ctx, fennel)
-  local update_fennel_path = _let_153_["update-fennel-path"]
-  local restore_fennel_path = _let_153_["restore-fennel-path"]
+  local _let_152_ = m["make-fennel-path-modifiers"](ctx, fennel)
+  local update_fennel_path = _let_152_["update-fennel-path"]
+  local restore_fennel_path = _let_152_["restore-fennel-path"]
   local _ = update_fennel_path()
   local returns = pack(pcall(fennel.eval, fnl_source, compiler_options))
   local _0 = restore_fennel_path()
-  local case_154_ = returns[1]
-  if (case_154_ == true) then
+  local case_153_ = returns[1]
+  if (case_153_ == true) then
     return unpack(returns, 2, returns.n)
-  elseif (case_154_ == false) then
+  elseif (case_153_ == false) then
     return error(returns[2])
   else
     return nil
@@ -916,23 +914,23 @@ M["eval-string"] = function(ctx, fnl_source, options)
 end
 M.sync = function(ctx, _3foptions)
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:578", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/context.fnl:581", 2)
   else
   end
   local function option_if_set(key)
-    local case_157_
+    local case_156_
     do
-      local t_158_ = _3foptions
-      if (nil ~= t_158_) then
-        t_158_ = t_158_[key]
+      local t_157_ = _3foptions
+      if (nil ~= t_157_) then
+        t_157_ = t_157_[key]
       else
       end
-      case_157_ = t_158_
+      case_156_ = t_157_
     end
-    if (case_157_ == nil) then
+    if (case_156_ == nil) then
       return ctx[key]
-    elseif (nil ~= case_157_) then
-      local val = case_157_
+    elseif (nil ~= case_156_) then
+      local val = case_156_
       return val
     else
       return nil
@@ -942,31 +940,31 @@ M.sync = function(ctx, _3foptions)
   local atomic_3f = option_if_set("atomic?")
   local verbose_3f = option_if_set("verbose?")
   local extra_compiler_options
-  local _162_
+  local _161_
   do
-    local t_161_ = _3foptions
-    if (nil ~= t_161_) then
-      t_161_ = t_161_.compiler
+    local t_160_ = _3foptions
+    if (nil ~= t_160_) then
+      t_160_ = t_160_.compiler
     else
     end
-    _162_ = t_161_
+    _161_ = t_160_
   end
-  extra_compiler_options = (_162_ or {})
+  extra_compiler_options = (_161_ or {})
   local source_files = m["find-source-files"](ctx)
   local stale_files = m["sync-plan-compile"](ctx, source_files, force_3f)
   local orphan_files = m["sync-plan-clean"](ctx, source_files)
   local time_start = vim.uv.hrtime()
-  local _let_164_ = m["sync-compile"](ctx, stale_files, extra_compiler_options)
-  local compile_oks = _let_164_.ok
-  local compile_errors = _let_164_.errors
+  local _let_163_ = m["sync-compile"](ctx, stale_files, extra_compiler_options)
+  local compile_oks = _let_163_.ok
+  local compile_errors = _let_163_.errors
   local time_stop = vim.uv.hrtime()
   local total_duration_ms = ((time_stop - time_start) / 1000000)
   local has_errors_3f = (0 < #compile_errors)
   local printable_report = {}
   local data_report = {sources = source_files, compiled = {}, cleaned = {}, errors = compile_errors}
   local extend_report
-  local function _165_(t, line_fn)
-    local function _166_()
+  local function _164_(t, line_fn)
+    local function _165_()
       local tbl_26_ = {}
       local i_27_ = 0
       for _, el in ipairs(t) do
@@ -979,13 +977,13 @@ M.sync = function(ctx, _3foptions)
       end
       return tbl_26_
     end
-    return vim.list_extend(printable_report, _166_())
+    return vim.list_extend(printable_report, _165_())
   end
-  extend_report = _165_
+  extend_report = _164_
   if (not has_errors_3f or not atomic_3f) then
-    local _let_168_ = m["sync-plan-confirm"](ctx, compile_oks, orphan_files)
-    local write = _let_168_.write
-    local clean = _let_168_.clean
+    local _let_167_ = m["sync-plan-confirm"](ctx, compile_oks, orphan_files)
+    local write = _let_167_.write
+    local clean = _let_167_.clean
     do
       m["sync-write"](ctx, write)
       do
@@ -1006,17 +1004,17 @@ M.sync = function(ctx, _3foptions)
         data_report.compiled = tbl_26_
       end
       if ((0 < #write) and verbose_3f) then
-        local function _171_(_170_)
-          local fnl_abs = _170_["fnl-abs"]
-          local lua_abs = _170_["lua-abs"]
-          local duration_ms = _170_["duration-ms"]
+        local function _170_(_169_)
+          local fnl_abs = _169_["fnl-abs"]
+          local lua_abs = _169_["lua-abs"]
+          local duration_ms = _169_["duration-ms"]
           return {string.format("\226\152\145  %s (%.2fms)\n-> %s\n", fnl_abs, duration_ms, lua_abs), "DiagnosticOk"}
         end
-        extend_report(write, _171_)
-        local function _172_(_241)
+        extend_report(write, _170_)
+        local function _171_(_241)
           return _241
         end
-        extend_report({{string.format("Duration: %.2fms\n", total_duration_ms), "DiagnosticInfo"}}, _172_)
+        extend_report({{string.format("Duration: %.2fms\n", total_duration_ms), "DiagnosticInfo"}}, _171_)
       else
       end
     end
@@ -1026,46 +1024,46 @@ M.sync = function(ctx, _3foptions)
     m["sync-clean"](ctx, unowned)
     data_report.cleaned = clean
     if verbose_3f then
-      local function _175_(_174_)
-        local lua_abs = _174_["lua-abs"]
+      local function _174_(_173_)
+        local lua_abs = _173_["lua-abs"]
         return {string.format("rm %s\n", lua_abs), "DiagnosticInfo"}
       end
-      extend_report(unowned, _175_)
-      local function _177_(_176_)
-        local lua_abs = _176_["lua-abs"]
+      extend_report(unowned, _174_)
+      local function _176_(_175_)
+        local lua_abs = _175_["lua-abs"]
         return {string.format("rm %s\n", lua_abs), "DiagnosticInfo"}
       end
-      extend_report(owned, _177_)
+      extend_report(owned, _176_)
     else
     end
   else
   end
   if has_errors_3f then
-    local function _181_(_180_)
-      local fnl_abs = _180_["fnl-abs"]
-      local lua_abs = _180_["lua-abs"]
-      local error = _180_.error
+    local function _180_(_179_)
+      local fnl_abs = _179_["fnl-abs"]
+      local lua_abs = _179_["lua-abs"]
+      local error = _179_.error
       return {string.format("\226\152\146  %s\n%s\n", fnl_abs, error), "DiagnosticError"}
     end
-    extend_report(compile_errors, _181_)
-    local function _182_()
+    extend_report(compile_errors, _180_)
+    local function _181_()
       if atomic_3f then
         return {"`atomic? = true`, no changes were written to disk!\n", "DiagnosticWarn"}
       else
         return nil
       end
     end
-    local function _183_(_241)
+    local function _182_(_241)
       return _241
     end
-    extend_report({{"\nSome files had compilation errors! ", "DiagnosticWarn"}, _182_()}, _183_)
+    extend_report({{"\nSome files had compilation errors! ", "DiagnosticWarn"}, _181_()}, _182_)
   else
   end
   if (0 < #printable_report) then
-    local function _185_()
+    local function _184_()
       return vim.api.nvim_echo(printable_report, true, {})
     end
-    vim.schedule(_185_)
+    vim.schedule(_184_)
   else
   end
   return data_report

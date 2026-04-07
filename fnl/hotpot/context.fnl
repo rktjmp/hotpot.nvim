@@ -515,21 +515,24 @@
             (user-spec->context {:kind :api}))))
 
 (λ M.nearest [starting-path]
-  "Find the nearest context root for given path, returns path to context root"
+  "Find the nearest context root for given path, returns path to context root or nil, err"
   (case (vim.uv.fs_realpath starting-path)
-    real-starting-path (case (vim.fs.relpath R.const.NVIM_CONFIG_ROOT real-starting-path)
-                         ;; if the given path is inside our config, we dont actually
-                         ;; need to find a .hotpot.fnl file and can just call the config
-                         ;; root as nearest.
-                         path-inside-config R.const.NVIM_CONFIG_ROOT
-                         ;; otherwise we actually *do* need to find a directory.
-                         nil (case (vim.fs.root real-starting-path :.hotpot.fnl)
-                               nil (values nil (string.format
-                                                 "Unable to find nearest context to %s, no .hotpot.fnl in tree"
-                                                 starting-path))
-                               root root))
+    real-starting-path (let [inside-config? (~= nil (vim.fs.relpath R.const.NVIM_CONFIG_ROOT real-starting-path))
+                             inside-cache? (~= nil (vim.fs.relpath R.const.HOTPOT_CONFIG_CACHE_ROOT real-starting-path))]
+                         (if (or inside-config? inside-cache?)
+                           ;; if the given path is inside our config, or
+                           ;; special case: inside the config cache root, we
+                           ;; dont actually need to find a .hotpot.fnl file and
+                           ;; can just call the config root as nearest.
+                           R.const.NVIM_CONFIG_ROOT
+                           ;; otherwise we actually *do* need to find a directory.
+                           (case (vim.fs.root real-starting-path :.hotpot.fnl)
+                             nil (values nil (string.format
+                                               "Unable to find nearest context to '%s': no .hotpot.fnl in tree"
+                                               starting-path))
+                             root root)))
     nil (values nil (string.format
-                      "Unable to find nearest context to %s, does not exist"
+                      "Unable to find nearest context to '%s': does not exist"
                       starting-path))))
 
 (λ make-warn-impl [filename]
