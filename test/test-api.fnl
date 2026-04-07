@@ -8,11 +8,15 @@
 ;; Check returns nil, err on nonsense
 (local output (nvim:lua "local ctx, err = api.context('doesnt-exist')
                         vim.print(ctx,err)"))
-(expect "nil\nUnable to load doesnt-exist/.hotpot.fnl: does not exist"
+(expect "nil\nUnable to find nearest context to 'doesnt-exist': does not exist"
         output
         "loading fake path returns nil, err")
 
-(nvim:lua "ctx = api.context(vim.fn.stdpath('config'))")
+;; technically api.context(config) will fail if the config dir does not exist,
+;; because nearest will fail. This I think is actually the correct behaviour
+;; and in any real world use case the dir should exist.
+(nvim:lua (string.format "vim.fn.mkdir(%q, 'p')" (path :config)))
+(local output (nvim:lua "ctx, err = api.context(vim.fn.stdpath('config'))"))
 
 ;; Has path details
 (local output (nvim:lua "vim.print(ctx.locate('source'))"))
