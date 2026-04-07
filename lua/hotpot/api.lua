@@ -152,29 +152,42 @@ end
 M.context = function(_3fpath)
   if (_3fpath == nil) then
     return bind_context(R.Context.new())
-  elseif (nil ~= _3fpath) then
-    local path = _3fpath
-    local case_32_, case_33_ = R.Context.nearest(path)
-    if (nil ~= case_32_) then
-      local root = case_32_
-      local case_34_, case_35_ = pcall(R.Context.new, root)
-      if ((case_34_ == true) and (nil ~= case_35_)) then
-        local ctx = case_35_
-        return bind_context(ctx)
-      elseif ((case_34_ == false) and (nil ~= case_35_)) then
+  elseif ((_G.type(_3fpath) == "table") and (_3fpath.__type == "context")) then
+    local internal = _3fpath
+    return bind_context(internal)
+  else
+    local and_32_ = (nil ~= _3fpath)
+    if and_32_ then
+      local path = _3fpath
+      and_32_ = ("string" == type(path))
+    end
+    if and_32_ then
+      local path = _3fpath
+      local case_34_, case_35_ = R.Context.nearest(path)
+      if (nil ~= case_34_) then
+        local root = case_34_
+        local case_36_, case_37_ = pcall(R.Context.new, root)
+        if ((case_36_ == true) and (nil ~= case_37_)) then
+          local ctx = case_37_
+          return bind_context(ctx)
+        elseif ((case_36_ == false) and (nil ~= case_37_)) then
+          local err = case_37_
+          return nil, err
+        else
+          return nil
+        end
+      elseif ((case_34_ == nil) and (nil ~= case_35_)) then
         local err = case_35_
         return nil, err
       else
         return nil
       end
-    elseif ((case_32_ == nil) and (nil ~= case_33_)) then
-      local err = case_33_
-      return nil, err
+    elseif (nil ~= _3fpath) then
+      local other = _3fpath
+      return nil, string.format("api.context: bad argument type %s", type(other))
     else
       return nil
     end
-  else
-    return nil
   end
 end
 return M

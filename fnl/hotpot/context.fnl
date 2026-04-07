@@ -142,7 +142,7 @@
         ctx (vim.tbl_extend :force
                             (base-spec)
                             user-spec
-                            {: kind : path :source (or source :in-memory)})]
+                            {:__type :context : kind : path :source (or source :in-memory)})]
     (when user-compiler-options
       ;; Merge compiler options separately, so we can keep any default
       ;; values we set and mix in user options. If we didn't do this,

@@ -89,11 +89,15 @@
     ;; no path -> api context, dont try finding anything
     nil (-> (R.Context.new)
             (bind-context))
+    ;; internal context -> api context, used when we want to pass a context out
+    ;; to a user function from an internal module.
+    {:__type :context &as internal} (bind-context internal)
     ;; try to find nearest root for give path
-    path (case (R.Context.nearest path)
-           root (case (pcall R.Context.new root)
-                  (true ctx) (bind-context ctx)
-                  (false err) (values nil err))
-           (nil err) (values nil err))))
+    (where path (= :string (type path))) (case (R.Context.nearest path)
+                                           root (case (pcall R.Context.new root)
+                                                  (true ctx) (bind-context ctx)
+                                                  (false err) (values nil err))
+                                           (nil err) (values nil err))
+    other (values nil (string.format "api.context: bad argument type %s" (type other)))))
 
 M

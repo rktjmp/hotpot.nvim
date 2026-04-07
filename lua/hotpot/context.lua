@@ -235,7 +235,7 @@ local function user_spec__3econtext(user_spec, meta)
   local _
   user_spec.compiler = nil
   _ = nil
-  local ctx0 = vim.tbl_extend("force", base_spec(), user_spec, {kind = kind, path = path, source = (source or "in-memory")})
+  local ctx0 = vim.tbl_extend("force", base_spec(), user_spec, {__type = "context", kind = kind, path = path, source = (source or "in-memory")})
   if user_compiler_options then
     ctx0.compiler = vim.tbl_extend("force", ctx0.compiler, user_compiler_options)
   else
