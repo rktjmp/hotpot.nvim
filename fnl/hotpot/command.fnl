@@ -164,7 +164,10 @@
                                   {: locate} (locate file))]
                  (if file
                    (case data
-                     {: command} (vim.cmd (.. command " " file))
+                     {: command} (case (string.find command "%%" 1 true)
+                                   nil (vim.cmd (string.format "%s %s" command file))
+                                   any (-> (string.gsub command (vim.pesc "%%") file)
+                                           (vim.cmd)))
                      _ (notify-info file))
                    (notify-error err)))
       nil (notify-info err))))

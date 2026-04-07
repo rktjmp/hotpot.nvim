@@ -278,7 +278,9 @@ Find or open a counterpart file, supports the following invocations:
 
 Find counterpart file path for `<path>` and append it to `<commands ...>`, eg:
 `:Hotpot locate fnl/my-file.fnl -- vnew` would open the counterpart `.lua` file
-in a `vnew` split.
+in a `vnew` split. You may use `%%` to subsitute the located path in commands
+where simply appending the path wont work (eg: `echo '%%'` where `echo`
+requires the path be quoted).
 
 If path is not given, the current buffer path is used instead, eg: `:Hotpot
 locate -- <commands ...>` is equivalent to `:Hotpot locate % -- <commands ...>`.
