@@ -534,6 +534,10 @@ exist if desired.
 
 Not available for "api" contexts, eg: those created without any path given.
 
+## `context.metadata()`
+
+Returns a table of metadata related to the given context.
+
 # Migrating from Version 1
 
 >[!IMPORTANT]

@@ -63,10 +63,19 @@
                    _ (values nil (string.format "Could not locate %s, perhaps its a directory or does not exist?" path))))
           _ (values nil (string.format "Must give string to locate, got type %s " (type what)))))))
 
+(fn bind-metadata [ctx]
+  (case ctx
+    {:kind :api} #{:kind :api}
+    _ #{:target ctx.target
+        :kind ctx.kind
+        :source ctx.path.source
+        :destination ctx.path.dest}))
+
 (fn bind-context [ctx]
   (let [base {:compile (bind-compile ctx)
               :eval (bind-eval ctx)
               :sync (bind-sync ctx)
+              :metadata (bind-metadata ctx)
               :locate (bind-locate ctx)}]
     (when ctx.transform
       (set base.transform

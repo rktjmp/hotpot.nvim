@@ -120,17 +120,31 @@ local function bind_locate(ctx)
     return _8_
   end
 end
+local function bind_metadata(ctx)
+  if ((_G.type(ctx) == "table") and (ctx.kind == "api")) then
+    local function _26_()
+      return {kind = "api"}
+    end
+    return _26_
+  else
+    local _ = ctx
+    local function _27_()
+      return {target = ctx.target, kind = ctx.kind, source = ctx.path.source, destination = ctx.path.dest}
+    end
+    return _27_
+  end
+end
 local function bind_context(ctx)
-  local base = {compile = bind_compile(ctx), eval = bind_eval(ctx), sync = bind_sync(ctx), locate = bind_locate(ctx)}
+  local base = {compile = bind_compile(ctx), eval = bind_eval(ctx), sync = bind_sync(ctx), metadata = bind_metadata(ctx), locate = bind_locate(ctx)}
   if ctx.transform then
-    local function _26_(source, _3ffilename)
+    local function _29_(source, _3ffilename)
       if (nil == source) then
-        _G.error("Missing argument source on fnl/hotpot/api.fnl:73", 2)
+        _G.error("Missing argument source on fnl/hotpot/api.fnl:82", 2)
       else
       end
       return ctx.transform(source, (_3ffilename or "--hotpot-api-transform"))
     end
-    base.transform = _26_
+    base.transform = _29_
   else
   end
   return base
@@ -140,21 +154,21 @@ M.context = function(_3fpath)
     return bind_context(R.Context.new())
   elseif (nil ~= _3fpath) then
     local path = _3fpath
-    local case_29_, case_30_ = R.Context.nearest(path)
-    if (nil ~= case_29_) then
-      local root = case_29_
-      local case_31_, case_32_ = pcall(R.Context.new, root)
-      if ((case_31_ == true) and (nil ~= case_32_)) then
-        local ctx = case_32_
+    local case_32_, case_33_ = R.Context.nearest(path)
+    if (nil ~= case_32_) then
+      local root = case_32_
+      local case_34_, case_35_ = pcall(R.Context.new, root)
+      if ((case_34_ == true) and (nil ~= case_35_)) then
+        local ctx = case_35_
         return bind_context(ctx)
-      elseif ((case_31_ == false) and (nil ~= case_32_)) then
-        local err = case_32_
+      elseif ((case_34_ == false) and (nil ~= case_35_)) then
+        local err = case_35_
         return nil, err
       else
         return nil
       end
-    elseif ((case_29_ == nil) and (nil ~= case_30_)) then
-      local err = case_30_
+    elseif ((case_32_ == nil) and (nil ~= case_33_)) then
+      local err = case_33_
       return nil, err
     else
       return nil

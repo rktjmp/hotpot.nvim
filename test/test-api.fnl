@@ -29,7 +29,11 @@
                                    :hotpot
                                    :opt
                                    :hotpot-config-cache))
-(expect (= data-dir) output "destination is cache dir")
+(expect data-dir output "destination is cache dir")
+
+;; has some metadata table
+(local output (nvim:lua "vim.print(type(ctx.metadata()))"))
+(expect :table output "has metadata() function that return table")
 
 ;; Can compile
 (local output (nvim:lua "local ok, val = ctx.compile('(.. :he :llo)')

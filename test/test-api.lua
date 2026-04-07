@@ -34,77 +34,82 @@ do
 end
 local output2 = nvim:lua("vim.print(ctx.locate('destination'))")
 local data_dir = vim.fs.joinpath(vim.fn.stdpath("data"), "site", "pack", "hotpot", "opt", "hotpot-config-cache")
-do
-  local case_6_, case_7_ = output2
-  if (case_6_ == data_dir) then
-    OK(string.format(("destination is cache dir" or "")))
-  else
-    local __1_auto = case_6_
-    FAIL(string.format(("destination is cache dir" or "")))
-  end
+if (nil ~= output2) then
+  local data_dir0 = output2
+  OK(string.format(("destination is cache dir" or "")))
+else
+  local __1_auto = output2
+  FAIL(string.format(("destination is cache dir" or "")))
 end
-local output3 = nvim:lua("local ok, val = ctx.compile('(.. :he :llo)')\n                        print(val)")
-if (output3 == "return (\"he\" .. \"llo\")") then
-  OK(string.format(("compiles code" or "")))
+local output3 = nvim:lua("vim.print(type(ctx.metadata()))")
+if (output3 == "table") then
+  OK(string.format(("has metadata() function that return table" or "")))
 else
   local __1_auto = output3
-  FAIL(string.format(("compiles code" or "")))
+  FAIL(string.format(("has metadata() function that return table" or "")))
 end
-local output4 = nvim:lua("local ok, err = ctx.compile('.. :he :llo)')\n                        print(ok)")
-if (output4 == "false") then
-  OK(string.format(("handles compiling bad code" or "")))
+local output4 = nvim:lua("local ok, val = ctx.compile('(.. :he :llo)')\n                        print(val)")
+if (output4 == "return (\"he\" .. \"llo\")") then
+  OK(string.format(("compiles code" or "")))
 else
   local __1_auto = output4
+  FAIL(string.format(("compiles code" or "")))
+end
+local output5 = nvim:lua("local ok, err = ctx.compile('.. :he :llo)')\n                        print(ok)")
+if (output5 == "false") then
+  OK(string.format(("handles compiling bad code" or "")))
+else
+  local __1_auto = output5
   FAIL(string.format(("handles compiling bad code" or "")))
 end
-local output5 = nvim:lua("local ok, err = ctx.compile('.. :he :llo)')\n                        print(err)")
+local output6 = nvim:lua("local ok, err = ctx.compile('.. :he :llo)')\n                        print(err)")
 do
-  local case_11_ = ("" ~= output5)
-  if (case_11_ == true) then
+  local case_10_ = ("" ~= output6)
+  if (case_10_ == true) then
     OK(string.format(("handles compiling bad code" or "")))
   else
-    local __1_auto = case_11_
+    local __1_auto = case_10_
     FAIL(string.format(("handles compiling bad code" or "")))
   end
 end
-local output6 = nvim:lua("local ok, val = ctx.eval('(.. :he :llo)')\n                        print(val)")
-if (output6 == "hello") then
+local output7 = nvim:lua("local ok, val = ctx.eval('(.. :he :llo)')\n                        print(val)")
+if (output7 == "hello") then
   OK(string.format(("evals code" or "")))
 else
-  local __1_auto = output6
+  local __1_auto = output7
   FAIL(string.format(("evals code" or "")))
 end
-local output7 = nvim:lua("local ok, a, b, c = ctx.eval('(values 1 2 3)')\n                        print(a,b,c)")
-if (output7 == "1 2 3") then
+local output8 = nvim:lua("local ok, a, b, c = ctx.eval('(values 1 2 3)')\n                        print(a,b,c)")
+if (output8 == "1 2 3") then
   OK(string.format(("evals multi return" or "")))
 else
-  local __1_auto = output7
+  local __1_auto = output8
   FAIL(string.format(("evals multi return" or "")))
 end
-local output8 = nvim:lua("local ok, err = ctx.eval('.. :he :llo)')\n                        print(ok)")
-if (output8 == "false") then
+local output9 = nvim:lua("local ok, err = ctx.eval('.. :he :llo)')\n                        print(ok)")
+if (output9 == "false") then
   OK(string.format(("handles evaling bad code" or "")))
 else
-  local __1_auto = output8
+  local __1_auto = output9
   FAIL(string.format(("handles evaling bad code" or "")))
 end
-local output9 = nvim:lua("local ok, err = ctx.eval('.. :he :llo)')\n                        print(ok)")
+local output10 = nvim:lua("local ok, err = ctx.eval('.. :he :llo)')\n                        print(ok)")
 do
-  local case_16_ = ("" ~= output9)
-  if (case_16_ == true) then
+  local case_15_ = ("" ~= output10)
+  if (case_15_ == true) then
     OK(string.format(("handles evaling bad code" or "")))
   else
-    local __1_auto = case_16_
+    local __1_auto = case_15_
     FAIL(string.format(("handles evaling bad code" or "")))
   end
 end
 local fnl_path = create_file(path("config", "fnl/abc.fnl"), "{:works true}")
 local lua_path = path("cache", "/lua/abc.lua")
-local output10 = nvim:lua("local ok, val = ctx.sync()\n                        print(ok)")
+local output11 = nvim:lua("local ok, val = ctx.sync()\n                        print(ok)")
 do
-  local _let_18_ = read_file(lua_path)
-  local _marker = _let_18_[1]
-  local line = _let_18_[2]
+  local _let_17_ = read_file(lua_path)
+  local _marker = _let_17_[1]
+  local line = _let_17_[2]
   if (line == "return {works = true}") then
     OK(string.format(("can sync" or "")))
   else
@@ -112,11 +117,11 @@ do
     FAIL(string.format(("can sync" or "")))
   end
 end
-local output11 = nvim:lua("local ctx, err = api.context()\n                         local ok, val = ctx.eval('(+ 1 1)')\n                         vim.print(val)")
-if (output11 == "2") then
+local output12 = nvim:lua("local ctx, err = api.context()\n                         local ok, val = ctx.eval('(+ 1 1)')\n                         vim.print(val)")
+if (output12 == "2") then
   OK(string.format(("API context works" or "")))
 else
-  local __1_auto = output11
+  local __1_auto = output12
   FAIL(string.format(("API context works" or "")))
 end
 nvim:close()
