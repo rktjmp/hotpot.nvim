@@ -1,4 +1,4 @@
-(local {: R : notify-error} (require :hotpot.util))
+(local {: R : notify-info : notify-error} (require :hotpot.util))
 (local M {})
 
 (λ default-sync-report-handler [ctx report invocation-meta]
@@ -6,6 +6,9 @@
   ;; `nvim_echo` report (verbose).
   ;; Compillation errors are always reported via nvim_echo.
   (let [{: verbose? : atomic?} report
+        root (ctx.locate :source)
+        total-duration-ms (accumulate [sum 0 _ {: duration-ms} (ipairs report.compiled)]
+                            (+ sum duration-ms))
         nvim-echo-report {}]
     ;; Build verbose report elements, these always end up infront of the errors
     ;; if present.
@@ -17,19 +20,27 @@
       (icollect [_ {: lua-abs} (ipairs report.cleaned.unowned)
                  &into nvim-echo-report]
         [(string.format "rm %s\n" lua-abs) :DiagnosticInfo])
-      (let [total-duration-ms (accumulate [sum 0 _ {: duration-ms} (ipairs report.compiled)]
-                                (+ sum duration-ms))]
-        (table.insert nvim-echo-report [(string.format "Duration %.2fms" total-duration-ms)
-                                        :DiagnosticInfo])))
+      (table.insert nvim-echo-report [(string.format "Duration %.2fms\n" total-duration-ms)
+                                      :DiagnosticInfo]))
     ;; Build error report separate to verbose, as we always show it if there are errors.
     (do
       (icollect [_ {: fnl-abs : error} (ipairs report.errors) &into nvim-echo-report]
         [(string.format "☒  %s\n%s\n" fnl-abs error) :DiagnosticError])
       (when (< 0 (length report.errors))
-        (doto nvim-echo-report
-          (table.insert ["\nSome files had compilation errors! " :DiagnosticWarn])
-          (table.insert (when atomic?
-                          ["`atomic? = true`, no changes were written to disk!\n" :DiagnosticWarn])))))
+        (when atomic?
+          (table.insert nvim-echo-report
+                        [(.. "Some files had compilation errors! "
+                             "`atomic? = true`, no changes were written to disk!\n")
+                         :DiagnosticWarn])
+          (table.insert nvim-echo-report
+                        ["Some files had compilation errors!\n" :DiagnosticWarn]))))
+    (case invocation-meta
+      {:source :command}
+      (case report
+        ;; If no errors and not verbose, let the user know *something* ran.
+        {:errors [nil]}
+        (table.insert nvim-echo-report
+                      [(string.format "Synced %s" root) :DiagnosticInfo])))
     ;; If any report was made, output it, this will render the verbose report
     ;; if it was made and will always output errors if they exist.
     (when (< 0 (length nvim-echo-report))
@@ -39,14 +50,51 @@
       ;; these specifically, at least not without configuration, so using LSP
       ;; $/progress is still the preferred method for non-verbose reports.
       (vim.schedule #(vim.api.nvim_echo nvim-echo-report true {})))
+
     ;; Output LSP report if we did not create a verbose report.
     (when (not verbose?)
-      (case invocation-meta
-        ;; by default, show no report for API calls
-        {:source :api} (do)
-        _ (let [client-id (R.lsp.start-lsp {:root (ctx.locate :source)})]
-            ;; TODO: probably pull the LSP report generation into this module
-            (R.lsp.emit-report client-id report))))))
+      (let [lsp-report []]
+        ;; compiliation events
+        (do
+          (icollect [i {: fnl-rel : duration-ms} (ipairs report.compiled) &into lsp-report]
+            {:token (.. :hotpot-sync-compiled- root :- i)
+             :title :Compile
+             :message (string.format "%s (%.2fms)" fnl-rel duration-ms)})
+          (when (< 1 (length report.compiled))
+            (table.insert lsp-report {:token (.. :hotpot-sync-compiled- root :-sum)
+                                      :title :Compile
+                                      :message (string.format "Compiled %d files (%.2fms)"
+                                                              (length report.compiled)
+                                                              total-duration-ms)})))
+        ;; error events
+        (do
+          (icollect [i {: fnl-rel} (ipairs report.errors) &into lsp-report]
+            {:token (.. :hotpot-sync-errors- root :- i)
+             :title :Error
+             :message fnl-rel})
+          (when (< 1 (length report.errors))
+            (table.insert lsp-report
+                          {:token (.. :hotpot-sync-errors- root :-sum)
+                           :title :Error
+                           :message (string.format "Error compiling %d files"
+                                                   (length report.errors))})))
+        ;; clean events
+        (do
+          (icollect [i {: lua-rel} (ipairs report.cleaned.unowned) &into lsp-report]
+            {:token (.. :hotpot-sync-cleaned- root :- i)
+             :title "Clean"
+             :message lua-rel})
+          (when (< 1 (length report.cleaned.unowned))
+            (table.insert lsp-report
+                          {:token (.. :hotpot-sync-cleaned- root :-sum)
+                           :title "Clean"
+                           :message (string.format "Cleaned %d files"
+                                                   (length report.cleaned.unowned))})))
+        (case invocation-meta
+          ;; by default, show no report for API calls
+          {:source :api} (do)
+          _ (let [client-id (R.lsp.start-lsp {: root})]
+              (R.lsp.emit-report client-id lsp-report)))))))
 
 (fn make-default-config []
   {:sync-report-handler default-sync-report-handler})

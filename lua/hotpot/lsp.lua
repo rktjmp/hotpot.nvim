@@ -80,7 +80,10 @@ M["emit-report"] = function(client_id, report)
   local ctx_token_id = client.config.root_dir
   local lsp_ctx = {method = "$/progress", client_id = client_id}
   report_id = (1 + report_id)
-  local function send_progress(token, title, message)
+  local function send_progress(_11_)
+    local token = _11_.token
+    local title = _11_.title
+    local message = _11_.message
     if (nil == message) then
       _G.error("Missing argument message on fnl/hotpot/lsp.fnl:87", 2)
     else
@@ -96,53 +99,9 @@ M["emit-report"] = function(client_id, report)
     handler(nil, {token = token, value = {kind = "begin", title = title, message = message}}, lsp_ctx)
     return handler(nil, {token = token, value = {kind = "end", message = message}}, lsp_ctx)
   end
-  do
-    local count, duration
-    do
-      local count0, duration0 = 0, 0
-      for i, _14_ in ipairs(report.compiled) do
-        local fnl_rel = _14_["fnl-rel"]
-        local duration_ms = _14_["duration-ms"]
-        send_progress(("hotpot-sync-compiled-" .. ctx_token_id .. "-" .. i), "Compile", string.format("%s (%.2fms)", fnl_rel, duration_ms))
-        count0, duration0 = (1 + count0), (duration0 + duration_ms)
-      end
-      count, duration = count0, duration0
-    end
-    if (1 < count) then
-      send_progress(("hotpot-sync-compiled-" .. ctx_token_id .. "-sum"), "Compile", string.format("Compiled %d files (%.2fms)", count, duration))
-    else
-    end
+  for _, event in ipairs(report) do
+    send_progress(event)
   end
-  do
-    local count
-    do
-      local count0 = 0
-      for i, _16_ in ipairs(report.errors) do
-        local fnl_rel = _16_["fnl-rel"]
-        send_progress(("hotpot-sync-errors-" .. ctx_token_id .. "-" .. i), "Error", string.format("%s", fnl_rel))
-        count0 = (1 + count0)
-      end
-      count = count0
-    end
-    if (1 < count) then
-      send_progress(("hotpot-sync-errors-" .. ctx_token_id .. "-sum"), "Error", string.format("Error compiling %d files", count))
-    else
-    end
-  end
-  local count
-  do
-    local count0 = 0
-    for i, _18_ in ipairs((report.cleaned.unowned or {})) do
-      local lua_rel = _18_["lua-rel"]
-      send_progress(("hotpot-sync-cleaned-" .. ctx_token_id .. "-" .. i), "Clean", string.format("%s", lua_rel))
-      count0 = (1 + count0)
-    end
-    count = count0
-  end
-  if (1 < count) then
-    return send_progress(("hotpot-sync-cleaned-" .. ctx_token_id .. "-sum"), "Clean", string.format("Cleaned %d files", count))
-  else
-    return nil
-  end
+  return nil
 end
 return M

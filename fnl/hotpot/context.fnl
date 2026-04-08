@@ -605,9 +605,10 @@
         ;; return value to caller
         data-report {:sources source-files
                      :compiled []
-                     :cleaned []
+                     ;; Warning: we are contracted to return cleaned.unowned &
+                     ;; cleaned.owned subtables!
+                     :cleaned {:unowned [] :owned []}
                      :errors compile-errors
-                     ; :duration-ms total-duration-ms
                      :verbose? verbose?
                      :atomic? atomic?
                      :force? force?}]
@@ -618,7 +619,8 @@
       (let [{: write : clean} (m.sync-plan-confirm ctx compile-oks orphan-files)]
         (do
           (m.sync-write ctx write)
-          (set data-report.compiled (icollect [_ v (ipairs write)] (doto v (tset :source nil)))))
+          (set data-report.compiled (icollect [_ v (ipairs write)]
+                                      (doto v (tset :source nil)))))
         (let [{: unowned : owned} clean]
           (m.sync-clean ctx owned)
           (m.sync-clean ctx unowned)

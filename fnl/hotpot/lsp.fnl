@@ -84,45 +84,11 @@
         ctx-token-id client.config.root_dir
         lsp-ctx {:method :$/progress :client_id client-id}]
     (set report-id (+ 1 report-id))
-    (λ send-progress [token title message]
+    (λ send-progress [{: token : title : message}]
       (handler nil {: token :value {:kind :begin : title : message}} lsp-ctx)
       (handler nil {: token :value {:kind :end : message}} lsp-ctx))
-    (let [(count duration) (accumulate [(count duration) (values 0 0)
-                                        i {: fnl-rel : duration-ms} (ipairs report.compiled)]
-                             (do
-                               (send-progress (.. :hotpot-sync-compiled- ctx-token-id :- i)
-                                              "Compile"
-                                              (string.format "%s (%.2fms)" fnl-rel duration-ms))
-                               (values (+ 1 count) (+ duration duration-ms))))]
-      (when (< 1 count)
-        (send-progress (.. :hotpot-sync-compiled- ctx-token-id :-sum)
-                       "Compile"
-                       (string.format "Compiled %d files (%.2fms)" count duration))))
 
-    (let [count (accumulate [count 0 i {: fnl-rel} (ipairs report.errors)]
-                             (do
-                               (send-progress (.. :hotpot-sync-errors- ctx-token-id :- i)
-                                              "Error"
-                                              (string.format "%s" fnl-rel))
-                               (+ 1 count)))]
-      (when (< 1 count)
-        (send-progress (.. :hotpot-sync-errors- ctx-token-id :-sum)
-                       "Error"
-                       (string.format "Error compiling %d files" count))))
-
-    (let [count (accumulate [count 0 i {: lua-rel} (ipairs (or report.cleaned.unowned []))]
-                             (do
-                               ;; Use lua-rel instead of lua-abs path here as
-                               ;; the context is implicit in the server name
-                               ;; and context given by the user (directly or by
-                               ;; current buffer).
-                               (send-progress (.. :hotpot-sync-cleaned- ctx-token-id :- i)
-                                              "Clean"
-                                              (string.format "%s" lua-rel))
-                               (+ 1 count)))]
-      (when (< 1 count)
-        (send-progress (.. :hotpot-sync-cleaned- ctx-token-id :-sum)
-                       "Clean"
-                       (string.format "Cleaned %d files" count))))))
+    (each [_ event (ipairs report)]
+      (send-progress event))))
 
 M

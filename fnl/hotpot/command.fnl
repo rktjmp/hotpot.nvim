@@ -44,10 +44,7 @@
       root (case-try
              (pcall R.context.new root) (true ctx)
              (pcall R.context.sync ctx opts) (true report)
-             (R.runtime.invoke-sync-report-handler ctx report {:source :command}) _
-             (case report
-               ;; If no errors and not verbose, let the user know *something* ran.
-               {:errors [nil]} (notify-info (string.format "Synced %s" root)))
+             (R.runtime.invoke-sync-report-handler ctx report {:source :command})
              (catch
                (false err) (notify-error err)))
       (nil err) (notify-error err))

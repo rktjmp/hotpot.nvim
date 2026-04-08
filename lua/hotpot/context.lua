@@ -957,7 +957,7 @@ M.sync = function(ctx, _3foptions)
   local compile_oks = _let_163_.ok
   local compile_errors = _let_163_.errors
   local has_errors_3f = (0 < #compile_errors)
-  local data_report = {sources = source_files, compiled = {}, cleaned = {}, errors = compile_errors, ["verbose?"] = verbose_3f, ["atomic?"] = atomic_3f, ["force?"] = force_3f}
+  local data_report = {sources = source_files, compiled = {}, cleaned = {unowned = {}, owned = {}}, errors = compile_errors, ["verbose?"] = verbose_3f, ["atomic?"] = atomic_3f, ["force?"] = force_3f}
   if (not has_errors_3f or not atomic_3f) then
     local _let_164_ = m["sync-plan-confirm"](ctx, compile_oks, orphan_files)
     local write = _let_164_.write
