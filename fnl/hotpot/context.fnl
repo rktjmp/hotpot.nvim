@@ -588,9 +588,9 @@
     (case (?. ?options key)
       nil (. ctx key)
       val val))
-  (let [force? (or (option-if-set :force?) false)
-        atomic? (option-if-set :atomic?)
-        verbose? (option-if-set :verbose?)
+  (let [force? (or (option-if-set :force?) false) ;; sync specific
+        atomic? (option-if-set :atomic?) ;; context has own fallback
+        verbose? (option-if-set :verbose?) ;; context has own fallback
         extra-compiler-options (or (?. ?options :compiler) {})
         ;; Find all un-ignored files, plan what we want to compile and clean
         source-files (m.find-source-files ctx)
@@ -598,23 +598,19 @@
         orphan-files (m.sync-plan-clean ctx source-files)
         ;; Peform any compiles but write nothing, write afer preparing some
         ;; reports and checking for errors & atomic.
-        time-start (vim.uv.hrtime)
         {:ok compile-oks :errors compile-errors} (m.sync-compile ctx
                                                                  stale-files
                                                                  extra-compiler-options)
-        time-stop (vim.uv.hrtime)
-        total-duration-ms (/ (- time-stop time-start) 1_000_000)
         has-errors? (< 0 (length compile-errors))
-        ;; output when we have errors or if verbose? = true
-        printable-report []
         ;; return value to caller
         data-report {:sources source-files
                      :compiled []
                      :cleaned []
-                     :errors compile-errors}
-        extend-report (fn [t line-fn]
-                        (vim.list_extend printable-report (icollect [_ el (ipairs t)] (line-fn el))))]
-
+                     :errors compile-errors
+                     ; :duration-ms total-duration-ms
+                     :verbose? verbose?
+                     :atomic? atomic?
+                     :force? force?}]
     (when (or (not has-errors?) (not atomic?))
       ;; No errors, or not atomic, so we are allowed to write, but we also need
       ;; to check the clean action and possibly query the user before executing
@@ -622,37 +618,11 @@
       (let [{: write : clean} (m.sync-plan-confirm ctx compile-oks orphan-files)]
         (do
           (m.sync-write ctx write)
-          (set data-report.compiled (icollect [_ v (ipairs write)] (doto v (tset :source nil))))
-          (when (and (< 0 (length write)) verbose?)
-            (extend-report write (fn [{: fnl-abs : lua-abs : duration-ms}]
-                                           [(string.format "☑  %s (%.2fms)\n-> %s\n" fnl-abs duration-ms lua-abs)
-                                            :DiagnosticOk]))
-            (extend-report [[(string.format "Duration: %.2fms\n" total-duration-ms) :DiagnosticInfo]] #$1)))
+          (set data-report.compiled (icollect [_ v (ipairs write)] (doto v (tset :source nil)))))
         (let [{: unowned : owned} clean]
           (m.sync-clean ctx owned)
           (m.sync-clean ctx unowned)
-          (set data-report.cleaned clean)
-          (when verbose?
-            (extend-report unowned (fn [{: lua-abs }] [(string.format "rm %s\n" lua-abs) :DiagnosticInfo]))
-            (extend-report owned (fn [{: lua-abs }] [(string.format "rm %s\n" lua-abs) :DiagnosticInfo]))))))
-
-    ;; If an error happens during compilation, we always output it.
-    (when has-errors?
-      (extend-report compile-errors (fn [{: fnl-abs : lua-abs : error}]
-                                      [(string.format "☒  %s\n%s\n" fnl-abs error) :DiagnosticError]))
-      (extend-report [["\nSome files had compilation errors! " :DiagnosticWarn]
-                      (when atomic?
-                        ["`atomic? = true`, no changes were written to disk!\n" :DiagnosticWarn])]
-                     #$1))
-
-    ;; either verbose = true or we had errors.
-    (when (< 0 (length printable-report))
-      ;; schedule print to avoid nvim-12 output clobbering
-      ;; TODO: nvim_echo does support `progress-message` type, but currently
-      ;; Fidget and probably other UI plugins dont seem to pay attention to
-      ;; these specifically, at least not without configuration, so using LSP
-      ;; $/progress is still the preferred method for non-verbose reports.
-      (vim.schedule #(vim.api.nvim_echo printable-report true {})))
+          (set data-report.cleaned clean))))
     data-report))
 
 M

@@ -5,63 +5,131 @@ local notify_error = _local_1_["notify-error"]
 local M = {}
 local function default_sync_report_handler(ctx, report, invocation_meta)
   if (nil == invocation_meta) then
-    _G.error("Missing argument invocation-meta on fnl/hotpot/runtime.fnl:5", 2)
+    _G.error("Missing argument invocation-meta on fnl/hotpot/runtime.fnl:4", 2)
   else
   end
   if (nil == report) then
-    _G.error("Missing argument report on fnl/hotpot/runtime.fnl:5", 2)
+    _G.error("Missing argument report on fnl/hotpot/runtime.fnl:4", 2)
   else
   end
   if (nil == ctx) then
-    _G.error("Missing argument ctx on fnl/hotpot/runtime.fnl:5", 2)
+    _G.error("Missing argument ctx on fnl/hotpot/runtime.fnl:4", 2)
   else
   end
-  if ((_G.type(invocation_meta) == "table") and (invocation_meta.source == "api")) then
+  local verbose_3f = report["verbose?"]
+  local atomic_3f = report["atomic?"]
+  local nvim_echo_report = {}
+  if verbose_3f then
+    do
+      local tbl_24_ = nvim_echo_report
+      for _, _5_ in ipairs(report.compiled) do
+        local fnl_abs = _5_["fnl-abs"]
+        local lua_abs = _5_["lua-abs"]
+        local duration_ms = _5_["duration-ms"]
+        local val_25_ = {string.format("\226\152\145  %s (%.2fms)\n-> %s\n", fnl_abs, duration_ms, lua_abs), "DiagnosticOk"}
+        table.insert(tbl_24_, val_25_)
+      end
+    end
+    do
+      local tbl_24_ = nvim_echo_report
+      for _, _6_ in ipairs(report.cleaned.unowned) do
+        local lua_abs = _6_["lua-abs"]
+        local val_25_ = {string.format("rm %s\n", lua_abs), "DiagnosticInfo"}
+        table.insert(tbl_24_, val_25_)
+      end
+    end
+    local total_duration_ms
+    do
+      local sum = 0
+      for _, _7_ in ipairs(report.compiled) do
+        local duration_ms = _7_["duration-ms"]
+        sum = (sum + duration_ms)
+      end
+      total_duration_ms = sum
+    end
+    table.insert(nvim_echo_report, {string.format("Duration %.2fms", total_duration_ms), "DiagnosticInfo"})
   else
-    local _ = invocation_meta
-    local client_id = R.lsp["start-lsp"]({root = ctx.locate("source")})
-    return R.lsp["emit-report"](client_id, report)
+  end
+  do
+    do
+      local tbl_24_ = nvim_echo_report
+      for _, _9_ in ipairs(report.errors) do
+        local fnl_abs = _9_["fnl-abs"]
+        local error = _9_.error
+        local val_25_ = {string.format("\226\152\146  %s\n%s\n", fnl_abs, error), "DiagnosticError"}
+        table.insert(tbl_24_, val_25_)
+      end
+    end
+    if (0 < #report.errors) then
+      table.insert(nvim_echo_report, {"\nSome files had compilation errors! ", "DiagnosticWarn"})
+      local function _10_()
+        if atomic_3f then
+          return {"`atomic? = true`, no changes were written to disk!\n", "DiagnosticWarn"}
+        else
+          return nil
+        end
+      end
+      table.insert(nvim_echo_report, _10_())
+    else
+    end
+  end
+  if (0 < #nvim_echo_report) then
+    local function _12_()
+      return vim.api.nvim_echo(nvim_echo_report, true, {})
+    end
+    vim.schedule(_12_)
+  else
+  end
+  if not verbose_3f then
+    if ((_G.type(invocation_meta) == "table") and (invocation_meta.source == "api")) then
+    else
+      local _ = invocation_meta
+      local client_id = R.lsp["start-lsp"]({root = ctx.locate("source")})
+      return R.lsp["emit-report"](client_id, report)
+    end
+  else
+    return nil
   end
 end
 local function make_default_config()
   return {["sync-report-handler"] = default_sync_report_handler}
 end
 local valid_options
-local function _6_(_241)
-  local case_7_ = type(_241)
-  if (case_7_ == "function") then
+local function _16_(_241)
+  local case_17_ = type(_241)
+  if (case_17_ == "function") then
     return true
   else
-    local _ = case_7_
+    local _ = case_17_
     return false, "must be 'function'"
   end
 end
-valid_options = {["sync-report-handler"] = _6_}
+valid_options = {["sync-report-handler"] = _16_}
 local runtime_configuration = make_default_config()
 local configuration_errors = {}
 M.apply = function(options)
   if (nil == options) then
-    _G.error("Missing argument options on fnl/hotpot/runtime.fnl:22", 2)
+    _G.error("Missing argument options on fnl/hotpot/runtime.fnl:61", 2)
   else
   end
   local new_runtime_config = make_default_config()
   local conf_err
-  local function _10_(_241)
+  local function _20_(_241)
     return table.insert(configuration_errors, _241)
   end
-  conf_err = _10_
+  conf_err = _20_
   configuration_errors = {}
   for key, val in pairs(options) do
-    local case_11_ = valid_options[key]
-    if (case_11_ == nil) then
+    local case_21_ = valid_options[key]
+    if (case_21_ == nil) then
       conf_err(string.format("Unknown config option %q", key))
-    elseif (nil ~= case_11_) then
-      local validator = case_11_
-      local case_12_, case_13_ = validator(val)
-      if (case_12_ == true) then
+    elseif (nil ~= case_21_) then
+      local validator = case_21_
+      local case_22_, case_23_ = validator(val)
+      if (case_22_ == true) then
         new_runtime_config[key] = val
-      elseif ((case_12_ == false) and (nil ~= case_13_)) then
-        local err = case_13_
+      elseif ((case_22_ == false) and (nil ~= case_23_)) then
+        local err = case_23_
         conf_err(string.format("Invald config option %q: %s", key, err))
       else
       end
@@ -75,16 +143,16 @@ M.errors = function()
   return configuration_errors
 end
 M["invoke-sync-report-handler"] = function(context, report, invocation)
-  local case_16_ = runtime_configuration["sync-report-handler"]
-  if (case_16_ == nil) then
+  local case_26_ = runtime_configuration["sync-report-handler"]
+  if (case_26_ == nil) then
     return notify_error("error: no `sync-report-handler` in runtime configuration")
-  elseif (nil ~= case_16_) then
-    local func = case_16_
-    local case_17_, case_18_ = pcall(func, R.api.context(context), report, invocation)
-    if (case_17_ == true) then
+  elseif (nil ~= case_26_) then
+    local func = case_26_
+    local case_27_, case_28_ = pcall(func, R.api.context(context), report, invocation)
+    if (case_27_ == true) then
       return true
-    elseif ((case_17_ == false) and (nil ~= case_18_)) then
-      local err = case_18_
+    elseif ((case_27_ == false) and (nil ~= case_28_)) then
+      local err = case_28_
       notify_error("error in sync-report-handler: %s", err)
       return false
     else

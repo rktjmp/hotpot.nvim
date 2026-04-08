@@ -953,117 +953,38 @@ M.sync = function(ctx, _3foptions)
   local source_files = m["find-source-files"](ctx)
   local stale_files = m["sync-plan-compile"](ctx, source_files, force_3f)
   local orphan_files = m["sync-plan-clean"](ctx, source_files)
-  local time_start = vim.uv.hrtime()
   local _let_163_ = m["sync-compile"](ctx, stale_files, extra_compiler_options)
   local compile_oks = _let_163_.ok
   local compile_errors = _let_163_.errors
-  local time_stop = vim.uv.hrtime()
-  local total_duration_ms = ((time_stop - time_start) / 1000000)
   local has_errors_3f = (0 < #compile_errors)
-  local printable_report = {}
-  local data_report = {sources = source_files, compiled = {}, cleaned = {}, errors = compile_errors}
-  local extend_report
-  local function _164_(t, line_fn)
-    local function _165_()
+  local data_report = {sources = source_files, compiled = {}, cleaned = {}, errors = compile_errors, ["verbose?"] = verbose_3f, ["atomic?"] = atomic_3f, ["force?"] = force_3f}
+  if (not has_errors_3f or not atomic_3f) then
+    local _let_164_ = m["sync-plan-confirm"](ctx, compile_oks, orphan_files)
+    local write = _let_164_.write
+    local clean = _let_164_.clean
+    do
+      m["sync-write"](ctx, write)
       local tbl_26_ = {}
       local i_27_ = 0
-      for _, el in ipairs(t) do
-        local val_28_ = line_fn(el)
+      for _, v in ipairs(write) do
+        local val_28_
+        do
+          v["source"] = nil
+          val_28_ = v
+        end
         if (nil ~= val_28_) then
           i_27_ = (i_27_ + 1)
           tbl_26_[i_27_] = val_28_
         else
         end
       end
-      return tbl_26_
-    end
-    return vim.list_extend(printable_report, _165_())
-  end
-  extend_report = _164_
-  if (not has_errors_3f or not atomic_3f) then
-    local _let_167_ = m["sync-plan-confirm"](ctx, compile_oks, orphan_files)
-    local write = _let_167_.write
-    local clean = _let_167_.clean
-    do
-      m["sync-write"](ctx, write)
-      do
-        local tbl_26_ = {}
-        local i_27_ = 0
-        for _, v in ipairs(write) do
-          local val_28_
-          do
-            v["source"] = nil
-            val_28_ = v
-          end
-          if (nil ~= val_28_) then
-            i_27_ = (i_27_ + 1)
-            tbl_26_[i_27_] = val_28_
-          else
-          end
-        end
-        data_report.compiled = tbl_26_
-      end
-      if ((0 < #write) and verbose_3f) then
-        local function _170_(_169_)
-          local fnl_abs = _169_["fnl-abs"]
-          local lua_abs = _169_["lua-abs"]
-          local duration_ms = _169_["duration-ms"]
-          return {string.format("\226\152\145  %s (%.2fms)\n-> %s\n", fnl_abs, duration_ms, lua_abs), "DiagnosticOk"}
-        end
-        extend_report(write, _170_)
-        local function _171_(_241)
-          return _241
-        end
-        extend_report({{string.format("Duration: %.2fms\n", total_duration_ms), "DiagnosticInfo"}}, _171_)
-      else
-      end
+      data_report.compiled = tbl_26_
     end
     local unowned = clean.unowned
     local owned = clean.owned
     m["sync-clean"](ctx, owned)
     m["sync-clean"](ctx, unowned)
     data_report.cleaned = clean
-    if verbose_3f then
-      local function _174_(_173_)
-        local lua_abs = _173_["lua-abs"]
-        return {string.format("rm %s\n", lua_abs), "DiagnosticInfo"}
-      end
-      extend_report(unowned, _174_)
-      local function _176_(_175_)
-        local lua_abs = _175_["lua-abs"]
-        return {string.format("rm %s\n", lua_abs), "DiagnosticInfo"}
-      end
-      extend_report(owned, _176_)
-    else
-    end
-  else
-  end
-  if has_errors_3f then
-    local function _180_(_179_)
-      local fnl_abs = _179_["fnl-abs"]
-      local lua_abs = _179_["lua-abs"]
-      local error = _179_.error
-      return {string.format("\226\152\146  %s\n%s\n", fnl_abs, error), "DiagnosticError"}
-    end
-    extend_report(compile_errors, _180_)
-    local function _181_()
-      if atomic_3f then
-        return {"`atomic? = true`, no changes were written to disk!\n", "DiagnosticWarn"}
-      else
-        return nil
-      end
-    end
-    local function _182_(_241)
-      return _241
-    end
-    extend_report({{"\nSome files had compilation errors! ", "DiagnosticWarn"}, _181_()}, _182_)
-  else
-  end
-  if (0 < #printable_report) then
-    local function _184_()
-      return vim.api.nvim_echo(printable_report, true, {})
-    end
-    vim.schedule(_184_)
   else
   end
   return data_report
