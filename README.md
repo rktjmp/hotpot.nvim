@@ -268,7 +268,7 @@ Supports the following parameters:
 - `verbose`: output additional compilation messages.
 
 See also the [context.sync](#context-sync-options-nil) function exposed by the
-[API][#api].
+[API](#api).
 
 ### `:Hotpot locate`
 
@@ -290,7 +290,7 @@ locate -- <commands ...>` is equivalent to `:Hotpot locate % -- <commands ...>`.
 Prints the counterpart path, again, if no `<path>` is given, the current buffer
 path is used.
 
-See also the [context.locate](#context-locate-string) function exposed by the [API][#api].
+See also the [context.locate](#context-locate-string) function exposed by the [API](#api).
 
 ### `:Hotpot watch`
 
@@ -378,7 +378,13 @@ Sources given `.fnl` file. See `:h :source`
 
 # Configuration
 
-All of Hotpot's behaviour is configured by a `.hotpot.fnl` file, placed in the
+## `.hotpot.fnl`
+
+> [!TIP]
+> For most users who just want to write their configuration in Fennel, you can
+> ignore this section and use the default settings.
+
+Most of Hotpot's behaviour is configured by a `.hotpot.fnl` file, placed in the
 root of your config or plugin directory. These files define a `context` for
 operations in that directory tree.
 
@@ -460,6 +466,27 @@ configuration is loaded. This is not the case for plugins, which *must* have a
             :error-pinpoint false}
 }
 ```
+
+## `setup()`
+
+Some advanced configuration options are supported by calling `setup({...})`
+after requiring Hotpot. Note you may provide the keys in `fennel-style` or
+`lua_style`.
+
+**`sync-report-handler`**
+
+A function to override the default `sync` event reporter.
+
+*If you provide this function it is your responsibility to correctly output
+compiliation errors.*
+
+The function receives 3 arguments, a `context` object, `report` table and an
+`invocation-metadata` table. Inspect the `report` table for available fields.
+`invocation-metadata` contains `source` which may be `command`, `autocommand`
+or `api` depending on what initiated the `sync` event.
+
+The default handler generates LSP `$/progress` messages by default or
+`nvim_echo` messages when `verbose? = true`.
 
 # API
 

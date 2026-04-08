@@ -1,4 +1,4 @@
-*hotpot.txt*            For NVIM v0.11.1            Last change: 2026 April 01
+*hotpot.txt*            For NVIM v0.11.1            Last change: 2026 April 08
 
 ==============================================================================
 Table of Contents                                   *hotpot-table-of-contents*
@@ -7,6 +7,8 @@ Table of Contents                                   *hotpot-table-of-contents*
 2. Version 2                                                |hotpot-version-2|
 3. Requirements                                          |hotpot-requirements|
 4. Installation                                          |hotpot-installation|
+  - Installing with vim.pack    |hotpot-installation-installing-with-vim.pack|
+  - Installing with Lazy.nvim  |hotpot-installation-installing-with-lazy.nvim|
 5. Usage                                                        |hotpot-usage|
   - ~/.config/nvim                               |hotpot-usage-~/.config/nvim|
   - Macros                                               |hotpot-usage-macros|
@@ -19,6 +21,8 @@ Table of Contents                                   *hotpot-table-of-contents*
   - :Fnlfile {file.fnl}                  |hotpot-commands-:fnlfile-{file.fnl}|
   - :source {file.fnl}                    |hotpot-commands-:source-{file.fnl}|
 7. Configuration                                        |hotpot-configuration|
+  - .hotpot.fnl                             |hotpot-configuration-.hotpot.fnl|
+  - setup()                                     |hotpot-configuration-setup()|
 8. API                                                            |hotpot-api|
   - context(path|nil)                           |hotpot-api-context(path|nil)|
   - context.compile(string, compiler-options)|hotpot-api-context.compile(string,-compiler-options)|
@@ -26,6 +30,7 @@ Table of Contents                                   *hotpot-table-of-contents*
   - context.sync(options|nil)           |hotpot-api-context.sync(options|nil)|
   - context.transform(string, filename|nil)|hotpot-api-context.transform(string,-filename|nil)|
   - context.locate(string)                 |hotpot-api-context.locate(string)|
+  - context.metadata()                         |hotpot-api-context.metadata()|
 9. Migrating from Version 1                  |hotpot-migrating-from-version-1|
 10. Changes from Version 1                     |hotpot-changes-from-version-1|
 11. Licenses                                                 |hotpot-licenses|
@@ -76,16 +81,21 @@ allows you to write your Neovim config and plugins in Fennel.
 ==============================================================================
 3. Requirements                                          *hotpot-requirements*
 
-- Neovim 0.11.6+
-    - Probably it works on `~0.10.x+` but it’s untested.
-    - If you’re unable to upgrade, you can set `_G.__hotpot_disable_version_check = true` before `require('hotpot')`.
+- Neovim 0.11.6+ to run _Hotpot_
+    - The compiled output will run on any version of Neovim
+        that _your code_ is written to support.
 - ~Fanatical devotion to parentheses.~
+
+You may also want an LSP `$/progress` notification renderer, eg fidget.nivm
+<https://github.com/j-hui/fidget.nvim> for event notifications, or otherwise
+enable `verbose` mode.
 
 
 ==============================================================================
 4. Installation                                          *hotpot-installation*
 
-Install with your package manager.
+
+INSTALLING WITH VIM.PACK        *hotpot-installation-installing-with-vim.pack*
 
 >lua
     -- init.lua
@@ -100,8 +110,14 @@ Install with your package manager.
     require("config")
 <
 
-_Nb_: Advanced configurations can also use `vim.pack.add({..}, {load=true})` or
-`vim.cmd.packadd("hotpot.nvim")` instead of `require(hotpot)`.
+Avoid lazy-loading Hotpot unless you are only using it for plugin development.
+Hotpot performs the minimum amount of work on demand internally. Users
+configuring `vim.pack.add`’s behaviour via its options table should read the
+advanced `vim.pack` configuration <advanced-vim-pack-add-configuration.md>
+notes. **Most users should use the above instructions.**
+
+
+INSTALLING WITH LAZY.NVIM      *hotpot-installation-installing-with-lazy.nvim*
 
 Lazy.nvim ~
 
@@ -277,7 +293,7 @@ Supports the following parameters:
 - `atomic`: allow writing successfully compiled files even if others have compilation errors.
 - `verbose`: output additional compilation messages.
 
-See also the |hotpot-context.sync| function exposed by the [API][#api].
+See also the |hotpot-context.sync| function exposed by the |hotpot-api|.
 
 
 :HOTPOT LOCATE ~
@@ -288,7 +304,9 @@ Find or open a counterpart file, supports the following invocations:
 
 Find counterpart file path for `<path>` and append it to `<commands ...>`, eg:
 `:Hotpot locate fnl/my-file.fnl -- vnew` would open the counterpart `.lua` file
-in a `vnew` split.
+in a `vnew` split. You may use `%%` to subsitute the located path in commands
+where simply appending the path wont work (eg: `echo '%%'` where `echo`
+requires the path be quoted).
 
 If path is not given, the current buffer path is used instead, eg: `:Hotpot
 locate -- <commands ...>` is equivalent to `:Hotpot locate % -- <commands
@@ -299,7 +317,7 @@ locate -- <commands ...>` is equivalent to `:Hotpot locate % -- <commands
 Prints the counterpart path, again, if no `<path>` is given, the current buffer
 path is used.
 
-See also the |hotpot-context.locate| function exposed by the [API][#api].
+See also the |hotpot-context.locate| function exposed by the |hotpot-api|.
 
 
 :HOTPOT WATCH ~
@@ -402,7 +420,13 @@ Sources given `.fnl` file. See |:source|
 ==============================================================================
 7. Configuration                                        *hotpot-configuration*
 
-All of Hotpot’s behaviour is configured by a `.hotpot.fnl` file, placed in
+
+.HOTPOT.FNL                                 *hotpot-configuration-.hotpot.fnl*
+
+
+  [!TIP] For most users who just want to write their configuration in Fennel, you
+  can ignore this section and use the default settings.
+Most of Hotpot’s behaviour is configured by a `.hotpot.fnl` file, placed in
 the root of your config or plugin directory. These files define a `context` for
 operations in that directory tree.
 
@@ -485,6 +509,28 @@ configuration is loaded. This is not the case for plugins, which _must_ have a
 <
 
 
+SETUP()                                         *hotpot-configuration-setup()*
+
+Some advanced configuration options are supported by calling `setup({...})`
+after requiring Hotpot. Note you may provide the keys in `fennel-style` or
+`lua_style`.
+
+**sync-report-handler**
+
+Override the default `sync` event reporter with your own.
+
+_If you provide this function it is your responsibility to correctly output
+compiliation errors._
+
+The function receives 3 arguments, a `context` object, `report` table and a
+`invocation-metadata` table. Inspect the `report` table for available fields.
+`invocation-metadata` contains `source` which may be `command`, `autocommand`
+or `api` depending on what initiated the `sync` event.
+
+The default handler generates LSP `$/progress` messages by default or
+`nvim_echo` messages when `verbose? = true`.
+
+
 ==============================================================================
 8. API                                                            *hotpot-api*
 
@@ -565,6 +611,11 @@ Accepts `.fnl` or `.lua` file paths. Will construct paths for files that do not
 exist if desired.
 
 Not available for "api" contexts, eg: those created without any path given.
+
+
+CONTEXT.METADATA()                             *hotpot-api-context.metadata()*
+
+Returns a table of metadata related to the given context.
 
 
 ==============================================================================
