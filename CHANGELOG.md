@@ -1,5 +1,13 @@
 # 🍲 Hotpot Changelog
 
+## 2.1.0
+
+- Add `sync-report-handler` setup option.
+- Support `%%` placeholder replacement in `:Hotpot locate` command.
+- Support `:Hotpot locate` resolving `cache` paths into `config` paths.
+- Add `metadata()` function to API `context` object.
+- Fix `api.context(path)` not supporting file paths.
+
 ## 2.0.10
 
 - Fix missing "clean" file paths in LSP report.
