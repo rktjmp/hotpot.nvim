@@ -31,10 +31,19 @@
       (do
         (vim.health.info (string.format "Using default Fennel version: `%s`" R.fennel.version))))))
 
+(fn runtime-report []
+  (vim.health.start "Runtime Configuration")
+  (let [errors (R.runtime.errors)]
+    (case (length errors)
+      0 (vim.health.ok "No errrors")
+      _ (each [_ e (ipairs errors)]
+          (vim.health.error e)))))
+
 (fn check []
   (let [config (vim.fn.stdpath :config)
         ctx (R.context.new config)
         nearest (R.context.nearest (vim.uv.cwd))]
+    (runtime-report)
     (context-report config ctx)
     (when (and nearest (not= config nearest))
       (case (pcall R.context.new nearest)

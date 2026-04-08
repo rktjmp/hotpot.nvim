@@ -51,19 +51,34 @@ local function fennel_update_report()
     return vim.health.info(string.format("Using default Fennel version: `%s`", R.fennel.version))
   end
 end
+local function runtime_report()
+  vim.health.start("Runtime Configuration")
+  local errors = R.runtime.errors()
+  local case_11_ = #errors
+  if (case_11_ == 0) then
+    return vim.health.ok("No errrors")
+  else
+    local _ = case_11_
+    for _0, e in ipairs(errors) do
+      vim.health.error(e)
+    end
+    return nil
+  end
+end
 local function check()
   do
     local config = vim.fn.stdpath("config")
     local ctx = R.context.new(config)
     local nearest = R.context.nearest(vim.uv.cwd())
+    runtime_report()
     context_report(config, ctx)
     if (nearest and (config ~= nearest)) then
-      local case_11_, case_12_ = pcall(R.context.new, nearest)
-      if ((case_11_ == true) and (nil ~= case_12_)) then
-        local ctx0 = case_12_
+      local case_13_, case_14_ = pcall(R.context.new, nearest)
+      if ((case_13_ == true) and (nil ~= case_14_)) then
+        local ctx0 = case_14_
         context_report(nearest, ctx0)
-      elseif ((case_11_ == nil) and (nil ~= case_12_)) then
-        local err = case_12_
+      elseif ((case_13_ == nil) and (nil ~= case_14_)) then
+        local err = case_14_
         context_report(nearest, nil, err)
       else
       end
