@@ -50,7 +50,13 @@
     ;; any automatic loading per neovims startup.
     (vim.cmd.packadd {1 (vim.fs.basename HOTPOT_CONFIG_CACHE_ROOT) : bang})))
 
-;; Provide setup function for UX even though it does nothing.
-(λ setup [?options] true)
+(λ setup [?options]
+  ;; invalid options are soft errors in apply
+  (let [opts (collect [key val (pairs (or ?options {}))]
+               (values (string.gsub key "_" "-") val))]
+    (case (R.runtime.apply opts)
+      true true
+      (false err) (notify-warn (.. "Invalid configuration provided to `hotpot.setup`: \n"
+                                   err)))))
 
 {: setup}

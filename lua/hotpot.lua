@@ -73,6 +73,26 @@ do
   vim.cmd.packadd({vim.fs.basename(HOTPOT_CONFIG_CACHE_ROOT), bang = bang})
 end
 local function setup(_3foptions)
-  return true
+  local opts
+  do
+    local tbl_21_ = {}
+    for key, val in pairs((_3foptions or {})) do
+      local k_22_, v_23_ = string.gsub(key, "_", "-"), val
+      if ((k_22_ ~= nil) and (v_23_ ~= nil)) then
+        tbl_21_[k_22_] = v_23_
+      else
+      end
+    end
+    opts = tbl_21_
+  end
+  local case_16_, case_17_ = R.runtime.apply(opts)
+  if (case_16_ == true) then
+    return true
+  elseif ((case_16_ == false) and (nil ~= case_17_)) then
+    local err = case_17_
+    return notify_warn(("Invalid configuration provided to `hotpot.setup`: \n" .. err))
+  else
+    return nil
+  end
 end
 return {setup = setup}
