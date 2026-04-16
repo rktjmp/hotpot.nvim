@@ -83,7 +83,6 @@ vim.pack.add({
    version = vim.version.range("^2.0.0")}
 })
 require("hotpot")
-
 -- Most users will then require their "config" module stored
 -- somewhere like `fnl/config/init.fnl`...
 require("config")
@@ -91,9 +90,10 @@ require("config")
 
 Avoid lazy-loading Hotpot unless you are only using it for plugin development.
 Hotpot performs the minimum amount of work on demand internally. Users
-configuring `vim.pack.add`'s behaviour via its options table should read the
-[advanced `vim.pack` configuration](advanced-vim-pack-add-configuration.md)
-notes. **Most users should use the above instructions.**
+wanting to configure `vim.pack.add`'s behaviour via its options table should
+read the [advanced `vim.pack`
+configuration](advanced-vim-pack-add-configuration.md) notes. **Most users
+should use the above instructions.**
 
 ## Installing with Lazy.nvim
 
@@ -181,9 +181,16 @@ updates. It is recommended you do not aplly any lazy loading methods to Hotpot.
 
 ## `~/.config/nvim`
 
-Anything you would put in `lua/` should be put in `fnl/`, otherwise, put `.fnl`
-files in the standard runtime directories such as `lsp/` or `ftplugin/`. Saving
-`.fnl` files will sync any updates required to any `.lua` files.
+Just as any Lua code can be put in `lua/**/*.lua`, you can now put Fennel code
+in `fnl/**/*.fnl` and `require` it. You can add as little or as much Fennel as
+you would like. Your existing `lua/**/*.lua` code will continue to work as
+before and Lua and Fennel modules are interoperable.
+
+You can also put `.fnl` files in any standard runtime directories such as
+`lsp/`, `plugin/` or `ftplugin/`.
+
+Saving any `.fnl` files will cause Hotpot to sync any changes needed to the
+associated `.lua` files.
 
 ```fennel
 ;; ~/.config/nvim/fnl/my-config/hello.fnl
@@ -195,19 +202,35 @@ files in the standard runtime directories such as `lsp/` or `ftplugin/`. Saving
 (print :setup-some-lsp)
 ```
 
-By default for Neovim's `config` directory, Hotpot stores any compiled `.lua`
-files in a separate location to maintain a clean directory tree, so you won't
-see any `.lua` files.
+Hotpot's default configuration for Neovim's `config` directory stores any
+compiled `.lua` files in a separate location to maintain a clean directory
+tree, so you won't see any `.lua` files.
 
 There is one special exception to the above: **`.config/nvim/init.fnl` will
 always compile to `.config/nvim/init.lua`.**
 
-See the [commands](#commands) for some helper commands.
+That's all you need to know to write your config in Fennel. You might also want
+to see [commands](#commands) for [evaluating or compiling Fennel
+snippets](#fnl) or [interacting with Hotpot](#hotpot).
 
-To configure some of Hotpot's behaviour such as colocating `.lua`, ignoring
-files or configuring the Fennel compiler, see [configuration](#configuration).
+To adjust aspects of Hotpot's behaviour such as how notifications are
+delivered, colocating `.lua` files in-tree, ignoring files or configuring the
+Fennel compiler, see [configuration](#configuration).
+
+To interact with Hotpot from your own commands, keybinds or functions, see the
+[API](#api).
+
+<!-- panvimdoc-ignore-start -->
+
+## Use `.fnlm` Extension for Macros
+
+<!-- panvimdoc-ignore-end -->
+
+<!-- panvimdoc-include-comment
 
 ## Macros
+
+-->
 
 > [!IMPORTANT]
 > Hotpot requires that Fennel macro files (those that you call `import-macros`
@@ -217,15 +240,15 @@ files or configuring the Fennel compiler, see [configuration](#configuration).
 ## Plugins
 
 To enable Fennel compilation for a plugin, you must place a `.hotpot.fnl` file
-in the root of the plugin directory. At a bare minimum, this file must specify
-the `schema` and `target` keys, as shown below.
-
-When writing plugins in Fennel, you'll want to ship `.lua` code to users, so
-you must "colocate" the `.fnl` and `.lua` files.
+in the root of the plugin directory. At a minimum, this file must specify the
+`schema` and `target` keys, as shown below.
 
 ```fennel
 ;; projects/my-plugin/.hotpot.fnl
 {:schema :hotpot/2
+ ;; Plugins must ship `.lua` code to users.
+ ;; Setting the `target` to `colocate` will keep any `.lua` files "in-tree".
+ ;; It is an error to set `target` to `cache` for a plugin.
  :target :colocate}
 ```
 
@@ -233,11 +256,12 @@ you must "colocate" the `.fnl` and `.lua` files.
 > Before saving any changes to your `.hotpot.fnl` file, you might want to run
 > `:trust`, to save yourself being prompted later.
 
-After creating the `.hotpot.fnl` file, open any `.fnl` file and save it to
+After creating your `.hotpot.fnl` file, open any `.fnl` file and save it to
 trigger a build, or use the `sync` [command](#commands).
 
 See [configuration](#configuration) for details on customising Hotpot's
-behaviour, ignoring files or configuring the Fennel compiler.
+behaviour, ignoring files `.fnl` or `.lua` files or configuring the Fennel
+compiler.
 
 # Commands
 
@@ -378,17 +402,22 @@ Sources given `.fnl` file. See `:h :source`
 
 # Configuration
 
-## `.hotpot.fnl`
+The majority of Hotpot's behaviour and the Fennel compiler is configured via a
+[`.hotpot.fnl`](#hotpotfnl) file. Some specific integration between Hotpot and
+Neovim is configured via the [`setup()` function](#setup).
 
 > [!TIP]
 > For most users who just want to write their configuration in Fennel, you can
 > ignore this section and use the default settings.
 
-Most of Hotpot's behaviour is configured by a `.hotpot.fnl` file, placed in the
-root of your config or plugin directory. These files define a `context` for
-operations in that directory tree.
+## `.hotpot.fnl`
 
-These contexts are independent of one another and only alter behaviour in the
+Hotpot's behaviour, along with the Fennel compiler, is configured by a
+`.hotpot.fnl` file, placed in the root of your config or plugin directory.
+
+
+These files define a `context` for operations in that directory tree. These
+contexts are independent of one another and only alter behaviour in the
 same tree.
 
 If there is no `.hotpot.fnl` file in Neovim's config directory, a default
@@ -470,8 +499,10 @@ configuration is loaded. This is not the case for plugins, which *must* have a
 ## `setup()`
 
 Some advanced configuration options are supported by calling `setup({...})`
-after requiring Hotpot. Note you may provide the keys in `fennel-style` or
-`lua_style`.
+after requiring Hotpot. You do **not** have to call `setup()` if you are
+satisfied with the default behaviour.
+
+Note: you may provide the keys in `fennel-style` or `lua_style`.
 
 **`sync-report-handler`**
 
@@ -620,6 +651,18 @@ favour of more complete solutions provided by LSP servers.
 - **Removed `:Fnldo` commands**
   - This seem to have little value personally, if you really do have a use for
     it please open an issue.
+
+# Disable or Uninstall
+
+To disable Hotpot's compile-on-save behaviour, see [`:Hotpot watch`](#hotpot-watch).
+
+To disable Hotpot temporarily, remove the `require('hotpot')` call from your
+`init.lua|fnl` file.
+
+To uninstall Hotpot and remove any files, first run `:checkhealth hotpot` and note
+`destination` directory associated with the Neovim configuration context. This
+will contain any compiled lua files. You can delete this directory and then
+remove Hotpot via your plugin manager.
 
 # Licenses
 
