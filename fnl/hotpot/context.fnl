@@ -332,7 +332,7 @@
                                                     :error err})
                       results)))))
 
-(λ m.sync-write [ctx output-files]
+(λ m.sync-write [_ctx output-files]
   (each [_ {: lua-abs : source} (ipairs output-files)]
     (vim.fn.mkdir (vim.fs.dirname lua-abs) "p")
     (R.util.file-write lua-abs source)))
@@ -350,7 +350,7 @@
     {:owned owned-orphans
      :unowned unowned-orphans}))
 
-(λ m.sync-clean [ctx orphan-files]
+(λ m.sync-clean [_ctx orphan-files]
   (each [_ {: lua-abs} (ipairs orphan-files)]
     (vim.uv.fs_unlink lua-abs)))
 
@@ -377,20 +377,24 @@
       ;; We must cycle between these until the user selects something or cancels.
       {: unowned} (let [{: ui-select-sync} R.ui
                         show-file-prompt #(let [prompt "Select any file or cancel to return to previous menu."
-                                                choices (icollect [_ {: lua-abs} (ipairs unowned)]
+                                                choices (icollect [_ {: lua-abs} (ipairs unowned)
+                                                                   &into ["Update 'ignore' .hotpot.fnl option to avoid this prompt"]]
                                                           lua-abs)
                                                 callback #nil]
                                             (ui-select-sync choices {: prompt} callback))
                         show-confirm-prompt (fn show-confirm-prompt []
-                                              (let [choices [(string.format
-                                                               "View list of %d orphaned files then return to this prompt"
-                                                               (length unowned))
-                                                             "Ok: Remove orphaned files and compile as normal"
-                                                             "Safe: Keep orphaned files but compile as normal"
-                                                             "Cancel: Do not remove files or compile"]
-                                                    prompt (string.format "Found %d un-ignored lua files with no fnl source, delete all?"
-                                                                          (length unowned))
-                                                    callback (fn [choice-word choice-int]
+                                              (let [ordinal (case (length unowned)
+                                                              1 :file
+                                                              _ :files)
+                                                    choices [(string.format
+                                                               "View list of %d unknown, unignored lua %s then return to this prompt"
+                                                               (length unowned) ordinal)
+                                                             "Clean: Remove unknown lua files, compile as normal"
+                                                             "Safe: Keep unknown lua files, compile as normal (see 'ignore' .hotpot.fnl option)"
+                                                             "Cancel: Do not remove any files, do not compile"]
+                                                    prompt (string.format "Found %d unknown, unignored lua %s with no fnl source, delete all?"
+                                                                          (length unowned) ordinal)
+                                                    callback (fn [_choice-word choice-int]
                                                                (case choice-int
                                                                  1 nil
                                                                  2 {:write compiled-files
