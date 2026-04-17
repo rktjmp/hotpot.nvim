@@ -666,5 +666,5 @@ remove Hotpot via your plugin manager.
 
 # Licenses
 
-Hotpot embeds `fennel.lua`, see `lua/hotpot/fennel.lua` for licensing
+Hotpot embeds `fennel.lua`, see `lua/hotpot/vendor/fennel.lua` for licensing
 information.
