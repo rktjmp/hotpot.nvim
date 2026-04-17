@@ -1,5 +1,12 @@
 # 🍲 Hotpot Changelog
 
+## 2.1.1
+
+- Rename `sync-report-handler` `invocation-meta.source` to
+  `invocation-meta.reason` to avoid confusion with `context` source value.
+  - `invocation-meta.source` still works with a deprecation notice.
+- Adjust sync "clean" action dialog language to be more explicit.
+
 ## 2.1.0
 
 - Add `sync-report-handler` setup option.
