@@ -24,7 +24,7 @@ do
           elseif ((case_7_ == false) and (nil ~= case_8_)) then
             local err = case_8_
             notify_warn("Hotpot encountered an error syncing during first-time startup.")
-            notify_warn("You should still be able to edit fnl files to fixe the issue.")
+            notify_warn("You should still be able to edit fnl files to fix the issue.")
             return notify_error(err)
           else
             return nil
@@ -34,7 +34,7 @@ do
       elseif ((case_4_ == false) and (nil ~= case_5_)) then
         local err = case_5_
         notify_warn("Hotpot encountered an error syncing during first-time startup.")
-        notify_warn("You should still be able to edit fnl files to fixe the issue.")
+        notify_warn("You should still be able to edit fnl files to fix the issue.")
         return notify_error(err)
       else
         return nil
@@ -54,12 +54,10 @@ do
   autocmd.enable()
   command.enable()
 end
-do
-  local function _12_()
-    return require("hotpot.fennel")
-  end
-  package.preload["fennel"] = _12_
+local function _12_()
+  return require("hotpot.fennel")
 end
+package.preload.fennel = _12_
 do
   local bang = (0 == vim.v.vim_did_init)
   do
