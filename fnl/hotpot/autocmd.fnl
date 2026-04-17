@@ -8,7 +8,7 @@
       root (case-try
              (pcall Context.new root) (true ctx)
              (pcall Context.sync ctx) (true report)
-             (R.runtime.invoke-sync-report-handler ctx report {:source :autocommand})
+             (R.runtime.invoke-sync-report-handler ctx report {:reason :autocommand})
              (catch
                (false err) (notify-error err)))
       ;; we may be saving just some random fennel file, so not finding a

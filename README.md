@@ -513,7 +513,7 @@ compiliation errors.*
 
 The function receives 3 arguments, a `context` object, `report` table and an
 `invocation-metadata` table. Inspect the `report` table for available fields.
-`invocation-metadata` contains `source` which may be `command`, `autocommand`
+`invocation-metadata` contains `reason` which may be `command`, `autocommand`
 or `api` depending on what initiated the `sync` event.
 
 The default handler generates LSP `$/progress` messages by default or

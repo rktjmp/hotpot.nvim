@@ -44,7 +44,7 @@
       root (case-try
              (pcall R.context.new root) (true ctx)
              (pcall R.context.sync ctx opts) (true report)
-             (R.runtime.invoke-sync-report-handler ctx report {:source :command})
+             (R.runtime.invoke-sync-report-handler ctx report {:reason :command})
              (catch
                (false err) (notify-error err)))
       (nil err) (notify-error err))

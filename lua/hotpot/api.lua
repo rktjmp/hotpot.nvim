@@ -31,7 +31,7 @@ local function bind_sync(ctx)
       local case_7_, case_8_ = pcall(R.context.sync, ctx, _3foptions)
       if ((case_7_ == true) and (nil ~= case_8_)) then
         local report = case_8_
-        return R.runtime["invoke-sync-report-handler"](ctx, report, {source = "api"})
+        return R.runtime["invoke-sync-report-handler"](ctx, report, {reason = "api"})
       elseif ((case_7_ == false) and true) then
         local _3ferr = case_8_
         return false, _3ferr

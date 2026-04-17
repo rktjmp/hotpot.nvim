@@ -19,7 +19,7 @@ local function buf_write_post_callback(event)
             local case_7_, case_8_ = ...
             if ((case_7_ == true) and (nil ~= case_8_)) then
               local report = case_8_
-              return R.runtime["invoke-sync-report-handler"](ctx, report, {source = "autocommand"})
+              return R.runtime["invoke-sync-report-handler"](ctx, report, {reason = "autocommand"})
             elseif ((case_7_ == false) and (nil ~= case_8_)) then
               local err = case_8_
               return notify_error(err)

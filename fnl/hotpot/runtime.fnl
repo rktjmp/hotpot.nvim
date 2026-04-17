@@ -34,10 +34,12 @@
                          :DiagnosticWarn])
           (table.insert nvim-echo-report
                         ["Some files had compilation errors!\n" :DiagnosticWarn]))))
+    ;; When run by command, we always want to show *some* output so users know
+    ;; something happened. If an error occurs, it will be obvious, but for
+    ;; non-verbose runs we should say a "completed" message.
     (case invocation-meta
-      {:source :command}
+      {:reason :command}
       (case report
-        ;; If no errors and not verbose, let the user know *something* ran.
         {:errors [nil]}
         (table.insert nvim-echo-report
                       [(string.format "Synced %s" root) :DiagnosticInfo])))
@@ -92,7 +94,7 @@
                                                    (length report.cleaned.unowned))})))
         (case invocation-meta
           ;; by default, show no report for API calls
-          {:source :api} (do)
+          {:reason :api} nil
           _ (let [client-id (R.lsp.start-lsp {: root})]
               (R.lsp.emit-report client-id lsp-report)))))))
 
@@ -115,7 +117,7 @@
         nil (conf-err (string.format "Unknown config option %q" key))
         validator (case (validator val)
                     true (set (. new-runtime-config key) val)
-                    (false err) (conf-err (string.format "Invald config option %q: %s" key err)))))
+                    (false err) (conf-err (string.format "Invalid config option %q: %s" key err)))))
     (set runtime-configuration new-runtime-config)
     (values (= 0 (length configuration-errors))
             (table.concat configuration-errors "\n"))))
@@ -123,11 +125,19 @@
 (λ M.errors []
   configuration-errors)
 
-(fn M.invoke-sync-report-handler [context report invocation]
+(λ M.invoke-sync-report-handler [context report invocation]
+  (setmetatable invocation {:__index (fn [t k]
+                                       (case k
+                                         :source (do
+                                                   (vim.notify_once (.. "Hotpot sync-report-handler: use `invocation-meta.reason`, "
+                                                                        "`invocation-meta.source` is deprecated. "
+                                                                        "This is to avoid confusion with the context `source`.")
+                                                                    vim.log.levels.WARN)
+                                                   (. t :reason))
+                                         _ (. t k)))})
   (case (. runtime-configuration :sync-report-handler)
     nil (notify-error "error: no `sync-report-handler` in runtime configuration")
-    ;; we dont want to pass a true context out to the user, so repackage via
-    ;; the api.
+    ;; we dont want to pass an internal context out to the user, so repackage via the api.
     func (case (pcall func (R.api.context context) report invocation)
            true true
            (false err) (do

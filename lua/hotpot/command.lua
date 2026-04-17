@@ -89,7 +89,7 @@ local function hotpot_command_sync_handler(params)
             local case_22_, case_23_ = ...
             if ((case_22_ == true) and (nil ~= case_23_)) then
               local report = case_23_
-              return R.runtime["invoke-sync-report-handler"](ctx, report, {source = "command"})
+              return R.runtime["invoke-sync-report-handler"](ctx, report, {reason = "command"})
             elseif ((case_22_ == false) and (nil ~= case_23_)) then
               local err = case_23_
               return notify_error(err)
