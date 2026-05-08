@@ -74,6 +74,10 @@ otherwise enable `verbose` mode.
 
 # Installation
 
+Hotpot provides semantic-version releases via git tags. It's recommended you
+use your package managers `version` tracking system if available, instead of
+tracking the `main` branch which provides no stability guarantees.
+
 ## Installing with `vim.pack`
 
 ```lua
@@ -89,16 +93,23 @@ require("config")
 ```
 
 Avoid lazy-loading Hotpot unless you are only using it for plugin development.
-Hotpot performs the minimum amount of work on demand internally. Users
-wanting to configure `vim.pack.add`'s behaviour via its options table should
-read the [advanced `vim.pack`
-configuration](advanced-vim-pack-add-configuration.md) notes. **Most users
-should use the above instructions.**
+Hotpot already performs the minimum amount of work on demand. Users wanting to
+configure `vim.pack.add`'s behaviour via its options table should read the
+[advanced `vim.pack` configuration](advanced-vim-pack-add-configuration.md)
+notes. **Most users should use the above instructions.**
 
 ## Installing with Lazy.nvim
 
 <details>
 <summary>Lazy.nvim</summary>
+
+You likely will want to bootstrap Hotpot in the same way you bootstrap
+Lazy.nvim itself. See Lazy.nvim's own install instructions or the example
+`ensure_installed` function below.
+
+It's recommended you check the version in the script below matches the latest
+tagged version release, or run Lazy.nvim's update function immediately after
+your initial install.
 
 ```lua
 -- init.lua
@@ -131,7 +142,7 @@ end
 
 -- Install hotpot in the same manner as lazy.nvim, into Lazy's own plugin directory.
 local lazy_path = ensure_installed("folke/lazy.nvim", "stable")
-local hotpot_path = ensure_installed("rktjmp/hotpot.nvim", "v2.0.0")
+local hotpot_path = ensure_installed("rktjmp/hotpot.nvim", "v2.1.1")
 -- As per Lazy's install instructions, but also include hotpot as
 -- we have installed it to lazy.nvim's managed directory outside of Neovim's
 -- runtimepath.
@@ -148,7 +159,7 @@ require("config")
 ```
 
 You must also include Hotpot in your plugins list for Lazy.nvim to correctly manage
-updates. It is recommended you do not aplly any lazy loading methods to Hotpot.
+updates. It is recommended you do not apply any lazy loading methods to Hotpot.
 
 ```fennel
 ;; fnl/config/init.fnl
