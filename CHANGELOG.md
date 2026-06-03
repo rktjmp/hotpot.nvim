@@ -1,5 +1,19 @@
 # 🍲 Hotpot Changelog
 
+## 2.1.3
+
+- Support reporting CWD context in checkhealth if relevant.
+- Support following symlinks when finding files (via https://github.com/bandithedoge)
+- Repeatedly attempt first-run config sync each time Neovim is run until it succeeds.
+  - After installation, on its first use, Hotpot will attempt to sync
+    $NVIM_CONFIG automatically. Previously if this failed due to *compilation
+    errors*, the errors would only be shown once, then subsequent instances of
+    Neovim may show *configuration errors* if expected modules do not exist,
+    requiring the user to realise what went wrong, and perform a a manual
+    `Hotpot sync` to see and fix any issues. Hotpot will now repeatedly attempt
+    to sync $NVIM_CONFIG, and so will show any compilation errors each time
+    until it succeeds, afterwhich we perform no syncing on boot.
+
 ## 2.1.2
 
 - Fix first-boot compiler errors not being shown to the user.
