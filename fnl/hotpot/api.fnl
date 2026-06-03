@@ -26,7 +26,7 @@
     {:kind :api} nil
     _ (λ [?options]
         (case (pcall R.context.sync ctx ?options)
-          (true report) (R.runtime.invoke-sync-report-handler ctx report {:reason :api})
+          (true report) (R.Runtime.invoke-sync-report-handler ctx report {:reason :api})
           (false ?err) (values false ?err)))))
 
 (fn bind-locate [ctx]
