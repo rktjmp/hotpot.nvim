@@ -6,26 +6,16 @@ local notify_error = _local_1_["notify-error"]
 local notify_warn = _local_1_["notify-warn"]
 local HOTPOT_CONFIG_CACHE_ROOT = R.const.HOTPOT_CONFIG_CACHE_ROOT
 local HOTPOT_FENNEL_UPDATE_ROOT = R.const.HOTPOT_FENNEL_UPDATE_ROOT
+local HOTPOT_CONFIG_CACHE_FIRST_BOOT_OK = R.const.HOTPOT_CONFIG_CACHE_FIRST_BOOT_OK
 local HOTPOT_FENNEL_UPDATE_LUA_ROOT = R.const.HOTPOT_FENNEL_UPDATE_LUA_ROOT
 do
   local case_2_ = vim.uv.fs_stat(HOTPOT_CONFIG_CACHE_ROOT)
   if (case_2_ == nil) then
-    local _ = vim.fn.mkdir(HOTPOT_CONFIG_CACHE_ROOT, "p")
-    local Context = R.Context
-    local case_3_, case_4_ = pcall(Context.new, vim.fn.stdpath("config"))
-    if ((case_3_ == true) and (nil ~= case_4_)) then
-      local ctx = case_4_
-      local case_5_ = Context.sync(ctx)
-      if ((_G.type(case_5_) == "table") and ((_G.type(case_5_.errors) == "table") and (case_5_.errors[1] == nil))) then
-      elseif (nil ~= case_5_) then
-        local report = case_5_
-        R.Runtime["invoke-sync-report-handler"](ctx, report, {reason = "boot"})
-      else
-      end
-    elseif ((case_3_ == false) and (nil ~= case_4_)) then
-      local err = case_4_
-      notify_error(err)
+    local case_3_ = vim.fn.mkdir(HOTPOT_CONFIG_CACHE_ROOT, "p")
+    if (case_3_ == 1) then
     else
+      local _ = case_3_
+      notify_error(table.concat({"Hotpot: unable to create dir %s.", "Hotpot probably wont function correctly."}, "\n"), HOTPOT_CONFIG_CACHE_ROOT)
     end
   elseif ((_G.type(case_2_) == "table") and (case_2_.type == "directory")) then
   elseif ((_G.type(case_2_) == "table") and (nil ~= case_2_.type)) then
@@ -35,20 +25,94 @@ do
   end
 end
 do
+  local case_6_ = vim.uv.fs_stat(HOTPOT_CONFIG_CACHE_FIRST_BOOT_OK)
+  if (case_6_ == nil) then
+    local Context = R.Context
+    local config_path = vim.fn.stdpath("config")
+    local flag_message = string.format("Removing this file will cause Hotpot to sync %s the next time Neovim is started.\n", config_path)
+    local case_7_, case_8_ = pcall(Context.new, config_path)
+    if ((case_7_ == true) and (nil ~= case_8_)) then
+      local ctx = case_8_
+      local case_9_ = Context.sync(ctx)
+      if ((_G.type(case_9_) == "table") and ((_G.type(case_9_.errors) == "table") and (case_9_.errors[1] == nil))) then
+        local file = io.open(HOTPOT_CONFIG_CACHE_FIRST_BOOT_OK, "w")
+        local function close_handlers_13_(ok_14_, ...)
+          file:close()
+          if ok_14_ then
+            return ...
+          else
+            return error(..., 0)
+          end
+        end
+        local function _11_(...)
+          local args_15_ = {...}
+          local n_16_ = select("#", ...)
+          local unpack_17_ = (_G.unpack or _G.table.unpack)
+          local function _12_()
+            local function _13_(...)
+              return file:write(flag_message)
+            end
+            return _13_(unpack_17_(args_15_, 1, n_16_))
+          end
+          local _15_
+          do
+            local t_14_ = _G
+            if (nil ~= t_14_) then
+              t_14_ = t_14_.package
+            else
+            end
+            if (nil ~= t_14_) then
+              t_14_ = t_14_.loaded
+            else
+            end
+            if (nil ~= t_14_) then
+              t_14_ = t_14_.fennel
+            else
+            end
+            _15_ = t_14_
+          end
+          local or_19_ = _15_ or _G.debug
+          if not or_19_ then
+            local function _20_()
+              return ""
+            end
+            or_19_ = {traceback = _20_}
+          end
+          return _G.xpcall(_12_, or_19_.traceback)
+        end
+        close_handlers_13_(_11_(...))
+      elseif (nil ~= case_9_) then
+        local report = case_9_
+        R.Runtime["invoke-sync-report-handler"](ctx, report, {reason = "boot"})
+      else
+      end
+    elseif ((case_7_ == false) and (nil ~= case_8_)) then
+      local err = case_8_
+      notify_error(err)
+    else
+    end
+  elseif ((_G.type(case_6_) == "table") and (case_6_.type == "file")) then
+  elseif ((_G.type(case_6_) == "table") and (nil ~= case_6_.type)) then
+    local t = case_6_.type
+    notify_error(table.concat({"Hotpot: %s exists but is not file, is %s, consider removing it?", "Hotpot probably wont function correctly."}, "\n"), HOTPOT_CONFIG_CACHE_FIRST_BOOT_OK, t)
+  else
+  end
+end
+do
   local autocmd = R.autocmd
   local command = R.command
   autocmd.enable()
   command.enable()
 end
-local function _9_()
+local function _24_()
   return require("hotpot.fennel")
 end
-package.preload.fennel = _9_
+package.preload.fennel = _24_
 do
   local bang = (0 == vim.v.vim_did_init)
   do
-    local case_10_ = vim.uv.fs_stat(HOTPOT_FENNEL_UPDATE_LUA_ROOT)
-    if (case_10_ == nil) then
+    local case_25_ = vim.uv.fs_stat(HOTPOT_FENNEL_UPDATE_LUA_ROOT)
+    if (case_25_ == nil) then
       vim.fn.mkdir(HOTPOT_FENNEL_UPDATE_LUA_ROOT, "p")
     else
     end
@@ -69,11 +133,11 @@ local function setup(_3foptions)
     end
     opts = tbl_21_
   end
-  local case_13_, case_14_ = R.runtime.apply(opts)
-  if (case_13_ == true) then
+  local case_28_, case_29_ = R.runtime.apply(opts)
+  if (case_28_ == true) then
     return true
-  elseif ((case_13_ == false) and (nil ~= case_14_)) then
-    local err = case_14_
+  elseif ((case_28_ == false) and (nil ~= case_29_)) then
+    local err = case_29_
     return notify_warn(("Invalid configuration provided to `hotpot.setup`: \n" .. err))
   else
     return nil

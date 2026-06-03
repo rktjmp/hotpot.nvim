@@ -1,4 +1,4 @@
-(local {: R : notify-info : notify-error} (require :hotpot.util))
+(local {: R : notify-error} (require :hotpot.util))
 (local M {})
 
 (λ default-sync-report-handler [ctx report invocation-meta]
@@ -38,9 +38,10 @@
                          :DiagnosticWarn]))
         (when (= :boot invocation-meta.reason)
           (table.insert nvim-echo-report
-                        ["Hotpot encountered an error syncing during first-time startup.\n" :DiagnosticWarn])
-          (table.insert nvim-echo-report
-                        ["You should still be able to edit fnl files to fix the issue, saving the files should resync them, or you can run `:Hotpot sync` from your config dir." :DiagnosticWarn]))))
+                        [(.. "\nHotpot encountered a compiliation error when performing its initial sync of your neovim config.\n"
+                             "Please correct any Fennel errors and restart Neovim.\n"
+                             "Hotpot will retry this initial sync again until it succeeds, and then will only sync files as they are changed.\n")
+                        :DiagnosticWarn]))))
     ;; When run by command, we always want to show *some* output so users know
     ;; something happened. If an error occurs, it will be obvious, but for
     ;; non-verbose runs we should say a "completed" message.
