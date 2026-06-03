@@ -65,7 +65,12 @@ local function default_sync_report_handler(ctx, report, invocation_meta)
     if (0 < #report.errors) then
       if atomic_3f then
         table.insert(nvim_echo_report, {("Some files had compilation errors! " .. "`atomic? = true`, no changes were written to disk!\n"), "DiagnosticWarn"})
-        table.insert(nvim_echo_report, {"Some files had compilation errors!\n", "DiagnosticWarn"})
+      else
+        table.insert(nvim_echo_report, {("Some files had compilation errors! " .. "`atomic? = false`, only some changes were written to disk!\n"), "DiagnosticWarn"})
+      end
+      if ("boot" == invocation_meta.reason) then
+        table.insert(nvim_echo_report, {"Hotpot encountered an error syncing during first-time startup.\n", "DiagnosticWarn"})
+        table.insert(nvim_echo_report, {"You should still be able to edit fnl files to fix the issue, saving the files should resync them, or you can run `:Hotpot sync` from your config dir.", "DiagnosticWarn"})
       else
       end
     else
@@ -79,10 +84,10 @@ local function default_sync_report_handler(ctx, report, invocation_meta)
   else
   end
   if (0 < #nvim_echo_report) then
-    local function _14_()
+    local function _15_()
       return vim.api.nvim_echo(nvim_echo_report, true, {})
     end
-    vim.schedule(_14_)
+    vim.schedule(_15_)
   else
   end
   if not verbose_3f then
@@ -90,9 +95,9 @@ local function default_sync_report_handler(ctx, report, invocation_meta)
     do
       do
         local tbl_24_ = lsp_report
-        for i, _16_ in ipairs(report.compiled) do
-          local fnl_rel = _16_["fnl-rel"]
-          local duration_ms = _16_["duration-ms"]
+        for i, _17_ in ipairs(report.compiled) do
+          local fnl_rel = _17_["fnl-rel"]
+          local duration_ms = _17_["duration-ms"]
           local val_25_ = {token = ("hotpot-sync-compiled-" .. root .. "-" .. i), title = "Compile", message = string.format("%s (%.2fms)", fnl_rel, duration_ms)}
           table.insert(tbl_24_, val_25_)
         end
@@ -105,8 +110,8 @@ local function default_sync_report_handler(ctx, report, invocation_meta)
     do
       do
         local tbl_24_ = lsp_report
-        for i, _18_ in ipairs(report.errors) do
-          local fnl_rel = _18_["fnl-rel"]
+        for i, _19_ in ipairs(report.errors) do
+          local fnl_rel = _19_["fnl-rel"]
           local val_25_ = {token = ("hotpot-sync-errors-" .. root .. "-" .. i), title = "Error", message = fnl_rel}
           table.insert(tbl_24_, val_25_)
         end
@@ -119,8 +124,8 @@ local function default_sync_report_handler(ctx, report, invocation_meta)
     do
       do
         local tbl_24_ = lsp_report
-        for i, _20_ in ipairs(report.cleaned.unowned) do
-          local lua_rel = _20_["lua-rel"]
+        for i, _21_ in ipairs(report.cleaned.unowned) do
+          local lua_rel = _21_["lua-rel"]
           local val_25_ = {token = ("hotpot-sync-cleaned-" .. root .. "-" .. i), title = "Clean", message = lua_rel}
           table.insert(tbl_24_, val_25_)
         end
@@ -145,41 +150,41 @@ local function make_default_config()
   return {["sync-report-handler"] = default_sync_report_handler}
 end
 local valid_options
-local function _24_(_241)
-  local case_25_ = type(_241)
-  if (case_25_ == "function") then
+local function _25_(_241)
+  local case_26_ = type(_241)
+  if (case_26_ == "function") then
     return true
   else
-    local _ = case_25_
+    local _ = case_26_
     return false, "must be 'function'"
   end
 end
-valid_options = {["sync-report-handler"] = _24_}
+valid_options = {["sync-report-handler"] = _25_}
 local runtime_configuration = make_default_config()
 local configuration_errors = {}
 M.apply = function(options)
   if (nil == options) then
-    _G.error("Missing argument options on fnl/hotpot/runtime.fnl:111", 2)
+    _G.error("Missing argument options on fnl/hotpot/runtime.fnl:118", 2)
   else
   end
   local new_runtime_config = make_default_config()
   local conf_err
-  local function _28_(_241)
+  local function _29_(_241)
     return table.insert(configuration_errors, _241)
   end
-  conf_err = _28_
+  conf_err = _29_
   configuration_errors = {}
   for key, val in pairs(options) do
-    local case_29_ = valid_options[key]
-    if (case_29_ == nil) then
+    local case_30_ = valid_options[key]
+    if (case_30_ == nil) then
       conf_err(string.format("Unknown config option %q", key))
-    elseif (nil ~= case_29_) then
-      local validator = case_29_
-      local case_30_, case_31_ = validator(val)
-      if (case_30_ == true) then
+    elseif (nil ~= case_30_) then
+      local validator = case_30_
+      local case_31_, case_32_ = validator(val)
+      if (case_31_ == true) then
         new_runtime_config[key] = val
-      elseif ((case_30_ == false) and (nil ~= case_31_)) then
-        local err = case_31_
+      elseif ((case_31_ == false) and (nil ~= case_32_)) then
+        local err = case_32_
         conf_err(string.format("Invalid config option %q: %s", key, err))
       else
       end
@@ -194,18 +199,18 @@ M.errors = function()
 end
 M["invoke-sync-report-handler"] = function(context, report, invocation)
   if (nil == invocation) then
-    _G.error("Missing argument invocation on fnl/hotpot/runtime.fnl:128", 2)
+    _G.error("Missing argument invocation on fnl/hotpot/runtime.fnl:135", 2)
   else
   end
   if (nil == report) then
-    _G.error("Missing argument report on fnl/hotpot/runtime.fnl:128", 2)
+    _G.error("Missing argument report on fnl/hotpot/runtime.fnl:135", 2)
   else
   end
   if (nil == context) then
-    _G.error("Missing argument context on fnl/hotpot/runtime.fnl:128", 2)
+    _G.error("Missing argument context on fnl/hotpot/runtime.fnl:135", 2)
   else
   end
-  local function _37_(t, k)
+  local function _38_(t, k)
     if (k == "source") then
       vim.notify_once(("Hotpot sync-report-handler: use `invocation-meta.reason`, " .. "`invocation-meta.source` is deprecated. " .. "This is to avoid confusion with the context `source`."), vim.log.levels.WARN)
       return t.reason
@@ -214,17 +219,17 @@ M["invoke-sync-report-handler"] = function(context, report, invocation)
       return t[k]
     end
   end
-  setmetatable(invocation, {__index = _37_})
-  local case_39_ = runtime_configuration["sync-report-handler"]
-  if (case_39_ == nil) then
+  setmetatable(invocation, {__index = _38_})
+  local case_40_ = runtime_configuration["sync-report-handler"]
+  if (case_40_ == nil) then
     return notify_error("error: no `sync-report-handler` in runtime configuration")
-  elseif (nil ~= case_39_) then
-    local func = case_39_
-    local case_40_, case_41_ = pcall(func, R.api.context(context), report, invocation)
-    if (case_40_ == true) then
+  elseif (nil ~= case_40_) then
+    local func = case_40_
+    local case_41_, case_42_ = pcall(func, R.api.context(context), report, invocation)
+    if (case_41_ == true) then
       return true
-    elseif ((case_40_ == false) and (nil ~= case_41_)) then
-      local err = case_41_
+    elseif ((case_41_ == false) and (nil ~= case_42_)) then
+      local err = case_42_
       notify_error("error in sync-report-handler: %s", err)
       return false
     else

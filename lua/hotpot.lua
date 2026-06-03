@@ -4,7 +4,6 @@ local _local_1_ = require("hotpot.util")
 local R = _local_1_.R
 local notify_error = _local_1_["notify-error"]
 local notify_warn = _local_1_["notify-warn"]
-local notify_info = _local_1_["notify-info"]
 local HOTPOT_CONFIG_CACHE_ROOT = R.const.HOTPOT_CONFIG_CACHE_ROOT
 local HOTPOT_FENNEL_UPDATE_ROOT = R.const.HOTPOT_FENNEL_UPDATE_ROOT
 local HOTPOT_FENNEL_UPDATE_LUA_ROOT = R.const.HOTPOT_FENNEL_UPDATE_LUA_ROOT
@@ -13,34 +12,21 @@ do
   if (case_2_ == nil) then
     local _ = vim.fn.mkdir(HOTPOT_CONFIG_CACHE_ROOT, "p")
     local Context = R.Context
-    local function _3_(...)
-      local case_4_, case_5_ = ...
-      if ((case_4_ == true) and (nil ~= case_5_)) then
-        local ctx = case_5_
-        local function _6_(...)
-          local case_7_, case_8_ = ...
-          if (case_7_ == true) then
-            return "ok"
-          elseif ((case_7_ == false) and (nil ~= case_8_)) then
-            local err = case_8_
-            notify_warn("Hotpot encountered an error syncing during first-time startup.")
-            notify_warn("You should still be able to edit fnl files to fix the issue.")
-            return notify_error(err)
-          else
-            return nil
-          end
-        end
-        return _6_(pcall(Context.sync, ctx))
-      elseif ((case_4_ == false) and (nil ~= case_5_)) then
-        local err = case_5_
-        notify_warn("Hotpot encountered an error syncing during first-time startup.")
-        notify_warn("You should still be able to edit fnl files to fix the issue.")
-        return notify_error(err)
+    local case_3_, case_4_ = pcall(Context.new, vim.fn.stdpath("config"))
+    if ((case_3_ == true) and (nil ~= case_4_)) then
+      local ctx = case_4_
+      local case_5_ = Context.sync(ctx)
+      if ((_G.type(case_5_) == "table") and ((_G.type(case_5_.errors) == "table") and (case_5_.errors[1] == nil))) then
+      elseif (nil ~= case_5_) then
+        local report = case_5_
+        R.Runtime["invoke-sync-report-handler"](ctx, report, {reason = "boot"})
       else
-        return nil
       end
+    elseif ((case_3_ == false) and (nil ~= case_4_)) then
+      local err = case_4_
+      notify_error(err)
+    else
     end
-    _3_(pcall(Context.new, vim.fn.stdpath("config")))
   elseif ((_G.type(case_2_) == "table") and (case_2_.type == "directory")) then
   elseif ((_G.type(case_2_) == "table") and (nil ~= case_2_.type)) then
     local t = case_2_.type
@@ -54,15 +40,15 @@ do
   autocmd.enable()
   command.enable()
 end
-local function _12_()
+local function _9_()
   return require("hotpot.fennel")
 end
-package.preload.fennel = _12_
+package.preload.fennel = _9_
 do
   local bang = (0 == vim.v.vim_did_init)
   do
-    local case_13_ = vim.uv.fs_stat(HOTPOT_FENNEL_UPDATE_LUA_ROOT)
-    if (case_13_ == nil) then
+    local case_10_ = vim.uv.fs_stat(HOTPOT_FENNEL_UPDATE_LUA_ROOT)
+    if (case_10_ == nil) then
       vim.fn.mkdir(HOTPOT_FENNEL_UPDATE_LUA_ROOT, "p")
     else
     end
@@ -83,11 +69,11 @@ local function setup(_3foptions)
     end
     opts = tbl_21_
   end
-  local case_16_, case_17_ = R.runtime.apply(opts)
-  if (case_16_ == true) then
+  local case_13_, case_14_ = R.runtime.apply(opts)
+  if (case_13_ == true) then
     return true
-  elseif ((case_16_ == false) and (nil ~= case_17_)) then
-    local err = case_17_
+  elseif ((case_13_ == false) and (nil ~= case_14_)) then
+    local err = case_14_
     return notify_warn(("Invalid configuration provided to `hotpot.setup`: \n" .. err))
   else
     return nil
