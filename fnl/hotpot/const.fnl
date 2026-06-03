@@ -1,6 +1,8 @@
 {:HOTPOT_CONFIG_CACHE_ROOT (-> (vim.fn.stdpath :data)
                                (vim.fs.joinpath :site :pack :hotpot :opt :hotpot-config-cache)
                                (vim.fs.normalize))
+ ;; ROOT dir is used for the packadd path, where as LUA_ROOT is used for
+ ;; actually storing the updated fennel lua files.
  :HOTPOT_FENNEL_UPDATE_ROOT (-> (vim.fn.stdpath :data)
                                 (vim.fs.joinpath :site :pack :hotpot :opt :hotpot-fennel-update)
                                 (vim.fs.normalize))
