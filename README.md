@@ -524,8 +524,8 @@ compiliation errors.*
 
 The function receives 3 arguments, a `context` object, `report` table and an
 `invocation-metadata` table. Inspect the `report` table for available fields.
-`invocation-metadata` contains `reason` which may be `command`, `autocommand`
-or `api` depending on what initiated the `sync` event.
+`invocation-metadata` contains `reason` which may be `command`, `autocommand`,
+`api` or `boot` depending on what initiated the `sync` event.
 
 The default handler generates LSP `$/progress` messages by default or
 `nvim_echo` messages when `verbose? = true`.

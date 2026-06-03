@@ -1,5 +1,5 @@
 (assert (= 1 (vim.fn.has "nvim-0.11.6")) "Hotpot requires neovim 0.11.6+")
-(local {: R : notify-error : notify-warn : notify-info} (require :hotpot.util))
+(local {: R : notify-error : notify-warn} (require :hotpot.util))
 
 (local {: HOTPOT_CONFIG_CACHE_ROOT
         : HOTPOT_FENNEL_UPDATE_ROOT
@@ -11,15 +11,11 @@
 (case (vim.uv.fs_stat HOTPOT_CONFIG_CACHE_ROOT)
   nil (let [_ (vim.fn.mkdir HOTPOT_CONFIG_CACHE_ROOT "p")
             {: Context} R]
-        (case-try
-          (pcall Context.new (vim.fn.stdpath :config)) (true ctx)
-          (pcall Context.sync ctx) true
-          :ok
-          (catch
-            (false err) (do
-                          (notify-warn "Hotpot encountered an error syncing during first-time startup.")
-                          (notify-warn "You should still be able to edit fnl files to fix the issue.")
-                          (notify-error err)))))
+        (case (pcall Context.new (vim.fn.stdpath :config))
+          (true ctx) (case (Context.sync ctx)
+                       {:errors [nil]} :ok
+                       report (R.Runtime.invoke-sync-report-handler ctx report {:reason :boot}))
+          (false err) (notify-error err)))
   ;; exists, do nothing
   {:type :directory} nil
   ;; wrong type

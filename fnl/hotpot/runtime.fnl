@@ -27,13 +27,20 @@
       (icollect [_ {: fnl-abs : error} (ipairs report.errors) &into nvim-echo-report]
         [(string.format "☒  %s\n%s\n" fnl-abs error) :DiagnosticError])
       (when (< 0 (length report.errors))
-        (when atomic?
+        (if atomic?
           (table.insert nvim-echo-report
                         [(.. "Some files had compilation errors! "
                              "`atomic? = true`, no changes were written to disk!\n")
                          :DiagnosticWarn])
           (table.insert nvim-echo-report
-                        ["Some files had compilation errors!\n" :DiagnosticWarn]))))
+                        [(.. "Some files had compilation errors! "
+                             "`atomic? = false`, only some changes were written to disk!\n")
+                         :DiagnosticWarn]))
+        (when (= :boot invocation-meta.reason)
+          (table.insert nvim-echo-report
+                        ["Hotpot encountered an error syncing during first-time startup.\n" :DiagnosticWarn])
+          (table.insert nvim-echo-report
+                        ["You should still be able to edit fnl files to fix the issue, saving the files should resync them, or you can run `:Hotpot sync` from your config dir." :DiagnosticWarn]))))
     ;; When run by command, we always want to show *some* output so users know
     ;; something happened. If an error occurs, it will be obvious, but for
     ;; non-verbose runs we should say a "completed" message.
