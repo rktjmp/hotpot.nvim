@@ -1,5 +1,10 @@
 # 🍲 Hotpot Changelog
 
+## 2.1.2
+
+- Fix first-boot compiler errors not being shown to the user.
+- Add additional `boot` reason to possible `invocation-meta.reason` values.
+
 ## 2.1.1
 
 - Rename `sync-report-handler` `invocation-meta.source` to

@@ -142,7 +142,7 @@ end
 
 -- Install hotpot in the same manner as lazy.nvim, into Lazy's own plugin directory.
 local lazy_path = ensure_installed("folke/lazy.nvim", "stable")
-local hotpot_path = ensure_installed("rktjmp/hotpot.nvim", "v2.1.1")
+local hotpot_path = ensure_installed("rktjmp/hotpot.nvim", "v2.1.2")
 -- As per Lazy's install instructions, but also include hotpot as
 -- we have installed it to lazy.nvim's managed directory outside of Neovim's
 -- runtimepath.
