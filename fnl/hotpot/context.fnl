@@ -13,7 +13,7 @@
   (with-open [fd (io.open file :r)]
     (let [header (-> (or (fd:read 256) "") ;; nil NOT "" when file is empty
                      (string.sub 1 (length *hotpot-ownership-marker*)))]
-      (= header *hotpot-ownership-marker* ))))
+      (= header *hotpot-ownership-marker*))))
 
 (fn validate-user-spec [user-spec path]
   ;; return nil so we can collect unknow keys
@@ -174,7 +174,7 @@
                         (name:match extension-pattern)
                         (accumulate [ok? true _ rule (ipairs ignore) &until (not ok?)]
                           (not (rule:match path))))))
-               {:limit math.huge :type :file :path root}))
+               {:limit math.huge :type :file :path root :follow true}))
 
 (λ m.find-source-files [ctx]
   "Find all fnl/fnlm files in context source, return table keyed by extension."
