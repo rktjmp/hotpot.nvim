@@ -285,7 +285,7 @@ m["find-files"] = function(root, extension_pattern, ignore)
     end
     return and_47_
   end
-  return vim.fs.find(_46_, {limit = math.huge, type = "file", path = root})
+  return vim.fs.find(_46_, {limit = math.huge, type = "file", path = root, follow = true})
 end
 m["find-source-files"] = function(ctx)
   if (nil == ctx) then
